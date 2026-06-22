@@ -389,7 +389,7 @@ function viewRec(){
 }
 function esc(s){return (s||'').replace(/"/g,'&quot;');}
 function recCalc(){const k=+document.getElementById('r_kilos').value||0,p=+document.getElementById('r_precio').value||0;document.getElementById('r_total').value=k&&p?money(k*p):'';}
-function recRows(){return S.recepciones.filter(r=>enPeriodo(r.fecha,'rec')).slice(0,300).map(r=>`<tr style="${r.estado==='anulada'?'opacity:.5':''}"><td class="mono">${r.codigo_lote}</td><td>${fmtD(r.fecha)}</td><td>${r.proveedor||'—'}</td><td>${r.materia_prima||'—'}</td><td class="mono">${nf(r.kilos,1)}</td><td>${r.recibido_por||'—'}</td><td><span class="tag ${r.estado==='anulada'?'out':'ok'}">${r.estado==='anulada'?'Anulada':'Activa'}</span></td><td style="white-space:nowrap">${r.estado!=='anulada'?`<button class="btn btn-ghost btn-sm" onclick="editRecep('${r.codigo_lote}')">✎</button> <button class="btn btn-danger btn-sm" onclick="anularRecep('${r.codigo_lote}')">✕</button>`:''}</td></tr>`).join('')||'<tr><td colspan=8 class=empty>Sin recepciones en el período</td></tr>';}
+function recRows(){return S.recepciones.filter(r=>enPeriodo(r.fecha,'rec')).slice(0,300).map(r=>`<tr style="${r.estado==='anulada'?'opacity:.5':''}"><td class="mono">${r.codigo_lote}</td><td>${fmtD(r.fecha)}</td><td>${r.proveedor||'—'}</td><td>${r.materia_prima||'—'}</td><td class="mono">${nf(r.kilos,1)}</td><td>${r.recibido_por||'—'}</td><td><span class="tag ${r.estado==='anulada'?'out':'ok'}">${r.estado==='anulada'?'Anulada':'Activa'}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="labelLoteRec('${r.codigo_lote}')" title="Etiqueta de lote para cámara">🏷️</button> <button class="btn btn-ghost btn-sm" onclick="compRecep('${r.codigo_lote}')" title="Comprobante de recepción">📄</button> ${r.estado!=='anulada'?`<button class="btn btn-ghost btn-sm" onclick="editRecep('${r.codigo_lote}')">✎</button> <button class="btn btn-danger btn-sm" onclick="anularRecep('${r.codigo_lote}')">✕</button>`:''}</td></tr>`).join('')||'<tr><td colspan=8 class=empty>Sin recepciones en el período</td></tr>';}
 
 async function saveRecep(){
   const fecha=$('r_fecha').value,prov=$('r_prov').value.trim(),mp=$('r_mp').value.trim().toUpperCase(),recib=$('r_recib').value.trim();
@@ -409,6 +409,7 @@ async function saveRecep(){
     await reloadCatalogo();await reloadRecepciones();
     banner('Recepción '+codigo+' registrada','');
     go('rec');
+    setTimeout(()=>labelLoteRec(codigo),80);
   }catch(err){banner('Error: '+err.message,'err');$('r_save').innerHTML='✓ Registrar recepción';$('r_save').disabled=false;}
 }
 function editRecep(codigo){
@@ -1045,7 +1046,7 @@ function repApply(){repF={desde:$('rf_d').value,hasta:$('rf_h').value,prov:$('rf
 function repClear(){repF={desde:'',hasta:'',prov:'',prod:'',cli:''};viewRep();}
 function repGo(t){repCur=t;REPS.forEach(r=>{const b=$('rs_'+r[0]);if(b)b.classList.toggle('btn-gold',r[0]===t);});repPaint();}
 function repExport(){const ex=window._repEx;if(!ex||ex.rows.length<2)return banner('No hay datos para exportar','warn');dlCSV('reporte_'+ex.name+'_'+today()+'.csv',ex.rows);}
-function capCalc(avg){const paq=+$('cap_paq').value||0,op=+$('cap_op').value||0;const el=$('cap_res');if(!el)return;if(paq>0&&avg>0){const hh=paq/avg;const hs=op>0?hh/op:0;el.innerHTML=`Necesitás <b>${nf(hh,1)} horas-hombre</b>${op>0?` · ${nf(hs,1)} horas con ${op} operarios`:''}`;}else el.innerHTML='';}
+function capCalc(){const paq=+$('cap_paq').value||0,op=+$('cap_op').value||0,prod=+$('cap_prod').value||0;const el=$('cap_res');if(!el)return;if(paq<=0||prod<=0){el.innerHTML='Ingresá los <b>paquetes a preparar</b> y la <b>productividad</b> para calcular.';return;}const hh=paq/prod;const hs=op>0?hh/op:0;el.innerHTML=`Para preparar <b>${nf(paq)} paquetes</b> necesitás <b>${nf(hh,1)} horas-hombre</b>`+(op>0?` · con <b>${op} operario(s)</b> son <b>${nf(hs,1)} horas</b> de trabajo.`:` (ingresá operarios para estimar las horas).`);}
 function repPaint(){const b=$('repBody');if(!b)return;const t=repCur;const xbtn=`<button class="btn btn-ghost btn-sm" onclick="repExport()">⬇ Exportar CSV</button>`;let ex={name:t,rows:[]};
   if(t==='diario'){b.innerHTML=`<div class="card"><div class="card-h"><h3>Reporte diario</h3><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input type="date" id="rep_fecha" value="${window._repFecha||today()}" onchange="window._repFecha=this.value;renderRep()" style="width:auto"><button class="btn btn-ghost btn-sm" onclick="printDoc('A4')">🖨️</button><button class="btn btn-gold btn-sm" id="rep_pdf" onclick="downloadReportePDF()">⬇ PDF</button></div></div><div id="rep_container"></div></div>`;renderRep();window._repEx={name:'',rows:[]};return;}
   if(t==='compras'){const m={};recFilt().forEach(r=>{const k=r.materia_prima||'—';m[k]=m[k]||{kg:0,$:0,n:0};m[k].kg+=+r.kilos||0;m[k].$+=+r.total||0;m[k].n++;});const tk=Object.values(m).reduce((a,v)=>a+v.kg,0),t$=Object.values(m).reduce((a,v)=>a+v.$,0);const ents=Object.entries(m).sort((a,b)=>b[1].$-a[1].$);
@@ -1097,8 +1098,10 @@ function repPaint(){const b=$('repBody');if(!b)return;const t=repCur;const xbtn=
     ex.rows=[['Fecha','Paquetes','Operarios','Horas','Horas-hombre','Paq/hora-hombre']].concat(ks.map(k=>[fmtD(k),days[k].paq,days[k].op,+days[k].hs.toFixed(1),+days[k].hh.toFixed(1),days[k].hh>0?+(days[k].paq/days[k].hh).toFixed(1):'']));
     b.innerHTML=`<div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="kpi navy"><div class="lab">📦 Paquetes</div><div class="val">${nf(totP)}</div></div><div class="kpi steel"><div class="lab">⏱️ Horas-hombre</div><div class="val">${nf(totHH,1)}</div></div><div class="kpi gold"><div class="lab">⚡ Productividad</div><div class="val">${nf(avg,1)}</div><div class="un">paq / hora-hombre</div></div></div>
     <div class="card" style="margin-bottom:14px"><div class="card-h"><h3>Productividad por día</h3>${xbtn}</div><div style="overflow:auto"><table><thead><tr><th>Fecha</th><th>Paquetes</th><th>Operarios</th><th>Horas</th><th>Horas-hombre</th><th>Paq/h-h</th></tr></thead><tbody>${ks.map(k=>`<tr><td>${fmtD(k)}</td><td class="mono">${nf(days[k].paq)}</td><td class="mono">${days[k].op}</td><td class="mono">${nf(days[k].hs,1)}</td><td class="mono">${nf(days[k].hh,1)}</td><td class="mono">${nf(days[k].paq/days[k].hh,1)}</td></tr>`).join('')||'<tr><td colspan=6 class=empty>Cargá producciones con operarios y horas</td></tr>'}</tbody></table></div></div>
-    <div class="card"><div class="card-h"><h3>Planificador de capacidad</h3></div><p class="hint">¿Cuántas horas y operarios necesito para preparar un pedido? Usa la productividad promedio (${nf(avg,1)} paq/h-h).</p>
-    <div class="g2"><div><label>Paquetes a preparar</label><input type="number" id="cap_paq" placeholder="ej: 5000" oninput="capCalc(${avg})"></div><div><label>Operarios disponibles</label><input type="number" id="cap_op" placeholder="ej: 7" oninput="capCalc(${avg})"></div></div><div id="cap_res" class="scan-note" style="margin-top:8px"></div></div>`;}
+    <div class="card"><div class="card-h"><h3>Calculadora de capacidad</h3></div><p class="hint">¿Cuántas horas y operarios necesito para preparar un pedido? Completá los datos y tocá <b>Calcular</b>.${avg>0?` La productividad promedio actual es ${nf(avg,1)} paq/hora-hombre.`:' Todavía no hay producciones con operarios y horas cargadas; podés ingresar la productividad a mano.'}</p>
+    <div class="g2"><div><label>Paquetes a preparar</label><input type="number" id="cap_paq" placeholder="ej: 5000" oninput="capCalc()"></div><div><label>Operarios disponibles</label><input type="number" id="cap_op" placeholder="ej: 7" oninput="capCalc()"></div></div>
+    <div class="g2"><div><label>Productividad (paquetes por hora-hombre)</label><input type="number" id="cap_prod" step="0.1" value="${avg>0?avg.toFixed(1):''}" placeholder="ej: 120" oninput="capCalc()"></div><div style="display:flex;align-items:flex-end"><button class="btn btn-gold" style="width:100%" onclick="capCalc()">Calcular</button></div></div>
+    <div id="cap_res" class="scan-note" style="margin-top:10px"></div></div>`;}
   window._repEx=ex;
 }
 
@@ -1161,6 +1164,20 @@ async function downloadReportePDF(){
 
 // ---- CONSULTA DE TRAZABILIDAD ----
 function recById(codigo){return S.recepciones.find(r=>r.codigo_lote===codigo);}
+function labelLoteRec(codigo){const r=recById(codigo);if(!r)return;
+  modal(`<h3>Etiqueta de lote ${r.codigo_lote}</h3><p class="hint">Imprimila y pegala en la mercadería en cámara para identificarla.</p>
+  <div class="lblsheet" id="lblArea"><div class="lbl box"><div class="bx-h">${esc(r.materia_prima||'')}<br><span style="font-weight:400;font-size:9px">LOTE DE MATERIA PRIMA</span></div><div class="qrwrap" id="qrl"></div><div style="text-align:center"><b class="mono" style="font-size:15px">${r.codigo_lote}</b></div><div style="font-size:9px;margin-top:4px;text-align:center">Proveedor: ${esc(r.proveedor||'—')}<br>${nf(r.kilos,1)} kg · ${fmtD(r.fecha)}</div></div></div>
+  <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-gold" onclick="printDoc('auto')">🖨️ Imprimir etiqueta</button></div>`);
+  qr($('qrl'),r.codigo_lote);
+}
+function compRecep(codigo){const r=recById(codigo);if(!r)return;const e=S.empresa;
+  modal(`<h3>Comprobante de recepción ${r.codigo_lote}</h3><p class="hint">Para entregar al proveedor · se imprime en hoja A4.</p>
+  <div id="lblArea"><div class="remito" style="max-width:560px"><div class="rh"><div style="font-size:11px"><b>${e.razon_social||''}</b><br>${e.cuit||''}<br>${e.dom_planta||e.dom_fiscal||''}${e.telefono?'<br>Tel '+e.telefono:''}</div><div class="rtitle">COMPROBANTE<br>DE RECEPCIÓN<br><span style="font-size:13px">${r.codigo_lote}</span></div></div>
+   <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #000;font-size:12px"><div><b>Proveedor:</b> ${esc(r.proveedor||'—')}<br><b>Fecha:</b> ${fmtD(r.fecha)}</div><div style="text-align:right"><b>Lote:</b> ${r.codigo_lote}<br><b>Recibió:</b> ${esc(r.recibido_por||'—')}</div></div>
+   <table><thead><tr><th>Producto recibido</th><th style="text-align:right">Cajas/bultos</th><th style="text-align:right">Kilos</th>${r.precio_kilo?'<th style="text-align:right">Precio/kg</th><th style="text-align:right">Total</th>':''}</tr></thead><tbody><tr><td>${esc(r.materia_prima||'')}</td><td class="mono" style="text-align:right">${nf(r.cajas)}</td><td class="mono" style="text-align:right">${nf(r.kilos,2)}</td>${r.precio_kilo?`<td class="mono" style="text-align:right">${money(r.precio_kilo)}</td><td class="mono" style="text-align:right">${money(r.total)}</td>`:''}</tr></tbody></table>
+   <div style="display:flex;justify-content:space-between;margin-top:46px;font-size:12px"><div>_______________________<br>Firma proveedor</div><div>_______________________<br>Recibió</div></div></div></div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-gold" onclick="printDoc('A4')">🖨️ Imprimir comprobante (A4)</button></div>`);
+}
 function loteObjsDeProd(p){const out=[];if(p.lotes&&p.lotes.length){p.lotes.forEach(l=>{const r=recById(l.loteId);if(r&&!out.includes(r))out.push(r);});}else{const r=recById(p.loteId);if(r)out.push(r);}return out;}
 function estadoLote(r){return stockLote(r)>0.001?['ok','Con stock']:['out','Agotado'];}
 function viewTraz(){
