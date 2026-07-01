@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FMN — Sistema de Gestión</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --negro:       #0F1410;
+    --verde-vivo:  #3D7A2F;
+    --verde-claro: #5FA64E;
+    --verde-glow:  rgba(61,122,47,0.18);
+    --oro:         #C9A84C;
+    --oro-suave:   rgba(201,168,76,0.15);
+    --blanco:      #F7F9F5;
+    --gris-suave:  rgba(247,249,245,0.06);
+    --gris-borde:  rgba(247,249,245,0.12);
+    --texto-dim:   rgba(247,249,245,0.5);
+    --radio:       10px;
+    --font:        'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--negro);
+    color: var(--blanco);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Fondo con textura de campo */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(61,122,47,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 80% 80%, rgba(201,168,76,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Grid sutil de fondo */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(247,249,245,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(247,249,245,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .logo-mark {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, var(--verde-vivo), var(--verde-claro));
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 0 32px var(--verde-glow), 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  .brand-name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--oro);
+    margin-bottom: 6px;
+  }
+
+  .brand-sub {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--blanco);
+    letter-spacing: -0.3px;
+  }
+
+  /* ── CARD LOGIN ── */
+  .card {
+    background: rgba(15,20,16,0.8);
+    border: 1px solid var(--gris-borde);
+    border-radius: 16px;
+    padding: 32px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--blanco);
+    margin-bottom: 4px;
+  }
+
+  .card-sub {
+    font-size: 13px;
+    color: var(--texto-dim);
+    margin-bottom: 24px;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--texto-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 7px;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--gris-suave);
+    border: 1px solid var(--gris-borde);
+    border-radius: var(--radio);
+    padding: 11px 14px;
+    font-size: 14px;
+    font-family: var(--font);
+    color: var(--blanco);
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .field input::placeholder { color: rgba(247,249,245,0.25); }
+
+  .field input:focus {
+    border-color: var(--verde-claro);
+    box-shadow: 0 0 0 3px var(--verde-glow);
+  }
+
+  .btn-login {
+    width: 100%;
+    background: linear-gradient(135deg, var(--verde-vivo), var(--verde-claro));
+    color: #fff;
+    border: none;
+    border-radius: var(--radio);
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px var(--verde-glow);
+    letter-spacing: 0.3px;
+  }
+
+  .btn-login:hover { opacity: 0.9; box-shadow: 0 6px 24px var(--verde-glow); }
+  .btn-login:active { transform: scale(0.99); }
+  .btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ERROR */
+  .error-msg {
+    display: none;
+    background: rgba(192,57,43,0.15);
+    border: 1px solid rgba(192,57,43,0.3);
+    border-radius: var(--radio);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #e74c3c;
+    margin-top: 14px;
+    text-align: center;
+  }
+  .error-msg.show { display: block; }
+
+  /* SPINNER */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── PORTAL (después del login) ── */
+  .portal { display: none; }
+  .portal.show { display: block; }
+  .login-wrap { display: block; }
+  .login-wrap.hide { display: none; }
+
+  .portal-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .bienvenida {
+    font-size: 13px;
+    color: var(--texto-dim);
+    margin-bottom: 4px;
+  }
+
+  .usuario-nombre {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--blanco);
+  }
+
+  .rol-badge {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .rol-admin  { background: var(--oro-suave); color: var(--oro); border: 1px solid rgba(201,168,76,0.3); }
+  .rol-galpon { background: rgba(61,122,47,0.2); color: var(--verde-claro); border: 1px solid rgba(95,166,78,0.3); }
+  .rol-finca  { background: rgba(61,122,47,0.2); color: var(--verde-claro); border: 1px solid rgba(95,166,78,0.3); }
+
+  /* MÓDULOS GRID */
+  .modulos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .modulo-card {
+    background: rgba(15,20,16,0.8);
+    border: 1px solid var(--gris-borde);
+    border-radius: 14px;
+    padding: 24px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    text-decoration: none;
+    display: block;
+    backdrop-filter: blur(12px);
+  }
+
+  .modulo-card:hover {
+    border-color: var(--verde-claro);
+    box-shadow: 0 4px 24px var(--verde-glow);
+    transform: translateY(-2px);
+  }
+
+  .modulo-card.oro:hover {
+    border-color: var(--oro);
+    box-shadow: 0 4px 24px var(--oro-suave);
+  }
+
+  .modulo-ico {
+    font-size: 32px;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .modulo-nombre {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blanco);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .modulo-desc {
+    font-size: 11px;
+    color: var(--texto-dim);
+    line-height: 1.5;
+  }
+
+  .modulo-tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  .tag-verde { background: rgba(61,122,47,0.25); color: var(--verde-claro); }
+  .tag-oro   { background: var(--oro-suave); color: var(--oro); }
+  .tag-gris  { background: rgba(247,249,245,0.08); color: var(--texto-dim); }
+
+  /* PRÓXIMAMENTE */
+  .modulo-card.prox {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* PIE */
+  .portal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid var(--gris-borde);
+    font-size: 12px;
+    color: var(--texto-dim);
+  }
+
+  .btn-logout {
+    background: none;
+    border: 1px solid var(--gris-borde);
+    border-radius: 6px;
+    color: var(--texto-dim);
+    font-size: 12px;
+    font-family: var(--font);
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .btn-logout:hover { border-color: #e74c3c; color: #e74c3c; }
+
+  /* PIE LOGIN */
+  .login-footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 12px;
+    color: var(--texto-dim);
+  }
+
+  /* RESPONSIVE */
+  @media(max-width: 400px) {
+    .modulos-grid { grid-template-columns: 1fr; }
+    .card { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ── HEADER (siempre visible) ── -->
+  <div class="header">
+    <div class="logo-mark">🌿</div>
+    <div class="brand-name">Frutihortícola FMN S.A.</div>
+    <div class="brand-sub">Sistema de Gestión</div>
+  </div>
+
+  <!-- ── LOGIN ── -->
+  <div class="login-wrap" id="login-wrap">
+    <div class="card">
+      <div class="card-title">Iniciar sesión</div>
+      <div class="card-sub">Ingresá con tu usuario asignado</div>
+
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input type="email" id="inp-email" placeholder="usuario@fmn.com" autocomplete="email" />
+      </div>
+
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+
+      <button class="btn-login" id="btn-login" onclick="login()">
+        Ingresar al sistema
+      </button>
+
+      <div class="error-msg" id="error-msg">
+        Usuario o contraseña incorrectos. Verificá tus datos.
+      </div>
+    </div>
+
+    <div class="login-footer">
+      CONTROL TRACE · v3.0 · FMN Piloto
+    </div>
+  </div>
+
+  <!-- ── PORTAL (post login) ── -->
+  <div class="portal" id="portal">
+    <div class="card">
+      <div class="portal-header">
+        <div class="bienvenida">Bienvenido,</div>
+        <div class="usuario-nombre" id="portal-nombre">—</div>
+        <div class="rol-badge" id="portal-rol-badge">—</div>
+      </div>
+
+      <div class="modulos-grid" id="modulos-grid">
+        <!-- se genera dinámicamente según rol -->
+      </div>
+
+      <div class="portal-footer">
+        <span id="portal-email-footer"></span>
+        <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONFIG SUPABASE
+// ══════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://gfovibpzpyjebkgdwuya.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmb3ZpYnB6cHlqZWJrZ2R3dXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTY0NjcsImV4cCI6MjA5NzQ3MjQ2N30.jFrtGrJ5UB30nyNriu7sbPSOT2s_B0QHyzyQS3mP_MM';
+
+// Módulos disponibles por rol
+const MODULOS = {
+  admin: [
+    {
+      id: 'controltrace',
+      nombre: 'CONTROL TRACE',
+      ico: '🏭',
+      desc: 'Galpón · Recepción · Trazabilidad · Remitos',
+      tag: 'Galpón', tagClass: 'tag-verde',
+      url: '/CONTROLTRACE/index.html',
+    },
+    {
+      id: 'controlagro',
+      nombre: 'CONTROLAGRO',
+      ico: '🌿',
+      desc: 'Finca · Invernadero · Siembras · Cosecha',
+      tag: 'Campo', tagClass: 'tag-verde',
+      url: '/controlagro/index.html',
+    },
+    {
+      id: 'controlplus',
+      nombre: 'CONTROL PLUS',
+      ico: '🧾',
+      desc: 'Facturación · ARCA · Cuenta corriente',
+      tag: 'Próximamente', tagClass: 'tag-gris',
+      url: null,
+      prox: true,
+    },
+  ],
+  galpon: [
+    {
+      id: 'controltrace',
+      nombre: 'CONTROL TRACE',
+      ico: '🏭',
+      desc: 'Galpón · Recepción · Trazabilidad · Remitos',
+      tag: 'Galpón', tagClass: 'tag-verde',
+      url: '/CONTROLTRACE/index.html',
+    },
+  ],
+  finca: [
+    {
+      id: 'controlagro',
+      nombre: 'CONTROLAGRO',
+      ico: '🌿',
+      desc: 'Finca · Invernadero · Siembras · Cosecha',
+      tag: 'Campo', tagClass: 'tag-verde',
+      url: '/controlagro/index.html',
+    },
+  ],
+};
+
+// ══════════════════════════════════════════════════════════════
+//  SUPABASE HELPERS
+// ══════════════════════════════════════════════════════════════
+async function sbPost(path, body) {
+  const r = await fetch(`${SUPA_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPA_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  return r.json();
+}
+
+async function sbGet(table, filter='') {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}${filter}`, {
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': `Bearer ${SUPA_KEY}`,
+    },
+  });
+  return r.json();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INIT — verificar sesión existente
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  // Enter para login
+  document.getElementById('inp-pass').addEventListener('keydown', e => {
+    if(e.key === 'Enter') login();
+  });
+  document.getElementById('inp-email').addEventListener('keydown', e => {
+    if(e.key === 'Enter') document.getElementById('inp-pass').focus();
+  });
+
+  // Verificar sesión guardada
+  const sesion = getSesion();
+  if(sesion) {
+    await mostrarPortal(sesion.email, sesion.nombre, sesion.rol);
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════════════════════════
+async function login() {
+  const email = document.getElementById('inp-email').value.trim();
+  const pass  = document.getElementById('inp-pass').value;
+  const btn   = document.getElementById('btn-login');
+  const err   = document.getElementById('error-msg');
+
+  if(!email || !pass) {
+    showError('Completá email y contraseña.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Verificando...';
+  err.classList.remove('show');
+
+  try {
+    // 1. Autenticar con Supabase Auth
+    const authRes = await sbPost('/auth/v1/token?grant_type=password', { email, password: pass });
+
+    if(authRes.error || !authRes.access_token) {
+      showError('Usuario o contraseña incorrectos.');
+      resetBtn();
+      return;
+    }
+
+    const userId = authRes.user?.id;
+
+    // 2. Obtener rol desde user_roles
+    const roles = await sbGet('user_roles', `?user_id=eq.${userId}&activo=eq.true&limit=1`);
+
+    if(!roles || roles.length === 0) {
+      showError('Tu usuario no tiene permisos asignados. Contactá al administrador.');
+      resetBtn();
+      return;
+    }
+
+    const { rol, nombre, email: emailRol } = roles[0];
+
+    // 3. Guardar sesión
+    guardarSesion({ email: emailRol || email, nombre: nombre || email, rol, access_token: authRes.access_token });
+
+    // 4. Mostrar portal
+    await mostrarPortal(emailRol || email, nombre || email, rol);
+
+  } catch(e) {
+    showError('Error de conexión. Intentá de nuevo.');
+    resetBtn();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PORTAL
+// ══════════════════════════════════════════════════════════════
+async function mostrarPortal(email, nombre, rol) {
+  // Ocultar login
+  document.getElementById('login-wrap').classList.add('hide');
+  document.getElementById('portal').classList.add('show');
+
+  // Datos usuario
+  document.getElementById('portal-nombre').textContent = nombre || email;
+  document.getElementById('portal-email-footer').textContent = email;
+
+  // Badge de rol
+  const rolBadge  = document.getElementById('portal-rol-badge');
+  const rolLabels = { admin: '⚙️ Administrador', galpon: '🏭 Galpón', finca: '🌿 Finca' };
+  rolBadge.textContent  = rolLabels[rol] || rol;
+  rolBadge.className    = `rol-badge rol-${rol}`;
+
+  // Generar módulos según rol
+  const grid    = document.getElementById('modulos-grid');
+  const modulos = MODULOS[rol] || MODULOS['galpon'];
+
+  // Si solo tiene 1 módulo, redirigir directo
+  const activos = modulos.filter(m => !m.prox);
+  if(activos.length === 1) {
+    window.location.href = activos[0].url;
+    return;
+  }
+
+  // Grid de módulos
+  grid.style.gridTemplateColumns = modulos.length === 1 ? '1fr' : '1fr 1fr';
+  grid.innerHTML = modulos.map(m => `
+    <a 
+      class="modulo-card ${m.prox ? 'prox' : ''} ${m.id === 'controlplus' ? 'oro' : ''}"
+      href="${m.url || '#'}"
+      ${m.prox ? 'tabindex="-1"' : ''}
+    >
+      <span class="modulo-ico">${m.ico}</span>
+      <div class="modulo-nombre">${m.nombre}</div>
+      <div class="modulo-desc">${m.desc}</div>
+      <span class="modulo-tag ${m.tagClass}">${m.tag}</span>
+    </a>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LOGOUT
+// ══════════════════════════════════════════════════════════════
+function logout() {
+  borrarSesion();
+  document.getElementById('portal').classList.remove('show');
+  document.getElementById('login-wrap').classList.remove('hide');
+  document.getElementById('inp-email').value = '';
+  document.getElementById('inp-pass').value  = '';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'Ingresar al sistema';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SESIÓN (sessionStorage — dura mientras esté el tab abierto)
+// ══════════════════════════════════════════════════════════════
+function guardarSesion(data) {
+  sessionStorage.setItem('fmn_sesion', JSON.stringify(data));
+}
+function getSesion() {
+  try { return JSON.parse(sessionStorage.getItem('fmn_sesion')); } catch(e) { return null; }
+}
+function borrarSesion() {
+  sessionStorage.removeItem('fmn_sesion');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════════════
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function resetBtn() {
+  const btn = document.getElementById('btn-login');
+  btn.disabled = false;
+  btn.textContent = 'Ingresar al sistema';
+}
+</script>
+
+</body>
+</html>
