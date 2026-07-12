@@ -1848,21 +1848,22 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 async function cargarDesdeBD() {
   try {
+    const q = async (t, f) => { try { return (await sbFetch(t,'GET',null,f)) || []; } catch(e){ console.warn('No se pudo cargar', t, e.message); return []; } };
     const [provs, cults, vars, sems, libs, siems, vivos, cosecsH, cortesD, clts, glabs, ggens, pgs, pgsDet] = await Promise.all([
-      sbFetch('agro_proveedores','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
-      sbFetch('agro_cultivos','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
-      sbFetch('agro_variedades','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
-      sbFetch('agro_semillas_stock','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
-      sbFetch('agro_liberaciones','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
-      sbFetch('agro_siembras','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
-      sbFetch('agro_viveros','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
-      sbFetch('agro_cosechas','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha_inicio.desc'),
-      sbFetch('agro_cosecha_cortes','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
-      sbFetch('agro_clientes','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
-      sbFetch('agro_gastos_labores','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
-      sbFetch('agro_gastos_generales','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
-      sbFetch('agro_pagos','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
-      sbFetch('agro_pagos_detalle','GET',null,'?tenant_id=eq.'+TENANT_ID),
+      q('agro_proveedores','?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
+      q('agro_cultivos','?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
+      q('agro_variedades','?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
+      q('agro_semillas_stock','?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
+      q('agro_liberaciones','?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
+      q('agro_siembras','?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
+      q('agro_viveros','?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
+      q('agro_cosechas','?tenant_id=eq.'+TENANT_ID+'&order=fecha_inicio.desc'),
+      q('agro_cosecha_cortes','?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
+      q('agro_clientes','?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
+      q('agro_gastos_labores','?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
+      q('agro_gastos_generales','?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
+      q('agro_pagos','?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
+      q('agro_pagos_detalle','?tenant_id=eq.'+TENANT_ID),
     ]);
     DB.proveedores     = provs   || [];
     DB.cultivos        = cults   || [];
@@ -2150,6 +2151,7 @@ async function guardarIngreso() {
   if(moneda==='USD' && tc<=0) { toast('Ingresá el tipo de cambio para facturas en dólares','error'); return; }
 
   let totalFactura = 0;
+  let fallos = 0, errMsg = '';
   const baseId = Date.now();
   for(let i=0; i<lineasIngreso.length; i++) {
     const l = lineasIngreso[i];
@@ -2186,7 +2188,7 @@ async function guardarIngreso() {
     try {
       const res = await sbFetch('agro_semillas_stock','POST',{...nuevo,id:undefined},'');
       if(res && res[0] && res[0].id) nuevo.id = res[0].id;
-    } catch(e){}
+    } catch(e){ fallos++; errMsg = e.message || String(e); }
 
     DB.semillas.unshift(nuevo);
     registrarMovimiento('INGRESO', nuevo);
@@ -2198,7 +2200,11 @@ async function guardarIngreso() {
   poblarLotesLiberacion();
   actualizarPanel();
   const sym = moneda==='USD'?'US$':'$';
-  toast(`✅ Factura registrada — ${n} semilla(s) · ${sym} ${fmtNum(totalFactura)}`);
+  if(fallos>0) {
+    toast(`⚠️ ${fallos} de ${n} semilla(s) NO se guardaron en la base (sólo visibles en esta sesión). Error: ${errMsg}`,'error');
+  } else {
+    toast(`✅ Factura registrada — ${n} semilla(s) · ${sym} ${fmtNum(totalFactura)}`);
+  }
 }
 
 function limpiarIngreso() {
@@ -4201,7 +4207,7 @@ function cargarFacturasProveedor() {
 
   if(!provId) { wrap.style.display='none'; facturasPago=[]; return; }
 
-  facturasPago = getFacturasCompra().filter(f => f.proveedor_id===provId && f.saldo>0.01);
+  facturasPago = agruparFacturas(getFacturasCompra().filter(f => f.proveedor_id===provId && f.saldo>0.01));
 
   if(facturasPago.length===0) {
     wrap.style.display='none';
@@ -4222,7 +4228,7 @@ function cargarFacturasProveedor() {
       <td><input type="checkbox" id="pgc-${i}" onchange="toggleFactura(${i})" style="width:16px;height:16px;cursor:pointer;"/></td>
       <td>${fmt(f.fecha)}</td>
       <td>${f.comprobante}</td>
-      <td style="font-size:12px;">${f.concepto}</td>
+      <td style="font-size:12px;">${f.concepto}${f.items&&f.items.length>1?' <span class="chip chip-ok" style="font-size:9px;">'+f.items.length+' sem.</span>':''}</td>
       <td><span class="chip ${f.moneda==='USD'?'chip-creciendo':'chip-ok'}">${f.moneda}</span></td>
       <td><strong>${sym} ${fmtNum(f.saldo)}</strong></td>
       <td id="pge-${i}" style="font-size:12px;color:var(--texto-suave);">${f.moneda==='USD'?'—':'$ '+fmtNum(f.saldo)}</td>
@@ -4377,44 +4383,51 @@ async function guardarPago() {
   try { await sbFetch('agro_pagos','POST',{...pago,id:undefined},''); } catch(e){}
   DB.pagos.unshift(pago);
 
-  // Imputar a cada factura
+  // Imputar cada factura (grupo) repartiendo el monto entre sus semillas/ítems
   for(const sel of seleccionadas) {
-    const f = sel.factura;
+    const grupo = sel.factura;
+    let restante = sel.monto;
+    for(const it of grupo.items) {
+      if(restante <= 0.01) break;
+      const aplica = Math.min(restante, it.saldo);
+      if(aplica <= 0) continue;
+      restante -= aplica;
 
-    const det = {
-      id: Date.now() + Math.random(),
-      tenant_id: TENANT_ID,
-      pago_id: pagoId,
-      factura_origen: f.origen,
-      factura_id: f.raw_id,
-      monto: sel.monto,
-      moneda: f.moneda,
-    };
-    try { await sbFetch('agro_pagos_detalle','POST',{...det,id:undefined},''); } catch(e){}
-    DB.pagosDetalle.unshift(det);
+      const det = {
+        id: Date.now() + Math.random(),
+        tenant_id: TENANT_ID,
+        pago_id: pagoId,
+        factura_origen: it.origen,
+        factura_id: it.raw_id,
+        monto: aplica,
+        moneda: it.moneda,
+      };
+      try { await sbFetch('agro_pagos_detalle','POST',{...det,id:undefined},''); } catch(e){}
+      DB.pagosDetalle.unshift(det);
 
-    // Actualizar el monto pagado de la factura
-    if(f.origen==='semilla') {
-      const s = DB.semillas.find(x => x.id === f.raw_id);
-      if(s) {
-        s.monto_pagado = (s.monto_pagado||0) + sel.monto;
-        s.estado_pago  = (s.monto_pagado >= (s.importe_total||0) - 0.01) ? 'pagado' : 'pendiente';
-        try {
-          await sbFetch('agro_semillas_stock','PATCH',
-            { monto_pagado: s.monto_pagado, estado_pago: s.estado_pago },
-            `?id=eq.${s.id}&tenant_id=eq.${TENANT_ID}`);
-        } catch(e){}
-      }
-    } else {
-      const g = DB.gastosGenerales.find(x => x.id === f.raw_id);
-      if(g) {
-        g.monto_pagado = (g.monto_pagado||0) + sel.monto;
-        g.estado_pago  = (g.monto_pagado >= (g.total||0) - 0.01) ? 'pagado' : 'pendiente';
-        try {
-          await sbFetch('agro_gastos_generales','PATCH',
-            { monto_pagado: g.monto_pagado, estado_pago: g.estado_pago },
-            `?id=eq.${g.id}&tenant_id=eq.${TENANT_ID}`);
-        } catch(e){}
+      // Actualizar el monto pagado del ítem subyacente
+      if(it.origen==='semilla') {
+        const s = DB.semillas.find(x => x.id === it.raw_id);
+        if(s) {
+          s.monto_pagado = (s.monto_pagado||0) + aplica;
+          s.estado_pago  = (s.monto_pagado >= (s.importe_total||0) - 0.01) ? 'pagado' : 'pendiente';
+          try {
+            await sbFetch('agro_semillas_stock','PATCH',
+              { monto_pagado: s.monto_pagado, estado_pago: s.estado_pago },
+              `?id=eq.${s.id}&tenant_id=eq.${TENANT_ID}`);
+          } catch(e){}
+        }
+      } else {
+        const g = DB.gastosGenerales.find(x => x.id === it.raw_id);
+        if(g) {
+          g.monto_pagado = (g.monto_pagado||0) + aplica;
+          g.estado_pago  = (g.monto_pagado >= (g.total||0) - 0.01) ? 'pagado' : 'pendiente';
+          try {
+            await sbFetch('agro_gastos_generales','PATCH',
+              { monto_pagado: g.monto_pagado, estado_pago: g.estado_pago },
+              `?id=eq.${g.id}&tenant_id=eq.${TENANT_ID}`);
+          } catch(e){}
+        }
       }
     }
   }
@@ -5126,18 +5139,4 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
         <button class="btn-secondary" id="btn-eliminar-compra" onclick="eliminarCompra()"
                 style="border-color:var(--rojo);color:var(--rojo);">🗑️ Eliminar</button>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-secondary" onclick="closeModal('modal-compra')">Cerrar</button>
-        <button class="btn-secondary" id="btn-imprimir-compra" onclick="imprimirCompra()">🖨️ Imprimir</button>
-        <button class="btn-primary" id="btn-editar-compra" onclick="modoEditarCompra()">✏️ Editar</button>
-        <button class="btn-primary" id="btn-guardar-compra" onclick="guardarEdicionCompra()" style="display:none;">💾 Guardar cambios</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-<div id="sql-output" style="display:none"></div>
-<script src="/navbar.js"></script>
-</body>
-</html>
+      <div style="display:flex;gap:8
