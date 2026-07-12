@@ -319,6 +319,11 @@
     <div class="nav-item" onclick="nav('gastos-labores')"><span class="ico">💸</span> Gastos Labores</div>
     <div class="nav-item" onclick="nav('gastos-generales')"><span class="ico">🧾</span> Gastos Generales</div>
 
+    <div class="sidebar-badge">Proveedores</div>
+    <div class="nav-item" onclick="nav('proveedores')"><span class="ico">🏢</span> Ficha Proveedores</div>
+    <div class="nav-item" onclick="nav('cuenta-corriente')"><span class="ico">📒</span> Cuenta Corriente</div>
+    <div class="nav-item" onclick="nav('pagos')"><span class="ico">💰</span> Pagos</div>
+
     <div class="sidebar-badge">Análisis</div>
     <div class="nav-item" onclick="nav('trazabilidad')"><span class="ico">🔗</span> Trazabilidad</div>
     <div class="nav-item" onclick="nav('reportes')"><span class="ico">📈</span> Reportes</div>
@@ -387,6 +392,11 @@
             <div class="kpi-label">Gastos registrados</div>
             <div class="kpi-val" id="kpi-gastos" style="font-size:20px;">—</div>
             <div class="kpi-sub">labores + generales</div>
+          </div>
+          <div class="kpi-card alerta">
+            <div class="kpi-label">Deuda proveedores</div>
+            <div class="kpi-val" id="kpi-deuda" style="font-size:18px;">—</div>
+            <div class="kpi-sub" id="kpi-deuda-sub">por pagar</div>
           </div>
         </div>
 
@@ -507,23 +517,62 @@
               <input type="text" id="s-total-calc" readonly placeholder="— automático —" />
             </div>
 
+            <div class="section-sep">Moneda y cotización</div>
+
+            <div class="field">
+              <label>Moneda de la factura *</label>
+              <select id="s-moneda" onchange="toggleMonedaSemilla()">
+                <option value="ARS">🇦🇷 Pesos (ARS)</option>
+                <option value="USD">🇺🇸 Dólares (USD)</option>
+              </select>
+            </div>
+
+            <div class="field" id="s-tc-wrap" style="display:none;">
+              <label>Tipo de cambio del día *</label>
+              <input type="number" id="s-tc" min="0" step="0.01" placeholder="Ej: 1250.00" oninput="calcImporte()" />
+            </div>
+
             <div class="section-sep">Datos económicos</div>
 
             <div class="field">
-              <label>Precio por paquete ($)</label>
+              <label>Precio por paquete (sin IVA) *</label>
               <input type="number" id="s-precio" min="0" step="0.01" placeholder="0.00" oninput="calcImporte()" />
             </div>
 
             <div class="field readonly">
-              <label>Total compra ($)</label>
-              <input type="text" id="s-importe" readonly placeholder="— automático —" />
+              <label>Base imponible</label>
+              <input type="text" id="s-base" readonly placeholder="— automático —" />
+            </div>
+
+            <div class="field">
+              <label>Alícuota IVA *</label>
+              <select id="s-iva-pct" onchange="calcImporte()">
+                <option value="21">21%</option>
+                <option value="10.5">10,5%</option>
+                <option value="0">Sin IVA / Exento</option>
+              </select>
+            </div>
+
+            <div class="field readonly">
+              <label>IVA</label>
+              <input type="text" id="s-iva-monto" readonly placeholder="— automático —" />
+            </div>
+
+            <div class="field readonly">
+              <label>TOTAL FACTURA</label>
+              <input type="text" id="s-importe" readonly placeholder="— automático —" style="font-weight:700;" />
+            </div>
+
+            <div class="field readonly" id="s-equiv-wrap" style="display:none;">
+              <label>Equivalente en pesos</label>
+              <input type="text" id="s-equiv-ars" readonly placeholder="— automático —" />
             </div>
 
             <div class="field">
               <label>Estado de pago</label>
               <select id="s-pago">
-                <option value="pagado">✅ Pagado</option>
-                <option value="pendiente">⏳ Pendiente</option>
+                <option value="pendiente">⏳ Pendiente (va a cuenta corriente)</option>
+                <option value="pagado">✅ Pagado al contado</option>
               </select>
             </div>
 
@@ -547,8 +596,8 @@
             <table>
               <thead>
                 <tr>
-                  <th>Cultivo</th><th>Variedad</th><th>Lote prov.</th><th>Ingresado</th>
-                  <th>Liberado</th><th>Disponible</th><th>Unidad</th><th>Proveedor</th><th>Estado</th>
+                  <th>Cultivo</th><th>Variedad</th><th>Lote prov.</th><th>F. Compra</th>
+                  <th>Liberado</th><th>Disponible</th><th>Total factura</th><th>Proveedor</th><th>Pago</th>
                 </tr>
               </thead>
               <tbody id="tabla-stock"></tbody>
@@ -978,22 +1027,38 @@
         </select>
       </div>
       <div class="field"><label>Descripción</label><input type="text" id="gg-descripcion" placeholder="Qué se compró..."/></div>
-      <div class="section-sep">Importes</div>
-      <div class="field"><label>Base imponible ($) *</label><input type="number" id="gg-base" min="0" step="0.01" placeholder="0.00" oninput="calcTotalGG()"/></div>
-      <div class="field"><label>IVA (%)</label>
-        <select id="gg-iva-pct" onchange="calcTotalGG()">
-          <option value="0">Sin IVA</option>
-          <option value="10.5">10.5%</option>
-          <option value="21" selected>21%</option>
-          <option value="27">27%</option>
+      <div class="section-sep">Moneda</div>
+      <div class="field">
+        <label>Moneda *</label>
+        <select id="gg-moneda" onchange="toggleMonedaGG()">
+          <option value="ARS">🇦🇷 Pesos (ARS)</option>
+          <option value="USD">🇺🇸 Dólares (USD)</option>
         </select>
       </div>
-      <div class="field readonly"><label>IVA ($)</label><input type="text" id="gg-iva-monto" readonly placeholder="— auto —"/></div>
-      <div class="field readonly"><label>Total ($)</label><input type="text" id="gg-total" readonly placeholder="— auto —"/></div>
+      <div class="field" id="gg-tc-wrap" style="display:none;">
+        <label>Tipo de cambio del día *</label>
+        <input type="number" id="gg-tc" min="0" step="0.01" placeholder="Ej: 1250.00" oninput="calcTotalGG()"/>
+      </div>
+
+      <div class="section-sep">Importes</div>
+      <div class="field"><label>Base imponible (sin IVA) *</label><input type="number" id="gg-base" min="0" step="0.01" placeholder="0.00" oninput="calcTotalGG()"/></div>
+      <div class="field"><label>IVA (%)</label>
+        <select id="gg-iva-pct" onchange="calcTotalGG()">
+          <option value="21" selected>21%</option>
+          <option value="10.5">10,5%</option>
+          <option value="0">Sin IVA / Exento</option>
+        </select>
+      </div>
+      <div class="field readonly"><label>IVA</label><input type="text" id="gg-iva-monto" readonly placeholder="— auto —"/></div>
+      <div class="field readonly"><label>TOTAL</label><input type="text" id="gg-total" readonly placeholder="— auto —" style="font-weight:700;"/></div>
+      <div class="field readonly" id="gg-equiv-wrap" style="display:none;">
+        <label>Equivalente en pesos</label>
+        <input type="text" id="gg-equiv-ars" readonly placeholder="— auto —"/>
+      </div>
       <div class="field"><label>Estado de pago</label>
         <select id="gg-pago">
-          <option value="pagado">✅ Pagado</option>
-          <option value="pendiente">⏳ Pendiente</option>
+          <option value="pendiente">⏳ Pendiente (va a cuenta corriente)</option>
+          <option value="pagado">✅ Pagado al contado</option>
         </select>
       </div>
     </div>
@@ -1262,6 +1327,267 @@
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════ SCREEN: FICHA PROVEEDORES ═══════════════════════ -->
+<div id="screen-proveedores" class="screen">
+  <div class="page-header">
+    <div><h2>Ficha de Proveedores</h2><div class="sub">Datos fiscales y de contacto</div></div>
+    <button class="btn-primary" onclick="openModal('modal-proveedor')">+ Nuevo Proveedor</button>
+  </div>
+  <div class="panel-card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Razón social</th><th>CUIT</th><th>Dirección</th><th>Teléfono</th><th>Email</th><th>Saldo ARS</th><th>Saldo USD</th></tr></thead>
+        <tbody id="tabla-proveedores"><tr class="empty-row"><td colspan="7">Sin proveedores registrados</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN: CUENTA CORRIENTE ═══════════════════════ -->
+<div id="screen-cuenta-corriente" class="screen">
+  <div class="page-header">
+    <div><h2>Cuenta Corriente Proveedores</h2><div class="sub">Facturas pendientes y saldos por pagar</div></div>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));">
+    <div class="kpi-card alerta">
+      <div class="kpi-label">Deuda total ARS</div>
+      <div class="kpi-val" id="cc-deuda-ars" style="font-size:20px;">$ 0</div>
+      <div class="kpi-sub">facturas en pesos</div>
+    </div>
+    <div class="kpi-card alerta">
+      <div class="kpi-label">Deuda total USD</div>
+      <div class="kpi-val" id="cc-deuda-usd" style="font-size:20px;">US$ 0</div>
+      <div class="kpi-sub">facturas en dólares</div>
+    </div>
+    <div class="kpi-card tierra">
+      <div class="kpi-label">Facturas pendientes</div>
+      <div class="kpi-val" id="cc-cant-pend">0</div>
+      <div class="kpi-sub">total por pagar</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Proveedores con saldo</div>
+      <div class="kpi-val" id="cc-cant-prov">0</div>
+      <div class="kpi-sub">con deuda abierta</div>
+    </div>
+  </div>
+
+  <div class="panel-card" style="margin-bottom:20px;">
+    <h3>🎛️ Filtros</h3>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="min-width:200px;">
+        <label>Proveedor</label>
+        <select id="cc-filtro-prov" onchange="renderCuentaCorriente()"><option value="">Todos</option></select>
+      </div>
+      <div class="field" style="min-width:150px;">
+        <label>Estado</label>
+        <select id="cc-filtro-estado" onchange="renderCuentaCorriente()">
+          <option value="pendiente">⏳ Solo pendientes</option>
+          <option value="todos">Todas</option>
+          <option value="pagado">✅ Solo pagadas</option>
+        </select>
+      </div>
+      <div class="field" style="min-width:140px;">
+        <label>Moneda</label>
+        <select id="cc-filtro-moneda" onchange="renderCuentaCorriente()">
+          <option value="">Todas</option>
+          <option value="ARS">🇦🇷 Pesos</option>
+          <option value="USD">🇺🇸 Dólares</option>
+        </select>
+      </div>
+      <button class="btn-secondary" onclick="exportarCC()" style="height:38px;">⬇️ CSV</button>
+    </div>
+  </div>
+
+  <div class="panel-card">
+    <h3>📒 Detalle de facturas</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th>Concepto</th>
+            <th>Moneda</th><th>Total</th><th>Pagado</th><th>Saldo</th>
+            <th>Antigüedad</th><th>Estado</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tabla-cc"><tr class="empty-row"><td colspan="11">Sin facturas registradas</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN: PAGOS ═══════════════════════ -->
+<div id="screen-pagos" class="screen">
+  <div class="page-header">
+    <div><h2>Pagos a Proveedores</h2><div class="sub">Registro de pagos parciales o totales</div></div>
+  </div>
+
+  <div class="form-card" style="margin-bottom:20px;max-width:100%;">
+    <h2>💰 Registrar Pago</h2>
+    <div class="form-desc">Seleccioná el proveedor, luego marcá las facturas a cancelar. Podés pagar parcial o totalmente.</div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label>Fecha de pago *</label>
+        <input type="date" id="pg-fecha"/>
+      </div>
+      <div class="field">
+        <label>Proveedor *</label>
+        <select id="pg-proveedor" onchange="cargarFacturasProveedor()">
+          <option value="">— Seleccionar proveedor —</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- FACTURAS DEL PROVEEDOR -->
+    <div id="pg-facturas-wrap" style="display:none;margin-top:18px;">
+      <div class="section-sep" style="margin-bottom:12px;">Facturas pendientes</div>
+
+      <div class="alert alert-info" id="pg-tc-alert" style="display:none;">
+        <span style="font-size:18px;">💱</span>
+        <div style="flex:1;">
+          <strong>Hay facturas en dólares.</strong> Ingresá el tipo de cambio del día para calcular el equivalente en pesos.
+          <div style="margin-top:8px;display:flex;gap:10px;align-items:center;">
+            <label style="font-size:12px;font-weight:600;">TC del día:</label>
+            <input type="number" id="pg-tc" min="0" step="0.01" placeholder="Ej: 1250.00"
+                   style="width:140px;padding:6px 10px;border:1px solid var(--borde);border-radius:6px;font-size:13px;"
+                   oninput="recalcularFacturas()"/>
+            <span style="font-size:12px;color:var(--texto-suave);">ARS por USD</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tbl-wrap" style="margin-bottom:16px;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;"></th>
+              <th>Fecha</th><th>Comprobante</th><th>Concepto</th>
+              <th>Moneda</th><th>Saldo</th><th>Equiv. ARS</th><th style="width:150px;">A pagar</th>
+            </tr>
+          </thead>
+          <tbody id="pg-tabla-facturas"></tbody>
+        </table>
+      </div>
+
+      <!-- TOTALES -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px;">
+        <div class="res-card"><div class="res-label">Facturas seleccionadas</div><div class="res-val" id="pg-cant-sel">0</div></div>
+        <div class="res-card neutro"><div class="res-label">Total a pagar (ARS)</div><div class="res-val" id="pg-total-ars">$ 0</div></div>
+        <div class="res-card neutro"><div class="res-label">Total a pagar (USD)</div><div class="res-val" id="pg-total-usd">US$ 0</div></div>
+        <div class="res-card positivo"><div class="res-label">Total general en ARS</div><div class="res-val" id="pg-total-general">$ 0</div></div>
+      </div>
+
+      <!-- FORMA DE PAGO -->
+      <div class="section-sep" style="margin-bottom:12px;">Forma de pago</div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Moneda del pago *</label>
+          <select id="pg-moneda" onchange="recalcularFacturas()">
+            <option value="ARS">🇦🇷 Pago en Pesos (ARS)</option>
+            <option value="USD">🇺🇸 Pago en Dólares (USD)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Medio de pago *</label>
+          <select id="pg-medio" onchange="toggleMedioPago()">
+            <option value="efectivo">💵 Efectivo</option>
+            <option value="transferencia">🏦 Transferencia bancaria</option>
+            <option value="cheque_propio">📝 Cheque propio</option>
+            <option value="cheque_terceros">📄 Cheque diferido de terceros</option>
+            <option value="echeq">💻 Cheque electrónico (ECHEQ)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- DETALLE CHEQUE -->
+      <div id="pg-cheque-wrap" style="display:none;margin-top:14px;">
+        <div class="info-box" style="margin-bottom:12px;">📄 Datos del cheque</div>
+        <div class="form-grid three">
+          <div class="field">
+            <label>N° de cheque *</label>
+            <input type="text" id="pg-chq-nro" placeholder="Ej: 00123456"/>
+          </div>
+          <div class="field">
+            <label>Banco emisor *</label>
+            <input type="text" id="pg-chq-banco" placeholder="Ej: Banco Nación"/>
+          </div>
+          <div class="field" id="pg-chq-titular-wrap">
+            <label>Titular / Librador</label>
+            <input type="text" id="pg-chq-titular" placeholder="Nombre del firmante"/>
+          </div>
+          <div class="field">
+            <label>Fecha de emisión *</label>
+            <input type="date" id="pg-chq-emision"/>
+          </div>
+          <div class="field">
+            <label>Fecha de cobro / Pago *</label>
+            <input type="date" id="pg-chq-cobro"/>
+          </div>
+          <div class="field">
+            <label>CUIT del librador</label>
+            <input type="text" id="pg-chq-cuit" placeholder="Opcional"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETALLE TRANSFERENCIA -->
+      <div id="pg-transf-wrap" style="display:none;margin-top:14px;">
+        <div class="info-box" style="margin-bottom:12px;">🏦 Datos de la transferencia</div>
+        <div class="form-grid three">
+          <div class="field">
+            <label>Banco origen *</label>
+            <input type="text" id="pg-tr-banco-orig" placeholder="Banco desde donde se envía"/>
+          </div>
+          <div class="field">
+            <label>Banco destino</label>
+            <input type="text" id="pg-tr-banco-dest" placeholder="Banco del proveedor"/>
+          </div>
+          <div class="field">
+            <label>CBU / Alias destino</label>
+            <input type="text" id="pg-tr-cbu" placeholder="CBU o alias"/>
+          </div>
+          <div class="field">
+            <label>N° de operación / Comprobante</label>
+            <input type="text" id="pg-tr-nro" placeholder="Ej: 987654321"/>
+          </div>
+          <div class="field">
+            <label>Fecha de acreditación</label>
+            <input type="date" id="pg-tr-fecha"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-top:14px;">
+        <div class="field col-span-2">
+          <label>Observaciones</label>
+          <input type="text" id="pg-obs" placeholder="Notas adicionales del pago..."/>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" onclick="guardarPago()">💾 Confirmar Pago</button>
+        <button class="btn-secondary" onclick="limpiarPago()">🗑️ Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORIAL DE PAGOS -->
+  <div class="panel-card">
+    <h3>📋 Historial de Pagos</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Fecha</th><th>Proveedor</th><th>Facturas</th><th>Monto</th><th>Moneda</th><th>TC</th><th>Medio</th><th>Detalle</th></tr>
+        </thead>
+        <tbody id="tabla-pagos"><tr class="empty-row"><td colspan="8">Sin pagos registrados</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
     </div><!-- /content -->
   </main>
 </div><!-- /app -->
@@ -1270,8 +1596,11 @@
 <div class="modal-overlay" id="modal-proveedor">
   <div class="modal">
     <h3>➕ Nuevo Proveedor</h3>
-    <div class="field"><label>Nombre *</label><input type="text" id="mp-nombre" placeholder="Razón social o nombre" /></div>
+    <div class="field"><label>Razón social / Nombre *</label><input type="text" id="mp-nombre" placeholder="Ej: Semillas del Cuyo S.A." /></div>
+    <div class="field" style="margin-top:10px;"><label>CUIT</label><input type="text" id="mp-cuit" placeholder="30-12345678-9" /></div>
+    <div class="field" style="margin-top:10px;"><label>Dirección</label><input type="text" id="mp-direccion" placeholder="Calle, número, localidad" /></div>
     <div class="field" style="margin-top:10px;"><label>Teléfono</label><input type="text" id="mp-tel" placeholder="Opcional" /></div>
+    <div class="field" style="margin-top:10px;"><label>Email</label><input type="email" id="mp-email" placeholder="Opcional" /></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-proveedor')">Cancelar</button>
       <button class="btn-primary" onclick="guardarProveedor()">Guardar</button>
@@ -1317,7 +1646,9 @@
 <div class="modal-overlay" id="modal-proveedor-gg">
   <div class="modal">
     <h3>➕ Nuevo Proveedor</h3>
-    <div class="field"><label>Nombre *</label><input type="text" id="mgg-nombre" placeholder="Razón social o nombre"/></div>
+    <div class="field"><label>Razón social *</label><input type="text" id="mgg-nombre" placeholder="Razón social o nombre"/></div>
+    <div class="field" style="margin-top:10px;"><label>CUIT</label><input type="text" id="mgg-cuit" placeholder="30-12345678-9"/></div>
+    <div class="field" style="margin-top:10px;"><label>Dirección</label><input type="text" id="mgg-direccion" placeholder="Opcional"/></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-proveedor-gg')">Cancelar</button>
       <button class="btn-primary" onclick="guardarProveedorGG()">Guardar</button>
@@ -1352,6 +1683,8 @@ const DB = {
   clientes:    [],
   gastosLabores: [],
   gastosGenerales: [],
+  pagos: [],           // cabecera de pago
+  pagosDetalle: [],    // qué factura cancela cada pago
 };
 
 // Contadores para lotes
@@ -1414,11 +1747,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   renderLiberaciones();
   renderSiembras();
   poblarSelects();
+  renderProveedores();
+  if(typeof toggleMonedaSemilla === 'function') toggleMonedaSemilla();
+  if(typeof toggleMonedaGG === 'function') toggleMonedaGG();
 });
 
 async function cargarDesdeBD() {
   try {
-    const [provs, cults, vars, sems, libs, siems, vivos, cosecsH, cortesD, clts, glabs, ggens] = await Promise.all([
+    const [provs, cults, vars, sems, libs, siems, vivos, cosecsH, cortesD, clts, glabs, ggens, pgs, pgsDet] = await Promise.all([
       sbFetch('agro_proveedores','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
       sbFetch('agro_cultivos','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
       sbFetch('agro_variedades','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
@@ -1431,6 +1767,8 @@ async function cargarDesdeBD() {
       sbFetch('agro_clientes','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=nombre'),
       sbFetch('agro_gastos_labores','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
       sbFetch('agro_gastos_generales','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
+      sbFetch('agro_pagos','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=fecha.desc'),
+      sbFetch('agro_pagos_detalle','GET',null,'?tenant_id=eq.'+TENANT_ID),
     ]);
     DB.proveedores     = provs   || [];
     DB.cultivos        = cults   || [];
@@ -1444,6 +1782,8 @@ async function cargarDesdeBD() {
     DB.clientes        = clts    || [];
     DB.gastosLabores   = glabs   || [];
     DB.gastosGenerales = ggens   || [];
+    DB.pagos           = pgs     || [];
+    DB.pagosDetalle    = pgsDet  || [];
     DB.siembras.forEach(s => {
       const m = s.lote?.match(/^(FM|INV)-(\d+)/);
       if(m) loteCounters[m[1]] = Math.max(loteCounters[m[1]], parseInt(m[2]));
@@ -1472,6 +1812,9 @@ const pageTitles = {
   'trazabilidad':'Trazabilidad — Semilla a Venta',
   'reportes':'Reportes',
   'cruce-fmn':'Cruce con FMN',
+  'proveedores':'Ficha de Proveedores',
+  'cuenta-corriente':'Cuenta Corriente Proveedores',
+  'pagos':'Pagos a Proveedores',
 };
 
 function nav(screen) {
@@ -1493,6 +1836,9 @@ function nav(screen) {
   if(screen==='cosechas-lista') renderCosechasLista();
   if(screen==='gastos-labores') { poblarSelectsGastos(); renderGastosLabores(); }
   if(screen==='gastos-generales') { poblarProvGG(); renderGastosGenerales(); }
+  if(screen==='proveedores') renderProveedores();
+  if(screen==='cuenta-corriente') { poblarFiltroProvCC(); renderCuentaCorriente(); }
+  if(screen==='pagos') initPagos();
   if(screen==='trazabilidad') renderTrazabilidad();
   if(screen==='reportes') initReportes();
   if(screen==='cruce-fmn') renderCruceFMN();
@@ -1581,29 +1927,66 @@ function calcTotal() {
   const uni = document.getElementById('s-unidad').value;
   document.getElementById('s-total-calc').value = paq*cont > 0 ? `${(paq*cont).toLocaleString('es-AR')} ${uni}` : '';
 }
+function toggleMonedaSemilla() {
+  const m = document.getElementById('s-moneda').value;
+  document.getElementById('s-tc-wrap').style.display    = m==='USD' ? 'flex' : 'none';
+  document.getElementById('s-equiv-wrap').style.display = m==='USD' ? 'flex' : 'none';
+  calcImporte();
+}
+
 function calcImporte() {
-  const paq = parseFloat(document.getElementById('s-cant-paquetes').value)||0;
+  const paq    = parseFloat(document.getElementById('s-cant-paquetes').value)||0;
   const precio = parseFloat(document.getElementById('s-precio').value)||0;
-  document.getElementById('s-importe').value = precio*paq > 0 ? `$ ${(precio*paq).toLocaleString('es-AR',{minimumFractionDigits:2})}` : '';
+  const ivaPct = parseFloat(document.getElementById('s-iva-pct').value)||0;
+  const moneda = document.getElementById('s-moneda').value;
+  const tc     = parseFloat(document.getElementById('s-tc').value)||0;
+
+  const base  = precio * paq;
+  const iva   = base * ivaPct / 100;
+  const total = base + iva;
+  const sym   = moneda==='USD' ? 'US$' : '$';
+
+  document.getElementById('s-base').value      = base>0  ? `${sym} ${fmtNum(base)}`  : '';
+  document.getElementById('s-iva-monto').value = base>0  ? `${sym} ${fmtNum(iva)}`   : '';
+  document.getElementById('s-importe').value   = total>0 ? `${sym} ${fmtNum(total)}` : '';
+
+  if(moneda==='USD') {
+    document.getElementById('s-equiv-ars').value = (total>0 && tc>0)
+      ? `$ ${fmtNum(total*tc)}` : '— ingresá el TC —';
+  }
+}
+
+function fmtNum(n) {
+  return (n||0).toLocaleString('es-AR',{minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
 async function guardarIngreso() {
-  const fecha = document.getElementById('s-fecha').value;
-  const prov  = document.getElementById('s-proveedor').value;
-  const cult  = document.getElementById('s-cultivo').value;
-  const vari  = document.getElementById('s-variedad').value;
-  const paq   = parseFloat(document.getElementById('s-cant-paquetes').value)||0;
-  const cont  = parseFloat(document.getElementById('s-contenido').value)||0;
-  const uni   = document.getElementById('s-unidad').value;
-  const precio= parseFloat(document.getElementById('s-precio').value)||0;
+  const fecha  = document.getElementById('s-fecha').value;
+  const prov   = document.getElementById('s-proveedor').value;
+  const cult   = document.getElementById('s-cultivo').value;
+  const vari   = document.getElementById('s-variedad').value;
+  const paq    = parseFloat(document.getElementById('s-cant-paquetes').value)||0;
+  const cont   = parseFloat(document.getElementById('s-contenido').value)||0;
+  const uni    = document.getElementById('s-unidad').value;
+  const precio = parseFloat(document.getElementById('s-precio').value)||0;
+  const moneda = document.getElementById('s-moneda').value;
+  const tc     = parseFloat(document.getElementById('s-tc').value)||0;
+  const ivaPct = parseFloat(document.getElementById('s-iva-pct').value)||0;
+  const estado = document.getElementById('s-pago').value;
 
   if(!fecha||!cult||!vari||paq<=0||cont<=0) { toast('Completá los campos obligatorios (*)','error'); return; }
+  if(!prov) { toast('Seleccioná un proveedor','error'); return; }
+  if(moneda==='USD' && tc<=0) { toast('Ingresá el tipo de cambio para facturas en dólares','error'); return; }
+
+  const base  = precio*paq;
+  const iva   = base*ivaPct/100;
+  const total = base+iva;
 
   const nuevo = {
     id: Date.now(),
     tenant_id: TENANT_ID,
     fecha,
-    proveedor_id: prov||null,
+    proveedor_id: parseInt(prov),
     cultivo_id: parseInt(cult),
     variedad_id: parseInt(vari),
     lote_proveedor: document.getElementById('s-lote-prov').value,
@@ -1613,27 +1996,37 @@ async function guardarIngreso() {
     unidad: uni,
     total_stock: paq*cont,
     precio_paquete: precio,
-    importe_total: precio*paq,
-    estado_pago: document.getElementById('s-pago').value,
+    moneda,
+    tipo_cambio: moneda==='USD' ? tc : 1,
+    base_imponible: base,
+    iva_pct: ivaPct,
+    iva_monto: iva,
+    importe_total: total,
+    total_ars: moneda==='USD' ? total*tc : total,
+    monto_pagado: estado==='pagado' ? total : 0,
+    estado_pago: estado,
   };
 
-  try {
-    await sbFetch('agro_semillas_stock','POST',{...nuevo,id:undefined},'');
-  } catch(e) { /* offline OK */ }
+  try { await sbFetch('agro_semillas_stock','POST',{...nuevo,id:undefined},''); } catch(e){}
 
   DB.semillas.unshift(nuevo);
   limpiarIngreso();
   renderStock();
   poblarLotesLiberacion();
   actualizarPanel();
-  toast('✅ Semillas ingresadas al depósito');
+  const sym = moneda==='USD'?'US$':'$';
+  toast(`✅ Compra registrada — ${sym} ${fmtNum(total)}`);
   registrarMovimiento('INGRESO', nuevo);
 }
 
 function limpiarIngreso() {
-  ['s-factura','s-lote-prov','s-cant-paquetes','s-contenido','s-precio','s-total-calc','s-importe']
+  ['s-factura','s-lote-prov','s-cant-paquetes','s-contenido','s-precio','s-total-calc',
+   's-importe','s-base','s-iva-monto','s-tc','s-equiv-ars']
     .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('s-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('s-moneda').value = 'ARS';
+  document.getElementById('s-iva-pct').value = '21';
+  toggleMonedaSemilla();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1823,14 +2216,22 @@ function renderStock() {
     const prov = DB.proveedores.find(p=>p.id===s.proveedor_id)?.nombre||'—';
     const disp = calcDisponible(s);
     const dot = disp===0?'red':disp<(s.total_stock*0.2)?'yellow':'green';
+    const sym = (s.moneda||'ARS')==='USD' ? 'US$' : '$';
+    const saldo = (s.importe_total||0) - (s.monto_pagado||0);
+    const pagada = saldo <= 0.01;
+    const parcial = (s.monto_pagado||0) > 0.01 && !pagada;
+    const chip = pagada ? '<span class="chip chip-ok">✅ Pagado</span>'
+               : parcial ? '<span class="chip chip-pend">🔸 Parcial</span>'
+               : '<span class="chip chip-alert">⏳ Pendiente</span>';
     return `<tr>
       <td>${cult}</td><td>${vari}</td>
       <td>${s.lote_proveedor||'—'}</td>
       <td>${fmt(s.fecha)}</td>
-      <td>${s.total_stock - disp} ${s.unidad}</td>
-      <td><span class="stock-badge"><span class="dot dot-${dot}"></span>${disp} ${s.unidad}</span></td>
-      <td>${s.unidad}</td><td>${prov}</td>
-      <td><span class="chip ${s.estado_pago==='pagado'?'chip-ok':'chip-pend'}">${s.estado_pago==='pagado'?'✅ Pagado':'⏳ Pendiente'}</span></td>
+      <td>${(s.total_stock - disp).toFixed(2)} ${s.unidad}</td>
+      <td><span class="stock-badge"><span class="dot dot-${dot}"></span>${disp.toFixed(2)} ${s.unidad}</span></td>
+      <td><strong>${sym} ${fmtNum(s.importe_total)}</strong> <span class="chip ${(s.moneda||'ARS')==='USD'?'chip-creciendo':'chip-ok'}" style="font-size:10px;">${s.moneda||'ARS'}</span></td>
+      <td>${prov}</td>
+      <td>${chip}</td>
     </tr>`;
   }).join('');
 }
@@ -1932,6 +2333,20 @@ function actualizarPanel() {
   const kpiG = document.getElementById('kpi-gastos');
   if(kpiV) kpiV.textContent = totalVentas>0 ? `$${(totalVentas/1000).toFixed(0)}K` : '$ 0';
   if(kpiG) kpiG.textContent = (totalGL+totalGG)>0 ? `$${((totalGL+totalGG)/1000).toFixed(0)}K` : '$ 0';
+
+  // KPI deuda proveedores
+  const kpiD = document.getElementById('kpi-deuda');
+  const kpiDS = document.getElementById('kpi-deuda-sub');
+  if(kpiD && typeof getFacturasCompra === 'function') {
+    const pend = getFacturasCompra().filter(f => f.saldo > 0.01);
+    const dArs = pend.filter(f=>f.moneda==='ARS').reduce((s,f)=>s+f.saldo,0);
+    const dUsd = pend.filter(f=>f.moneda==='USD').reduce((s,f)=>s+f.saldo,0);
+    let txt = [];
+    if(dArs>0) txt.push('$'+(dArs/1000).toFixed(0)+'K');
+    if(dUsd>0) txt.push('US$'+(dUsd/1000).toFixed(1)+'K');
+    kpiD.textContent = txt.length ? txt.join(' + ') : '$ 0';
+    if(kpiDS) kpiDS.textContent = pend.length ? `${pend.length} factura(s) pendiente(s)` : 'sin deuda';
+  }
 
   // Tabla stock en panel
   const panelStock = document.getElementById('panel-stock');
@@ -2461,22 +2876,46 @@ function poblarProvGG() {
   DB.proveedores.forEach(p=>sel.innerHTML+=`<option value="${p.id}">${p.nombre}</option>`);
 }
 
+function toggleMonedaGG() {
+  const m = document.getElementById('gg-moneda').value;
+  document.getElementById('gg-tc-wrap').style.display    = m==='USD' ? 'flex' : 'none';
+  document.getElementById('gg-equiv-wrap').style.display = m==='USD' ? 'flex' : 'none';
+  calcTotalGG();
+}
+
 function calcTotalGG() {
-  const base  = parseFloat(document.getElementById('gg-base').value)||0;
+  const base   = parseFloat(document.getElementById('gg-base').value)||0;
   const pctIVA = parseFloat(document.getElementById('gg-iva-pct').value)||0;
-  const iva   = base * pctIVA / 100;
-  document.getElementById('gg-iva-monto').value = iva>0 ? `$ ${iva.toLocaleString('es-AR',{minimumFractionDigits:2})}` : '$ 0';
-  document.getElementById('gg-total').value     = `$ ${(base+iva).toLocaleString('es-AR',{minimumFractionDigits:2})}`;
+  const moneda = document.getElementById('gg-moneda').value;
+  const tc     = parseFloat(document.getElementById('gg-tc').value)||0;
+  const iva    = base * pctIVA / 100;
+  const total  = base + iva;
+  const sym    = moneda==='USD' ? 'US$' : '$';
+
+  document.getElementById('gg-iva-monto').value = `${sym} ${fmtNum(iva)}`;
+  document.getElementById('gg-total').value     = `${sym} ${fmtNum(total)}`;
+
+  if(moneda==='USD') {
+    document.getElementById('gg-equiv-ars').value = (total>0 && tc>0)
+      ? `$ ${fmtNum(total*tc)}` : '— ingresá el TC —';
+  }
 }
 
 async function guardarGastoGeneral() {
   const fecha  = document.getElementById('gg-fecha').value;
   const provId = parseInt(document.getElementById('gg-proveedor').value);
   const base   = parseFloat(document.getElementById('gg-base').value)||0;
+  const moneda = document.getElementById('gg-moneda').value;
+  const tc     = parseFloat(document.getElementById('gg-tc').value)||0;
+  const estado = document.getElementById('gg-pago').value;
+
   if(!fecha||!provId||base<=0) { toast('Completá fecha, proveedor e importe','error'); return; }
+  if(moneda==='USD' && tc<=0) { toast('Ingresá el tipo de cambio para facturas en dólares','error'); return; }
 
   const pctIVA = parseFloat(document.getElementById('gg-iva-pct').value)||0;
   const iva    = base*pctIVA/100;
+  const total  = base+iva;
+
   const nuevo = {
     id: Date.now(),
     tenant_id: TENANT_ID,
@@ -2485,24 +2924,32 @@ async function guardarGastoGeneral() {
     factura: document.getElementById('gg-factura').value,
     categoria: document.getElementById('gg-categoria').value,
     descripcion: document.getElementById('gg-descripcion').value,
+    moneda,
+    tipo_cambio: moneda==='USD' ? tc : 1,
     base_imponible: base,
     iva_pct: pctIVA,
     iva_monto: iva,
-    total: base+iva,
-    estado_pago: document.getElementById('gg-pago').value,
+    total,
+    total_ars: moneda==='USD' ? total*tc : total,
+    monto_pagado: estado==='pagado' ? total : 0,
+    estado_pago: estado,
   };
   try { await sbFetch('agro_gastos_generales','POST',{...nuevo,id:undefined},''); } catch(e){}
   DB.gastosGenerales.unshift(nuevo);
   limpiarGG();
   renderGastosGenerales();
-  toast('✅ Gasto general registrado');
+  const sym = moneda==='USD'?'US$':'$';
+  toast(`✅ Gasto registrado — ${sym} ${fmtNum(total)}`);
 }
 
 function limpiarGG() {
-  ['gg-factura','gg-descripcion','gg-base','gg-iva-monto','gg-total'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['gg-factura','gg-descripcion','gg-base','gg-iva-monto','gg-total','gg-tc','gg-equiv-ars']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('gg-fecha').value=new Date().toISOString().split('T')[0];
   document.getElementById('gg-proveedor').value='';
   document.getElementById('gg-iva-pct').value='21';
+  document.getElementById('gg-moneda').value='ARS';
+  toggleMonedaGG();
 }
 
 function renderGastosGenerales() {
@@ -2512,14 +2959,21 @@ function renderGastosGenerales() {
   const catLabel = {insumos:'🧪 Insumos',infraestructura:'🏗️ Infraestructura',herramientas:'🔧 Herramientas',combustible:'⛽ Combustible',otro:'📝 Otro'};
   tbody.innerHTML = DB.gastosGenerales.map(g=>{
     const prov = DB.proveedores.find(p=>p.id===g.proveedor_id)?.nombre||'—';
+    const sym  = (g.moneda||'ARS')==='USD' ? 'US$' : '$';
+    const saldo = (g.total||0) - (g.monto_pagado||0);
+    const pagada = saldo <= 0.01;
+    const parcial = (g.monto_pagado||0) > 0.01 && !pagada;
+    const chip = pagada ? '<span class="chip chip-ok">✅ Pagado</span>'
+               : parcial ? '<span class="chip chip-pend">🔸 Parcial</span>'
+               : '<span class="chip chip-alert">⏳ Pendiente</span>';
     return `<tr>
       <td>${fmt(g.fecha)}</td><td>${prov}</td>
       <td>${catLabel[g.categoria]||g.categoria}</td>
       <td>${g.descripcion||'—'}</td>
-      <td>$ ${(g.base_imponible||0).toLocaleString('es-AR',{minimumFractionDigits:2})}</td>
-      <td>$ ${(g.iva_monto||0).toLocaleString('es-AR',{minimumFractionDigits:2})}</td>
-      <td><strong>$ ${(g.total||0).toLocaleString('es-AR',{minimumFractionDigits:2})}</strong></td>
-      <td><span class="chip ${g.estado_pago==='pagado'?'chip-ok':'chip-pend'}">${g.estado_pago==='pagado'?'✅ Pagado':'⏳ Pendiente'}</span></td>
+      <td>${sym} ${fmtNum(g.base_imponible)}</td>
+      <td>${sym} ${fmtNum(g.iva_monto)} <span style="font-size:10px;color:var(--texto-suave);">(${g.iva_pct||0}%)</span></td>
+      <td><strong>${sym} ${fmtNum(g.total)}</strong></td>
+      <td>${chip}</td>
     </tr>`;
   }).join('');
 }
@@ -2550,15 +3004,20 @@ async function guardarCliente() {
 
 async function guardarProveedorGG() {
   const nom = document.getElementById('mgg-nombre').value.trim();
-  if(!nom){ toast('Ingresá un nombre','error'); return; }
-  const nuevo = { id: Date.now(), tenant_id: TENANT_ID, nombre: nom };
+  if(!nom){ toast('Ingresá una razón social','error'); return; }
+  const nuevo = {
+    id: Date.now(), tenant_id: TENANT_ID, nombre: nom,
+    cuit: document.getElementById('mgg-cuit').value.trim(),
+    direccion: document.getElementById('mgg-direccion').value.trim(),
+  };
   try { await sbFetch('agro_proveedores','POST',{...nuevo,id:undefined},''); } catch(e){}
   DB.proveedores.push(nuevo);
   DB.proveedores.sort((a,b)=>a.nombre.localeCompare(b.nombre));
   poblarProvGG();
   document.getElementById('gg-proveedor').value=nuevo.id;
-  document.getElementById('mgg-nombre').value='';
+  ['mgg-nombre','mgg-cuit','mgg-direccion'].forEach(i=>{const el=document.getElementById(i); if(el) el.value='';});
   closeModal('modal-proveedor-gg');
+  renderProveedores();
   toast(`✅ Proveedor "${nom}" agregado`);
 }
 
@@ -3156,6 +3615,525 @@ function renderVinculosFMN() {
   </tr>`).join('');
 }
 
+
+// ══════════════════════════════════════════════════════════════
+//  MÓDULO PROVEEDORES / CUENTA CORRIENTE / PAGOS
+// ══════════════════════════════════════════════════════════════
+
+const MEDIOS_PAGO = {
+  efectivo:        '💵 Efectivo',
+  transferencia:   '🏦 Transferencia',
+  cheque_propio:   '📝 Cheque propio',
+  cheque_terceros: '📄 Cheque terceros',
+  echeq:           '💻 ECHEQ',
+};
+
+// ── Devuelve todas las facturas de compra (semillas + gastos generales) ──
+function getFacturasCompra() {
+  const semillas = DB.semillas.map(s => ({
+    id: 'S'+s.id,
+    raw_id: s.id,
+    origen: 'semilla',
+    fecha: s.fecha,
+    proveedor_id: s.proveedor_id,
+    comprobante: s.factura || '—',
+    concepto: (DB.cultivos.find(c=>c.id===s.cultivo_id)?.nombre||'Semilla') + ' · ' +
+              (DB.variedades.find(v=>v.id===s.variedad_id)?.nombre||''),
+    moneda: s.moneda || 'ARS',
+    tipo_cambio: s.tipo_cambio || 1,
+    total: s.importe_total || 0,
+    pagado: s.monto_pagado || 0,
+    estado_pago: s.estado_pago || 'pendiente',
+  }));
+
+  const generales = DB.gastosGenerales.map(g => ({
+    id: 'G'+g.id,
+    raw_id: g.id,
+    origen: 'gasto',
+    fecha: g.fecha,
+    proveedor_id: g.proveedor_id,
+    comprobante: g.factura || '—',
+    concepto: g.descripcion || 'Gasto general',
+    moneda: g.moneda || 'ARS',
+    tipo_cambio: g.tipo_cambio || 1,
+    total: g.total || 0,
+    pagado: g.monto_pagado || 0,
+    estado_pago: g.estado_pago || 'pendiente',
+  }));
+
+  return [...semillas, ...generales]
+    .map(f => ({ ...f, saldo: (f.total||0) - (f.pagado||0) }))
+    .sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+}
+
+function diasAntiguedad(fecha) {
+  if(!fecha) return 0;
+  const d = new Date(fecha);
+  return Math.max(0, Math.floor((new Date() - d) / 86400000));
+}
+
+function chipAntiguedad(dias) {
+  if(dias <= 30) return `<span class="chip chip-ok">${dias} días</span>`;
+  if(dias <= 60) return `<span class="chip chip-pend">${dias} días</span>`;
+  return `<span class="chip chip-alert">${dias} días</span>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FICHA PROVEEDORES
+// ══════════════════════════════════════════════════════════════
+function renderProveedores() {
+  const tbody = document.getElementById('tabla-proveedores');
+  if(!tbody) return;
+  if(DB.proveedores.length===0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Sin proveedores registrados</td></tr>';
+    return;
+  }
+  const facturas = getFacturasCompra();
+  tbody.innerHTML = DB.proveedores.map(p => {
+    const fp = facturas.filter(f => f.proveedor_id === p.id && f.saldo > 0.01);
+    const sArs = fp.filter(f=>f.moneda==='ARS').reduce((s,f)=>s+f.saldo,0);
+    const sUsd = fp.filter(f=>f.moneda==='USD').reduce((s,f)=>s+f.saldo,0);
+    return `<tr>
+      <td><strong>${p.nombre}</strong></td>
+      <td>${p.cuit||'—'}</td>
+      <td>${p.direccion||'—'}</td>
+      <td>${p.telefono||'—'}</td>
+      <td>${p.email||'—'}</td>
+      <td>${sArs>0 ? `<strong style="color:var(--rojo)">$ ${fmtNum(sArs)}</strong>` : '<span style="color:var(--texto-suave)">—</span>'}</td>
+      <td>${sUsd>0 ? `<strong style="color:var(--rojo)">US$ ${fmtNum(sUsd)}</strong>` : '<span style="color:var(--texto-suave)">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CUENTA CORRIENTE
+// ══════════════════════════════════════════════════════════════
+function poblarFiltroProvCC() {
+  const sel = document.getElementById('cc-filtro-prov');
+  if(!sel) return;
+  const val = sel.value;
+  sel.innerHTML = '<option value="">Todos</option>';
+  DB.proveedores.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.nombre}</option>`);
+  if(val) sel.value = val;
+}
+
+let ccDataActual = [];
+
+function renderCuentaCorriente() {
+  const provF   = document.getElementById('cc-filtro-prov')?.value || '';
+  const estadoF = document.getElementById('cc-filtro-estado')?.value || 'pendiente';
+  const monF    = document.getElementById('cc-filtro-moneda')?.value || '';
+
+  let facturas = getFacturasCompra();
+
+  if(provF)  facturas = facturas.filter(f => f.proveedor_id == provF);
+  if(monF)   facturas = facturas.filter(f => f.moneda === monF);
+  if(estadoF === 'pendiente') facturas = facturas.filter(f => f.saldo > 0.01);
+  if(estadoF === 'pagado')    facturas = facturas.filter(f => f.saldo <= 0.01);
+
+  ccDataActual = facturas;
+
+  // KPIs sobre TODAS las pendientes (sin filtro de estado)
+  const pend = getFacturasCompra().filter(f => f.saldo > 0.01);
+  const deudaArs = pend.filter(f=>f.moneda==='ARS').reduce((s,f)=>s+f.saldo,0);
+  const deudaUsd = pend.filter(f=>f.moneda==='USD').reduce((s,f)=>s+f.saldo,0);
+  const provsConSaldo = [...new Set(pend.map(f=>f.proveedor_id))].length;
+
+  document.getElementById('cc-deuda-ars').textContent = '$ ' + fmtNum(deudaArs);
+  document.getElementById('cc-deuda-usd').textContent = 'US$ ' + fmtNum(deudaUsd);
+  document.getElementById('cc-cant-pend').textContent = pend.length;
+  document.getElementById('cc-cant-prov').textContent = provsConSaldo;
+
+  const tbody = document.getElementById('tabla-cc');
+  if(facturas.length===0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="11">Sin facturas para los filtros seleccionados</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = facturas.map(f => {
+    const prov = DB.proveedores.find(p=>p.id===f.proveedor_id)?.nombre || '—';
+    const sym  = f.moneda==='USD' ? 'US$' : '$';
+    const dias = diasAntiguedad(f.fecha);
+    const pagada = f.saldo <= 0.01;
+    const parcial = f.pagado > 0.01 && !pagada;
+    const estadoChip = pagada
+      ? '<span class="chip chip-ok">✅ Pagada</span>'
+      : parcial
+        ? '<span class="chip chip-pend">🔸 Parcial</span>'
+        : '<span class="chip chip-alert">⏳ Pendiente</span>';
+    return `<tr>
+      <td>${fmt(f.fecha)}</td>
+      <td><strong>${prov}</strong></td>
+      <td>${f.comprobante}</td>
+      <td style="font-size:12px;">${f.concepto}</td>
+      <td><span class="chip ${f.moneda==='USD'?'chip-creciendo':'chip-ok'}">${f.moneda}</span></td>
+      <td>${sym} ${fmtNum(f.total)}</td>
+      <td>${f.pagado>0 ? sym+' '+fmtNum(f.pagado) : '—'}</td>
+      <td><strong style="color:${pagada?'var(--verde-medio)':'var(--rojo)'}">${sym} ${fmtNum(f.saldo)}</strong></td>
+      <td>${pagada ? '—' : chipAntiguedad(dias)}</td>
+      <td>${estadoChip}</td>
+      <td>${pagada ? '' : `<button class="btn-primary" style="padding:3px 10px;font-size:11px;" onclick="irAPagar(${f.proveedor_id})">Pagar</button>`}</td>
+    </tr>`;
+  }).join('');
+}
+
+function irAPagar(provId) {
+  nav('pagos');
+  setTimeout(()=>{
+    const sel = document.getElementById('pg-proveedor');
+    if(sel) { sel.value = provId; cargarFacturasProveedor(); }
+  }, 100);
+}
+
+function exportarCC() {
+  if(ccDataActual.length===0){ toast('No hay datos para exportar','error'); return; }
+  const headers = ['Fecha','Proveedor','Comprobante','Concepto','Moneda','Total','Pagado','Saldo','Dias','Estado'];
+  const rows = ccDataActual.map(f => [
+    fmt(f.fecha),
+    DB.proveedores.find(p=>p.id===f.proveedor_id)?.nombre||'',
+    f.comprobante,
+    f.concepto.replace(/,/g,';'),
+    f.moneda,
+    f.total.toFixed(2),
+    f.pagado.toFixed(2),
+    f.saldo.toFixed(2),
+    diasAntiguedad(f.fecha),
+    f.saldo<=0.01 ? 'Pagada' : (f.pagado>0?'Parcial':'Pendiente'),
+  ]);
+  const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `CONTROLAGRO_cuenta_corriente_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  toast('⬇️ CSV exportado');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PAGOS
+// ══════════════════════════════════════════════════════════════
+let facturasPago = [];   // facturas del proveedor seleccionado
+
+function initPagos() {
+  const hoy = new Date().toISOString().split('T')[0];
+  const f = document.getElementById('pg-fecha');
+  if(f && !f.value) f.value = hoy;
+
+  const sel = document.getElementById('pg-proveedor');
+  const val = sel.value;
+  sel.innerHTML = '<option value="">— Seleccionar proveedor —</option>';
+  const facturas = getFacturasCompra();
+  DB.proveedores.forEach(p => {
+    const pend = facturas.filter(x => x.proveedor_id===p.id && x.saldo>0.01);
+    if(pend.length===0) return;
+    const sArs = pend.filter(x=>x.moneda==='ARS').reduce((s,x)=>s+x.saldo,0);
+    const sUsd = pend.filter(x=>x.moneda==='USD').reduce((s,x)=>s+x.saldo,0);
+    let saldoTxt = [];
+    if(sArs>0) saldoTxt.push(`$${fmtNum(sArs)}`);
+    if(sUsd>0) saldoTxt.push(`US$${fmtNum(sUsd)}`);
+    sel.innerHTML += `<option value="${p.id}">${p.nombre} — ${saldoTxt.join(' + ')}</option>`;
+  });
+  if(val) sel.value = val;
+
+  toggleMedioPago();
+  renderPagos();
+}
+
+function cargarFacturasProveedor() {
+  const provId = parseInt(document.getElementById('pg-proveedor').value);
+  const wrap   = document.getElementById('pg-facturas-wrap');
+
+  if(!provId) { wrap.style.display='none'; facturasPago=[]; return; }
+
+  facturasPago = getFacturasCompra().filter(f => f.proveedor_id===provId && f.saldo>0.01);
+
+  if(facturasPago.length===0) {
+    wrap.style.display='none';
+    toast('Este proveedor no tiene facturas pendientes','error');
+    return;
+  }
+
+  wrap.style.display='block';
+
+  // Mostrar alerta de TC si hay facturas en USD
+  const hayUsd = facturasPago.some(f => f.moneda==='USD');
+  document.getElementById('pg-tc-alert').style.display = hayUsd ? 'flex' : 'none';
+
+  const tbody = document.getElementById('pg-tabla-facturas');
+  tbody.innerHTML = facturasPago.map((f,i) => {
+    const sym = f.moneda==='USD' ? 'US$' : '$';
+    return `<tr>
+      <td><input type="checkbox" id="pgc-${i}" onchange="toggleFactura(${i})" style="width:16px;height:16px;cursor:pointer;"/></td>
+      <td>${fmt(f.fecha)}</td>
+      <td>${f.comprobante}</td>
+      <td style="font-size:12px;">${f.concepto}</td>
+      <td><span class="chip ${f.moneda==='USD'?'chip-creciendo':'chip-ok'}">${f.moneda}</span></td>
+      <td><strong>${sym} ${fmtNum(f.saldo)}</strong></td>
+      <td id="pge-${i}" style="font-size:12px;color:var(--texto-suave);">${f.moneda==='USD'?'—':'$ '+fmtNum(f.saldo)}</td>
+      <td>
+        <input type="number" id="pgm-${i}" min="0" step="0.01" value="${f.saldo.toFixed(2)}" disabled
+               oninput="recalcularFacturas()"
+               style="width:130px;padding:6px 8px;border:1px solid var(--borde);border-radius:6px;font-size:13px;"/>
+      </td>
+    </tr>`;
+  }).join('');
+
+  recalcularFacturas();
+}
+
+function toggleFactura(i) {
+  const chk = document.getElementById('pgc-'+i);
+  const inp = document.getElementById('pgm-'+i);
+  inp.disabled = !chk.checked;
+  if(!chk.checked) inp.value = facturasPago[i].saldo.toFixed(2);
+  recalcularFacturas();
+}
+
+function recalcularFacturas() {
+  const tc = parseFloat(document.getElementById('pg-tc')?.value)||0;
+  let cant=0, totalArs=0, totalUsd=0;
+
+  facturasPago.forEach((f,i) => {
+    const chk = document.getElementById('pgc-'+i);
+    const inp = document.getElementById('pgm-'+i);
+    const eq  = document.getElementById('pge-'+i);
+    if(!chk||!inp) return;
+
+    // Equivalente en pesos para facturas USD
+    if(f.moneda==='USD' && eq) {
+      eq.textContent = tc>0 ? '$ '+fmtNum(f.saldo*tc) : '— falta TC —';
+    }
+
+    if(!chk.checked) return;
+
+    let monto = parseFloat(inp.value)||0;
+    if(monto > f.saldo) { monto = f.saldo; inp.value = f.saldo.toFixed(2); }
+    if(monto <= 0) return;
+
+    cant++;
+    if(f.moneda==='USD') totalUsd += monto;
+    else                 totalArs += monto;
+  });
+
+  const totalGeneral = totalArs + (tc>0 ? totalUsd*tc : 0);
+
+  document.getElementById('pg-cant-sel').textContent     = cant;
+  document.getElementById('pg-total-ars').textContent    = '$ '  + fmtNum(totalArs);
+  document.getElementById('pg-total-usd').textContent    = 'US$ '+ fmtNum(totalUsd);
+  document.getElementById('pg-total-general').textContent =
+    (totalUsd>0 && tc<=0) ? '— falta TC —' : '$ ' + fmtNum(totalGeneral);
+}
+
+function toggleMedioPago() {
+  const medio = document.getElementById('pg-medio').value;
+  const esCheque = ['cheque_propio','cheque_terceros','echeq'].includes(medio);
+  const esTransf = medio==='transferencia';
+
+  document.getElementById('pg-cheque-wrap').style.display = esCheque ? 'block' : 'none';
+  document.getElementById('pg-transf-wrap').style.display = esTransf ? 'block' : 'none';
+
+  // El titular solo aplica a cheques de terceros
+  const tw = document.getElementById('pg-chq-titular-wrap');
+  if(tw) tw.style.display = medio==='cheque_terceros' ? 'flex' : 'none';
+}
+
+async function guardarPago() {
+  const fecha  = document.getElementById('pg-fecha').value;
+  const provId = parseInt(document.getElementById('pg-proveedor').value);
+  const moneda = document.getElementById('pg-moneda').value;
+  const medio  = document.getElementById('pg-medio').value;
+  const tc     = parseFloat(document.getElementById('pg-tc')?.value)||0;
+
+  if(!fecha||!provId) { toast('Completá fecha y proveedor','error'); return; }
+
+  // Recolectar facturas seleccionadas
+  const seleccionadas = [];
+  facturasPago.forEach((f,i) => {
+    const chk = document.getElementById('pgc-'+i);
+    const inp = document.getElementById('pgm-'+i);
+    if(chk?.checked) {
+      const monto = parseFloat(inp.value)||0;
+      if(monto > 0) seleccionadas.push({ factura: f, monto });
+    }
+  });
+
+  if(seleccionadas.length===0) { toast('Seleccioná al menos una factura','error'); return; }
+
+  const hayUsd = seleccionadas.some(s => s.factura.moneda==='USD');
+  if(hayUsd && tc<=0) { toast('Ingresá el tipo de cambio del día','error'); return; }
+
+  // Validar datos según medio de pago
+  const esCheque = ['cheque_propio','cheque_terceros','echeq'].includes(medio);
+  let detalle = {};
+
+  if(esCheque) {
+    const nro     = document.getElementById('pg-chq-nro').value.trim();
+    const banco   = document.getElementById('pg-chq-banco').value.trim();
+    const emision = document.getElementById('pg-chq-emision').value;
+    const cobro   = document.getElementById('pg-chq-cobro').value;
+    if(!nro||!banco||!emision||!cobro) {
+      toast('Completá N° de cheque, banco, emisión y cobro','error'); return;
+    }
+    detalle = {
+      cheque_nro: nro,
+      cheque_banco: banco,
+      cheque_titular: document.getElementById('pg-chq-titular').value.trim(),
+      cheque_cuit: document.getElementById('pg-chq-cuit').value.trim(),
+      cheque_emision: emision,
+      cheque_cobro: cobro,
+    };
+  }
+
+  if(medio==='transferencia') {
+    const bancoOrig = document.getElementById('pg-tr-banco-orig').value.trim();
+    if(!bancoOrig) { toast('Ingresá el banco de origen','error'); return; }
+    detalle = {
+      transf_banco_origen: bancoOrig,
+      transf_banco_destino: document.getElementById('pg-tr-banco-dest').value.trim(),
+      transf_cbu: document.getElementById('pg-tr-cbu').value.trim(),
+      transf_nro: document.getElementById('pg-tr-nro').value.trim(),
+      transf_fecha: document.getElementById('pg-tr-fecha').value || fecha,
+    };
+  }
+
+  // Totales
+  const totalArs = seleccionadas.filter(s=>s.factura.moneda==='ARS').reduce((a,s)=>a+s.monto,0);
+  const totalUsd = seleccionadas.filter(s=>s.factura.moneda==='USD').reduce((a,s)=>a+s.monto,0);
+  const totalGeneralArs = totalArs + (totalUsd * tc);
+
+  const pagoId = Date.now();
+  const pago = {
+    id: pagoId,
+    tenant_id: TENANT_ID,
+    fecha,
+    proveedor_id: provId,
+    moneda_pago: moneda,
+    medio_pago: medio,
+    tipo_cambio: tc || 1,
+    monto_ars: totalArs,
+    monto_usd: totalUsd,
+    monto_total_ars: totalGeneralArs,
+    cant_facturas: seleccionadas.length,
+    observaciones: document.getElementById('pg-obs').value.trim(),
+    ...detalle,
+  };
+
+  try { await sbFetch('agro_pagos','POST',{...pago,id:undefined},''); } catch(e){}
+  DB.pagos.unshift(pago);
+
+  // Imputar a cada factura
+  for(const sel of seleccionadas) {
+    const f = sel.factura;
+
+    const det = {
+      id: Date.now() + Math.random(),
+      tenant_id: TENANT_ID,
+      pago_id: pagoId,
+      factura_origen: f.origen,
+      factura_id: f.raw_id,
+      monto: sel.monto,
+      moneda: f.moneda,
+    };
+    try { await sbFetch('agro_pagos_detalle','POST',{...det,id:undefined},''); } catch(e){}
+    DB.pagosDetalle.unshift(det);
+
+    // Actualizar el monto pagado de la factura
+    if(f.origen==='semilla') {
+      const s = DB.semillas.find(x => x.id === f.raw_id);
+      if(s) {
+        s.monto_pagado = (s.monto_pagado||0) + sel.monto;
+        s.estado_pago  = (s.monto_pagado >= (s.importe_total||0) - 0.01) ? 'pagado' : 'pendiente';
+        try {
+          await sbFetch('agro_semillas_stock','PATCH',
+            { monto_pagado: s.monto_pagado, estado_pago: s.estado_pago },
+            `?id=eq.${s.id}&tenant_id=eq.${TENANT_ID}`);
+        } catch(e){}
+      }
+    } else {
+      const g = DB.gastosGenerales.find(x => x.id === f.raw_id);
+      if(g) {
+        g.monto_pagado = (g.monto_pagado||0) + sel.monto;
+        g.estado_pago  = (g.monto_pagado >= (g.total||0) - 0.01) ? 'pagado' : 'pendiente';
+        try {
+          await sbFetch('agro_gastos_generales','PATCH',
+            { monto_pagado: g.monto_pagado, estado_pago: g.estado_pago },
+            `?id=eq.${g.id}&tenant_id=eq.${TENANT_ID}`);
+        } catch(e){}
+      }
+    }
+  }
+
+  limpiarPago();
+  initPagos();
+  renderPagos();
+  renderStock();
+  renderGastosGenerales();
+  actualizarPanel();
+
+  const symP = moneda==='USD' ? 'US$' : '$';
+  const montoMostrar = moneda==='USD'
+    ? (totalUsd + (tc>0 ? totalArs/tc : 0))
+    : totalGeneralArs;
+  toast(`✅ Pago registrado — ${symP} ${fmtNum(montoMostrar)} · ${seleccionadas.length} factura(s)`);
+}
+
+function limpiarPago() {
+  document.getElementById('pg-proveedor').value = '';
+  document.getElementById('pg-facturas-wrap').style.display = 'none';
+  document.getElementById('pg-fecha').value = new Date().toISOString().split('T')[0];
+  ['pg-tc','pg-obs','pg-chq-nro','pg-chq-banco','pg-chq-titular','pg-chq-cuit',
+   'pg-chq-emision','pg-chq-cobro','pg-tr-banco-orig','pg-tr-banco-dest',
+   'pg-tr-cbu','pg-tr-nro','pg-tr-fecha'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('pg-moneda').value = 'ARS';
+  document.getElementById('pg-medio').value  = 'efectivo';
+  facturasPago = [];
+  toggleMedioPago();
+}
+
+function renderPagos() {
+  const tbody = document.getElementById('tabla-pagos');
+  if(!tbody) return;
+  if(DB.pagos.length===0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Sin pagos registrados</td></tr>';
+    return;
+  }
+  tbody.innerHTML = DB.pagos.map(p => {
+    const prov = DB.proveedores.find(x=>x.id===p.proveedor_id)?.nombre || '—';
+    const sym  = p.moneda_pago==='USD' ? 'US$' : '$';
+
+    // Monto mostrado en la moneda del pago
+    let montoDisp;
+    if(p.moneda_pago==='USD') {
+      montoDisp = (p.monto_usd||0) + ((p.tipo_cambio>0) ? (p.monto_ars||0)/p.tipo_cambio : 0);
+    } else {
+      montoDisp = p.monto_total_ars || 0;
+    }
+
+    // Detalle del medio
+    let det = '—';
+    if(['cheque_propio','cheque_terceros','echeq'].includes(p.medio_pago)) {
+      det = `N° ${p.cheque_nro||'?'} · ${p.cheque_banco||'?'}`;
+      if(p.cheque_cobro) det += ` · Cobro: ${fmt(p.cheque_cobro)}`;
+      if(p.cheque_titular) det += ` · ${p.cheque_titular}`;
+    } else if(p.medio_pago==='transferencia') {
+      det = `${p.transf_banco_origen||'?'}`;
+      if(p.transf_nro) det += ` · Op. ${p.transf_nro}`;
+    }
+
+    return `<tr>
+      <td>${fmt(p.fecha)}</td>
+      <td><strong>${prov}</strong></td>
+      <td>${p.cant_facturas||0}</td>
+      <td><strong>${sym} ${fmtNum(montoDisp)}</strong></td>
+      <td><span class="chip ${p.moneda_pago==='USD'?'chip-creciendo':'chip-ok'}">${p.moneda_pago}</span></td>
+      <td>${p.tipo_cambio>1 ? '$'+fmtNum(p.tipo_cambio) : '—'}</td>
+      <td>${MEDIOS_PAGO[p.medio_pago]||p.medio_pago}</td>
+      <td style="font-size:12px;color:var(--texto-suave);">${det}</td>
+    </tr>`;
+  }).join('');
+}
 // cerrar modales clickeando overlay
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
