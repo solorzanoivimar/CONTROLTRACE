@@ -2588,7 +2588,15 @@ function renderMovimientoPanel() {
 // ══════════════════════════════════════════════════════════════
 //  MODALES — MAESTROS
 // ══════════════════════════════════════════════════════════════
-function openModal(id) { document.getElementById(id).classList.add('open'); }
+function openModal(id) {
+  if(id==='modal-variedad') {
+    // Predefinir el cultivo del modal con el que ya está elegido en el formulario
+    const actual = (document.getElementById('s-cultivo')?.value) || (document.getElementById('si-cultivo')?.value) || '';
+    const mv = document.getElementById('mv-cultivo');
+    if(mv && actual) mv.value = actual;
+  }
+  document.getElementById(id).classList.add('open');
+}
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 async function guardarProveedor() {
@@ -2627,6 +2635,11 @@ async function guardarVariedad() {
   try { await sbFetch('agro_variedades','POST',{...nuevo,id:undefined},''); } catch(e){}
   DB.variedades.push(nuevo);
   poblarSelects();
+  // Dejar el cultivo y la nueva variedad seleccionados en el formulario donde se trabaja
+  [['s-cultivo','s-variedad'],['si-cultivo','si-variedad']].forEach(([cid,vid])=>{
+    const cel=document.getElementById(cid), vel=document.getElementById(vid);
+    if(cel && vel){ cel.value=String(cultId); filtrarVariedades(vid,cid); vel.value=String(nuevo.id); }
+  });
   document.getElementById('mv-nombre').value='';
   closeModal('modal-variedad');
   toast(`✅ Variedad "${nom}" agregada`);
@@ -5139,4 +5152,18 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
         <button class="btn-secondary" id="btn-eliminar-compra" onclick="eliminarCompra()"
                 style="border-color:var(--rojo);color:var(--rojo);">🗑️ Eliminar</button>
       </div>
-      <div style="display:flex;gap:8
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" onclick="closeModal('modal-compra')">Cerrar</button>
+        <button class="btn-secondary" id="btn-imprimir-compra" onclick="imprimirCompra()">🖨️ Imprimir</button>
+        <button class="btn-primary" id="btn-editar-compra" onclick="modoEditarCompra()">✏️ Editar</button>
+        <button class="btn-primary" id="btn-guardar-compra" onclick="guardarEdicionCompra()" style="display:none;">💾 Guardar cambios</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div id="sql-output" style="display:none"></div>
+<script src="/navbar.js"></script>
+</body>
+</html>
