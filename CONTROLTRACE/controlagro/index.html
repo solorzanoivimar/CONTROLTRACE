@@ -2059,8 +2059,8 @@ function agregarLinea() {
   if(paq<=0||cont<=0) { toast('Cargá paquetes y contenido de la semilla','error'); return; }
 
   lineasIngreso.push({
-    cultivo_id: parseInt(cult),
-    variedad_id: parseInt(vari),
+    cultivo_id: cult,
+    variedad_id: vari,
     cultivoNombre: DB.cultivos.find(c=>c.id==cult)?.nombre || '?',
     variedadNombre: DB.variedades.find(v=>v.id==vari)?.nombre || '?',
     lote_proveedor: document.getElementById('s-lote-prov').value,
@@ -2161,10 +2161,10 @@ async function guardarIngreso() {
     totalFactura += tot;
 
     const nuevo = {
-      id: baseId + i,
+      id: String(baseId + i),
       tenant_id: TENANT_ID,
       fecha,
-      proveedor_id: parseInt(prov),
+      proveedor_id: prov,
       cultivo_id: l.cultivo_id,
       variedad_id: l.variedad_id,
       lote_proveedor: l.lote_proveedor,
@@ -2225,7 +2225,7 @@ function limpiarIngreso() {
 //  LIBERACION
 // ══════════════════════════════════════════════════════════════
 function cargarDatosLote() {
-  const id = parseInt(document.getElementById('l-lote').value);
+  const id = document.getElementById('l-lote').value;
   const sem = DB.semillas.find(s=>s.id===id);
   if(!sem) return;
   const cult = DB.cultivos.find(c=>c.id===sem.cultivo_id)?.nombre||'';
@@ -2238,7 +2238,7 @@ function cargarDatosLote() {
 
 async function guardarLiberacion() {
   const fecha = document.getElementById('l-fecha').value;
-  const loteId = parseInt(document.getElementById('l-lote').value);
+  const loteId = document.getElementById('l-lote').value;
   const cantidad = parseFloat(document.getElementById('l-cantidad').value)||0;
   const destino = document.getElementById('l-destino').value;
 
@@ -2249,7 +2249,7 @@ async function guardarLiberacion() {
   if(cantidad > disp) { toast(`No hay suficiente stock. Disponible: ${disp} ${sem.unidad}`,'error'); return; }
 
   const nueva = {
-    id: Date.now(),
+    id: String(Date.now()),
     tenant_id: TENANT_ID,
     fecha,
     semilla_id: loteId,
@@ -2348,14 +2348,14 @@ async function guardarSiembra() {
   const fechaCosecha = document.getElementById('si-fecha-cosecha').value;
 
   const nueva = {
-    id: Date.now(),
+    id: String(Date.now()),
     tenant_id: TENANT_ID,
     lote,
     fecha,
     ubicacion: ub,
-    cultivo_id: parseInt(cult),
-    variedad_id: parseInt(vari),
-    semilla_lote_id: parseInt(document.getElementById('si-lote-semilla').value)||null,
+    cultivo_id: cult,
+    variedad_id: vari,
+    semilla_lote_id: document.getElementById('si-lote-semilla').value||null,
     cant_semilla: parseFloat(document.getElementById('si-cant-semilla').value)||0,
     capillas: [...capillasSeleccionadas].sort((a,b)=>a-b),
     surcos,
@@ -2602,8 +2602,8 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 async function guardarProveedor() {
   const nom = document.getElementById('mp-nombre').value.trim();
   if(!nom) { toast('Ingresá un nombre','error'); return; }
-  const nuevo = { id: Date.now(), tenant_id: TENANT_ID, nombre: nom, telefono: document.getElementById('mp-tel').value };
-  try { await sbFetch('agro_proveedores','POST',{...nuevo,id:undefined},''); } catch(e){}
+  const nuevo = { id: String(Date.now()), tenant_id: TENANT_ID, nombre: nom, telefono: document.getElementById('mp-tel').value };
+  try { const res = await sbFetch('agro_proveedores','POST',{...nuevo,id:undefined},''); if(res&&res[0]&&res[0].id) nuevo.id=res[0].id; } catch(e){}
   DB.proveedores.push(nuevo);
   DB.proveedores.sort((a,b)=>a.nombre.localeCompare(b.nombre));
   poblarSelects();
@@ -2617,8 +2617,8 @@ async function guardarProveedor() {
 async function guardarCultivo() {
   const nom = document.getElementById('mc-nombre').value.trim();
   if(!nom) { toast('Ingresá un nombre','error'); return; }
-  const nuevo = { id: Date.now(), tenant_id: TENANT_ID, nombre: nom };
-  try { await sbFetch('agro_cultivos','POST',{...nuevo,id:undefined},''); } catch(e){}
+  const nuevo = { id: String(Date.now()), tenant_id: TENANT_ID, nombre: nom };
+  try { const res = await sbFetch('agro_cultivos','POST',{...nuevo,id:undefined},''); if(res&&res[0]&&res[0].id) nuevo.id=res[0].id; } catch(e){}
   DB.cultivos.push(nuevo);
   DB.cultivos.sort((a,b)=>a.nombre.localeCompare(b.nombre));
   poblarSelects();
@@ -2629,10 +2629,10 @@ async function guardarCultivo() {
 
 async function guardarVariedad() {
   const nom = document.getElementById('mv-nombre').value.trim();
-  const cultId = parseInt(document.getElementById('mv-cultivo').value);
+  const cultId = document.getElementById('mv-cultivo').value;
   if(!nom||!cultId) { toast('Ingresá nombre y cultivo','error'); return; }
-  const nuevo = { id: Date.now(), tenant_id: TENANT_ID, nombre: nom, cultivo_id: cultId };
-  try { await sbFetch('agro_variedades','POST',{...nuevo,id:undefined},''); } catch(e){}
+  const nuevo = { id: String(Date.now()), tenant_id: TENANT_ID, nombre: nom, cultivo_id: cultId };
+  try { const res = await sbFetch('agro_variedades','POST',{...nuevo,id:undefined},''); if(res&&res[0]&&res[0].id) nuevo.id=res[0].id; } catch(e){}
   DB.variedades.push(nuevo);
   poblarSelects();
   // Dejar el cultivo y la nueva variedad seleccionados en el formulario donde se trabaja
@@ -2685,7 +2685,7 @@ function poblarSelectsVivero() {
 }
 
 function cargarDatosLoteVivero() {
-  const id = parseInt(document.getElementById('viv-lote-semilla').value);
+  const id = document.getElementById('viv-lote-semilla').value;
   const sem = DB.semillas.find(s=>s.id===id);
   if(!sem) return;
   document.getElementById('viv-cultivo').value = DB.cultivos.find(c=>c.id===sem.cultivo_id)?.nombre||'';
@@ -2703,7 +2703,7 @@ function calcCostoVivero() {
 
 async function guardarVivero() {
   const fecha = document.getElementById('viv-fecha').value;
-  const loteId = parseInt(document.getElementById('viv-lote-semilla').value);
+  const loteId = document.getElementById('viv-lote-semilla').value;
   const cantSemilla = parseFloat(document.getElementById('viv-cant-semilla').value)||0;
   if(!fecha||!loteId||cantSemilla<=0) { toast('Completá fecha, lote y cantidad de semilla','error'); return; }
 
@@ -2711,10 +2711,10 @@ async function guardarVivero() {
   const mo   = parseFloat(document.getElementById('viv-mo').value)||0;
   const mat  = parseFloat(document.getElementById('viv-mat').value)||0;
   const otr  = parseFloat(document.getElementById('viv-otros').value)||0;
-  const siembraDestinoId = parseInt(document.getElementById('viv-siembra-destino').value)||null;
+  const siembraDestinoId = document.getElementById('viv-siembra-destino').value||null;
 
   const nuevo = {
-    id: Date.now(),
+    id: String(Date.now()),
     tenant_id: TENANT_ID,
     fecha,
     semilla_id: loteId,
@@ -2793,7 +2793,7 @@ function poblarSelectsCosecha() {
 }
 
 function cargarDatosSiembraParaCosecha() {
-  const id = parseInt(document.getElementById('cos-siembra').value);
+  const id = document.getElementById('cos-siembra').value;
   const siem = DB.siembras.find(s=>s.id===id);
   const infoDiv = document.getElementById('cos-info-siembra');
 
@@ -2851,14 +2851,14 @@ async function guardarCorte() {
   if(!cosechaActivaSiembraId) { toast('Seleccioná una siembra primero','error'); return; }
   const fecha = document.getElementById('cos-fecha').value;
   const kilos = parseFloat(document.getElementById('cos-kilos').value)||0;
-  const clienteId = parseInt(document.getElementById('cos-cliente').value);
+  const clienteId = document.getElementById('cos-cliente').value;
   const precioKg = parseFloat(document.getElementById('cos-precio-kg').value)||0;
 
   if(!fecha||kilos<=0||!clienteId||precioKg<=0) { toast('Completá fecha, kilos, cliente y precio','error'); return; }
 
   const cortesExistentes = DB.cortes.filter(c=>c.siembra_id===cosechaActivaSiembraId);
   const nuevo = {
-    id: Date.now(),
+    id: String(Date.now()),
     tenant_id: TENANT_ID,
     siembra_id: cosechaActivaSiembraId,
     fecha,
@@ -3016,16 +3016,16 @@ async function guardarGastoLabor() {
   let siembrasIds = [];
   if(distTipo==='todas') siembrasIds = DB.siembras.filter(s=>s.etapa!=='agotado').map(s=>s.id);
   if(distTipo==='una') {
-    const id=parseInt(document.getElementById('gl-siembra-una').value);
+    const id=document.getElementById('gl-siembra-una').value;
     if(id) siembrasIds=[id];
   }
   if(distTipo==='varias') {
-    siembrasIds = [...document.querySelectorAll('input[name="gl-siem-check"]:checked')].map(el=>parseInt(el.value));
+    siembrasIds = [...document.querySelectorAll('input[name="gl-siem-check"]:checked')].map(el=>el.value);
   }
   if(siembrasIds.length===0) { toast('Seleccioná al menos una siembra','error'); return; }
 
   const nuevo = {
-    id: Date.now(),
+    id: String(Date.now()),
     tenant_id: TENANT_ID,
     fecha,
     tipo,
@@ -3108,7 +3108,7 @@ function calcTotalGG() {
 
 async function guardarGastoGeneral() {
   const fecha  = document.getElementById('gg-fecha').value;
-  const provId = parseInt(document.getElementById('gg-proveedor').value);
+  const provId = document.getElementById('gg-proveedor').value;
   const base   = parseFloat(document.getElementById('gg-base').value)||0;
   const moneda = document.getElementById('gg-moneda').value;
   const tc     = parseFloat(document.getElementById('gg-tc').value)||0;
@@ -3122,7 +3122,7 @@ async function guardarGastoGeneral() {
   const total  = base+iva;
 
   const nuevo = {
-    id: Date.now(),
+    id: String(Date.now()),
     tenant_id: TENANT_ID,
     fecha,
     proveedor_id: provId,
@@ -3189,8 +3189,8 @@ function renderGastosGenerales() {
 async function guardarCliente() {
   const nom = document.getElementById('mcl-nombre').value.trim();
   if(!nom){ toast('Ingresá un nombre','error'); return; }
-  const nuevo = { id: Date.now(), tenant_id: TENANT_ID, nombre: nom, telefono: document.getElementById('mcl-tel').value };
-  try { await sbFetch('agro_clientes','POST',{...nuevo,id:undefined},''); } catch(e){}
+  const nuevo = { id: String(Date.now()), tenant_id: TENANT_ID, nombre: nom, telefono: document.getElementById('mcl-tel').value };
+  try { const res = await sbFetch('agro_clientes','POST',{...nuevo,id:undefined},''); if(res&&res[0]&&res[0].id) nuevo.id=res[0].id; } catch(e){}
   DB.clientes.push(nuevo);
   DB.clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));
   // actualizar selects
@@ -3211,11 +3211,11 @@ async function guardarProveedorGG() {
   const nom = document.getElementById('mgg-nombre').value.trim();
   if(!nom){ toast('Ingresá una razón social','error'); return; }
   const nuevo = {
-    id: Date.now(), tenant_id: TENANT_ID, nombre: nom,
+    id: String(Date.now()), tenant_id: TENANT_ID, nombre: nom,
     cuit: document.getElementById('mgg-cuit').value.trim(),
     direccion: document.getElementById('mgg-direccion').value.trim(),
   };
-  try { await sbFetch('agro_proveedores','POST',{...nuevo,id:undefined},''); } catch(e){}
+  try { const res = await sbFetch('agro_proveedores','POST',{...nuevo,id:undefined},''); if(res&&res[0]&&res[0].id) nuevo.id=res[0].id; } catch(e){}
   DB.proveedores.push(nuevo);
   DB.proveedores.sort((a,b)=>a.nombre.localeCompare(b.nombre));
   poblarProvGG();
@@ -3253,7 +3253,7 @@ function poblarTrazSiembras() {
 }
 
 function renderTrazabilidadDetalle() {
-  const id   = parseInt(document.getElementById('traz-siembra').value);
+  const id   = document.getElementById('traz-siembra').value;
   const siem = DB.siembras.find(s=>s.id===id);
   if(!siem) {
     document.getElementById('traz-detalle').style.display = 'none';
@@ -3340,7 +3340,7 @@ function renderTrazabilidadDetalle() {
 
   // ── RESULTADO ECONÓMICO ──
   const gastosSiem = DB.gastosLabores
-    .filter(g => g.siembras_ids?.split(',').map(Number).includes(siem.id))
+    .filter(g => g.siembras_ids?.split(',').includes(String(siem.id)))
     .reduce((s,g)=>s+(g.por_siembra||0),0);
   const costoVivero = viveroSiem?.costo_total||0;
   const costoSemilla = (()=>{
@@ -3424,9 +3424,9 @@ function selectReporte(rep) {
 function applyFiltros(rows, campoFecha='fecha') {
   const desde  = document.getElementById('rep-desde').value;
   const hasta  = document.getElementById('rep-hasta').value;
-  const cultId = parseInt(document.getElementById('rep-cultivo').value)||null;
-  const cliId  = parseInt(document.getElementById('rep-cliente').value)||null;
-  const provId = parseInt(document.getElementById('rep-proveedor').value)||null;
+  const cultId = (document.getElementById('rep-cultivo').value||null);
+  const cliId  = (document.getElementById('rep-cliente').value||null);
+  const provId = (document.getElementById('rep-proveedor').value||null);
   const ub     = document.getElementById('rep-ubicacion').value;
 
   return rows.filter(r => {
@@ -3587,8 +3587,8 @@ function generarReporte() {
     let compras = [...DB.semillas];
     const d = document.getElementById('rep-desde').value;
     const ha = document.getElementById('rep-hasta').value;
-    const cu = parseInt(document.getElementById('rep-cultivo').value)||null;
-    const pr = parseInt(document.getElementById('rep-proveedor').value)||null;
+    const cu = (document.getElementById('rep-cultivo').value||null);
+    const pr = (document.getElementById('rep-proveedor').value||null);
     if(d)  compras = compras.filter(c => c.fecha >= d);
     if(ha) compras = compras.filter(c => c.fecha <= ha);
     if(cu) compras = compras.filter(c => c.cultivo_id === cu);
@@ -3641,7 +3641,7 @@ function generarReporte() {
 
     const d  = document.getElementById('rep-desde').value;
     const ha = document.getElementById('rep-hasta').value;
-    const pr = parseInt(document.getElementById('rep-proveedor').value)||null;
+    const pr = (document.getElementById('rep-proveedor').value||null);
     const enRango = f => (!d || f >= d) && (!ha || f <= ha);
 
     // 1) Compras de semillas
@@ -3736,7 +3736,7 @@ function generarReporte() {
       const sem    = siem.semilla_lote_id ? DB.semillas.find(s=>s.id===siem.semilla_lote_id) : null;
       const costoSem = sem && siem.cant_semilla && sem.contenido_paquete>0 ? (sem.precio_paquete/sem.contenido_paquete)*siem.cant_semilla : 0;
       const costoViv = (DB.viveros.find(v=>v.siembra_destino_id===siem.id)?.costo_total)||0;
-      const costoLab = DB.gastosLabores.filter(g=>g.siembras_ids?.split(',').map(Number).includes(siem.id)).reduce((s,g)=>s+(g.por_siembra||0),0);
+      const costoLab = DB.gastosLabores.filter(g=>g.siembras_ids?.split(',').includes(String(siem.id))).reduce((s,g)=>s+(g.por_siembra||0),0);
       const costoT   = costoSem+costoViv+costoLab;
       const util     = ventaT-costoT;
       const margen   = ventaT>0?(util/ventaT*100).toFixed(1)+'%':'—';
@@ -3847,7 +3847,7 @@ function poblarLotesCruce() {
     sel.innerHTML += `<option value="${s.id}">${s.lote} — ${cult} (${s.etapa})</option>`;
   });
   sel.onchange = () => {
-    const siem = DB.siembras.find(s=>s.id===parseInt(sel.value));
+    const siem = DB.siembras.find(s=>s.id===sel.value);
     if(!siem) return;
     document.getElementById('cruce-lote-cult').value = DB.cultivos.find(c=>c.id===siem.cultivo_id)?.nombre||'—';
     document.getElementById('cruce-lote-etapa').value = siem.etapa;
@@ -3859,7 +3859,7 @@ function simularRecepcionFMN() {
   const cult = cultivos[Math.floor(Math.random()*cultivos.length)];
   const kilos = Math.round(50+Math.random()*200);
   const rec = {
-    id: Date.now(),
+    id: String(Date.now()),
     fecha: new Date().toISOString().split('T')[0],
     producto: cult,
     kilos,
@@ -3882,7 +3882,7 @@ function renderRecepcionesFMN() {
     <td>${r.producto}</td>
     <td><strong>${r.kilos} kg</strong></td>
     <td><span class="chip chip-pend">⏳ Sin vincular</span></td>
-    <td><button class="btn-primary" style="padding:4px 10px;font-size:12px;" onclick="iniciarVinculo(${r.id})">Vincular</button></td>
+    <td><button class="btn-primary" style="padding:4px 10px;font-size:12px;" onclick="iniciarVinculo('${r.id}')">Vincular</button></td>
   </tr>`).join('');
 }
 
@@ -3896,14 +3896,14 @@ function iniciarVinculo(recId) {
 
 function confirmarVinculo() {
   if(!recepcionEnVinculacion){toast('Sin recepción seleccionada','error');return;}
-  const siemId = parseInt(document.getElementById('cruce-lote-sel').value);
+  const siemId = document.getElementById('cruce-lote-sel').value;
   const siem   = DB.siembras.find(s=>s.id===siemId);
   if(!siem){toast('Seleccioná un lote','error');return;}
 
   // Crear corte automático en CONTROLAGRO
   const cortesExist = DB.cortes.filter(c=>c.siembra_id===siemId);
   const nuevoCorte = {
-    id: Date.now(),
+    id: String(Date.now()),
     tenant_id: TENANT_ID,
     siembra_id: siemId,
     fecha: recepcionEnVinculacion.fecha,
@@ -4147,7 +4147,7 @@ function renderCuentaCorriente() {
       <td><strong style="color:${pagada?'var(--verde-medio)':'var(--rojo)'}">${sym} ${fmtNum(g.saldo)}</strong></td>
       <td>${pagada ? '—' : chipAntiguedad(dias)}</td>
       <td>${estadoChip}</td>
-      <td>${pagada ? '' : `<button class="btn-primary" style="padding:3px 10px;font-size:11px;" onclick="irAPagar(${g.proveedor_id})">Pagar</button>`}</td>
+      <td>${pagada ? '' : `<button class="btn-primary" style="padding:3px 10px;font-size:11px;" onclick="irAPagar('${g.proveedor_id}')">Pagar</button>`}</td>
     </tr>`;
   }).join('');
 }
@@ -4215,7 +4215,7 @@ function initPagos() {
 }
 
 function cargarFacturasProveedor() {
-  const provId = parseInt(document.getElementById('pg-proveedor').value);
+  const provId = document.getElementById('pg-proveedor').value;
   const wrap   = document.getElementById('pg-facturas-wrap');
 
   if(!provId) { wrap.style.display='none'; facturasPago=[]; return; }
@@ -4314,7 +4314,7 @@ function toggleMedioPago() {
 
 async function guardarPago() {
   const fecha  = document.getElementById('pg-fecha').value;
-  const provId = parseInt(document.getElementById('pg-proveedor').value);
+  const provId = document.getElementById('pg-proveedor').value;
   const moneda = document.getElementById('pg-moneda').value;
   const medio  = document.getElementById('pg-medio').value;
   const tc     = parseFloat(document.getElementById('pg-tc')?.value)||0;
@@ -4641,7 +4641,7 @@ function renderCompras() {
     const cantTxt = multi ? `${g.items.length} ítems` : `${(g.items[0].total_stock||0).toFixed(2)} ${g.items[0].unidad||''}`;
     const accion = multi
       ? `<button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="toggleFacturaCompra(${gi}, this)">🔽 Ver ${g.items.length}</button>`
-      : `<button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="verCompra(${g.items[0].id})">👁️ Ver</button>`;
+      : `<button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="verCompra('${g.items[0].id}')">👁️ Ver</button>`;
 
     let html = `<tr style="${multi?'background:var(--verde-claro);':''}">
       <td>${fmt(g.fecha)}</td>
@@ -4671,7 +4671,7 @@ function renderCompras() {
           <td>${s2} ${fmtNum(c.iva_monto)} <span style="font-size:10px;color:var(--texto-suave)">(${c.iva_pct||0}%)</span></td>
           <td><strong>${s2} ${fmtNum(c.importe_total)}</strong></td>
           <td></td>
-          <td><button class="btn-secondary" style="padding:2px 8px;font-size:11px;" onclick="verCompra(${c.id})">👁️ Ver</button></td>
+          <td><button class="btn-secondary" style="padding:2px 8px;font-size:11px;" onclick="verCompra('${c.id}')">👁️ Ver</button></td>
         </tr>`;
       }).join('');
     }
@@ -4862,9 +4862,9 @@ async function guardarEdicionCompra() {
 
   const upd = {
     fecha,
-    proveedor_id: parseInt(prov),
-    cultivo_id: parseInt(cult),
-    variedad_id: parseInt(vari),
+    proveedor_id: prov,
+    cultivo_id: cult,
+    variedad_id: vari,
     lote_proveedor: document.getElementById('ce-lote-prov').value,
     factura: document.getElementById('ce-factura').value,
     cant_paquetes: paq,
