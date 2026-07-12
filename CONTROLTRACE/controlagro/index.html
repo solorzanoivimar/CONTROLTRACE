@@ -303,6 +303,7 @@
 
     <div class="sidebar-badge">Semillas</div>
     <div class="nav-item" onclick="nav('ingreso-semilla')"><span class="ico">📦</span> Ingreso / Compra</div>
+    <div class="nav-item" onclick="nav('compras-lista')"><span class="ico">🧾</span> Historial de Compras</div>
     <div class="nav-item" onclick="nav('stock-semilla')"><span class="ico">🗄️</span> Stock en Depósito</div>
     <div class="nav-item" onclick="nav('liberacion')"><span class="ico">🚚</span> Liberación</div>
 
@@ -1178,6 +1179,8 @@
       <button class="rep-tab" onclick="selectReporte('sembradas')">🌱 Sembradas</button>
       <button class="rep-tab" onclick="selectReporte('cosechadas')">🌾 Cosechadas</button>
       <button class="rep-tab" onclick="selectReporte('transito')">🚚 En Tránsito</button>
+      <button class="rep-tab" onclick="selectReporte('compras')">🛒 Compras</button>
+      <button class="rep-tab" onclick="selectReporte('egresos')">📉 Egresos Totales</button>
       <button class="rep-tab" onclick="selectReporte('costo-resultado')">💰 Costo/Resultado</button>
       <button class="rep-tab" onclick="selectReporte('financiero')">📊 Resumen Financiero</button>
     </div>
@@ -1588,6 +1591,95 @@
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════ SCREEN: HISTORIAL DE COMPRAS ═══════════════════════ -->
+<div id="screen-compras-lista" class="screen">
+  <div class="page-header">
+    <div><h2>Historial de Compras</h2><div class="sub">Todas las compras de semillas registradas</div></div>
+    <button class="btn-primary" onclick="nav('ingreso-semilla')">+ Nueva Compra</button>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+    <div class="kpi-card">
+      <div class="kpi-label">Compras del período</div>
+      <div class="kpi-val" id="cmp-cant">0</div>
+      <div class="kpi-sub">operaciones</div>
+    </div>
+    <div class="kpi-card tierra">
+      <div class="kpi-label">Total en pesos</div>
+      <div class="kpi-val" id="cmp-total-ars" style="font-size:19px;">$ 0</div>
+      <div class="kpi-sub">facturas ARS</div>
+    </div>
+    <div class="kpi-card tierra">
+      <div class="kpi-label">Total en dólares</div>
+      <div class="kpi-val" id="cmp-total-usd" style="font-size:19px;">US$ 0</div>
+      <div class="kpi-sub">facturas USD</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total consolidado</div>
+      <div class="kpi-val" id="cmp-total-cons" style="font-size:19px;">$ 0</div>
+      <div class="kpi-sub">expresado en ARS</div>
+    </div>
+    <div class="kpi-card alerta">
+      <div class="kpi-label">Saldo pendiente</div>
+      <div class="kpi-val" id="cmp-pendiente" style="font-size:19px;">$ 0</div>
+      <div class="kpi-sub">por pagar (en ARS)</div>
+    </div>
+  </div>
+
+  <div class="panel-card" style="margin-bottom:20px;">
+    <h3>🎛️ Filtros</h3>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="min-width:140px;">
+        <label>Desde</label><input type="date" id="cmp-desde" onchange="renderCompras()"/>
+      </div>
+      <div class="field" style="min-width:140px;">
+        <label>Hasta</label><input type="date" id="cmp-hasta" onchange="renderCompras()"/>
+      </div>
+      <div class="field" style="min-width:180px;">
+        <label>Proveedor</label>
+        <select id="cmp-prov" onchange="renderCompras()"><option value="">Todos</option></select>
+      </div>
+      <div class="field" style="min-width:150px;">
+        <label>Cultivo</label>
+        <select id="cmp-cultivo" onchange="renderCompras()"><option value="">Todos</option></select>
+      </div>
+      <div class="field" style="min-width:120px;">
+        <label>Moneda</label>
+        <select id="cmp-moneda" onchange="renderCompras()">
+          <option value="">Todas</option>
+          <option value="ARS">🇦🇷 ARS</option>
+          <option value="USD">🇺🇸 USD</option>
+        </select>
+      </div>
+      <div class="field" style="min-width:140px;">
+        <label>Estado</label>
+        <select id="cmp-estado" onchange="renderCompras()">
+          <option value="">Todos</option>
+          <option value="pendiente">⏳ Pendientes</option>
+          <option value="pagado">✅ Pagadas</option>
+        </select>
+      </div>
+      <button class="btn-secondary" onclick="limpiarFiltrosCompras()" style="height:38px;">↺ Limpiar</button>
+      <button class="btn-secondary" onclick="exportarCompras()" style="height:38px;">⬇️ CSV</button>
+    </div>
+  </div>
+
+  <div class="panel-card">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Comprobante</th><th>Proveedor</th><th>Cultivo · Variedad</th>
+            <th>Cantidad</th><th>Base</th><th>IVA</th><th>Total</th>
+            <th>Estado</th><th style="width:130px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-compras"><tr class="empty-row"><td colspan="10">Sin compras registradas</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
     </div><!-- /content -->
   </main>
 </div><!-- /app -->
@@ -1815,6 +1907,7 @@ const pageTitles = {
   'proveedores':'Ficha de Proveedores',
   'cuenta-corriente':'Cuenta Corriente Proveedores',
   'pagos':'Pagos a Proveedores',
+  'compras-lista':'Historial de Compras',
 };
 
 function nav(screen) {
@@ -1839,6 +1932,7 @@ function nav(screen) {
   if(screen==='proveedores') renderProveedores();
   if(screen==='cuenta-corriente') { poblarFiltroProvCC(); renderCuentaCorriente(); }
   if(screen==='pagos') initPagos();
+  if(screen==='compras-lista') { poblarFiltrosCompras(); renderCompras(); }
   if(screen==='trazabilidad') renderTrazabilidad();
   if(screen==='reportes') initReportes();
   if(screen==='cruce-fmn') renderCruceFMN();
@@ -3381,6 +3475,150 @@ function generarReporte() {
       ];
     }).filter(r=>parseFloat(r[5]?.toString().replace('<strong>','').replace('</strong>',''))||0 > 0);
   }
+  else if(rep==='compras') {
+    titulo='Compras de Semillas'; subtitulo='Detalle de compras del período con IVA y moneda';
+    headers=['Fecha','Comprobante','Proveedor','Cultivo','Variedad','Cantidad','Moneda','Base','IVA','Total','Equiv. ARS','Saldo','Estado'];
+    let compras = [...DB.semillas];
+    const d = document.getElementById('rep-desde').value;
+    const ha = document.getElementById('rep-hasta').value;
+    const cu = parseInt(document.getElementById('rep-cultivo').value)||null;
+    const pr = parseInt(document.getElementById('rep-proveedor').value)||null;
+    if(d)  compras = compras.filter(c => c.fecha >= d);
+    if(ha) compras = compras.filter(c => c.fecha <= ha);
+    if(cu) compras = compras.filter(c => c.cultivo_id === cu);
+    if(pr) compras = compras.filter(c => c.proveedor_id === pr);
+    compras.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+
+    rows = compras.map(c => {
+      const sym = (c.moneda||'ARS')==='USD' ? 'US$' : '$';
+      const saldo = (c.importe_total||0) - (c.monto_pagado||0);
+      const est = saldo<=0.01 ? '✅ Pagada' : ((c.monto_pagado||0)>0 ? '🔸 Parcial' : '⏳ Pendiente');
+      return [
+        fmt(c.fecha), c.factura||'—',
+        DB.proveedores.find(p=>p.id===c.proveedor_id)?.nombre||'—',
+        DB.cultivos.find(x=>x.id===c.cultivo_id)?.nombre||'—',
+        DB.variedades.find(x=>x.id===c.variedad_id)?.nombre||'—',
+        `${(c.total_stock||0).toFixed(2)} ${c.unidad||''}`,
+        c.moneda||'ARS',
+        `${sym} ${fmtNum(c.base_imponible)}`,
+        `${sym} ${fmtNum(c.iva_monto)} (${c.iva_pct||0}%)`,
+        `${sym} ${fmtNum(c.importe_total)}`,
+        `$ ${fmtNum(c.total_ars || c.importe_total)}`,
+        saldo>0.01 ? `${sym} ${fmtNum(saldo)}` : '—',
+        est,
+      ];
+    });
+
+    const tArs = compras.filter(c=>(c.moneda||'ARS')==='ARS').reduce((s,c)=>s+(c.importe_total||0),0);
+    const tUsd = compras.filter(c=>(c.moneda||'ARS')==='USD').reduce((s,c)=>s+(c.importe_total||0),0);
+    const tCons = compras.reduce((s,c)=>s+(c.total_ars||c.importe_total||0),0);
+    const tIva = compras.reduce((s,c)=>s+((c.iva_monto||0) * ((c.moneda==='USD')?(c.tipo_cambio||1):1)),0);
+    const tPend = compras.reduce((s,c)=>{
+      const sal = (c.importe_total||0)-(c.monto_pagado||0);
+      if(sal<=0.01) return s;
+      return s + sal * ((c.moneda==='USD')?(c.tipo_cambio||1):1);
+    },0);
+
+    totalesEl.style.display='flex'; totalesEl.style.gap='14px'; totalesEl.style.flexWrap='wrap';
+    totalesEl.innerHTML=`
+      <div class="kpi-card" style="flex:1;min-width:130px;"><div class="kpi-label">Compras</div><div class="kpi-val" style="font-size:22px;">${compras.length}</div></div>
+      <div class="kpi-card" style="flex:1;min-width:150px;"><div class="kpi-label">Total ARS</div><div class="kpi-val" style="font-size:17px;">$ ${fmtNum(tArs)}</div></div>
+      <div class="kpi-card" style="flex:1;min-width:150px;"><div class="kpi-label">Total USD</div><div class="kpi-val" style="font-size:17px;">US$ ${fmtNum(tUsd)}</div></div>
+      <div class="kpi-card tierra" style="flex:1;min-width:160px;"><div class="kpi-label">Consolidado ARS</div><div class="kpi-val" style="font-size:17px;">$ ${fmtNum(tCons)}</div></div>
+      <div class="kpi-card" style="flex:1;min-width:150px;"><div class="kpi-label">IVA total</div><div class="kpi-val" style="font-size:17px;">$ ${fmtNum(tIva)}</div></div>
+      <div class="kpi-card alerta" style="flex:1;min-width:150px;"><div class="kpi-label">Saldo pendiente</div><div class="kpi-val" style="font-size:17px;">$ ${fmtNum(tPend)}</div></div>
+    `;
+  }
+  else if(rep==='egresos') {
+    titulo='Egresos Totales'; subtitulo='Todos los gastos consolidados del período expresados en pesos';
+    headers=['Fecha','Categoría','Proveedor / Responsable','Detalle','Moneda','Importe','Equiv. ARS','Estado'];
+
+    const d  = document.getElementById('rep-desde').value;
+    const ha = document.getElementById('rep-hasta').value;
+    const pr = parseInt(document.getElementById('rep-proveedor').value)||null;
+    const enRango = f => (!d || f >= d) && (!ha || f <= ha);
+
+    // 1) Compras de semillas
+    let semillas = DB.semillas.filter(c => enRango(c.fecha));
+    if(pr) semillas = semillas.filter(c => c.proveedor_id === pr);
+    const eSem = semillas.map(c => {
+      const sym = (c.moneda||'ARS')==='USD'?'US$':'$';
+      const saldo = (c.importe_total||0)-(c.monto_pagado||0);
+      return {
+        f: c.fecha, cat:'🌱 Compra semillas',
+        who: DB.proveedores.find(p=>p.id===c.proveedor_id)?.nombre||'—',
+        det: (DB.cultivos.find(x=>x.id===c.cultivo_id)?.nombre||'') + ' · ' + (c.factura||'s/comprob.'),
+        mon: c.moneda||'ARS',
+        imp: `${sym} ${fmtNum(c.importe_total)}`,
+        ars: c.total_ars || c.importe_total || 0,
+        est: saldo<=0.01 ? '✅ Pagada' : ((c.monto_pagado||0)>0?'🔸 Parcial':'⏳ Pendiente'),
+      };
+    });
+
+    // 2) Gastos generales
+    let ggs = DB.gastosGenerales.filter(g => enRango(g.fecha));
+    if(pr) ggs = ggs.filter(g => g.proveedor_id === pr);
+    const catLbl = {insumos:'🧪 Insumos',infraestructura:'🏗️ Infraestructura',herramientas:'🔧 Herramientas',combustible:'⛽ Combustible',otro:'📝 Otro'};
+    const eGG = ggs.map(g => {
+      const sym = (g.moneda||'ARS')==='USD'?'US$':'$';
+      const saldo = (g.total||0)-(g.monto_pagado||0);
+      return {
+        f: g.fecha, cat: catLbl[g.categoria]||'🧾 Gasto general',
+        who: DB.proveedores.find(p=>p.id===g.proveedor_id)?.nombre||'—',
+        det: g.descripcion || g.factura || '—',
+        mon: g.moneda||'ARS',
+        imp: `${sym} ${fmtNum(g.total)}`,
+        ars: g.total_ars || g.total || 0,
+        est: saldo<=0.01 ? '✅ Pagado' : ((g.monto_pagado||0)>0?'🔸 Parcial':'⏳ Pendiente'),
+      };
+    });
+
+    // 3) Gastos de labores (siempre en ARS, sin proveedor)
+    const gls = pr ? [] : DB.gastosLabores.filter(g => enRango(g.fecha));
+    const eGL = gls.map(g => ({
+      f: g.fecha, cat: tipoLabor[g.tipo] || '💸 Labor',
+      who: g.responsable || '—',
+      det: g.descripcion || (g.dist_tipo==='todas' ? 'Distribuido en todas las siembras' : 'Distribuido'),
+      mon: 'ARS',
+      imp: `$ ${fmtNum(g.importe)}`,
+      ars: g.importe || 0,
+      est: '✅ Pagado',
+    }));
+
+    // 4) Vivero (costos de almácigo)
+    const vivs = pr ? [] : DB.viveros.filter(v => enRango(v.fecha) && (v.costo_total||0) > 0);
+    const eViv = vivs.map(v => ({
+      f: v.fecha, cat: '🪴 Vivero',
+      who: v.responsable || '—',
+      det: (DB.cultivos.find(c=>c.id===v.cultivo_id)?.nombre||'') + ' · almácigo',
+      mon: 'ARS',
+      imp: `$ ${fmtNum(v.costo_total)}`,
+      ars: v.costo_total || 0,
+      est: '✅ Pagado',
+    }));
+
+    const todos = [...eSem, ...eGG, ...eGL, ...eViv].sort((a,b)=>(b.f||'').localeCompare(a.f||''));
+
+    rows = todos.map(e => [
+      fmt(e.f), e.cat, e.who, e.det, e.mon, e.imp,
+      `$ ${fmtNum(e.ars)}`, e.est,
+    ]);
+
+    const tSem = eSem.reduce((s,e)=>s+e.ars,0);
+    const tGG  = eGG.reduce((s,e)=>s+e.ars,0);
+    const tGL  = eGL.reduce((s,e)=>s+e.ars,0);
+    const tViv = eViv.reduce((s,e)=>s+e.ars,0);
+    const tTot = tSem+tGG+tGL+tViv;
+
+    totalesEl.style.display='flex'; totalesEl.style.gap='14px'; totalesEl.style.flexWrap='wrap';
+    totalesEl.innerHTML=`
+      <div class="kpi-card" style="flex:1;min-width:150px;"><div class="kpi-label">🌱 Semillas</div><div class="kpi-val" style="font-size:17px;">$ ${fmtNum(tSem)}</div></div>
+      <div class="kpi-card" style="flex:1;min-width:150px;"><div class="kpi-label">🧾 Gastos generales</div><div class="kpi-val" style="font-size:17px;">$ ${fmtNum(tGG)}</div></div>
+      <div class="kpi-card" style="flex:1;min-width:150px;"><div class="kpi-label">💸 Labores</div><div class="kpi-val" style="font-size:17px;">$ ${fmtNum(tGL)}</div></div>
+      <div class="kpi-card" style="flex:1;min-width:150px;"><div class="kpi-label">🪴 Vivero</div><div class="kpi-val" style="font-size:17px;">$ ${fmtNum(tViv)}</div></div>
+      <div class="kpi-card alerta" style="flex:1;min-width:170px;"><div class="kpi-label">EGRESO TOTAL</div><div class="kpi-val" style="font-size:18px;">$ ${fmtNum(tTot)}</div></div>
+    `;
+  }
   else if(rep==='costo-resultado') {
     titulo='Costo / Resultado por Siembra'; subtitulo='Análisis económico completo por lote';
     headers=['Lote','Cultivo','Ubicación','Kilos','Venta $','C.Semilla $','C.Vivero $','C.Labores $','Total costos $','Utilidad $','Margen %'];
@@ -4134,6 +4372,418 @@ function renderPagos() {
     </tr>`;
   }).join('');
 }
+
+// ══════════════════════════════════════════════════════════════
+//  HISTORIAL DE COMPRAS
+// ══════════════════════════════════════════════════════════════
+let comprasFiltradas = [];
+let compraEditandoId  = null;
+
+function poblarFiltrosCompras() {
+  const selP = document.getElementById('cmp-prov');
+  if(selP) {
+    const v = selP.value;
+    selP.innerHTML = '<option value="">Todos</option>';
+    DB.proveedores.forEach(p => selP.innerHTML += `<option value="${p.id}">${p.nombre}</option>`);
+    if(v) selP.value = v;
+  }
+  const selC = document.getElementById('cmp-cultivo');
+  if(selC) {
+    const v = selC.value;
+    selC.innerHTML = '<option value="">Todos</option>';
+    DB.cultivos.forEach(c => selC.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
+    if(v) selC.value = v;
+  }
+}
+
+function limpiarFiltrosCompras() {
+  ['cmp-desde','cmp-hasta'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['cmp-prov','cmp-cultivo','cmp-moneda','cmp-estado'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  renderCompras();
+}
+
+function renderCompras() {
+  const desde  = document.getElementById('cmp-desde')?.value || '';
+  const hasta  = document.getElementById('cmp-hasta')?.value || '';
+  const provF  = document.getElementById('cmp-prov')?.value || '';
+  const cultF  = document.getElementById('cmp-cultivo')?.value || '';
+  const monF   = document.getElementById('cmp-moneda')?.value || '';
+  const estF   = document.getElementById('cmp-estado')?.value || '';
+
+  let compras = [...DB.semillas];
+
+  if(desde) compras = compras.filter(c => c.fecha >= desde);
+  if(hasta) compras = compras.filter(c => c.fecha <= hasta);
+  if(provF) compras = compras.filter(c => c.proveedor_id == provF);
+  if(cultF) compras = compras.filter(c => c.cultivo_id == cultF);
+  if(monF)  compras = compras.filter(c => (c.moneda||'ARS') === monF);
+  if(estF) {
+    compras = compras.filter(c => {
+      const saldo = (c.importe_total||0) - (c.monto_pagado||0);
+      return estF==='pagado' ? saldo <= 0.01 : saldo > 0.01;
+    });
+  }
+
+  compras.sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+  comprasFiltradas = compras;
+
+  // ── KPIs ──
+  const totArs = compras.filter(c=>(c.moneda||'ARS')==='ARS').reduce((s,c)=>s+(c.importe_total||0),0);
+  const totUsd = compras.filter(c=>(c.moneda||'ARS')==='USD').reduce((s,c)=>s+(c.importe_total||0),0);
+  const totCons = compras.reduce((s,c)=>s+(c.total_ars || c.importe_total || 0),0);
+  const pend = compras.reduce((s,c)=>{
+    const saldo = (c.importe_total||0) - (c.monto_pagado||0);
+    if(saldo <= 0.01) return s;
+    const tc = (c.moneda==='USD') ? (c.tipo_cambio||1) : 1;
+    return s + saldo * tc;
+  },0);
+
+  document.getElementById('cmp-cant').textContent       = compras.length;
+  document.getElementById('cmp-total-ars').textContent  = '$ '  + fmtNum(totArs);
+  document.getElementById('cmp-total-usd').textContent  = 'US$ '+ fmtNum(totUsd);
+  document.getElementById('cmp-total-cons').textContent = '$ '  + fmtNum(totCons);
+  document.getElementById('cmp-pendiente').textContent  = '$ '  + fmtNum(pend);
+
+  // ── Tabla ──
+  const tbody = document.getElementById('tabla-compras');
+  if(compras.length===0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Sin compras para los filtros seleccionados</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = compras.map(c => {
+    const prov = DB.proveedores.find(p=>p.id===c.proveedor_id)?.nombre || '—';
+    const cult = DB.cultivos.find(x=>x.id===c.cultivo_id)?.nombre || '—';
+    const vari = DB.variedades.find(x=>x.id===c.variedad_id)?.nombre || '—';
+    const sym  = (c.moneda||'ARS')==='USD' ? 'US$' : '$';
+    const saldo = (c.importe_total||0) - (c.monto_pagado||0);
+    const pagada  = saldo <= 0.01;
+    const parcial = (c.monto_pagado||0) > 0.01 && !pagada;
+    const chip = pagada ? '<span class="chip chip-ok">✅ Pagada</span>'
+               : parcial ? '<span class="chip chip-pend">🔸 Parcial</span>'
+               : '<span class="chip chip-alert">⏳ Pendiente</span>';
+    return `<tr>
+      <td>${fmt(c.fecha)}</td>
+      <td>${c.factura||'—'}</td>
+      <td><strong>${prov}</strong></td>
+      <td style="font-size:12px;">${cult} · ${vari}</td>
+      <td>${(c.total_stock||0).toFixed(2)} ${c.unidad||''}</td>
+      <td>${sym} ${fmtNum(c.base_imponible)}</td>
+      <td style="font-size:12px;">${sym} ${fmtNum(c.iva_monto)}<br><span style="color:var(--texto-suave);font-size:10px;">${c.iva_pct||0}%</span></td>
+      <td><strong>${sym} ${fmtNum(c.importe_total)}</strong> <span class="chip ${(c.moneda||'ARS')==='USD'?'chip-creciendo':'chip-ok'}" style="font-size:9px;">${c.moneda||'ARS'}</span></td>
+      <td>${chip}</td>
+      <td>
+        <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="verCompra(${c.id})">👁️ Ver</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── VER DETALLE ──
+function verCompra(id) {
+  const c = DB.semillas.find(x => x.id === id);
+  if(!c) return;
+  compraEditandoId = id;
+
+  const prov = DB.proveedores.find(p=>p.id===c.proveedor_id);
+  const cult = DB.cultivos.find(x=>x.id===c.cultivo_id)?.nombre || '—';
+  const vari = DB.variedades.find(x=>x.id===c.variedad_id)?.nombre || '—';
+  const sym  = (c.moneda||'ARS')==='USD' ? 'US$' : '$';
+  const saldo = (c.importe_total||0) - (c.monto_pagado||0);
+  const pagada  = saldo <= 0.01;
+  const parcial = (c.monto_pagado||0) > 0.01 && !pagada;
+
+  document.getElementById('cd-comprobante').textContent = c.factura || 'Sin comprobante';
+  document.getElementById('cd-fecha').textContent = fmt(c.fecha);
+  document.getElementById('cd-estado').innerHTML = pagada
+    ? '<span class="chip chip-ok">✅ Pagada</span>'
+    : parcial ? '<span class="chip chip-pend">🔸 Pago parcial</span>'
+    : '<span class="chip chip-alert">⏳ Pendiente</span>';
+
+  document.getElementById('cd-prov-nombre').textContent = prov?.nombre || '—';
+  const datos = [];
+  if(prov?.cuit)      datos.push('CUIT: ' + prov.cuit);
+  if(prov?.direccion) datos.push(prov.direccion);
+  if(prov?.telefono)  datos.push('Tel: ' + prov.telefono);
+  document.getElementById('cd-prov-datos').textContent = datos.join(' · ') || 'Sin datos fiscales cargados';
+
+  document.getElementById('cd-cultivo').textContent   = cult;
+  document.getElementById('cd-variedad').textContent  = vari;
+  document.getElementById('cd-lote').textContent      = c.lote_proveedor || '—';
+  document.getElementById('cd-paquetes').textContent  = c.cant_paquetes || 0;
+  document.getElementById('cd-contenido').textContent = `${c.contenido_paquete||0} ${c.unidad||''}`;
+  document.getElementById('cd-stock').innerHTML       = `<strong>${(c.total_stock||0).toFixed(2)} ${c.unidad||''}</strong>`;
+
+  document.getElementById('cd-precio').textContent  = `${sym} ${fmtNum(c.precio_paquete)}`;
+  document.getElementById('cd-base').textContent    = `${sym} ${fmtNum(c.base_imponible)}`;
+  document.getElementById('cd-iva-pct').textContent = `(${c.iva_pct||0}%)`;
+  document.getElementById('cd-iva').textContent     = `${sym} ${fmtNum(c.iva_monto)}`;
+  document.getElementById('cd-total').textContent   = `${sym} ${fmtNum(c.importe_total)}`;
+
+  // Equivalente en pesos si es USD
+  const tcRow = document.getElementById('cd-tc-row');
+  if((c.moneda||'ARS')==='USD') {
+    tcRow.style.display = '';
+    document.getElementById('cd-tc-val').textContent = '$' + fmtNum(c.tipo_cambio);
+    document.getElementById('cd-equiv').textContent  = '$ ' + fmtNum((c.importe_total||0) * (c.tipo_cambio||1));
+  } else {
+    tcRow.style.display = 'none';
+  }
+
+  document.getElementById('cd-pagado').textContent = `${sym} ${fmtNum(c.monto_pagado)}`;
+  document.getElementById('cd-saldo').textContent  = `${sym} ${fmtNum(saldo)}`;
+  document.getElementById('cd-saldo-row').style.display = pagada ? 'none' : '';
+
+  // Modo vista
+  document.getElementById('compra-vista').style.display   = 'block';
+  document.getElementById('compra-editar').style.display  = 'none';
+  document.getElementById('btn-editar-compra').style.display  = 'inline-block';
+  document.getElementById('btn-guardar-compra').style.display = 'none';
+  document.getElementById('btn-imprimir-compra').style.display= 'inline-block';
+  document.getElementById('btn-eliminar-compra').style.display= 'inline-block';
+
+  openModal('modal-compra');
+}
+
+// ── MODO EDICIÓN ──
+function modoEditarCompra() {
+  const c = DB.semillas.find(x => x.id === compraEditandoId);
+  if(!c) return;
+
+  // Poblar selects
+  const selP = document.getElementById('ce-proveedor');
+  selP.innerHTML = '<option value="">— Seleccionar —</option>';
+  DB.proveedores.forEach(p => selP.innerHTML += `<option value="${p.id}">${p.nombre}</option>`);
+  selP.value = c.proveedor_id || '';
+
+  const selC = document.getElementById('ce-cultivo');
+  selC.innerHTML = '<option value="">— Seleccionar —</option>';
+  DB.cultivos.forEach(x => selC.innerHTML += `<option value="${x.id}">${x.nombre}</option>`);
+  selC.value = c.cultivo_id || '';
+
+  filtrarVariedadesEdit();
+  document.getElementById('ce-variedad').value = c.variedad_id || '';
+
+  // Cargar valores
+  document.getElementById('ce-fecha').value     = c.fecha || '';
+  document.getElementById('ce-factura').value   = c.factura || '';
+  document.getElementById('ce-lote-prov').value = c.lote_proveedor || '';
+  document.getElementById('ce-paquetes').value  = c.cant_paquetes || '';
+  document.getElementById('ce-contenido').value = c.contenido_paquete || '';
+  document.getElementById('ce-unidad').value    = c.unidad || 'kg';
+  document.getElementById('ce-moneda').value    = c.moneda || 'ARS';
+  document.getElementById('ce-tc').value        = (c.moneda==='USD') ? (c.tipo_cambio||'') : '';
+  document.getElementById('ce-precio').value    = c.precio_paquete || '';
+  document.getElementById('ce-iva-pct').value   = c.iva_pct != null ? String(c.iva_pct) : '21';
+
+  // Advertencia si tiene pagos
+  document.getElementById('ce-warn-pago').style.display = (c.monto_pagado||0) > 0.01 ? 'flex' : 'none';
+
+  toggleMonedaEdit();
+  calcEditCompra();
+
+  document.getElementById('compra-vista').style.display   = 'none';
+  document.getElementById('compra-editar').style.display  = 'block';
+  document.getElementById('btn-editar-compra').style.display  = 'none';
+  document.getElementById('btn-guardar-compra').style.display = 'inline-block';
+  document.getElementById('btn-imprimir-compra').style.display= 'none';
+}
+
+function filtrarVariedadesEdit() {
+  const cid = document.getElementById('ce-cultivo').value;
+  const sel = document.getElementById('ce-variedad');
+  const v   = sel.value;
+  sel.innerHTML = '<option value="">— Seleccionar —</option>';
+  DB.variedades.filter(x => !cid || x.cultivo_id == cid)
+    .forEach(x => sel.innerHTML += `<option value="${x.id}">${x.nombre}</option>`);
+  if(v) sel.value = v;
+}
+
+function toggleMonedaEdit() {
+  const m = document.getElementById('ce-moneda').value;
+  document.getElementById('ce-tc-wrap').style.display = m==='USD' ? 'flex' : 'none';
+  calcEditCompra();
+}
+
+function calcEditCompra() {
+  const paq    = parseFloat(document.getElementById('ce-paquetes').value)||0;
+  const cont   = parseFloat(document.getElementById('ce-contenido').value)||0;
+  const precio = parseFloat(document.getElementById('ce-precio').value)||0;
+  const ivaPct = parseFloat(document.getElementById('ce-iva-pct').value)||0;
+  const moneda = document.getElementById('ce-moneda').value;
+  const uni    = document.getElementById('ce-unidad').value;
+  const sym    = moneda==='USD' ? 'US$' : '$';
+
+  const base  = precio*paq;
+  const iva   = base*ivaPct/100;
+  const total = base+iva;
+
+  document.getElementById('ce-total-stock').value = (paq*cont) > 0 ? `${(paq*cont).toFixed(2)} ${uni}` : '';
+  document.getElementById('ce-base').value  = `${sym} ${fmtNum(base)}`;
+  document.getElementById('ce-iva').value   = `${sym} ${fmtNum(iva)}`;
+  document.getElementById('ce-total').value = `${sym} ${fmtNum(total)}`;
+}
+
+async function guardarEdicionCompra() {
+  const c = DB.semillas.find(x => x.id === compraEditandoId);
+  if(!c) return;
+
+  const fecha  = document.getElementById('ce-fecha').value;
+  const prov   = document.getElementById('ce-proveedor').value;
+  const cult   = document.getElementById('ce-cultivo').value;
+  const vari   = document.getElementById('ce-variedad').value;
+  const paq    = parseFloat(document.getElementById('ce-paquetes').value)||0;
+  const cont   = parseFloat(document.getElementById('ce-contenido').value)||0;
+  const precio = parseFloat(document.getElementById('ce-precio').value)||0;
+  const moneda = document.getElementById('ce-moneda').value;
+  const tc     = parseFloat(document.getElementById('ce-tc').value)||0;
+  const ivaPct = parseFloat(document.getElementById('ce-iva-pct').value)||0;
+
+  if(!fecha||!prov||!cult||!vari||paq<=0||cont<=0) { toast('Completá los campos obligatorios','error'); return; }
+  if(moneda==='USD' && tc<=0) { toast('Ingresá el tipo de cambio','error'); return; }
+
+  // Validar que el nuevo stock no sea menor a lo ya liberado
+  const liberado = DB.liberaciones.filter(l => l.semilla_id === c.id).reduce((s,l)=>s+(l.cantidad||0),0);
+  const nuevoStock = paq*cont;
+  if(nuevoStock < liberado) {
+    toast(`No podés reducir el stock a ${nuevoStock.toFixed(2)} — ya se liberaron ${liberado.toFixed(2)} ${c.unidad}`,'error');
+    return;
+  }
+
+  const base  = precio*paq;
+  const iva   = base*ivaPct/100;
+  const total = base+iva;
+
+  // Validar que el total no sea menor a lo ya pagado
+  if((c.monto_pagado||0) > total + 0.01) {
+    toast(`El total no puede ser menor a lo ya pagado (${fmtNum(c.monto_pagado)})`,'error');
+    return;
+  }
+
+  const upd = {
+    fecha,
+    proveedor_id: parseInt(prov),
+    cultivo_id: parseInt(cult),
+    variedad_id: parseInt(vari),
+    lote_proveedor: document.getElementById('ce-lote-prov').value,
+    factura: document.getElementById('ce-factura').value,
+    cant_paquetes: paq,
+    contenido_paquete: cont,
+    unidad: document.getElementById('ce-unidad').value,
+    total_stock: nuevoStock,
+    precio_paquete: precio,
+    moneda,
+    tipo_cambio: moneda==='USD' ? tc : 1,
+    base_imponible: base,
+    iva_pct: ivaPct,
+    iva_monto: iva,
+    importe_total: total,
+    total_ars: moneda==='USD' ? total*tc : total,
+    estado_pago: ((c.monto_pagado||0) >= total - 0.01) ? 'pagado' : 'pendiente',
+  };
+
+  Object.assign(c, upd);
+
+  try { await sbFetch('agro_semillas_stock','PATCH',upd,`?id=eq.${c.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
+
+  closeModal('modal-compra');
+  renderCompras();
+  renderStock();
+  poblarLotesLiberacion();
+  actualizarPanel();
+  toast('✅ Compra actualizada');
+}
+
+async function eliminarCompra() {
+  const c = DB.semillas.find(x => x.id === compraEditandoId);
+  if(!c) return;
+
+  const liberado = DB.liberaciones.filter(l => l.semilla_id === c.id).length;
+  if(liberado > 0) {
+    toast('No podés eliminar: esta compra tiene liberaciones asociadas','error');
+    return;
+  }
+  if((c.monto_pagado||0) > 0.01) {
+    toast('No podés eliminar: esta compra tiene pagos imputados','error');
+    return;
+  }
+  if(!confirm(`¿Eliminar la compra de ${fmt(c.fecha)}? Esta acción no se puede deshacer.`)) return;
+
+  try { await sbFetch('agro_semillas_stock','DELETE',null,`?id=eq.${c.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
+
+  DB.semillas = DB.semillas.filter(x => x.id !== c.id);
+  closeModal('modal-compra');
+  renderCompras();
+  renderStock();
+  poblarLotesLiberacion();
+  actualizarPanel();
+  toast('🗑️ Compra eliminada');
+}
+
+function imprimirCompra() {
+  const c = DB.semillas.find(x => x.id === compraEditandoId);
+  if(!c) return;
+
+  const area = document.getElementById('compra-print-area').innerHTML;
+  const w = window.open('', '_blank', 'width=800,height=900');
+  w.document.write(`
+    <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+    <title>Compra ${c.factura || fmt(c.fecha)}</title>
+    <style>
+      body{font-family:'Segoe UI',system-ui,sans-serif;padding:32px;color:#1A2E0A;max-width:760px;margin:0 auto;}
+      table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;}
+      th{background:#E8F5E0;color:#2D5016;font-weight:600;padding:8px 11px;text-align:left;
+         font-size:11px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #D4E8C4;}
+      td{padding:8px 11px;border-bottom:1px solid #E8EDE4;}
+      .chip{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+      .chip-ok{background:#E8F5E0;color:#2D5016;}
+      .chip-pend{background:#FDF3DC;color:#8B6914;}
+      .chip-alert{background:#FDECEA;color:#C0392B;}
+      .pie{margin-top:36px;padding-top:14px;border-top:1px solid #D4E8C4;
+           font-size:11px;color:#5A7048;display:flex;justify-content:space-between;}
+      @media print{ body{padding:0;} }
+    </style></head><body>
+      ${area}
+      <div class="pie">
+        <span>Emitido: ${new Date().toLocaleString('es-AR')}</span>
+        <span>CONTROLAGRO · CONTROL MAX</span>
+      </div>
+    </body></html>
+  `);
+  w.document.close();
+  setTimeout(()=>{ w.print(); }, 350);
+}
+
+function exportarCompras() {
+  if(comprasFiltradas.length===0){ toast('No hay datos para exportar','error'); return; }
+  const headers = ['Fecha','Comprobante','Proveedor','CUIT','Cultivo','Variedad','Lote prov','Paquetes',
+                   'Contenido','Unidad','Total stock','Precio unit','Moneda','TC','Base','IVA %','IVA','Total','Total ARS','Pagado','Saldo','Estado'];
+  const rows = comprasFiltradas.map(c => {
+    const prov = DB.proveedores.find(p=>p.id===c.proveedor_id);
+    const saldo = (c.importe_total||0) - (c.monto_pagado||0);
+    return [
+      fmt(c.fecha), c.factura||'',
+      (prov?.nombre||'').replace(/,/g,';'), prov?.cuit||'',
+      DB.cultivos.find(x=>x.id===c.cultivo_id)?.nombre||'',
+      DB.variedades.find(x=>x.id===c.variedad_id)?.nombre||'',
+      c.lote_proveedor||'',
+      c.cant_paquetes||0, c.contenido_paquete||0, c.unidad||'',
+      (c.total_stock||0).toFixed(2), (c.precio_paquete||0).toFixed(2),
+      c.moneda||'ARS', (c.tipo_cambio||1).toFixed(2),
+      (c.base_imponible||0).toFixed(2), c.iva_pct||0, (c.iva_monto||0).toFixed(2),
+      (c.importe_total||0).toFixed(2), (c.total_ars||c.importe_total||0).toFixed(2),
+      (c.monto_pagado||0).toFixed(2), saldo.toFixed(2),
+      saldo<=0.01 ? 'Pagada' : ((c.monto_pagado||0)>0 ? 'Parcial' : 'Pendiente'),
+    ];
+  });
+  const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `CONTROLAGRO_compras_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  toast('⬇️ CSV exportado');
+}
 // cerrar modales clickeando overlay
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
@@ -4227,6 +4877,179 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
   ALTER TABLE agro_liberaciones ENABLE ROW LEVEL SECURITY;
   ALTER TABLE agro_siembras ENABLE ROW LEVEL SECURITY;
 -->
+
+<!-- ═══════════════════════ MODAL: DETALLE / EDITAR COMPRA ═══════════════════════ -->
+<div class="modal-overlay" id="modal-compra">
+  <div class="modal" style="width:720px;max-width:94vw;max-height:88vh;overflow-y:auto;">
+
+    <!-- Encabezado imprimible -->
+    <div id="compra-print-area">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid var(--verde-oscuro);">
+        <div>
+          <div style="font-size:17px;font-weight:700;color:var(--verde-oscuro);">🌿 CONTROLAGRO</div>
+          <div style="font-size:12px;color:var(--texto-suave);">Frutihortícola FMN S.A. · Finca Milagros</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:700;color:var(--verde-oscuro);">COMPROBANTE DE COMPRA</div>
+          <div style="font-size:12px;color:var(--texto-suave);" id="cd-comprobante">—</div>
+        </div>
+      </div>
+
+      <!-- MODO VISTA -->
+      <div id="compra-vista">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+          <div>
+            <div style="font-size:10px;font-weight:600;color:var(--texto-suave);text-transform:uppercase;letter-spacing:0.8px;">Fecha de compra</div>
+            <div style="font-size:14px;font-weight:600;" id="cd-fecha">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:600;color:var(--texto-suave);text-transform:uppercase;letter-spacing:0.8px;">Estado de pago</div>
+            <div style="font-size:14px;" id="cd-estado">—</div>
+          </div>
+        </div>
+
+        <div style="background:var(--verde-claro);border:1px solid var(--verde-suave);border-radius:8px;padding:12px 14px;margin-bottom:16px;">
+          <div style="font-size:10px;font-weight:600;color:var(--verde-oscuro);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Proveedor</div>
+          <div style="font-size:14px;font-weight:700;color:var(--verde-oscuro);" id="cd-prov-nombre">—</div>
+          <div style="font-size:12px;color:var(--texto-suave);margin-top:3px;" id="cd-prov-datos">—</div>
+        </div>
+
+        <table style="width:100%;margin-bottom:16px;">
+          <thead>
+            <tr>
+              <th>Cultivo</th><th>Variedad</th><th>Lote prov.</th>
+              <th>Paquetes</th><th>Contenido</th><th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="cd-cultivo">—</td>
+              <td id="cd-variedad">—</td>
+              <td id="cd-lote">—</td>
+              <td id="cd-paquetes">—</td>
+              <td id="cd-contenido">—</td>
+              <td id="cd-stock"><strong>—</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Totales -->
+        <div style="display:flex;justify-content:flex-end;">
+          <table style="width:320px;">
+            <tbody>
+              <tr><td style="text-align:right;color:var(--texto-suave);">Precio unitario:</td><td style="text-align:right;font-weight:600;" id="cd-precio">—</td></tr>
+              <tr><td style="text-align:right;color:var(--texto-suave);">Base imponible:</td><td style="text-align:right;font-weight:600;" id="cd-base">—</td></tr>
+              <tr><td style="text-align:right;color:var(--texto-suave);">IVA <span id="cd-iva-pct">—</span>:</td><td style="text-align:right;font-weight:600;" id="cd-iva">—</td></tr>
+              <tr style="background:var(--verde-claro);">
+                <td style="text-align:right;font-weight:700;color:var(--verde-oscuro);">TOTAL:</td>
+                <td style="text-align:right;font-weight:700;font-size:16px;color:var(--verde-oscuro);" id="cd-total">—</td>
+              </tr>
+              <tr id="cd-tc-row" style="display:none;">
+                <td style="text-align:right;color:var(--texto-suave);font-size:12px;">TC (<span id="cd-tc-val">—</span>) — Equiv. ARS:</td>
+                <td style="text-align:right;font-size:12px;" id="cd-equiv">—</td>
+              </tr>
+              <tr id="cd-pago-row">
+                <td style="text-align:right;color:var(--texto-suave);">Pagado:</td>
+                <td style="text-align:right;color:var(--verde-medio);font-weight:600;" id="cd-pagado">—</td>
+              </tr>
+              <tr id="cd-saldo-row">
+                <td style="text-align:right;color:var(--texto-suave);font-weight:700;">Saldo:</td>
+                <td style="text-align:right;color:var(--rojo);font-weight:700;" id="cd-saldo">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODO EDICIÓN -->
+    <div id="compra-editar" style="display:none;">
+      <div class="alert alert-info" style="margin-bottom:14px;">
+        <span style="font-size:16px;">✏️</span>
+        <div style="font-size:12px;">Editá los datos de la compra. Los cambios impactan en el stock y la cuenta corriente.</div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field"><label>Fecha *</label><input type="date" id="ce-fecha"/></div>
+        <div class="field"><label>N° Factura / Remito</label><input type="text" id="ce-factura"/></div>
+
+        <div class="field">
+          <label>Proveedor *</label>
+          <select id="ce-proveedor"></select>
+        </div>
+        <div class="field"><label>Lote del proveedor</label><input type="text" id="ce-lote-prov"/></div>
+
+        <div class="field">
+          <label>Cultivo *</label>
+          <select id="ce-cultivo" onchange="filtrarVariedadesEdit()"></select>
+        </div>
+        <div class="field">
+          <label>Variedad *</label>
+          <select id="ce-variedad"></select>
+        </div>
+
+        <div class="section-sep">Cantidades</div>
+        <div class="field"><label>Paquetes *</label><input type="number" id="ce-paquetes" min="1" oninput="calcEditCompra()"/></div>
+        <div class="field"><label>Contenido por paquete *</label><input type="number" id="ce-contenido" min="0" step="0.001" oninput="calcEditCompra()"/></div>
+        <div class="field">
+          <label>Unidad</label>
+          <select id="ce-unidad">
+            <option value="kg">Kilogramos (kg)</option>
+            <option value="g">Gramos (g)</option>
+            <option value="unid">Unidades</option>
+            <option value="sobre">Sobres</option>
+          </select>
+        </div>
+        <div class="field readonly"><label>Total en depósito</label><input type="text" id="ce-total-stock" readonly/></div>
+
+        <div class="section-sep">Moneda e importes</div>
+        <div class="field">
+          <label>Moneda *</label>
+          <select id="ce-moneda" onchange="toggleMonedaEdit()">
+            <option value="ARS">🇦🇷 Pesos (ARS)</option>
+            <option value="USD">🇺🇸 Dólares (USD)</option>
+          </select>
+        </div>
+        <div class="field" id="ce-tc-wrap" style="display:none;">
+          <label>Tipo de cambio *</label>
+          <input type="number" id="ce-tc" min="0" step="0.01" oninput="calcEditCompra()"/>
+        </div>
+        <div class="field"><label>Precio por paquete (sin IVA) *</label><input type="number" id="ce-precio" min="0" step="0.01" oninput="calcEditCompra()"/></div>
+        <div class="field">
+          <label>Alícuota IVA *</label>
+          <select id="ce-iva-pct" onchange="calcEditCompra()">
+            <option value="21">21%</option>
+            <option value="10.5">10,5%</option>
+            <option value="0">Sin IVA / Exento</option>
+          </select>
+        </div>
+        <div class="field readonly"><label>Base imponible</label><input type="text" id="ce-base" readonly/></div>
+        <div class="field readonly"><label>IVA</label><input type="text" id="ce-iva" readonly/></div>
+        <div class="field readonly"><label>TOTAL</label><input type="text" id="ce-total" readonly style="font-weight:700;"/></div>
+      </div>
+
+      <div id="ce-warn-pago" class="alert" style="display:none;background:var(--tierra-claro);border:1px solid var(--tierra);color:var(--tierra);margin-top:12px;">
+        <span style="font-size:16px;">⚠️</span>
+        <div style="font-size:12px;">Esta factura tiene pagos imputados. Si cambiás el total, verificá que el saldo siga siendo coherente.</div>
+      </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="modal-actions" style="margin-top:20px;justify-content:space-between;">
+      <div>
+        <button class="btn-secondary" id="btn-eliminar-compra" onclick="eliminarCompra()"
+                style="border-color:var(--rojo);color:var(--rojo);">🗑️ Eliminar</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" onclick="closeModal('modal-compra')">Cerrar</button>
+        <button class="btn-secondary" id="btn-imprimir-compra" onclick="imprimirCompra()">🖨️ Imprimir</button>
+        <button class="btn-primary" id="btn-editar-compra" onclick="modoEditarCompra()">✏️ Editar</button>
+        <button class="btn-primary" id="btn-guardar-compra" onclick="guardarEdicionCompra()" style="display:none;">💾 Guardar cambios</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <div id="sql-output" style="display:none"></div>
 <script src="/navbar.js"></script>
