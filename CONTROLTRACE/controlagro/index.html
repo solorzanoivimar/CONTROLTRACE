@@ -441,11 +441,11 @@
       <!-- ═════════════════════════ INGRESO SEMILLA ═════════════════════════ -->
       <div id="screen-ingreso-semilla" class="screen">
         <div class="page-header">
-          <div><h2>Ingreso de Semillas</h2><div class="sub">Compra y registro de nuevos lotes al depósito</div></div>
+          <div><h2>Ingreso de Semillas</h2><div class="sub">Cargá una factura con una o varias semillas</div></div>
         </div>
         <div class="form-card">
           <h2>📦 Nueva Compra de Semillas</h2>
-          <div class="form-desc">Cada ingreso genera un lote en el stock del depósito. Los datos de proveedor, cultivo y variedad se crean automáticamente si son nuevos.</div>
+          <div class="form-desc">Cargá los datos de la factura una sola vez y agregá todas las semillas que quieras. Cada semilla se guarda como un lote en el stock, compartiendo los datos del comprobante. Proveedor, cultivo y variedad se crean automáticamente si son nuevos.</div>
 
           <div class="form-grid">
             <div class="section-sep">Datos del comprobante</div>
@@ -468,8 +468,32 @@
               <input type="text" id="s-factura" placeholder="Ej: 0001-00012345" />
             </div>
 
-            <div class="section-sep">Datos de la semilla</div>
+            <div class="section-sep">Moneda y pago (aplican a toda la factura)</div>
 
+            <div class="field">
+              <label>Moneda de la factura *</label>
+              <select id="s-moneda" onchange="toggleMonedaSemilla()">
+                <option value="ARS">🇦🇷 Pesos (ARS)</option>
+                <option value="USD">🇺🇸 Dólares (USD)</option>
+              </select>
+            </div>
+
+            <div class="field" id="s-tc-wrap" style="display:none;">
+              <label>Tipo de cambio del día *</label>
+              <input type="number" id="s-tc" min="0" step="0.01" placeholder="Ej: 1250.00" oninput="recalcTotalesFactura()" />
+            </div>
+
+            <div class="field">
+              <label>Estado de pago</label>
+              <select id="s-pago">
+                <option value="pendiente">⏳ Pendiente (va a cuenta corriente)</option>
+                <option value="pagado">✅ Pagado al contado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="section-sep" style="margin-top:10px;">Agregar semilla a la factura</div>
+          <div class="form-grid">
             <div class="field">
               <label>Cultivo *</label>
               <div class="combo-wrap">
@@ -491,16 +515,14 @@
               <input type="text" id="s-lote-prov" placeholder="Código del proveedor" />
             </div>
 
-            <div class="section-sep">Cantidades</div>
-
             <div class="field">
               <label>Cantidad de paquetes *</label>
-              <input type="number" id="s-cant-paquetes" min="1" placeholder="0" oninput="calcTotal()" />
+              <input type="number" id="s-cant-paquetes" min="1" placeholder="0" oninput="calcLineaPreview()" />
             </div>
 
             <div class="field">
               <label>Contenido por paquete *</label>
-              <input type="number" id="s-contenido" min="0" step="0.001" placeholder="0" oninput="calcTotal()" />
+              <input type="number" id="s-contenido" min="0" step="0.001" placeholder="0" oninput="calcLineaPreview()" />
             </div>
 
             <div class="field">
@@ -513,41 +535,14 @@
               </select>
             </div>
 
-            <div class="field readonly">
-              <label>Total en depósito</label>
-              <input type="text" id="s-total-calc" readonly placeholder="— automático —" />
-            </div>
-
-            <div class="section-sep">Moneda y cotización</div>
-
-            <div class="field">
-              <label>Moneda de la factura *</label>
-              <select id="s-moneda" onchange="toggleMonedaSemilla()">
-                <option value="ARS">🇦🇷 Pesos (ARS)</option>
-                <option value="USD">🇺🇸 Dólares (USD)</option>
-              </select>
-            </div>
-
-            <div class="field" id="s-tc-wrap" style="display:none;">
-              <label>Tipo de cambio del día *</label>
-              <input type="number" id="s-tc" min="0" step="0.01" placeholder="Ej: 1250.00" oninput="calcImporte()" />
-            </div>
-
-            <div class="section-sep">Datos económicos</div>
-
             <div class="field">
               <label>Precio por paquete (sin IVA) *</label>
-              <input type="number" id="s-precio" min="0" step="0.01" placeholder="0.00" oninput="calcImporte()" />
-            </div>
-
-            <div class="field readonly">
-              <label>Base imponible</label>
-              <input type="text" id="s-base" readonly placeholder="— automático —" />
+              <input type="number" id="s-precio" min="0" step="0.01" placeholder="0.00" oninput="calcLineaPreview()" />
             </div>
 
             <div class="field">
               <label>Alícuota IVA *</label>
-              <select id="s-iva-pct" onchange="calcImporte()">
+              <select id="s-iva-pct" onchange="calcLineaPreview()">
                 <option value="21">21%</option>
                 <option value="10.5">10,5%</option>
                 <option value="0">Sin IVA / Exento</option>
@@ -555,33 +550,40 @@
             </div>
 
             <div class="field readonly">
-              <label>IVA</label>
-              <input type="text" id="s-iva-monto" readonly placeholder="— automático —" />
+              <label>Subtotal de esta semilla</label>
+              <input type="text" id="s-linea-subtotal" readonly placeholder="— automático —" />
             </div>
+          </div>
 
-            <div class="field readonly">
-              <label>TOTAL FACTURA</label>
-              <input type="text" id="s-importe" readonly placeholder="— automático —" style="font-weight:700;" />
-            </div>
+          <div style="margin-top:12px;">
+            <button class="btn-secondary" onclick="agregarLinea()" style="border-color:var(--verde-medio);color:var(--verde-medio);font-weight:700;">➕ Agregar semilla a la factura</button>
+          </div>
 
-            <div class="field readonly" id="s-equiv-wrap" style="display:none;">
-              <label>Equivalente en pesos</label>
-              <input type="text" id="s-equiv-ars" readonly placeholder="— automático —" />
-            </div>
+          <div class="section-sep" style="margin-top:22px;">Semillas en esta factura</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cultivo · Variedad</th><th>Lote prov.</th><th>Paq. × Cont.</th>
+                  <th>Total</th><th>Precio/paq</th><th>IVA</th><th>Subtotal</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="tabla-lineas-ingreso">
+                <tr class="empty-row"><td colspan="8">Todavía no agregaste semillas a esta factura</td></tr>
+              </tbody>
+            </table>
+          </div>
 
-            <div class="field">
-              <label>Estado de pago</label>
-              <select id="s-pago">
-                <option value="pendiente">⏳ Pendiente (va a cuenta corriente)</option>
-                <option value="pagado">✅ Pagado al contado</option>
-              </select>
-            </div>
-
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:18px;">
+            <div class="res-card"><div class="res-label">Base imponible</div><div class="res-val" id="s-base" style="font-size:18px;">$ 0,00</div></div>
+            <div class="res-card"><div class="res-label">IVA total</div><div class="res-val" id="s-iva-monto" style="font-size:18px;">$ 0,00</div></div>
+            <div class="res-card positivo"><div class="res-label">TOTAL FACTURA</div><div class="res-val" id="s-importe" style="font-size:18px;">$ 0,00</div></div>
+            <div class="res-card neutro" id="s-equiv-wrap" style="display:none;"><div class="res-label">Equivalente en pesos</div><div class="res-val" id="s-equiv-ars" style="font-size:18px;">$ 0,00</div></div>
           </div>
 
           <div class="form-actions">
-            <button class="btn-primary" onclick="guardarIngreso()">💾 Guardar Ingreso</button>
-            <button class="btn-secondary" onclick="limpiarIngreso()">🗑️ Limpiar</button>
+            <button class="btn-primary" onclick="guardarIngreso()">💾 Guardar Factura</button>
+            <button class="btn-secondary" onclick="limpiarIngreso()">🗑️ Limpiar Todo</button>
           </div>
         </div>
       </div>
@@ -2013,113 +2015,203 @@ function calcDisponible(semilla) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  INGRESO SEMILLAS
+//  INGRESO SEMILLAS  (una factura, varias semillas)
 // ══════════════════════════════════════════════════════════════
-function calcTotal() {
-  const paq = parseFloat(document.getElementById('s-cant-paquetes').value)||0;
-  const cont = parseFloat(document.getElementById('s-contenido').value)||0;
-  const uni = document.getElementById('s-unidad').value;
-  document.getElementById('s-total-calc').value = paq*cont > 0 ? `${(paq*cont).toLocaleString('es-AR')} ${uni}` : '';
-}
-function toggleMonedaSemilla() {
-  const m = document.getElementById('s-moneda').value;
-  document.getElementById('s-tc-wrap').style.display    = m==='USD' ? 'flex' : 'none';
-  document.getElementById('s-equiv-wrap').style.display = m==='USD' ? 'flex' : 'none';
-  calcImporte();
-}
-
-function calcImporte() {
-  const paq    = parseFloat(document.getElementById('s-cant-paquetes').value)||0;
-  const precio = parseFloat(document.getElementById('s-precio').value)||0;
-  const ivaPct = parseFloat(document.getElementById('s-iva-pct').value)||0;
-  const moneda = document.getElementById('s-moneda').value;
-  const tc     = parseFloat(document.getElementById('s-tc').value)||0;
-
-  const base  = precio * paq;
-  const iva   = base * ivaPct / 100;
-  const total = base + iva;
-  const sym   = moneda==='USD' ? 'US$' : '$';
-
-  document.getElementById('s-base').value      = base>0  ? `${sym} ${fmtNum(base)}`  : '';
-  document.getElementById('s-iva-monto').value = base>0  ? `${sym} ${fmtNum(iva)}`   : '';
-  document.getElementById('s-importe').value   = total>0 ? `${sym} ${fmtNum(total)}` : '';
-
-  if(moneda==='USD') {
-    document.getElementById('s-equiv-ars').value = (total>0 && tc>0)
-      ? `$ ${fmtNum(total*tc)}` : '— ingresá el TC —';
-  }
-}
+let lineasIngreso = [];   // líneas de semilla de la factura en curso
 
 function fmtNum(n) {
   return (n||0).toLocaleString('es-AR',{minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
-async function guardarIngreso() {
-  const fecha  = document.getElementById('s-fecha').value;
-  const prov   = document.getElementById('s-proveedor').value;
+function toggleMonedaSemilla() {
+  const m = document.getElementById('s-moneda').value;
+  const tcWrap = document.getElementById('s-tc-wrap');
+  const eqWrap = document.getElementById('s-equiv-wrap');
+  if(tcWrap) tcWrap.style.display = m==='USD' ? 'flex' : 'none';
+  if(eqWrap) eqWrap.style.display = m==='USD' ? 'flex' : 'none';
+  calcLineaPreview();
+  renderLineasIngreso();
+}
+
+// Subtotal de la semilla que se está por agregar (mini-form)
+function calcLineaPreview() {
+  const paq    = parseFloat(document.getElementById('s-cant-paquetes').value)||0;
+  const precio = parseFloat(document.getElementById('s-precio').value)||0;
+  const ivaPct = parseFloat(document.getElementById('s-iva-pct').value)||0;
+  const moneda = document.getElementById('s-moneda').value;
+  const sym    = moneda==='USD' ? 'US$' : '$';
+  const base   = precio*paq;
+  const total  = base + base*ivaPct/100;
+  const el = document.getElementById('s-linea-subtotal');
+  if(el) el.value = total>0 ? `${sym} ${fmtNum(total)}` : '';
+}
+
+function agregarLinea() {
   const cult   = document.getElementById('s-cultivo').value;
   const vari   = document.getElementById('s-variedad').value;
   const paq    = parseFloat(document.getElementById('s-cant-paquetes').value)||0;
   const cont   = parseFloat(document.getElementById('s-contenido').value)||0;
-  const uni    = document.getElementById('s-unidad').value;
   const precio = parseFloat(document.getElementById('s-precio').value)||0;
-  const moneda = document.getElementById('s-moneda').value;
-  const tc     = parseFloat(document.getElementById('s-tc').value)||0;
   const ivaPct = parseFloat(document.getElementById('s-iva-pct').value)||0;
-  const estado = document.getElementById('s-pago').value;
 
-  if(!fecha||!cult||!vari||paq<=0||cont<=0) { toast('Completá los campos obligatorios (*)','error'); return; }
-  if(!prov) { toast('Seleccioná un proveedor','error'); return; }
-  if(moneda==='USD' && tc<=0) { toast('Ingresá el tipo de cambio para facturas en dólares','error'); return; }
+  if(!cult||!vari) { toast('Elegí cultivo y variedad de la semilla','error'); return; }
+  if(paq<=0||cont<=0) { toast('Cargá paquetes y contenido de la semilla','error'); return; }
 
-  const base  = precio*paq;
-  const iva   = base*ivaPct/100;
-  const total = base+iva;
-
-  const nuevo = {
-    id: Date.now(),
-    tenant_id: TENANT_ID,
-    fecha,
-    proveedor_id: parseInt(prov),
+  lineasIngreso.push({
     cultivo_id: parseInt(cult),
     variedad_id: parseInt(vari),
+    cultivoNombre: DB.cultivos.find(c=>c.id==cult)?.nombre || '?',
+    variedadNombre: DB.variedades.find(v=>v.id==vari)?.nombre || '?',
     lote_proveedor: document.getElementById('s-lote-prov').value,
-    factura: document.getElementById('s-factura').value,
     cant_paquetes: paq,
     contenido_paquete: cont,
-    unidad: uni,
-    total_stock: paq*cont,
+    unidad: document.getElementById('s-unidad').value,
     precio_paquete: precio,
-    moneda,
-    tipo_cambio: moneda==='USD' ? tc : 1,
-    base_imponible: base,
     iva_pct: ivaPct,
-    iva_monto: iva,
-    importe_total: total,
-    total_ars: moneda==='USD' ? total*tc : total,
-    monto_pagado: estado==='pagado' ? total : 0,
-    estado_pago: estado,
-  };
+  });
 
-  try { await sbFetch('agro_semillas_stock','POST',{...nuevo,id:undefined},''); } catch(e){}
+  // limpiar sólo el mini-form de la semilla (la cabecera de factura queda)
+  ['s-lote-prov','s-cant-paquetes','s-contenido','s-precio','s-linea-subtotal']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('s-cultivo').value='';
+  document.getElementById('s-variedad').value='';
+  document.getElementById('s-iva-pct').value='21';
+  filtrarVariedades();
 
-  DB.semillas.unshift(nuevo);
+  renderLineasIngreso();
+  toast('✅ Semilla agregada a la factura');
+}
+
+function quitarLinea(idx) {
+  lineasIngreso.splice(idx,1);
+  renderLineasIngreso();
+}
+
+function renderLineasIngreso() {
+  const tbody = document.getElementById('tabla-lineas-ingreso');
+  if(!tbody) return;
+  const moneda = document.getElementById('s-moneda').value;
+  const sym = moneda==='USD' ? 'US$' : '$';
+  if(lineasIngreso.length===0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Todavía no agregaste semillas a esta factura</td></tr>';
+  } else {
+    tbody.innerHTML = lineasIngreso.map((l,i)=>{
+      const base = l.precio_paquete*l.cant_paquetes;
+      const total = base + base*l.iva_pct/100;
+      return `<tr>
+        <td><strong>${l.cultivoNombre}</strong> · ${l.variedadNombre}</td>
+        <td>${l.lote_proveedor||'—'}</td>
+        <td>${l.cant_paquetes} × ${l.contenido_paquete}</td>
+        <td>${(l.cant_paquetes*l.contenido_paquete).toLocaleString('es-AR')} ${l.unidad}</td>
+        <td>${sym} ${fmtNum(l.precio_paquete)}</td>
+        <td>${l.iva_pct}%</td>
+        <td><strong>${sym} ${fmtNum(total)}</strong></td>
+        <td><button class="btn-secondary" style="padding:2px 8px;font-size:11px;border-color:var(--rojo);color:var(--rojo);" onclick="quitarLinea(${i})">🗑️</button></td>
+      </tr>`;
+    }).join('');
+  }
+  recalcTotalesFactura();
+}
+
+function recalcTotalesFactura() {
+  const moneda = document.getElementById('s-moneda').value;
+  const tc     = parseFloat(document.getElementById('s-tc').value)||0;
+  const sym    = moneda==='USD' ? 'US$' : '$';
+  let base=0, iva=0;
+  lineasIngreso.forEach(l=>{
+    const b = l.precio_paquete*l.cant_paquetes;
+    base += b;
+    iva  += b*l.iva_pct/100;
+  });
+  const total = base+iva;
+  const elB = document.getElementById('s-base');
+  const elI = document.getElementById('s-iva-monto');
+  const elT = document.getElementById('s-importe');
+  const elE = document.getElementById('s-equiv-ars');
+  if(elB) elB.textContent = `${sym} ${fmtNum(base)}`;
+  if(elI) elI.textContent = `${sym} ${fmtNum(iva)}`;
+  if(elT) elT.textContent = `${sym} ${fmtNum(total)}`;
+  if(elE && moneda==='USD') {
+    elE.textContent = (total>0 && tc>0) ? `$ ${fmtNum(total*tc)}` : '— ingresá el TC —';
+  }
+}
+
+async function guardarIngreso() {
+  const fecha  = document.getElementById('s-fecha').value;
+  const prov   = document.getElementById('s-proveedor').value;
+  const factura= document.getElementById('s-factura').value;
+  const moneda = document.getElementById('s-moneda').value;
+  const tc     = parseFloat(document.getElementById('s-tc').value)||0;
+  const estado = document.getElementById('s-pago').value;
+
+  if(!fecha) { toast('Cargá la fecha de compra','error'); return; }
+  if(!prov)  { toast('Seleccioná un proveedor','error'); return; }
+  if(lineasIngreso.length===0) { toast('Agregá al menos una semilla a la factura','error'); return; }
+  if(moneda==='USD' && tc<=0) { toast('Ingresá el tipo de cambio para facturas en dólares','error'); return; }
+
+  let totalFactura = 0;
+  const baseId = Date.now();
+  for(let i=0; i<lineasIngreso.length; i++) {
+    const l = lineasIngreso[i];
+    const b   = l.precio_paquete*l.cant_paquetes;
+    const iva = b*l.iva_pct/100;
+    const tot = b+iva;
+    totalFactura += tot;
+
+    const nuevo = {
+      id: baseId + i,
+      tenant_id: TENANT_ID,
+      fecha,
+      proveedor_id: parseInt(prov),
+      cultivo_id: l.cultivo_id,
+      variedad_id: l.variedad_id,
+      lote_proveedor: l.lote_proveedor,
+      factura,
+      cant_paquetes: l.cant_paquetes,
+      contenido_paquete: l.contenido_paquete,
+      unidad: l.unidad,
+      total_stock: l.cant_paquetes*l.contenido_paquete,
+      precio_paquete: l.precio_paquete,
+      moneda,
+      tipo_cambio: moneda==='USD' ? tc : 1,
+      base_imponible: b,
+      iva_pct: l.iva_pct,
+      iva_monto: iva,
+      importe_total: tot,
+      total_ars: moneda==='USD' ? tot*tc : tot,
+      monto_pagado: estado==='pagado' ? tot : 0,
+      estado_pago: estado,
+    };
+
+    try {
+      const res = await sbFetch('agro_semillas_stock','POST',{...nuevo,id:undefined},'');
+      if(res && res[0] && res[0].id) nuevo.id = res[0].id;
+    } catch(e){}
+
+    DB.semillas.unshift(nuevo);
+    registrarMovimiento('INGRESO', nuevo);
+  }
+
+  const n = lineasIngreso.length;
   limpiarIngreso();
   renderStock();
   poblarLotesLiberacion();
   actualizarPanel();
   const sym = moneda==='USD'?'US$':'$';
-  toast(`✅ Compra registrada — ${sym} ${fmtNum(total)}`);
-  registrarMovimiento('INGRESO', nuevo);
+  toast(`✅ Factura registrada — ${n} semilla(s) · ${sym} ${fmtNum(totalFactura)}`);
 }
 
 function limpiarIngreso() {
-  ['s-factura','s-lote-prov','s-cant-paquetes','s-contenido','s-precio','s-total-calc',
-   's-importe','s-base','s-iva-monto','s-tc','s-equiv-ars']
+  lineasIngreso = [];
+  ['s-factura','s-lote-prov','s-cant-paquetes','s-contenido','s-precio','s-linea-subtotal','s-tc']
     .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const c = document.getElementById('s-cultivo'); if(c) c.value='';
+  const v = document.getElementById('s-variedad'); if(v) v.value='';
   document.getElementById('s-fecha').value = new Date().toISOString().split('T')[0];
   document.getElementById('s-moneda').value = 'ARS';
   document.getElementById('s-iva-pct').value = '21';
+  document.getElementById('s-pago').value = 'pendiente';
+  renderLineasIngreso();
   toggleMonedaSemilla();
 }
 
@@ -3116,11 +3208,6 @@ async function guardarProveedorGG() {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  KPI PANEL — actualizar con nuevos datos
-// ══════════════════════════════════════════════════════════════
-
-
-// ══════════════════════════════════════════════════════════════
 //  TRAZABILIDAD
 // ══════════════════════════════════════════════════════════════
 function renderTrazabilidad() {
@@ -3707,7 +3794,7 @@ function exportarCSV() {
     reporteHeadersActual.join(','),
     ...reporteDataActual.map(r=>r.map(sanitize).join(','))
   ].join('\n');
-  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
   a.download = `CONTROLAGRO_${reporteActual}_${new Date().toISOString().split('T')[0]}.csv`;
@@ -3916,6 +4003,34 @@ function chipAntiguedad(dias) {
   return `<span class="chip chip-alert">${dias} días</span>`;
 }
 
+// Agrupa facturas (líneas de semilla/gasto) por proveedor + N° de comprobante
+function agruparFacturas(lista) {
+  const grupos = {};
+  lista.forEach(f => {
+    const comp = (f.comprobante && f.comprobante !== '—') ? f.comprobante : null;
+    const key = f.proveedor_id + '|' + (comp ? comp : ('__' + f.id));
+    if(!grupos[key]) {
+      grupos[key] = {
+        key, fecha: f.fecha, proveedor_id: f.proveedor_id,
+        comprobante: f.comprobante, moneda: f.moneda,
+        total: 0, pagado: 0, saldo: 0, items: [],
+      };
+    }
+    const g = grupos[key];
+    g.total  += f.total || 0;
+    g.pagado += f.pagado || 0;
+    g.saldo  += f.saldo || 0;
+    g.items.push(f);
+    if((f.fecha||'') < (g.fecha||'')) g.fecha = f.fecha;
+  });
+  return Object.values(grupos).map(g => {
+    g.concepto = g.items.length === 1
+      ? g.items[0].concepto
+      : `${g.items.length} semillas: ` + [...new Set(g.items.map(it => (it.concepto||'').split(' · ')[0]))].join(', ');
+    return g;
+  }).sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+}
+
 // ══════════════════════════════════════════════════════════════
 //  FICHA PROVEEDORES
 // ══════════════════════════════════════════════════════════════
@@ -3963,54 +4078,57 @@ function renderCuentaCorriente() {
   const monF    = document.getElementById('cc-filtro-moneda')?.value || '';
 
   let facturas = getFacturasCompra();
-
   if(provF)  facturas = facturas.filter(f => f.proveedor_id == provF);
   if(monF)   facturas = facturas.filter(f => f.moneda === monF);
-  if(estadoF === 'pendiente') facturas = facturas.filter(f => f.saldo > 0.01);
-  if(estadoF === 'pagado')    facturas = facturas.filter(f => f.saldo <= 0.01);
 
-  ccDataActual = facturas;
+  // Agrupar por N° de factura (suma todas las líneas de la misma factura)
+  let grupos = agruparFacturas(facturas);
+  if(estadoF === 'pendiente') grupos = grupos.filter(g => g.saldo > 0.01);
+  if(estadoF === 'pagado')    grupos = grupos.filter(g => g.saldo <= 0.01);
 
-  // KPIs sobre TODAS las pendientes (sin filtro de estado)
-  const pend = getFacturasCompra().filter(f => f.saldo > 0.01);
-  const deudaArs = pend.filter(f=>f.moneda==='ARS').reduce((s,f)=>s+f.saldo,0);
-  const deudaUsd = pend.filter(f=>f.moneda==='USD').reduce((s,f)=>s+f.saldo,0);
-  const provsConSaldo = [...new Set(pend.map(f=>f.proveedor_id))].length;
+  ccDataActual = grupos;
+
+  // KPIs sobre TODAS las facturas pendientes (agrupadas)
+  const pendGrupos = agruparFacturas(getFacturasCompra()).filter(g => g.saldo > 0.01);
+  const deudaArs = pendGrupos.filter(g=>g.moneda==='ARS').reduce((s,g)=>s+g.saldo,0);
+  const deudaUsd = pendGrupos.filter(g=>g.moneda==='USD').reduce((s,g)=>s+g.saldo,0);
+  const provsConSaldo = [...new Set(pendGrupos.map(g=>g.proveedor_id))].length;
 
   document.getElementById('cc-deuda-ars').textContent = '$ ' + fmtNum(deudaArs);
   document.getElementById('cc-deuda-usd').textContent = 'US$ ' + fmtNum(deudaUsd);
-  document.getElementById('cc-cant-pend').textContent = pend.length;
+  document.getElementById('cc-cant-pend').textContent = pendGrupos.length;
   document.getElementById('cc-cant-prov').textContent = provsConSaldo;
 
   const tbody = document.getElementById('tabla-cc');
-  if(facturas.length===0){
+  if(grupos.length===0){
     tbody.innerHTML = '<tr class="empty-row"><td colspan="11">Sin facturas para los filtros seleccionados</td></tr>';
     return;
   }
 
-  tbody.innerHTML = facturas.map(f => {
-    const prov = DB.proveedores.find(p=>p.id===f.proveedor_id)?.nombre || '—';
-    const sym  = f.moneda==='USD' ? 'US$' : '$';
-    const dias = diasAntiguedad(f.fecha);
-    const pagada = f.saldo <= 0.01;
-    const parcial = f.pagado > 0.01 && !pagada;
+  tbody.innerHTML = grupos.map(g => {
+    const prov = DB.proveedores.find(p=>p.id===g.proveedor_id)?.nombre || '—';
+    const sym  = g.moneda==='USD' ? 'US$' : '$';
+    const dias = diasAntiguedad(g.fecha);
+    const pagada = g.saldo <= 0.01;
+    const parcial = g.pagado > 0.01 && !pagada;
     const estadoChip = pagada
       ? '<span class="chip chip-ok">✅ Pagada</span>'
       : parcial
         ? '<span class="chip chip-pend">🔸 Parcial</span>'
         : '<span class="chip chip-alert">⏳ Pendiente</span>';
+    const itemsTxt = g.items.length>1 ? ` <span class="chip chip-ok" style="font-size:9px;">${g.items.length} ítems</span>` : '';
     return `<tr>
-      <td>${fmt(f.fecha)}</td>
+      <td>${fmt(g.fecha)}</td>
       <td><strong>${prov}</strong></td>
-      <td>${f.comprobante}</td>
-      <td style="font-size:12px;">${f.concepto}</td>
-      <td><span class="chip ${f.moneda==='USD'?'chip-creciendo':'chip-ok'}">${f.moneda}</span></td>
-      <td>${sym} ${fmtNum(f.total)}</td>
-      <td>${f.pagado>0 ? sym+' '+fmtNum(f.pagado) : '—'}</td>
-      <td><strong style="color:${pagada?'var(--verde-medio)':'var(--rojo)'}">${sym} ${fmtNum(f.saldo)}</strong></td>
+      <td>${g.comprobante}</td>
+      <td style="font-size:12px;">${g.concepto}${itemsTxt}</td>
+      <td><span class="chip ${g.moneda==='USD'?'chip-creciendo':'chip-ok'}">${g.moneda}</span></td>
+      <td>${sym} ${fmtNum(g.total)}</td>
+      <td>${g.pagado>0 ? sym+' '+fmtNum(g.pagado) : '—'}</td>
+      <td><strong style="color:${pagada?'var(--verde-medio)':'var(--rojo)'}">${sym} ${fmtNum(g.saldo)}</strong></td>
       <td>${pagada ? '—' : chipAntiguedad(dias)}</td>
       <td>${estadoChip}</td>
-      <td>${pagada ? '' : `<button class="btn-primary" style="padding:3px 10px;font-size:11px;" onclick="irAPagar(${f.proveedor_id})">Pagar</button>`}</td>
+      <td>${pagada ? '' : `<button class="btn-primary" style="padding:3px 10px;font-size:11px;" onclick="irAPagar(${g.proveedor_id})">Pagar</button>`}</td>
     </tr>`;
   }).join('');
 }
@@ -4030,7 +4148,7 @@ function exportarCC() {
     fmt(f.fecha),
     DB.proveedores.find(p=>p.id===f.proveedor_id)?.nombre||'',
     f.comprobante,
-    f.concepto.replace(/,/g,';'),
+    (f.concepto||'').replace(/,/g,';'),
     f.moneda,
     f.total.toFixed(2),
     f.pagado.toFixed(2),
@@ -4039,7 +4157,7 @@ function exportarCC() {
     f.saldo<=0.01 ? 'Pagada' : (f.pagado>0?'Parcial':'Pendiente'),
   ]);
   const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
-  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `CONTROLAGRO_cuenta_corriente_${new Date().toISOString().split('T')[0]}.csv`;
@@ -4402,6 +4520,34 @@ function limpiarFiltrosCompras() {
   renderCompras();
 }
 
+// Agrupa las compras (líneas de semilla) por proveedor + N° de comprobante
+function agruparCompras(lista) {
+  const grupos = {};
+  lista.forEach(c => {
+    const fac = (c.factura && String(c.factura).trim()) ? String(c.factura).trim() : null;
+    const key = c.proveedor_id + '|' + (fac ? fac : ('__' + c.id));
+    if(!grupos[key]) grupos[key] = {
+      key, fecha: c.fecha, proveedor_id: c.proveedor_id, factura: c.factura || '—',
+      moneda: c.moneda || 'ARS', base: 0, iva: 0, total: 0, pagado: 0, items: [],
+    };
+    const g = grupos[key];
+    g.base   += c.base_imponible || 0;
+    g.iva    += c.iva_monto || 0;
+    g.total  += c.importe_total || 0;
+    g.pagado += c.monto_pagado || 0;
+    g.items.push(c);
+    if((c.fecha||'') < (g.fecha||'')) g.fecha = c.fecha;
+  });
+  return Object.values(grupos).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+}
+
+function toggleFacturaCompra(gi, btn) {
+  const rows = document.querySelectorAll('.det-compra[data-grp="'+gi+'"]');
+  let abierto = false;
+  rows.forEach(r => { const show = r.style.display==='none'; r.style.display = show ? '' : 'none'; abierto = show; });
+  if(btn) btn.innerHTML = abierto ? '🔼 Ocultar' : ('🔽 Ver '+rows.length);
+}
+
 function renderCompras() {
   const desde  = document.getElementById('cmp-desde')?.value || '';
   const hasta  = document.getElementById('cmp-hasta')?.value || '';
@@ -4427,6 +4573,8 @@ function renderCompras() {
   compras.sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
   comprasFiltradas = compras;
 
+  const grupos = agruparCompras(compras);
+
   // ── KPIs ──
   const totArs = compras.filter(c=>(c.moneda||'ARS')==='ARS').reduce((s,c)=>s+(c.importe_total||0),0);
   const totUsd = compras.filter(c=>(c.moneda||'ARS')==='USD').reduce((s,c)=>s+(c.importe_total||0),0);
@@ -4438,7 +4586,7 @@ function renderCompras() {
     return s + saldo * tc;
   },0);
 
-  document.getElementById('cmp-cant').textContent       = compras.length;
+  document.getElementById('cmp-cant').textContent       = grupos.length;
   document.getElementById('cmp-total-ars').textContent  = '$ '  + fmtNum(totArs);
   document.getElementById('cmp-total-usd').textContent  = 'US$ '+ fmtNum(totUsd);
   document.getElementById('cmp-total-cons').textContent = '$ '  + fmtNum(totCons);
@@ -4446,36 +4594,62 @@ function renderCompras() {
 
   // ── Tabla ──
   const tbody = document.getElementById('tabla-compras');
-  if(compras.length===0){
+  if(grupos.length===0){
     tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Sin compras para los filtros seleccionados</td></tr>';
     return;
   }
 
-  tbody.innerHTML = compras.map(c => {
-    const prov = DB.proveedores.find(p=>p.id===c.proveedor_id)?.nombre || '—';
-    const cult = DB.cultivos.find(x=>x.id===c.cultivo_id)?.nombre || '—';
-    const vari = DB.variedades.find(x=>x.id===c.variedad_id)?.nombre || '—';
-    const sym  = (c.moneda||'ARS')==='USD' ? 'US$' : '$';
-    const saldo = (c.importe_total||0) - (c.monto_pagado||0);
+  tbody.innerHTML = grupos.map((g, gi) => {
+    const prov = DB.proveedores.find(p=>p.id===g.proveedor_id)?.nombre || '—';
+    const sym  = (g.moneda||'ARS')==='USD' ? 'US$' : '$';
+    const saldo = g.total - g.pagado;
     const pagada  = saldo <= 0.01;
-    const parcial = (c.monto_pagado||0) > 0.01 && !pagada;
+    const parcial = g.pagado > 0.01 && !pagada;
     const chip = pagada ? '<span class="chip chip-ok">✅ Pagada</span>'
                : parcial ? '<span class="chip chip-pend">🔸 Parcial</span>'
                : '<span class="chip chip-alert">⏳ Pendiente</span>';
-    return `<tr>
-      <td>${fmt(c.fecha)}</td>
-      <td>${c.factura||'—'}</td>
+    const multi = g.items.length > 1;
+    const cultTxt = multi
+      ? `${g.items.length} semillas: ` + [...new Set(g.items.map(it=>DB.cultivos.find(x=>x.id===it.cultivo_id)?.nombre||'—'))].join(', ')
+      : (DB.cultivos.find(x=>x.id===g.items[0].cultivo_id)?.nombre||'—') + ' · ' + (DB.variedades.find(x=>x.id===g.items[0].variedad_id)?.nombre||'—');
+    const cantTxt = multi ? `${g.items.length} ítems` : `${(g.items[0].total_stock||0).toFixed(2)} ${g.items[0].unidad||''}`;
+    const accion = multi
+      ? `<button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="toggleFacturaCompra(${gi}, this)">🔽 Ver ${g.items.length}</button>`
+      : `<button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="verCompra(${g.items[0].id})">👁️ Ver</button>`;
+
+    let html = `<tr style="${multi?'background:var(--verde-claro);':''}">
+      <td>${fmt(g.fecha)}</td>
+      <td><strong>${g.factura}</strong></td>
       <td><strong>${prov}</strong></td>
-      <td style="font-size:12px;">${cult} · ${vari}</td>
-      <td>${(c.total_stock||0).toFixed(2)} ${c.unidad||''}</td>
-      <td>${sym} ${fmtNum(c.base_imponible)}</td>
-      <td style="font-size:12px;">${sym} ${fmtNum(c.iva_monto)}<br><span style="color:var(--texto-suave);font-size:10px;">${c.iva_pct||0}%</span></td>
-      <td><strong>${sym} ${fmtNum(c.importe_total)}</strong> <span class="chip ${(c.moneda||'ARS')==='USD'?'chip-creciendo':'chip-ok'}" style="font-size:9px;">${c.moneda||'ARS'}</span></td>
+      <td style="font-size:12px;">${cultTxt}</td>
+      <td>${cantTxt}</td>
+      <td>${sym} ${fmtNum(g.base)}</td>
+      <td>${sym} ${fmtNum(g.iva)}</td>
+      <td><strong>${sym} ${fmtNum(g.total)}</strong> <span class="chip ${(g.moneda||'ARS')==='USD'?'chip-creciendo':'chip-ok'}" style="font-size:9px;">${g.moneda||'ARS'}</span></td>
       <td>${chip}</td>
-      <td>
-        <button class="btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="verCompra(${c.id})">👁️ Ver</button>
-      </td>
+      <td>${accion}</td>
     </tr>`;
+
+    if(multi) {
+      html += g.items.map(c => {
+        const cu = DB.cultivos.find(x=>x.id===c.cultivo_id)?.nombre||'—';
+        const va = DB.variedades.find(x=>x.id===c.variedad_id)?.nombre||'—';
+        const s2 = (c.moneda||'ARS')==='USD' ? 'US$' : '$';
+        return `<tr class="det-compra" data-grp="${gi}" style="display:none;background:#fbfdf9;">
+          <td style="color:var(--texto-suave);font-size:11px;">↳</td>
+          <td style="font-size:11px;color:var(--texto-suave);">${c.lote_proveedor||''}</td>
+          <td></td>
+          <td style="font-size:12px;">${cu} · ${va}</td>
+          <td>${(c.total_stock||0).toFixed(2)} ${c.unidad||''}</td>
+          <td>${s2} ${fmtNum(c.base_imponible)}</td>
+          <td>${s2} ${fmtNum(c.iva_monto)} <span style="font-size:10px;color:var(--texto-suave)">(${c.iva_pct||0}%)</span></td>
+          <td><strong>${s2} ${fmtNum(c.importe_total)}</strong></td>
+          <td></td>
+          <td><button class="btn-secondary" style="padding:2px 8px;font-size:11px;" onclick="verCompra(${c.id})">👁️ Ver</button></td>
+        </tr>`;
+      }).join('');
+    }
+    return html;
   }).join('');
 }
 
@@ -4777,7 +4951,7 @@ function exportarCompras() {
     ];
   });
   const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
-  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `CONTROLAGRO_compras_${new Date().toISOString().split('T')[0]}.csv`;
@@ -4789,94 +4963,6 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
 });
 </script>
-
-<!-- ═══════════════════════ SQL PARA SUPABASE ═══════════════════════ -->
-<!--
-  EJECUTAR EN SUPABASE SQL EDITOR:
-
-  CREATE TABLE agro_proveedores (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id text NOT NULL,
-    nombre text NOT NULL,
-    telefono text,
-    created_at timestamptz DEFAULT now()
-  );
-
-  CREATE TABLE agro_cultivos (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id text NOT NULL,
-    nombre text NOT NULL
-  );
-
-  CREATE TABLE agro_variedades (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id text NOT NULL,
-    nombre text NOT NULL,
-    cultivo_id uuid REFERENCES agro_cultivos(id)
-  );
-
-  CREATE TABLE agro_semillas_stock (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id text NOT NULL,
-    fecha date NOT NULL,
-    proveedor_id uuid REFERENCES agro_proveedores(id),
-    cultivo_id uuid REFERENCES agro_cultivos(id),
-    variedad_id uuid REFERENCES agro_variedades(id),
-    lote_proveedor text,
-    factura text,
-    cant_paquetes numeric,
-    contenido_paquete numeric,
-    unidad text,
-    total_stock numeric,
-    precio_paquete numeric,
-    importe_total numeric,
-    estado_pago text DEFAULT 'pendiente',
-    created_at timestamptz DEFAULT now()
-  );
-
-  CREATE TABLE agro_liberaciones (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id text NOT NULL,
-    fecha date NOT NULL,
-    semilla_id uuid REFERENCES agro_semillas_stock(id),
-    cultivo_id uuid REFERENCES agro_cultivos(id),
-    variedad_id uuid REFERENCES agro_variedades(id),
-    cantidad numeric NOT NULL,
-    unidad text,
-    destino text,  -- FM | INV | VIV
-    responsable text,
-    created_at timestamptz DEFAULT now()
-  );
-
-  CREATE TABLE agro_siembras (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id text NOT NULL,
-    lote text UNIQUE NOT NULL,
-    fecha date NOT NULL,
-    ubicacion text NOT NULL,  -- FM | INV
-    cultivo_id uuid REFERENCES agro_cultivos(id),
-    variedad_id uuid REFERENCES agro_variedades(id),
-    semilla_lote_id uuid REFERENCES agro_semillas_stock(id),
-    cant_semilla numeric,
-    capillas text,  -- "1,2,3"
-    surcos int,
-    fecha_cosecha_est date,
-    encargado text,
-    observaciones text,
-    etapa text DEFAULT 'creciendo',  -- creciendo | cosechando | agotado
-    fecha_inicio_cosecha date,
-    fecha_fin_cosecha date,
-    created_at timestamptz DEFAULT now()
-  );
-
-  -- RLS básico por tenant
-  ALTER TABLE agro_proveedores ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE agro_cultivos ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE agro_variedades ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE agro_semillas_stock ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE agro_liberaciones ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE agro_siembras ENABLE ROW LEVEL SECURITY;
--->
 
 <!-- ═══════════════════════ MODAL: DETALLE / EDITAR COMPRA ═══════════════════════ -->
 <div class="modal-overlay" id="modal-compra">
