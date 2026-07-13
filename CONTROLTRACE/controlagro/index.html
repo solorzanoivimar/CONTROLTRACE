@@ -277,6 +277,13 @@
   .res-card.neutro .res-val { color: var(--tierra); }
 
   /* PRINT */
+  /* Selector de capillas */
+  .cap-grid { display:flex; flex-wrap:wrap; gap:5px; max-height:190px; overflow-y:auto; border:1px solid var(--borde); border-radius:6px; padding:8px; background:var(--fondo); }
+  .cap-chk { display:inline-flex; align-items:center; gap:3px; font-size:12px; background:var(--blanco); border:1px solid var(--borde); border-radius:5px; padding:3px 7px; cursor:pointer; user-select:none; min-width:34px; justify-content:center; }
+  .cap-chk.sel { background:var(--verde-medio); color:#fff; border-color:var(--verde-oscuro); font-weight:700; }
+  .cap-chk.ocupada { background:var(--verde-suave); color:var(--verde-oscuro); opacity:0.55; cursor:not-allowed; }
+  .cap-chk input { margin:0; }
+
   @media print {
     .sidebar, .topbar, .rep-filtros, #rep-filtros, .rep-tab, .form-actions, .btn-primary, .btn-secondary { display: none !important; }
     .main { margin-left: 0 !important; }
@@ -367,12 +374,12 @@
           <div class="kpi-card">
             <div class="kpi-label">FM · Capillas usadas</div>
             <div class="kpi-val" id="kpi-cap-fm">—</div>
-            <div class="kpi-sub">de 12 disponibles</div>
+            <div class="kpi-sub">capillas ocupadas (de 95)</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">INV · Capillas usadas</div>
             <div class="kpi-val" id="kpi-cap-inv">—</div>
-            <div class="kpi-sub">de 8 disponibles</div>
+            <div class="kpi-sub">capillas ocupadas (de 95)</div>
           </div>
           <div class="kpi-card alerta">
             <div class="kpi-label">Próximas cosechas</div>
@@ -511,6 +518,14 @@
             </div>
 
             <div class="field">
+              <label>Marca</label>
+              <div class="combo-wrap">
+                <select id="s-marca"><option value="">— Sin marca —</option></select>
+                <button class="btn-add-small" onclick="openModal('modal-marca')" title="Agregar marca">+</button>
+              </div>
+            </div>
+
+            <div class="field">
               <label>Lote del proveedor</label>
               <input type="text" id="s-lote-prov" placeholder="Código del proveedor" />
             </div>
@@ -599,7 +614,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>Cultivo</th><th>Variedad</th><th>Lote prov.</th><th>F. Compra</th>
+                  <th>Cultivo</th><th>Variedad</th><th>Marca</th><th>Lote prov.</th><th>F. Compra</th>
                   <th>Liberado</th><th>Disponible</th><th>Total factura</th><th>Proveedor</th><th>Pago</th>
                 </tr>
               </thead>
@@ -648,7 +663,12 @@
 
             <div class="field">
               <label>Cantidad a liberar *</label>
-              <input type="number" id="l-cantidad" min="0" step="0.001" placeholder="0" />
+              <input type="number" id="l-cantidad" min="0" step="0.001" placeholder="0" oninput="calcLibPaquetes()" />
+            </div>
+
+            <div class="field readonly">
+              <label>Equivalente en paquetes</label>
+              <input type="text" id="l-eq-paq" readonly placeholder="— auto —" />
             </div>
 
             <div class="field">
@@ -677,7 +697,7 @@
             <h3>📋 Historial de Liberaciones</h3>
             <div class="tbl-wrap">
               <table>
-                <thead><tr><th>Fecha</th><th>Cultivo</th><th>Variedad</th><th>Cantidad</th><th>Destino</th><th>Responsable</th></tr></thead>
+                <thead><tr><th>Fecha</th><th>Cultivo</th><th>Variedad</th><th>Marca</th><th>Cantidad</th><th>Destino</th><th>Responsable</th><th></th></tr></thead>
                 <tbody id="tabla-liberaciones">
                   <tr class="empty-row"><td colspan="6">Sin liberaciones registradas</td></tr>
                 </tbody>
@@ -710,36 +730,35 @@
 
             <div class="field">
               <label>Ubicación *</label>
-              <select id="si-ubicacion" onchange="actualizarCapillas()">
+              <select id="si-ubicacion" onchange="actualizarLotePreview()">
                 <option value="">— Seleccionar —</option>
                 <option value="FM">🌿 Finca Milagros</option>
                 <option value="INV">🏠 Invernadero</option>
               </select>
             </div>
 
-            <div class="section-sep">Semilla utilizada</div>
+            <div class="section-sep">Semilla a sembrar (lote ya liberado)</div>
 
-            <div class="field">
-              <label>Cultivo *</label>
-              <div class="combo-wrap">
-                <select id="si-cultivo"><option value="">— Seleccionar —</option></select>
-                <button class="btn-add-small" onclick="openModal('modal-cultivo')" title="Agregar cultivo">+</button>
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Variedad *</label>
-              <div class="combo-wrap">
-                <select id="si-variedad"><option value="">— Seleccionar —</option></select>
-                <button class="btn-add-small" onclick="openModal('modal-variedad')" title="Agregar variedad">+</button>
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Lote de semilla usado</label>
-              <select id="si-lote-semilla">
-                <option value="">— Opcional: vincular lote —</option>
+            <div class="field col-span-2">
+              <label>Lote liberado a sembrar *</label>
+              <select id="si-lote-semilla" onchange="cargarDatosLoteSiembra()">
+                <option value="">— Seleccionar lote liberado —</option>
               </select>
+            </div>
+
+            <div class="field readonly">
+              <label>Cultivo · Variedad</label>
+              <input type="text" id="si-info-cv" readonly placeholder="— auto según lote —" />
+            </div>
+
+            <div class="field readonly">
+              <label>Marca</label>
+              <input type="text" id="si-info-marca" readonly placeholder="— auto —" />
+            </div>
+
+            <div class="field readonly">
+              <label>Disponible para sembrar</label>
+              <input type="text" id="si-info-disp" readonly placeholder="— auto —" />
             </div>
 
             <div class="field">
@@ -752,10 +771,8 @@
 
           <div style="margin-bottom:16px;">
             <div class="field" style="margin-bottom:12px;">
-              <label>Capilla(s) sembrada(s) — clic para seleccionar *</label>
-              <div class="capilla-grid" id="capilla-grid">
-                <div style="font-size:13px;color:var(--texto-suave);padding:8px 0;">Seleccioná primero la ubicación</div>
-              </div>
+              <label>Capillas (1 a 95) — marcá las que ocupa esta siembra *</label>
+              <div class="cap-grid" id="capilla-grid"></div>
             </div>
             <div id="capillas-info" style="font-size:12px;color:var(--texto-suave);margin-top:4px;"></div>
           </div>
@@ -804,7 +821,7 @@
                 <tr>
                   <th>Lote</th><th>Fecha</th><th>Cultivo</th><th>Variedad</th>
                   <th>Ubicación</th><th>Capillas</th><th>Surcos</th>
-                  <th>Est. Cosecha</th><th>Etapa</th>
+                  <th>Est. Cosecha</th><th>Etapa</th><th></th>
                 </tr>
               </thead>
               <tbody id="tabla-siembras">
@@ -1713,6 +1730,17 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-marca">
+  <div class="modal">
+    <h3>➕ Nueva Marca</h3>
+    <div class="field"><label>Nombre de la marca *</label><input type="text" id="mm-nombre" placeholder="Ej: Rijk Zwaan, Sakata, Basso..." /></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-marca')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarMarca()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-variedad">
   <div class="modal">
     <h3>➕ Nueva Variedad</h3>
@@ -1768,6 +1796,7 @@ const DB = {
   proveedores: [],
   cultivos:    [],
   variedades:  [],
+  marcas:      [],
   semillas:    [],
   liberaciones:[],
   siembras:    [],
@@ -1783,8 +1812,7 @@ const DB = {
 
 // Contadores para lotes
 let loteCounters = { FM: 0, INV: 0 };
-// Capillas ocupadas por ubicación
-const capillasOcupadas = { FM: [], INV: [] };
+// (la ocupación de capillas se calcula dinámicamente desde las siembras activas)
 
 // ══════════════════════════════════════════════════════════════
 //  SUPABASE HELPER
@@ -1879,6 +1907,7 @@ async function cargarDesdeBD() {
     DB.gastosGenerales = ggens   || [];
     DB.pagos           = pgs     || [];
     DB.pagosDetalle    = pgsDet  || [];
+    DB.marcas = await (async()=>{ try{ return (await sbFetch('agro_marcas','GET',null,'?tenant_id=eq.'+TENANT_ID+'&order=nombre'))||[]; }catch(e){ return []; } })();
     DB.siembras.forEach(s => {
       const m = s.lote?.match(/^(FM|INV)-(\d+)/);
       if(m) loteCounters[m[1]] = Math.max(loteCounters[m[1]], parseInt(m[2]));
@@ -1927,6 +1956,7 @@ function nav(screen) {
   if(screen==='liberacion') { renderLiberaciones(); poblarLotesLiberacion(); }
   if(screen==='siembras-lista') renderSiembras();
   if(screen==='ingreso-semilla' || screen==='siembra') poblarSelects();
+  if(screen==='siembra') { pintarCapillas('capilla-grid','capillas-info',capillasSeleccionadas,null,'toggleCapNueva'); actualizarLotePreview(); }
   if(screen==='vivero') { poblarSelectsVivero(); renderViveros(); }
   if(screen==='cosecha') { poblarSelectsCosecha(); }
   if(screen==='cosechas-lista') renderCosechasLista();
@@ -1965,6 +1995,9 @@ function poblarSelects() {
     DB.cultivos.forEach(c => el.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
     if(val) el.value = val;
   });
+  // marcas
+  const elm = document.getElementById('s-marca');
+  if(elm){ const val=elm.value; elm.innerHTML='<option value="">— Sin marca —</option>'; DB.marcas.forEach(m=>elm.innerHTML+=`<option value="${m.nombre}">${m.nombre}</option>`); if(val) elm.value=val; }
   filtrarVariedades('s-variedad','s-cultivo');
   filtrarVariedades('si-variedad','si-cultivo');
   poblarLotesLiberacion();
@@ -1992,20 +2025,44 @@ function poblarLotesLiberacion() {
     if(disponible <= 0) return;
     const cult = DB.cultivos.find(c=>c.id===s.cultivo_id)?.nombre || '?';
     const vari = DB.variedades.find(v=>v.id===s.variedad_id)?.nombre || '?';
-    sel.innerHTML += `<option value="${s.id}">${cult} · ${vari} — Disp: ${disponible} ${s.unidad}</option>`;
+    sel.innerHTML += `<option value="${s.id}">${cult} · ${vari}${s.marca?' ('+s.marca+')':''} — Disp: ${disponible} ${s.unidad}${fmtPaq(disponible,s)}</option>`;
   });
 }
 
+function calcLiberado(semilla){
+  return DB.liberaciones.filter(l=>l.semilla_id===semilla.id).reduce((sum,l)=>sum+(l.cantidad||0),0);
+}
+function calcSembrado(semilla){
+  return DB.siembras.filter(s=>s.semilla_lote_id===semilla.id).reduce((sum,s)=>sum+(s.cant_semilla||0),0);
+}
+function calcLiberadoDisponible(semilla){
+  return calcLiberado(semilla) - calcSembrado(semilla);
+}
 function poblarLotesSiembra() {
   const sel = document.getElementById('si-lote-semilla');
   if(!sel) return;
-  sel.innerHTML = '<option value="">— Opcional: vincular lote —</option>';
+  const val = sel.value;
+  sel.innerHTML = '<option value="">— Seleccionar lote liberado —</option>';
   DB.semillas.forEach(s => {
-    const disponible = calcDisponible(s);
+    const disp = calcLiberadoDisponible(s);
+    if(disp <= 0) return;
     const cult = DB.cultivos.find(c=>c.id===s.cultivo_id)?.nombre || '?';
     const vari = DB.variedades.find(v=>v.id===s.variedad_id)?.nombre || '?';
-    sel.innerHTML += `<option value="${s.id}">${cult} · ${vari} (Disp: ${disponible} ${s.unidad})</option>`;
+    sel.innerHTML += `<option value="${s.id}">${cult} · ${vari}${s.marca?' ('+s.marca+')':''} — Disp: ${(+disp.toFixed(3))} ${s.unidad}${fmtPaq(disp,s)}</option>`;
   });
+  if(val) sel.value = val;
+}
+function cargarDatosLoteSiembra(){
+  const id = document.getElementById('si-lote-semilla').value;
+  const sem = DB.semillas.find(s=>s.id===id);
+  const cv=document.getElementById('si-info-cv'), mk=document.getElementById('si-info-marca'), dp=document.getElementById('si-info-disp');
+  if(!sem){ if(cv)cv.value=''; if(mk)mk.value=''; if(dp)dp.value=''; return; }
+  const cult = DB.cultivos.find(c=>c.id===sem.cultivo_id)?.nombre || '—';
+  const vari = DB.variedades.find(v=>v.id===sem.variedad_id)?.nombre || '—';
+  const disp = calcLiberadoDisponible(sem);
+  if(cv) cv.value = `${cult} · ${vari}`;
+  if(mk) mk.value = sem.marca || '—';
+  if(dp) dp.value = `${(+disp.toFixed(3))} ${sem.unidad}${fmtPaq(disp,sem)}`;
 }
 
 function calcDisponible(semilla) {
@@ -2063,6 +2120,7 @@ function agregarLinea() {
     variedad_id: vari,
     cultivoNombre: DB.cultivos.find(c=>c.id==cult)?.nombre || '?',
     variedadNombre: DB.variedades.find(v=>v.id==vari)?.nombre || '?',
+    marca: document.getElementById('s-marca')?.value || '',
     lote_proveedor: document.getElementById('s-lote-prov').value,
     cant_paquetes: paq,
     contenido_paquete: cont,
@@ -2072,7 +2130,7 @@ function agregarLinea() {
   });
 
   // limpiar sólo el mini-form de la semilla (la cabecera de factura queda)
-  ['s-lote-prov','s-cant-paquetes','s-contenido','s-precio','s-linea-subtotal']
+  ['s-lote-prov','s-cant-paquetes','s-contenido','s-precio','s-linea-subtotal','s-marca']
     .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('s-cultivo').value='';
   document.getElementById('s-variedad').value='';
@@ -2100,7 +2158,7 @@ function renderLineasIngreso() {
       const base = l.precio_paquete*l.cant_paquetes;
       const total = base + base*l.iva_pct/100;
       return `<tr>
-        <td><strong>${l.cultivoNombre}</strong> · ${l.variedadNombre}</td>
+        <td><strong>${l.cultivoNombre}</strong> · ${l.variedadNombre}${l.marca?' <span style="color:var(--texto-suave);font-size:11px;">('+l.marca+')</span>':''}</td>
         <td>${l.lote_proveedor||'—'}</td>
         <td>${l.cant_paquetes} × ${l.contenido_paquete}</td>
         <td>${(l.cant_paquetes*l.contenido_paquete).toLocaleString('es-AR')} ${l.unidad}</td>
@@ -2167,6 +2225,7 @@ async function guardarIngreso() {
       proveedor_id: prov,
       cultivo_id: l.cultivo_id,
       variedad_id: l.variedad_id,
+      marca: l.marca || '',
       lote_proveedor: l.lote_proveedor,
       factura,
       cant_paquetes: l.cant_paquetes,
@@ -2209,7 +2268,7 @@ async function guardarIngreso() {
 
 function limpiarIngreso() {
   lineasIngreso = [];
-  ['s-factura','s-lote-prov','s-cant-paquetes','s-contenido','s-precio','s-linea-subtotal','s-tc']
+  ['s-factura','s-lote-prov','s-cant-paquetes','s-contenido','s-precio','s-linea-subtotal','s-tc','s-marca']
     .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   const c = document.getElementById('s-cultivo'); if(c) c.value='';
   const v = document.getElementById('s-variedad'); if(v) v.value='';
@@ -2233,7 +2292,9 @@ function cargarDatosLote() {
   const disp = calcDisponible(sem);
   document.getElementById('l-cultivo').value = cult;
   document.getElementById('l-variedad').value = vari;
-  document.getElementById('l-disponible').value = `${disp} ${sem.unidad}`;
+  document.getElementById('l-disponible').value = `${disp} ${sem.unidad}${fmtPaq(disp, sem)}`;
+  window._libSem = sem;
+  calcLibPaquetes();
 }
 
 async function guardarLiberacion() {
@@ -2275,55 +2336,62 @@ function limpiarLiberacion() {
   document.getElementById('l-lote').value='';
   document.getElementById('l-cantidad').value='';
   document.getElementById('l-responsable').value='';
-  ['l-cultivo','l-variedad','l-disponible'].forEach(id=>document.getElementById(id).value='');
+  ['l-cultivo','l-variedad','l-disponible','l-eq-paq'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
+  window._libSem = null;
   document.getElementById('l-fecha').value=new Date().toISOString().split('T')[0];
 }
 
 // ══════════════════════════════════════════════════════════════
 //  CAPILLAS
 // ══════════════════════════════════════════════════════════════
-const CAPILLAS_CONFIG = {
-  FM:  { count:12, label:'Finca Milagros' },
-  INV: { count:8,  label:'Invernadero' },
-};
+const CAPILLAS_TOTAL = 95;
 let capillasSeleccionadas = [];
+let editSiembraCapillas = [];
 
-function actualizarCapillas() {
-  const ub = document.getElementById('si-ubicacion').value;
-  const grid = document.getElementById('capilla-grid');
-  capillasSeleccionadas = [];
-
-  if(!ub) { grid.innerHTML='<div style="font-size:13px;color:var(--texto-suave);padding:8px 0;">Seleccioná primero la ubicación</div>'; return; }
-
-  const config = CAPILLAS_CONFIG[ub];
-  grid.innerHTML = '';
-  for(let i=1; i<=config.count; i++) {
-    const ocupada = capillasOcupadas[ub]?.includes(i);
-    const div = document.createElement('div');
-    div.className = `capilla-box ${ocupada?'ocupada':''}`;
-    div.textContent = i;
-    div.title = ocupada ? `Capilla ${i} — ocupada` : `Capilla ${i}`;
-    if(!ocupada) div.onclick = () => toggleCapilla(div, i, ub);
-    grid.appendChild(div);
-  }
-  const yearAbbr = new Date().getFullYear();
-  const next = loteCounters[ub]+1;
-  const loteEjemplo = `${ub}-${String(next).padStart(3,'0')}-${yearAbbr}`;
-  document.getElementById('lote-preview').innerHTML =
-    `<strong>Lote asignado:</strong> <span class="lote-badge">${loteEjemplo}</span> (se confirma al guardar)`;
+function capArr(caps){
+  if(Array.isArray(caps)) return caps.map(Number);
+  return String(caps||'').split(',').map(x=>x.trim()).filter(x=>x!=='').map(Number);
 }
-
-function toggleCapilla(el, num, ub) {
-  const idx = capillasSeleccionadas.indexOf(num);
-  if(idx>=0) {
-    capillasSeleccionadas.splice(idx,1);
-    el.classList.remove('selected');
-  } else {
-    capillasSeleccionadas.push(num);
-    el.classList.add('selected');
+function capillasOcupadasSet(excludeId){
+  const set = new Set();
+  DB.siembras.filter(s=>s.etapa!=='agotado' && s.id!==excludeId)
+    .forEach(s=>capArr(s.capillas).forEach(n=>set.add(n)));
+  return set;
+}
+function pintarCapillas(gridId, infoId, seleccionadas, excludeId, toggleFn){
+  const grid=document.getElementById(gridId); if(!grid) return;
+  const occ=capillasOcupadasSet(excludeId);
+  let html='';
+  for(let i=1;i<=CAPILLAS_TOTAL;i++){
+    const sel=seleccionadas.includes(i);
+    const ocupada=occ.has(i)&&!sel;
+    html+=`<label class="cap-chk${sel?' sel':''}${ocupada?' ocupada':''}" title="${ocupada?'Capilla '+i+' ocupada por otra siembra':'Capilla '+i}"><input type="checkbox" value="${i}" ${sel?'checked':''} ${ocupada?'disabled':''} onchange="${toggleFn}(${i}, this.checked)"> ${i}</label>`;
   }
-  document.getElementById('capillas-info').textContent =
-    capillasSeleccionadas.length ? `Capillas seleccionadas: ${capillasSeleccionadas.sort((a,b)=>a-b).join(', ')}` : '';
+  grid.innerHTML=html;
+  actualizarInfoCapillas(infoId, seleccionadas);
+}
+function actualizarInfoCapillas(infoId, arr){
+  const el=document.getElementById(infoId); if(!el) return;
+  const a=[...arr].sort((x,y)=>x-y);
+  el.textContent = a.length ? `Capillas seleccionadas (${a.length}): ${a.join(', ')}` : 'Ninguna capilla seleccionada';
+}
+function toggleCapNueva(n, checked){
+  const i=capillasSeleccionadas.indexOf(n);
+  if(checked){ if(i<0) capillasSeleccionadas.push(n); } else if(i>=0) capillasSeleccionadas.splice(i,1);
+  actualizarInfoCapillas('capillas-info', capillasSeleccionadas);
+}
+function toggleCapEdit(n, checked){
+  const i=editSiembraCapillas.indexOf(n);
+  if(checked){ if(i<0) editSiembraCapillas.push(n); } else if(i>=0) editSiembraCapillas.splice(i,1);
+  actualizarInfoCapillas('se-capillas-info', editSiembraCapillas);
+}
+function actualizarLotePreview(){
+  const ubEl=document.getElementById('si-ubicacion'); const prev=document.getElementById('lote-preview');
+  if(!prev||!ubEl) return;
+  const ub=ubEl.value;
+  if(!ub){ prev.innerHTML='<strong>Lote asignado:</strong> Se genera al guardar según ubicación y año'; return; }
+  const next=(loteCounters[ub]||0)+1;
+  prev.innerHTML=`<strong>Lote asignado:</strong> <span class="lote-badge">${ub}-${String(next).padStart(3,'0')}-${new Date().getFullYear()}</span> (se confirma al guardar)`;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2337,12 +2405,15 @@ function generarLote(ub) {
 async function guardarSiembra() {
   const fecha = document.getElementById('si-fecha').value;
   const ub    = document.getElementById('si-ubicacion').value;
-  const cult  = document.getElementById('si-cultivo').value;
-  const vari  = document.getElementById('si-variedad').value;
+  const loteSemId = document.getElementById('si-lote-semilla').value;
   const surcos = parseInt(document.getElementById('si-surcos').value)||0;
 
-  if(!fecha||!ub||!cult||!vari||surcos<=0) { toast('Completá los campos obligatorios (*)','error'); return; }
+  if(!fecha||!ub||surcos<=0) { toast('Completá fecha, ubicación y surcos','error'); return; }
+  if(!loteSemId) { toast('Seleccioná el lote liberado a sembrar','error'); return; }
   if(capillasSeleccionadas.length===0) { toast('Seleccioná al menos una capilla','error'); return; }
+
+  const sem = DB.semillas.find(s=>s.id===loteSemId);
+  if(!sem) { toast('Lote de semilla no encontrado','error'); return; }
 
   const lote = generarLote(ub);
   const fechaCosecha = document.getElementById('si-fecha-cosecha').value;
@@ -2353,9 +2424,9 @@ async function guardarSiembra() {
     lote,
     fecha,
     ubicacion: ub,
-    cultivo_id: cult,
-    variedad_id: vari,
-    semilla_lote_id: document.getElementById('si-lote-semilla').value||null,
+    cultivo_id: sem.cultivo_id,
+    variedad_id: sem.variedad_id,
+    semilla_lote_id: loteSemId,
     cant_semilla: parseFloat(document.getElementById('si-cant-semilla').value)||0,
     capillas: [...capillasSeleccionadas].sort((a,b)=>a-b),
     surcos,
@@ -2367,29 +2438,25 @@ async function guardarSiembra() {
     fecha_fin_cosecha: null,
   };
 
-  try { await sbFetch('agro_siembras','POST',{...nueva,id:undefined,capillas:nueva.capillas.join(',')},''); } catch(e){}
+  try { const res = await sbFetch('agro_siembras','POST',{...nueva,id:undefined,capillas:nueva.capillas.join(',')},''); if(res&&res[0]&&res[0].id) nueva.id=res[0].id; } catch(e){}
 
   DB.siembras.unshift(nueva);
-  // Marcar capillas como ocupadas
-  if(!capillasOcupadas[ub]) capillasOcupadas[ub]=[];
-  capillasSeleccionadas.forEach(c => capillasOcupadas[ub].push(c));
-
   limpiarSiembra();
   renderSiembras();
+  poblarLotesSiembra();
   actualizarPanel();
   toast(`✅ Siembra registrada — Lote ${lote}`);
 }
 
 function limpiarSiembra() {
-  ['si-fecha','si-surcos','si-cant-semilla','si-encargado','si-obs','si-fecha-cosecha']
+  ['si-fecha','si-surcos','si-cant-semilla','si-encargado','si-obs','si-fecha-cosecha','si-info-cv','si-info-marca','si-info-disp']
     .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('si-fecha').value=new Date().toISOString().split('T')[0];
   document.getElementById('si-ubicacion').value='';
-  document.getElementById('si-cultivo').value='';
-  document.getElementById('si-variedad').value='';
+  const ls=document.getElementById('si-lote-semilla'); if(ls) ls.value='';
   capillasSeleccionadas=[];
-  actualizarCapillas();
-  document.getElementById('lote-preview').innerHTML='<strong>Lote asignado:</strong> Se genera al guardar según ubicación y año';
+  pintarCapillas('capilla-grid','capillas-info',capillasSeleccionadas,null,'toggleCapNueva');
+  actualizarLotePreview();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2399,7 +2466,7 @@ function renderStock() {
   const tbody = document.getElementById('tabla-stock');
   if(!tbody) return;
   if(DB.semillas.length===0) {
-    tbody.innerHTML='<tr class="empty-row"><td colspan="9">Sin semillas registradas</td></tr>';
+    tbody.innerHTML='<tr class="empty-row"><td colspan="10">Sin semillas registradas</td></tr>';
     return;
   }
   tbody.innerHTML = DB.semillas.map(s => {
@@ -2417,10 +2484,11 @@ function renderStock() {
                : '<span class="chip chip-alert">⏳ Pendiente</span>';
     return `<tr>
       <td>${cult}</td><td>${vari}</td>
+      <td>${s.marca||'—'}</td>
       <td>${s.lote_proveedor||'—'}</td>
       <td>${fmt(s.fecha)}</td>
-      <td>${(s.total_stock - disp).toFixed(2)} ${s.unidad}</td>
-      <td><span class="stock-badge"><span class="dot dot-${dot}"></span>${disp.toFixed(2)} ${s.unidad}</span></td>
+      <td>${(s.total_stock - disp).toFixed(2)} ${s.unidad}${fmtPaq(s.total_stock - disp, s)}</td>
+      <td><span class="stock-badge"><span class="dot dot-${dot}"></span>${disp.toFixed(2)} ${s.unidad}${fmtPaq(disp, s)}</span></td>
       <td><strong>${sym} ${fmtNum(s.importe_total)}</strong> <span class="chip ${(s.moneda||'ARS')==='USD'?'chip-creciendo':'chip-ok'}" style="font-size:10px;">${s.moneda||'ARS'}</span></td>
       <td>${prov}</td>
       <td>${chip}</td>
@@ -2432,18 +2500,21 @@ function renderLiberaciones() {
   const tbody = document.getElementById('tabla-liberaciones');
   if(!tbody) return;
   if(DB.liberaciones.length===0) {
-    tbody.innerHTML='<tr class="empty-row"><td colspan="6">Sin liberaciones registradas</td></tr>';
+    tbody.innerHTML='<tr class="empty-row"><td colspan="8">Sin liberaciones registradas</td></tr>';
     return;
   }
   const destLabels = {FM:'🌿 Finca Milagros', INV:'🏠 Invernadero', VIV:'🌱 Vivero'};
   tbody.innerHTML = DB.liberaciones.map(l => {
     const cult = DB.cultivos.find(c=>c.id===l.cultivo_id)?.nombre||'—';
     const vari = DB.variedades.find(v=>v.id===l.variedad_id)?.nombre||'—';
+    const sem = DB.semillas.find(s=>s.id===l.semilla_id);
     return `<tr>
       <td>${fmt(l.fecha)}</td><td>${cult}</td><td>${vari}</td>
-      <td>${l.cantidad} ${l.unidad}</td>
+      <td>${sem&&sem.marca?sem.marca:'—'}</td>
+      <td>${l.cantidad} ${l.unidad}${fmtPaq(l.cantidad, sem||{})}</td>
       <td>${destLabels[l.destino]||l.destino}</td>
       <td>${l.responsable||'—'}</td>
+      <td><button class="btn-secondary" style="padding:2px 8px;font-size:11px;" onclick="editarLiberacion('${l.id}')">✏️ Editar</button></td>
     </tr>`;
   }).join('');
 }
@@ -2463,7 +2534,7 @@ function renderSiembras() {
     const isPanel = id==='panel-siembras';
     const data = isPanel ? DB.siembras.slice(0,5) : DB.siembras;
     if(data.length===0) {
-      tbody.innerHTML=`<tr class="empty-row"><td colspan="${isPanel?5:9}">Sin siembras registradas</td></tr>`;
+      tbody.innerHTML=`<tr class="empty-row"><td colspan="${isPanel?5:10}">Sin siembras registradas</td></tr>`;
       return;
     }
     tbody.innerHTML = data.map(s => {
@@ -2482,6 +2553,7 @@ function renderSiembras() {
         <td>${caps}</td><td>${s.surcos}</td>
         <td>${s.fecha_cosecha_est?fmt(s.fecha_cosecha_est):'—'}</td>
         <td>${etapaChip(s.etapa)}</td>
+        <td><button class="btn-secondary" style="padding:2px 8px;font-size:11px;" onclick="editarSiembra('${s.id}')">✏️ Editar</button></td>
       </tr>`;
     }).join('');
   });
@@ -2897,12 +2969,7 @@ async function cerrarCosecha() {
   const siem = DB.siembras.find(s=>s.id===cosechaActivaSiembraId);
   if(siem) {
     siem.etapa='agotado';
-    // Liberar capillas
-    const caps = Array.isArray(siem.capillas)?siem.capillas:siem.capillas?.split(',').map(Number)||[];
-    caps.forEach(c => {
-      const idx = capillasOcupadas[siem.ubicacion]?.indexOf(c);
-      if(idx>=0) capillasOcupadas[siem.ubicacion].splice(idx,1);
-    });
+    // (las capillas quedan libres automáticamente al pasar la siembra a 'agotado')
     try { await sbFetch('agro_siembras','PATCH',{etapa:'agotado',fecha_fin_cosecha:new Date().toISOString().split('T')[0]},`?id=eq.${siem.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
   }
 
@@ -4984,6 +5051,183 @@ function exportarCompras() {
   a.click();
   toast('⬇️ CSV exportado');
 }
+// ══════════════════════════════════════════════════════════════
+//  MARCAS + PAQUETES (helpers Ola 1)
+// ══════════════════════════════════════════════════════════════
+function fmtPaq(cant, s){
+  const c = +(s && s.contenido_paquete) || 0;
+  if(c<=0 || !cant) return '';
+  const p = cant / c;
+  return ` (${(+p.toFixed(2)).toLocaleString('es-AR')} paq)`;
+}
+
+async function guardarMarca() {
+  const nom = document.getElementById('mm-nombre').value.trim();
+  if(!nom) { toast('Ingresá un nombre','error'); return; }
+  const nuevo = { id: String(Date.now()), tenant_id: TENANT_ID, nombre: nom };
+  try { const res = await sbFetch('agro_marcas','POST',{...nuevo,id:undefined},''); if(res&&res[0]&&res[0].id) nuevo.id=res[0].id; } catch(e){}
+  DB.marcas.push(nuevo);
+  DB.marcas.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  poblarSelects();
+  const sm = document.getElementById('s-marca'); if(sm) sm.value = nom;
+  document.getElementById('mm-nombre').value='';
+  closeModal('modal-marca');
+  toast(`✅ Marca "${nom}" agregada`);
+}
+
+function calcLibPaquetes(){
+  const sem = window._libSem || DB.semillas.find(s=>s.id===document.getElementById('l-lote').value);
+  const cant = parseFloat(document.getElementById('l-cantidad').value)||0;
+  const el = document.getElementById('l-eq-paq');
+  if(el) el.value = (sem && sem.contenido_paquete>0 && cant>0)
+    ? `${(+(cant/sem.contenido_paquete).toFixed(2)).toLocaleString('es-AR')} paquetes` : '';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  EDITAR LIBERACIÓN
+// ══════════════════════════════════════════════════════════════
+let libEditandoId = null;
+function editarLiberacion(id){
+  const l = DB.liberaciones.find(x=>x.id===id); if(!l) return;
+  libEditandoId = id;
+  const sem = DB.semillas.find(s=>s.id===l.semilla_id);
+  const cult = DB.cultivos.find(c=>c.id===l.cultivo_id)?.nombre||'—';
+  const vari = DB.variedades.find(v=>v.id===l.variedad_id)?.nombre||'—';
+  document.getElementById('le-lote-info').value = `${cult} · ${vari}${sem&&sem.marca?' ('+sem.marca+')':''}`;
+  document.getElementById('le-fecha').value = l.fecha||'';
+  document.getElementById('le-cantidad').value = l.cantidad||'';
+  document.getElementById('le-destino').value = l.destino||'FM';
+  document.getElementById('le-responsable').value = l.responsable||'';
+  window._libEditSem = sem;
+  calcEditLibPaq();
+  openModal('modal-liberacion');
+}
+function calcEditLibPaq(){
+  const sem = window._libEditSem;
+  const cant = parseFloat(document.getElementById('le-cantidad').value)||0;
+  const el = document.getElementById('le-eq-paq');
+  if(el) el.value = (sem && sem.contenido_paquete>0 && cant>0) ? `${(+(cant/sem.contenido_paquete).toFixed(2)).toLocaleString('es-AR')} paquetes` : '';
+}
+async function guardarEdicionLiberacion(){
+  const l = DB.liberaciones.find(x=>x.id===libEditandoId); if(!l) return;
+  const fecha = document.getElementById('le-fecha').value;
+  const cantidad = parseFloat(document.getElementById('le-cantidad').value)||0;
+  const destino = document.getElementById('le-destino').value;
+  if(!fecha||cantidad<=0){ toast('Completá fecha y cantidad','error'); return; }
+  const sem = DB.semillas.find(s=>s.id===l.semilla_id);
+  const otras = DB.liberaciones.filter(x=>x.semilla_id===l.semilla_id && x.id!==l.id).reduce((a,x)=>a+(x.cantidad||0),0);
+  const maxLib = (sem?.total_stock||0) - otras;
+  if(cantidad > maxLib + 0.001){ toast(`No hay stock. Máximo liberable: ${(+maxLib.toFixed(3))} ${sem?.unidad||''}`,'error'); return; }
+  const sembrado = DB.siembras.filter(x=>x.semilla_lote_id===l.semilla_id).reduce((a,x)=>a+(x.cant_semilla||0),0);
+  if(otras + cantidad < sembrado - 0.001){ toast(`No podés dejar menos liberado (${(+(otras+cantidad).toFixed(3))}) que lo ya sembrado (${(+sembrado.toFixed(3))})`,'error'); return; }
+  const upd = { fecha, cantidad, destino, responsable: document.getElementById('le-responsable').value };
+  Object.assign(l, upd);
+  try { await sbFetch('agro_liberaciones','PATCH',upd,`?id=eq.${l.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
+  closeModal('modal-liberacion');
+  renderLiberaciones(); renderStock(); poblarLotesLiberacion(); poblarLotesSiembra(); actualizarPanel();
+  toast('✅ Liberación actualizada');
+}
+async function eliminarLiberacion(){
+  const l = DB.liberaciones.find(x=>x.id===libEditandoId); if(!l) return;
+  const otras = DB.liberaciones.filter(x=>x.semilla_id===l.semilla_id && x.id!==l.id).reduce((a,x)=>a+(x.cantidad||0),0);
+  const sembrado = DB.siembras.filter(x=>x.semilla_lote_id===l.semilla_id).reduce((a,x)=>a+(x.cant_semilla||0),0);
+  if(otras < sembrado - 0.001){ toast('No podés eliminar: quedaría menos liberado que lo ya sembrado de ese lote','error'); return; }
+  if(!confirm('¿Eliminar esta liberación? Vuelve al stock del depósito.')) return;
+  try { await sbFetch('agro_liberaciones','DELETE',null,`?id=eq.${l.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
+  DB.liberaciones = DB.liberaciones.filter(x=>x.id!==l.id);
+  closeModal('modal-liberacion');
+  renderLiberaciones(); renderStock(); poblarLotesLiberacion(); poblarLotesSiembra(); actualizarPanel();
+  toast('🗑️ Liberación eliminada');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  EDITAR SIEMBRA
+// ══════════════════════════════════════════════════════════════
+let siembraEditandoId = null;
+function poblarLotesSiembraEdit(currentId){
+  const sel = document.getElementById('se-lote'); if(!sel) return;
+  sel.innerHTML = '<option value="">— Seleccionar —</option>';
+  DB.semillas.forEach(s=>{
+    const disp = calcLiberadoDisponible(s);
+    if(disp>0 || s.id===currentId){
+      const cult = DB.cultivos.find(c=>c.id===s.cultivo_id)?.nombre||'?';
+      const vari = DB.variedades.find(v=>v.id===s.variedad_id)?.nombre||'?';
+      sel.innerHTML += `<option value="${s.id}">${cult} · ${vari}${s.marca?' ('+s.marca+')':''}</option>`;
+    }
+  });
+}
+function cargarDatosLoteSiembraEdit(){
+  const id = document.getElementById('se-lote').value;
+  const sem = DB.semillas.find(s=>s.id===id);
+  const cv=document.getElementById('se-info-cv'), mk=document.getElementById('se-info-marca');
+  if(!sem){ if(cv)cv.value=''; if(mk)mk.value=''; return; }
+  const cult = DB.cultivos.find(c=>c.id===sem.cultivo_id)?.nombre||'—';
+  const vari = DB.variedades.find(v=>v.id===sem.variedad_id)?.nombre||'—';
+  if(cv) cv.value = `${cult} · ${vari}`;
+  if(mk) mk.value = sem.marca||'—';
+}
+function editarSiembra(id){
+  const siem = DB.siembras.find(x=>x.id===id); if(!siem) return;
+  siembraEditandoId = id;
+  document.getElementById('se-lote-badge').textContent = siem.lote||'';
+  poblarLotesSiembraEdit(siem.semilla_lote_id);
+  document.getElementById('se-lote').value = siem.semilla_lote_id||'';
+  cargarDatosLoteSiembraEdit();
+  document.getElementById('se-fecha').value = siem.fecha||'';
+  document.getElementById('se-ubicacion').value = siem.ubicacion||'FM';
+  document.getElementById('se-cant-semilla').value = siem.cant_semilla||'';
+  document.getElementById('se-surcos').value = siem.surcos||'';
+  document.getElementById('se-fecha-cosecha').value = siem.fecha_cosecha_est||'';
+  document.getElementById('se-etapa').value = siem.etapa||'creciendo';
+  document.getElementById('se-encargado').value = siem.encargado||'';
+  document.getElementById('se-obs').value = siem.observaciones||'';
+  editSiembraCapillas = capArr(siem.capillas);
+  pintarCapillas('se-capilla-grid','se-capillas-info', editSiembraCapillas, siem.id, 'toggleCapEdit');
+  openModal('modal-siembra');
+}
+async function guardarEdicionSiembra(){
+  const siem = DB.siembras.find(x=>x.id===siembraEditandoId); if(!siem) return;
+  const fecha = document.getElementById('se-fecha').value;
+  const ub = document.getElementById('se-ubicacion').value;
+  const loteSemId = document.getElementById('se-lote').value;
+  const surcos = parseInt(document.getElementById('se-surcos').value)||0;
+  if(!fecha||!ub||surcos<=0){ toast('Completá fecha, ubicación y surcos','error'); return; }
+  if(!loteSemId){ toast('Seleccioná el lote liberado','error'); return; }
+  if(editSiembraCapillas.length===0){ toast('Seleccioná al menos una capilla','error'); return; }
+  const sem = DB.semillas.find(s=>s.id===loteSemId);
+  const cant = parseFloat(document.getElementById('se-cant-semilla').value)||0;
+  // Validar que no se exceda lo liberado del lote (sumando de vuelta lo de esta misma siembra si es el mismo lote)
+  const dispBase = calcLiberadoDisponible(sem) + (sem.id===siem.semilla_lote_id ? (siem.cant_semilla||0) : 0);
+  if(cant > dispBase + 0.001){ toast(`No hay tanto liberado. Disponible: ${(+dispBase.toFixed(3))} ${sem.unidad}`,'error'); return; }
+
+  const upd = {
+    fecha, ubicacion: ub,
+    cultivo_id: sem.cultivo_id, variedad_id: sem.variedad_id,
+    semilla_lote_id: loteSemId, cant_semilla: cant,
+    capillas: [...editSiembraCapillas].sort((a,b)=>a-b),
+    surcos,
+    fecha_cosecha_est: document.getElementById('se-fecha-cosecha').value||null,
+    etapa: document.getElementById('se-etapa').value,
+    encargado: document.getElementById('se-encargado').value,
+    observaciones: document.getElementById('se-obs').value,
+  };
+  Object.assign(siem, upd);
+  try { await sbFetch('agro_siembras','PATCH',{...upd,capillas:upd.capillas.join(',')},`?id=eq.${siem.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
+  closeModal('modal-siembra');
+  renderSiembras(); renderCosechasLista?.(); poblarLotesSiembra(); actualizarPanel();
+  toast('✅ Siembra actualizada');
+}
+async function eliminarSiembra(){
+  const siem = DB.siembras.find(x=>x.id===siembraEditandoId); if(!siem) return;
+  if(DB.cortes.some(c=>c.siembra_id===siem.id)){ toast('No podés eliminar: esta siembra tiene cosechas/cortes registrados','error'); return; }
+  if(!confirm(`¿Eliminar la siembra ${siem.lote}? Esta acción no se puede deshacer.`)) return;
+  try { await sbFetch('agro_siembras','DELETE',null,`?id=eq.${siem.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
+  DB.siembras = DB.siembras.filter(x=>x.id!==siem.id);
+  closeModal('modal-siembra');
+  renderSiembras(); poblarLotesSiembra(); actualizarPanel();
+  toast('🗑️ Siembra eliminada');
+}
+
 // cerrar modales clickeando overlay
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
@@ -5162,6 +5406,70 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 
   </div>
 </div>
+<!-- ═══════════ MODAL: EDITAR LIBERACIÓN ═══════════ -->
+<div class="modal-overlay" id="modal-liberacion">
+  <div class="modal" style="width:460px;">
+    <h3>✏️ Editar Liberación</h3>
+    <div class="field"><label>Lote (semilla)</label><input type="text" id="le-lote-info" readonly style="background:var(--fondo);"/></div>
+    <div class="field" style="margin-top:8px;"><label>Fecha *</label><input type="date" id="le-fecha"/></div>
+    <div class="field" style="margin-top:8px;"><label>Cantidad *</label><input type="number" id="le-cantidad" min="0" step="0.001" oninput="calcEditLibPaq()"/></div>
+    <div class="field readonly" style="margin-top:8px;"><label>Equivalente en paquetes</label><input type="text" id="le-eq-paq" readonly/></div>
+    <div class="field" style="margin-top:8px;"><label>Destino *</label>
+      <select id="le-destino"><option value="FM">🌿 Finca Milagros</option><option value="INV">🏠 Invernadero</option><option value="VIV">🌱 Vivero / Almácigo</option></select>
+    </div>
+    <div class="field" style="margin-top:8px;"><label>Responsable</label><input type="text" id="le-responsable"/></div>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button class="btn-secondary" style="border-color:var(--rojo);color:var(--rojo);" onclick="eliminarLiberacion()">🗑️ Eliminar</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" onclick="closeModal('modal-liberacion')">Cerrar</button>
+        <button class="btn-primary" onclick="guardarEdicionLiberacion()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: EDITAR SIEMBRA ═══════════ -->
+<div class="modal-overlay" id="modal-siembra">
+  <div class="modal" style="width:640px;max-width:94vw;max-height:88vh;overflow-y:auto;">
+    <h3>✏️ Editar Siembra <span id="se-lote-badge" class="lote-badge"></span></h3>
+    <div class="form-grid" style="margin-top:10px;">
+      <div class="field"><label>Fecha *</label><input type="date" id="se-fecha"/></div>
+      <div class="field"><label>Ubicación *</label>
+        <select id="se-ubicacion"><option value="FM">🌿 Finca Milagros</option><option value="INV">🏠 Invernadero</option></select>
+      </div>
+      <div class="field col-span-2"><label>Lote liberado *</label>
+        <select id="se-lote" onchange="cargarDatosLoteSiembraEdit()"><option value="">— Seleccionar —</option></select>
+      </div>
+      <div class="field readonly"><label>Cultivo · Variedad</label><input type="text" id="se-info-cv" readonly/></div>
+      <div class="field readonly"><label>Marca</label><input type="text" id="se-info-marca" readonly/></div>
+      <div class="field"><label>Cantidad de semilla usada</label><input type="number" id="se-cant-semilla" min="0" step="0.001"/></div>
+      <div class="field"><label>Total surcos *</label><input type="number" id="se-surcos" min="1"/></div>
+      <div class="field"><label>Fecha estimada cosecha</label><input type="date" id="se-fecha-cosecha"/></div>
+      <div class="field"><label>Etapa</label>
+        <select id="se-etapa">
+          <option value="creciendo">🌱 En crecimiento</option>
+          <option value="cosechando">🌾 Cosechando</option>
+          <option value="agotado">Agotado / Cerrada</option>
+        </select>
+      </div>
+      <div class="field"><label>Encargado</label><input type="text" id="se-encargado"/></div>
+      <div class="field col-span-2"><label>Observaciones</label><textarea id="se-obs" rows="2"></textarea></div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label>Capillas (1 a 95)</label>
+      <div class="cap-grid" id="se-capilla-grid"></div>
+      <div id="se-capillas-info" style="font-size:12px;color:var(--texto-suave);margin-top:4px;"></div>
+    </div>
+    <div class="modal-actions" style="justify-content:space-between;margin-top:16px;">
+      <button class="btn-secondary" style="border-color:var(--rojo);color:var(--rojo);" onclick="eliminarSiembra()">🗑️ Eliminar</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" onclick="closeModal('modal-siembra')">Cerrar</button>
+        <button class="btn-primary" onclick="guardarEdicionSiembra()">💾 Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div id="sql-output" style="display:none"></div>
 <script src="/navbar.js"></script>
