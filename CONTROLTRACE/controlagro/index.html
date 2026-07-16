@@ -277,6 +277,22 @@
   .res-card.neutro .res-val { color: var(--tierra); }
 
   /* PRINT */
+  /* Mapa de capillas */
+  .mapa-legend{display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--texto-suave);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--borde);}
+  .mapa-dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle;}
+  .mapa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px;}
+  .mapa-cell{border:1px solid var(--borde);border-radius:8px;padding:8px 6px 6px;text-align:center;background:var(--blanco);min-height:110px;display:flex;flex-direction:column;align-items:center;}
+  .mapa-cell.libre{background:var(--fondo);color:var(--texto-suave);opacity:0.7;}
+  .mapa-cell.creciendo{border-color:var(--verde-medio);box-shadow:inset 0 3px 0 var(--verde-medio);}
+  .mapa-cell.cosechando{border-color:var(--tierra);box-shadow:inset 0 3px 0 var(--tierra);}
+  .mapa-num{font-size:11px;font-weight:700;color:var(--texto-suave);width:100%;display:flex;justify-content:space-between;align-items:center;gap:4px;}
+  .mapa-ub{background:var(--verde-claro);color:var(--verde-oscuro);border-radius:4px;padding:0 4px;font-size:9px;}
+  .mapa-emoji{font-size:30px;line-height:1.1;margin:3px 0;}
+  .mapa-cell.libre .mapa-emoji{font-size:18px;color:var(--borde);}
+  .mapa-txt{font-size:11px;line-height:1.25;color:var(--texto);}
+  .mapa-txt span{color:var(--texto-suave);font-size:10px;}
+  .mapa-etapa{font-size:10px;margin-top:4px;font-weight:600;color:var(--texto-suave);}
+
   /* Selector de capillas */
   .cap-grid { display:flex; flex-wrap:wrap; gap:5px; max-height:190px; overflow-y:auto; border:1px solid var(--borde); border-radius:6px; padding:8px; background:var(--fondo); }
   .cap-chk { display:inline-flex; align-items:center; gap:3px; font-size:12px; background:var(--blanco); border:1px solid var(--borde); border-radius:5px; padding:3px 7px; cursor:pointer; user-select:none; min-width:34px; justify-content:center; }
@@ -610,6 +626,15 @@
         </div>
         <div class="panel-card">
           <h3>🗄️ Inventario actual</h3>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
+            <div class="field" style="min-width:170px;"><label>Cultivo</label><select id="stk-f-cultivo" onchange="renderStock()"><option value="">Todos</option></select></div>
+            <div class="field" style="min-width:180px;"><label>Variedad</label><select id="stk-f-variedad" onchange="renderStock()"><option value="">Todas</option></select></div>
+            <div class="field" style="min-width:150px;"><label>Marca</label><select id="stk-f-marca" onchange="renderStock()"><option value="">Todas</option></select></div>
+            <div class="field" style="min-width:150px;"><label>Buscar</label><input type="text" id="stk-f-search" placeholder="Cultivo, variedad, lote..." oninput="renderStock()"/></div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;height:38px;"><input type="checkbox" id="stk-f-disp" onchange="renderStock()"/> Solo con disponible</label>
+            <button class="btn-secondary" style="height:38px;" onclick="limpiarFiltrosStock()">↺ Limpiar</button>
+          </div>
+          <div id="stk-resumen" style="font-size:13px;color:var(--texto-suave);margin-bottom:10px;"></div>
           <div class="tbl-wrap">
             <table>
               <thead>
@@ -1202,6 +1227,7 @@
       <button class="rep-tab" onclick="selectReporte('egresos')">📉 Egresos Totales</button>
       <button class="rep-tab" onclick="selectReporte('costo-resultado')">💰 Costo/Resultado</button>
       <button class="rep-tab" onclick="selectReporte('financiero')">📊 Resumen Financiero</button>
+      <button class="rep-tab" onclick="selectReporte('mapa-capillas')">🗺️ Mapa de Capillas</button>
     </div>
   </div>
 
@@ -1250,6 +1276,9 @@
 
     <!-- Totalizadores -->
     <div id="rep-totales" style="display:none;margin-bottom:16px;"></div>
+
+    <!-- Mapa de capillas (gráfico) -->
+    <div id="rep-mapa" style="display:none;"></div>
 
     <div class="tbl-wrap" id="rep-tabla-wrap">
       <table id="rep-tabla">
@@ -1952,7 +1981,7 @@ function nav(screen) {
   document.getElementById('page-title').textContent = pageTitles[screen] || '';
 
   if(screen==='panel') actualizarPanel();
-  if(screen==='stock-semilla') renderStock();
+  if(screen==='stock-semilla') { poblarFiltrosStock(); renderStock(); }
   if(screen==='liberacion') { renderLiberaciones(); poblarLotesLiberacion(); }
   if(screen==='siembras-lista') renderSiembras();
   if(screen==='ingreso-semilla' || screen==='siembra') poblarSelects();
@@ -2467,9 +2496,38 @@ function renderStock() {
   if(!tbody) return;
   if(DB.semillas.length===0) {
     tbody.innerHTML='<tr class="empty-row"><td colspan="10">Sin semillas registradas</td></tr>';
+    const rs0=document.getElementById('stk-resumen'); if(rs0) rs0.textContent='';
     return;
   }
-  tbody.innerHTML = DB.semillas.map(s => {
+  const fC = document.getElementById('stk-f-cultivo')?.value||'';
+  const fV = document.getElementById('stk-f-variedad')?.value||'';
+  const fM = document.getElementById('stk-f-marca')?.value||'';
+  const fS = (document.getElementById('stk-f-search')?.value||'').toLowerCase().trim();
+  const soloDisp = document.getElementById('stk-f-disp')?.checked;
+  const lista = DB.semillas.filter(s => {
+    if(fC && s.cultivo_id!=fC) return false;
+    if(fV && s.variedad_id!=fV) return false;
+    if(fM && (s.marca||'')!==fM) return false;
+    if(soloDisp && calcDisponible(s)<=0) return false;
+    if(fS){
+      const cult=(DB.cultivos.find(c=>c.id===s.cultivo_id)?.nombre||'').toLowerCase();
+      const vari=(DB.variedades.find(v=>v.id===s.variedad_id)?.nombre||'').toLowerCase();
+      if(!`${cult} ${vari} ${(s.marca||'').toLowerCase()} ${(s.lote_proveedor||'').toLowerCase()}`.includes(fS)) return false;
+    }
+    return true;
+  });
+  const resumen = {};
+  lista.forEach(s=>{ const u=s.unidad||'unid'; resumen[u]=(resumen[u]||0)+calcDisponible(s); });
+  const rsEl=document.getElementById('stk-resumen');
+  if(rsEl){
+    const partes=Object.entries(resumen).map(([u,c])=>`${(+c.toFixed(2)).toLocaleString('es-AR')} ${u}`);
+    rsEl.innerHTML = `<strong>${lista.length}</strong> lote(s) mostrados · Disponible total: <strong>${partes.length?partes.join(' + '):'0'}</strong>`;
+  }
+  if(lista.length===0){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="10">Sin resultados para el filtro seleccionado</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(s => {
     const cult = DB.cultivos.find(c=>c.id===s.cultivo_id)?.nombre||'—';
     const vari = DB.variedades.find(v=>v.id===s.variedad_id)?.nombre||'—';
     const prov = DB.proveedores.find(p=>p.id===s.proveedor_id)?.nombre||'—';
@@ -3518,6 +3576,25 @@ function generarReporte() {
   totalesEl.innerHTML='';
 
   let headers=[], rows=[], titulo='', subtitulo='';
+
+  // Mapa de capillas (vista gráfica, no tabla)
+  const mapaEl = document.getElementById('rep-mapa');
+  const tablaWrap = document.getElementById('rep-tabla-wrap');
+  const filtEl = document.getElementById('rep-filtros');
+  if(rep==='mapa-capillas'){
+    tituloEl.textContent='Mapa de Capillas';
+    subEl.textContent='Distribución de las 95 capillas — cultivo y etapa de cada siembra activa';
+    if(tablaWrap) tablaWrap.style.display='none';
+    if(filtEl) filtEl.style.display='none';
+    if(mapaEl) mapaEl.style.display='block';
+    renderMapaCapillas();
+    reporteDataActual=[]; reporteHeadersActual=[];
+    return;
+  } else {
+    if(tablaWrap) tablaWrap.style.display='';
+    if(filtEl) filtEl.style.display='';
+    if(mapaEl) mapaEl.style.display='none';
+  }
 
   if(rep==='mov-semillas') {
     titulo='Movimiento de Semillas'; subtitulo='Ingresos y liberaciones del período';
@@ -5226,6 +5303,68 @@ async function eliminarSiembra(){
   closeModal('modal-siembra');
   renderSiembras(); poblarLotesSiembra(); actualizarPanel();
   toast('🗑️ Siembra eliminada');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FILTRO DE STOCK
+// ══════════════════════════════════════════════════════════════
+function poblarFiltrosStock(){
+  const selC=document.getElementById('stk-f-cultivo');
+  if(selC){ const v=selC.value; selC.innerHTML='<option value="">Todos</option>'; DB.cultivos.forEach(c=>selC.innerHTML+=`<option value="${c.id}">${c.nombre}</option>`); if(v) selC.value=v; }
+  const selV=document.getElementById('stk-f-variedad');
+  if(selV){ const v=selV.value; selV.innerHTML='<option value="">Todas</option>'; DB.variedades.forEach(x=>{ const cn=DB.cultivos.find(c=>c.id===x.cultivo_id)?.nombre||''; selV.innerHTML+=`<option value="${x.id}">${x.nombre}${cn?' ('+cn+')':''}</option>`; }); if(v) selV.value=v; }
+  const selM=document.getElementById('stk-f-marca');
+  if(selM){ const v=selM.value; selM.innerHTML='<option value="">Todas</option>'; DB.marcas.forEach(m=>selM.innerHTML+=`<option value="${m.nombre}">${m.nombre}</option>`); if(v) selM.value=v; }
+}
+function limpiarFiltrosStock(){
+  ['stk-f-cultivo','stk-f-variedad','stk-f-marca','stk-f-search'].forEach(id=>{const e=document.getElementById(id); if(e) e.value='';});
+  const d=document.getElementById('stk-f-disp'); if(d) d.checked=false;
+  renderStock();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MAPA DE CAPILLAS
+// ══════════════════════════════════════════════════════════════
+function cultivoEmoji(nombre){
+  const n=(nombre||'').toLowerCase();
+  const map=[['lechuga','🥬'],['acelga','🥬'],['espinaca','🥬'],['rúcula','🌿'],['rucula','🌿'],['repollo','🥬'],['coliflor','🥦'],['brocoli','🥦'],['brócoli','🥦'],['tomate','🍅'],['pimiento','🫑'],['morrón','🫑'],['morron','🫑'],['ají','🌶️'],['aji','🌶️'],['berenjena','🍆'],['zapallito','🥒'],['zapallo','🎃'],['calabaza','🎃'],['pepino','🥒'],['zanahoria','🥕'],['cebolla','🧅'],['ajo','🧄'],['papa','🥔'],['batata','🍠'],['maíz','🌽'],['maiz','🌽'],['choclo','🌽'],['frutilla','🍓'],['perejil','🌿'],['apio','🌿'],['puerro','🌿'],['remolacha','🫜'],['arveja','🫛'],['haba','🫛'],['chaucha','🫛'],['poroto','🫘']];
+  for(const [k,e] of map){ if(n.includes(k)) return e; }
+  return '🌱';
+}
+function renderMapaCapillas(){
+  const cont=document.getElementById('rep-mapa'); if(!cont) return;
+  const activas = DB.siembras.filter(s=>s.etapa!=='agotado');
+  const porCapilla={};
+  activas.forEach(s=>capArr(s.capillas).forEach(nn=>{ if(!porCapilla[nn]) porCapilla[nn]=s; }));
+  const totalOcu=Object.keys(porCapilla).length;
+  const creciendo=Object.values(porCapilla).filter(s=>s.etapa==='creciendo').length;
+  const cosechando=Object.values(porCapilla).filter(s=>s.etapa==='cosechando').length;
+  let html=`<div class="mapa-legend">
+    <span><i class="mapa-dot" style="background:var(--verde-medio)"></i> En crecimiento (${creciendo})</span>
+    <span><i class="mapa-dot" style="background:var(--tierra)"></i> Cosechando (${cosechando})</span>
+    <span><i class="mapa-dot" style="background:var(--borde)"></i> Libre (${CAPILLAS_TOTAL-totalOcu})</span>
+    <span style="margin-left:auto;font-weight:700;color:var(--verde-oscuro);">${totalOcu} / ${CAPILLAS_TOTAL} capillas ocupadas</span>
+  </div><div class="mapa-grid">`;
+  for(let i=1;i<=CAPILLAS_TOTAL;i++){
+    const s=porCapilla[i];
+    if(!s){
+      html+=`<div class="mapa-cell libre"><div class="mapa-num"><span>${i}</span></div><div class="mapa-emoji">·</div><div class="mapa-txt">Libre</div></div>`;
+    } else {
+      const cult=DB.cultivos.find(c=>c.id===s.cultivo_id)?.nombre||'—';
+      const vari=DB.variedades.find(v=>v.id===s.variedad_id)?.nombre||'';
+      const cls=s.etapa==='cosechando'?'cosechando':'creciendo';
+      const etapaTxt=s.etapa==='cosechando'?'🌾 Cosechando':'🌱 Creciendo';
+      const ub={FM:'FM',INV:'INV'}[s.ubicacion]||s.ubicacion||'';
+      html+=`<div class="mapa-cell ${cls}" title="Capilla ${i} — ${cult} ${vari} · Lote ${s.lote} · ${etapaTxt}">
+        <div class="mapa-num"><span>${i}</span>${ub?'<span class="mapa-ub">'+ub+'</span>':''}</div>
+        <div class="mapa-emoji">${cultivoEmoji(cult)}</div>
+        <div class="mapa-txt"><strong>${cult}</strong>${vari?'<br><span>'+vari+'</span>':''}</div>
+        <div class="mapa-etapa">${etapaTxt}</div>
+      </div>`;
+    }
+  }
+  html+='</div>';
+  cont.innerHTML=html;
 }
 
 // cerrar modales clickeando overlay
