@@ -292,6 +292,11 @@
   .mapa-txt{font-size:11px;line-height:1.25;color:var(--texto);}
   .mapa-txt span{color:var(--texto-suave);font-size:10px;}
   .mapa-etapa{font-size:10px;margin-top:4px;font-weight:600;color:var(--texto-suave);}
+  .mapa-cell.mixta{border-color:var(--verde-medio);box-shadow:inset 0 3px 0 var(--tierra);}
+  .mapa-multi{display:flex;flex-direction:column;gap:2px;margin-top:3px;width:100%;}
+  .mapa-mini{font-size:10px;line-height:1.25;color:var(--texto);}
+  .mapa-mini span{font-size:15px;vertical-align:middle;}
+  .mapa-libre{font-size:9px;color:var(--texto-suave);margin-top:3px;}
 
   /* Selector de capillas */
   .cap-grid { display:flex; flex-wrap:wrap; gap:5px; max-height:190px; overflow-y:auto; border:1px solid var(--borde); border-radius:6px; padding:8px; background:var(--fondo); }
@@ -791,23 +796,32 @@
               <input type="number" id="si-cant-semilla" min="0" step="0.001" placeholder="0" />
             </div>
 
-            <div class="section-sep">Distribución en campo</div>
-          </div>
+            <div class="section-sep">Distribución en campo (6 surcos por capilla)</div>
 
-          <div style="margin-bottom:16px;">
-            <div class="field" style="margin-bottom:12px;">
-              <label>Capillas (1 a 95) — marcá las que ocupa esta siembra *</label>
-              <div class="cap-grid" id="capilla-grid"></div>
-            </div>
-            <div id="capillas-info" style="font-size:12px;color:var(--texto-suave);margin-top:4px;"></div>
-          </div>
-
-          <div class="form-grid">
             <div class="field">
-              <label>Total surcos sembrados *</label>
-              <input type="number" id="si-surcos" min="1" placeholder="0" />
+              <label>Capilla</label>
+              <select id="si-capilla-sel" onchange="onSelCapilla()"><option value="">— Seleccionar capilla —</option></select>
             </div>
 
+            <div class="field">
+              <label>Surcos a usar (máx 6)</label>
+              <input type="number" id="si-capilla-surcos" min="1" max="6" placeholder="0" />
+            </div>
+
+            <div class="field" style="align-self:end;">
+              <button class="btn-secondary" onclick="agregarCapilla()" style="border-color:var(--verde-medio);color:var(--verde-medio);font-weight:700;">➕ Agregar capilla</button>
+            </div>
+          </div>
+
+          <div class="tbl-wrap" style="margin-top:10px;">
+            <table>
+              <thead><tr><th>Capilla</th><th>Surcos usados</th><th></th></tr></thead>
+              <tbody id="tabla-capillas-sel"><tr class="empty-row"><td colspan="3">Sin capillas agregadas</td></tr></tbody>
+            </table>
+          </div>
+          <div id="capillas-info" style="font-size:12px;color:var(--texto-suave);margin-top:6px;">Sin capillas agregadas</div>
+
+          <div class="form-grid" style="margin-top:14px;">
             <div class="section-sep">Proyección</div>
 
             <div class="field">
@@ -1985,7 +1999,7 @@ function nav(screen) {
   if(screen==='liberacion') { renderLiberaciones(); poblarLotesLiberacion(); }
   if(screen==='siembras-lista') renderSiembras();
   if(screen==='ingreso-semilla' || screen==='siembra') poblarSelects();
-  if(screen==='siembra') { pintarCapillas('capilla-grid','capillas-info',capillasSeleccionadas,null,'toggleCapNueva'); actualizarLotePreview(); }
+  if(screen==='siembra') { poblarSelCapillaGen('si-capilla-sel', null, capillasSel); renderListaCapillas('tabla-capillas-sel','capillas-info', capillasSel, 'quitarCapilla'); actualizarLotePreview(); }
   if(screen==='vivero') { poblarSelectsVivero(); renderViveros(); }
   if(screen==='cosecha') { poblarSelectsCosecha(); }
   if(screen==='cosechas-lista') renderCosechasLista();
@@ -2374,45 +2388,111 @@ function limpiarLiberacion() {
 //  CAPILLAS
 // ══════════════════════════════════════════════════════════════
 const CAPILLAS_TOTAL = 95;
-let capillasSeleccionadas = [];
-let editSiembraCapillas = [];
+const SURCOS_POR_CAPILLA = 6;
+let capillasSel = [];       // siembra nueva: [{c, s}]
+let editCapillasSel = [];   // siembra en edición: [{c, s}]
 
-function capArr(caps){
-  if(Array.isArray(caps)) return caps.map(Number);
-  return String(caps||'').split(',').map(x=>x.trim()).filter(x=>x!=='').map(Number);
-}
-function capillasOcupadasSet(excludeId){
-  const set = new Set();
-  DB.siembras.filter(s=>s.etapa!=='agotado' && s.id!==excludeId)
-    .forEach(s=>capArr(s.capillas).forEach(n=>set.add(n)));
-  return set;
-}
-function pintarCapillas(gridId, infoId, seleccionadas, excludeId, toggleFn){
-  const grid=document.getElementById(gridId); if(!grid) return;
-  const occ=capillasOcupadasSet(excludeId);
-  let html='';
-  for(let i=1;i<=CAPILLAS_TOTAL;i++){
-    const sel=seleccionadas.includes(i);
-    const ocupada=occ.has(i)&&!sel;
-    html+=`<label class="cap-chk${sel?' sel':''}${ocupada?' ocupada':''}" title="${ocupada?'Capilla '+i+' ocupada por otra siembra':'Capilla '+i}"><input type="checkbox" value="${i}" ${sel?'checked':''} ${ocupada?'disabled':''} onchange="${toggleFn}(${i}, this.checked)"> ${i}</label>`;
+// Parseo tolerante: "20:3,21:6" -> [{c,s}] ; legacy "1,2,3" -> 6 surcos c/u
+function capParse(caps){
+  if(Array.isArray(caps)){
+    return caps.map(x => (x && typeof x==='object') ? {c:+x.c, s:+(x.s||SURCOS_POR_CAPILLA)} : {c:+x, s:SURCOS_POR_CAPILLA})
+               .filter(o=>o.c);
   }
-  grid.innerHTML=html;
-  actualizarInfoCapillas(infoId, seleccionadas);
+  return String(caps||'').split(',').map(t=>t.trim()).filter(Boolean).map(t=>{
+    const [c,ss]=t.split(':');
+    return {c:+c, s: (ss!==undefined && ss!=='') ? +ss : SURCOS_POR_CAPILLA};
+  }).filter(o=>o.c);
 }
-function actualizarInfoCapillas(infoId, arr){
-  const el=document.getElementById(infoId); if(!el) return;
-  const a=[...arr].sort((x,y)=>x-y);
-  el.textContent = a.length ? `Capillas seleccionadas (${a.length}): ${a.join(', ')}` : 'Ninguna capilla seleccionada';
+function capStr(arr){ return arr.map(o=>`${o.c}:${o.s}`).join(','); }
+function capArr(caps){ return capParse(caps).map(o=>o.c); }  // solo números de capilla
+
+function surcosUsadosCapilla(c, excludeId){
+  let used=0;
+  DB.siembras.filter(s=>s.etapa!=='agotado' && s.id!==excludeId)
+    .forEach(s=>capParse(s.capillas).forEach(o=>{ if(o.c===c) used+=o.s; }));
+  return used;
 }
-function toggleCapNueva(n, checked){
-  const i=capillasSeleccionadas.indexOf(n);
-  if(checked){ if(i<0) capillasSeleccionadas.push(n); } else if(i>=0) capillasSeleccionadas.splice(i,1);
-  actualizarInfoCapillas('capillas-info', capillasSeleccionadas);
+function surcosDisponiblesCapilla(c, excludeId){
+  return Math.max(0, SURCOS_POR_CAPILLA - surcosUsadosCapilla(c, excludeId));
 }
-function toggleCapEdit(n, checked){
-  const i=editSiembraCapillas.indexOf(n);
-  if(checked){ if(i<0) editSiembraCapillas.push(n); } else if(i>=0) editSiembraCapillas.splice(i,1);
-  actualizarInfoCapillas('se-capillas-info', editSiembraCapillas);
+
+// Poblar desplegable de capillas con surcos libres (excluye las ya agregadas a la lista)
+function poblarSelCapillaGen(selId, excludeId, yaEnLista){
+  const sel=document.getElementById(selId); if(!sel) return;
+  const usados=new Set((yaEnLista||[]).map(o=>o.c));
+  sel.innerHTML='<option value="">— Seleccionar capilla —</option>';
+  for(let c=1;c<=CAPILLAS_TOTAL;c++){
+    if(usados.has(c)) continue;
+    const disp=surcosDisponiblesCapilla(c, excludeId);
+    if(disp<=0) continue;
+    sel.innerHTML+=`<option value="${c}">Capilla ${c} — ${disp} surco(s) libre(s)</option>`;
+  }
+}
+function renderListaCapillas(tbodyId, infoId, lista, quitarFn){
+  const tb=document.getElementById(tbodyId);
+  if(tb){
+    if(lista.length===0) tb.innerHTML='<tr class="empty-row"><td colspan="3">Sin capillas agregadas</td></tr>';
+    else tb.innerHTML=lista.slice().sort((a,b)=>a.c-b.c).map((o)=>{
+      const i=lista.indexOf(o);
+      return `<tr><td><strong>Capilla ${o.c}</strong></td><td>${o.s} surco(s)</td><td><button class="btn-secondary" style="padding:2px 8px;font-size:11px;border-color:var(--rojo);color:var(--rojo);" onclick="${quitarFn}(${i})">🗑️</button></td></tr>`;
+    }).join('');
+  }
+  const info=document.getElementById(infoId);
+  if(info){ const tot=lista.reduce((a,o)=>a+o.s,0); info.innerHTML = lista.length ? `<strong>${lista.length}</strong> capilla(s) · <strong>${tot}</strong> surco(s) en total` : 'Sin capillas agregadas'; }
+}
+
+// --- Siembra NUEVA ---
+function onSelCapilla(){
+  const c=+document.getElementById('si-capilla-sel').value;
+  const inp=document.getElementById('si-capilla-surcos');
+  if(!c){ inp.value=''; return; }
+  const disp=surcosDisponiblesCapilla(c, null);
+  inp.max=disp; inp.value=Math.min(SURCOS_POR_CAPILLA, disp);
+}
+function agregarCapilla(){
+  const c=+document.getElementById('si-capilla-sel').value;
+  const s=parseInt(document.getElementById('si-capilla-surcos').value)||0;
+  if(!c){ toast('Elegí una capilla','error'); return; }
+  const disp=surcosDisponiblesCapilla(c, null);
+  if(s<1){ toast('Ingresá cuántos surcos usás','error'); return; }
+  if(s>disp){ toast(`La capilla ${c} tiene ${disp} surco(s) libre(s)`,'error'); return; }
+  if(capillasSel.some(o=>o.c===c)){ toast('Esa capilla ya está en la lista','error'); return; }
+  capillasSel.push({c, s});
+  document.getElementById('si-capilla-sel').value=''; document.getElementById('si-capilla-surcos').value='';
+  poblarSelCapillaGen('si-capilla-sel', null, capillasSel);
+  renderListaCapillas('tabla-capillas-sel','capillas-info', capillasSel, 'quitarCapilla');
+}
+function quitarCapilla(i){
+  capillasSel.splice(i,1);
+  poblarSelCapillaGen('si-capilla-sel', null, capillasSel);
+  renderListaCapillas('tabla-capillas-sel','capillas-info', capillasSel, 'quitarCapilla');
+}
+
+// --- Siembra EDICIÓN ---
+function onSelCapillaEdit(){
+  const c=+document.getElementById('se-capilla-sel').value;
+  const inp=document.getElementById('se-capilla-surcos');
+  if(!c){ inp.value=''; return; }
+  const disp=surcosDisponiblesCapilla(c, siembraEditandoId);
+  inp.max=disp; inp.value=Math.min(SURCOS_POR_CAPILLA, disp);
+}
+function agregarCapillaEdit(){
+  const c=+document.getElementById('se-capilla-sel').value;
+  const s=parseInt(document.getElementById('se-capilla-surcos').value)||0;
+  if(!c){ toast('Elegí una capilla','error'); return; }
+  const disp=surcosDisponiblesCapilla(c, siembraEditandoId);
+  if(s<1){ toast('Ingresá cuántos surcos usás','error'); return; }
+  if(s>disp){ toast(`La capilla ${c} tiene ${disp} surco(s) libre(s)`,'error'); return; }
+  if(editCapillasSel.some(o=>o.c===c)){ toast('Esa capilla ya está en la lista','error'); return; }
+  editCapillasSel.push({c, s});
+  document.getElementById('se-capilla-sel').value=''; document.getElementById('se-capilla-surcos').value='';
+  poblarSelCapillaGen('se-capilla-sel', siembraEditandoId, editCapillasSel);
+  renderListaCapillas('tabla-se-capillas','se-capillas-info', editCapillasSel, 'quitarCapillaEdit');
+}
+function quitarCapillaEdit(i){
+  editCapillasSel.splice(i,1);
+  poblarSelCapillaGen('se-capilla-sel', siembraEditandoId, editCapillasSel);
+  renderListaCapillas('tabla-se-capillas','se-capillas-info', editCapillasSel, 'quitarCapillaEdit');
 }
 function actualizarLotePreview(){
   const ubEl=document.getElementById('si-ubicacion'); const prev=document.getElementById('lote-preview');
@@ -2435,15 +2515,15 @@ async function guardarSiembra() {
   const fecha = document.getElementById('si-fecha').value;
   const ub    = document.getElementById('si-ubicacion').value;
   const loteSemId = document.getElementById('si-lote-semilla').value;
-  const surcos = parseInt(document.getElementById('si-surcos').value)||0;
 
-  if(!fecha||!ub||surcos<=0) { toast('Completá fecha, ubicación y surcos','error'); return; }
+  if(!fecha||!ub) { toast('Completá fecha y ubicación','error'); return; }
   if(!loteSemId) { toast('Seleccioná el lote liberado a sembrar','error'); return; }
-  if(capillasSeleccionadas.length===0) { toast('Seleccioná al menos una capilla','error'); return; }
+  if(capillasSel.length===0) { toast('Agregá al menos una capilla con sus surcos','error'); return; }
 
   const sem = DB.semillas.find(s=>s.id===loteSemId);
   if(!sem) { toast('Lote de semilla no encontrado','error'); return; }
 
+  const surcos = capillasSel.reduce((a,o)=>a+o.s,0);
   const lote = generarLote(ub);
   const fechaCosecha = document.getElementById('si-fecha-cosecha').value;
 
@@ -2457,7 +2537,7 @@ async function guardarSiembra() {
     variedad_id: sem.variedad_id,
     semilla_lote_id: loteSemId,
     cant_semilla: parseFloat(document.getElementById('si-cant-semilla').value)||0,
-    capillas: [...capillasSeleccionadas].sort((a,b)=>a-b),
+    capillas: capStr(capillasSel.slice().sort((a,b)=>a.c-b.c)),
     surcos,
     fecha_cosecha_est: fechaCosecha||null,
     encargado: document.getElementById('si-encargado').value,
@@ -2467,7 +2547,7 @@ async function guardarSiembra() {
     fecha_fin_cosecha: null,
   };
 
-  try { const res = await sbFetch('agro_siembras','POST',{...nueva,id:undefined,capillas:nueva.capillas.join(',')},''); if(res&&res[0]&&res[0].id) nueva.id=res[0].id; } catch(e){}
+  try { const res = await sbFetch('agro_siembras','POST',{...nueva,id:undefined},''); if(res&&res[0]&&res[0].id) nueva.id=res[0].id; } catch(e){}
 
   DB.siembras.unshift(nueva);
   limpiarSiembra();
@@ -2478,13 +2558,14 @@ async function guardarSiembra() {
 }
 
 function limpiarSiembra() {
-  ['si-fecha','si-surcos','si-cant-semilla','si-encargado','si-obs','si-fecha-cosecha','si-info-cv','si-info-marca','si-info-disp']
+  ['si-fecha','si-cant-semilla','si-encargado','si-obs','si-fecha-cosecha','si-info-cv','si-info-marca','si-info-disp','si-capilla-surcos']
     .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('si-fecha').value=new Date().toISOString().split('T')[0];
   document.getElementById('si-ubicacion').value='';
   const ls=document.getElementById('si-lote-semilla'); if(ls) ls.value='';
-  capillasSeleccionadas=[];
-  pintarCapillas('capilla-grid','capillas-info',capillasSeleccionadas,null,'toggleCapNueva');
+  capillasSel=[];
+  poblarSelCapillaGen('si-capilla-sel', null, capillasSel);
+  renderListaCapillas('tabla-capillas-sel','capillas-info', capillasSel, 'quitarCapilla');
   actualizarLotePreview();
 }
 
@@ -2603,7 +2684,7 @@ function renderSiembras() {
         <td>${cult}</td><td>${ubLabels[s.ubicacion]||s.ubicacion}</td>
         <td>${fmt(s.fecha)}</td><td>${etapaChip(s.etapa)}</td>
       </tr>`;
-      const caps = Array.isArray(s.capillas) ? s.capillas.join(',') : s.capillas;
+      const caps = capParse(s.capillas).map(o=>o.c+' ('+o.s+')').join(', ');
       return `<tr>
         <td><span class="lote-badge">${s.lote}</span></td>
         <td>${fmt(s.fecha)}</td><td>${cult}</td><td>${vari}</td>
@@ -2622,10 +2703,8 @@ function actualizarPanel() {
   const cultivosUnicos = [...new Set(DB.semillas.map(s=>s.cultivo_id))].length;
   const siembrasActivas = DB.siembras.filter(s=>s.etapa!=='agotado').length;
 
-  const capFM  = DB.siembras.filter(s=>s.ubicacion==='FM'&&s.etapa!=='agotado')
-    .flatMap(s=>Array.isArray(s.capillas)?s.capillas:s.capillas?.split(',').map(Number)||[]);
-  const capINV = DB.siembras.filter(s=>s.ubicacion==='INV'&&s.etapa!=='agotado')
-    .flatMap(s=>Array.isArray(s.capillas)?s.capillas:s.capillas?.split(',').map(Number)||[]);
+  const capFM  = DB.siembras.filter(s=>s.ubicacion==='FM'&&s.etapa!=='agotado').flatMap(s=>capArr(s.capillas));
+  const capINV = DB.siembras.filter(s=>s.ubicacion==='INV'&&s.etapa!=='agotado').flatMap(s=>capArr(s.capillas));
 
   const hoy = new Date();
   const en30 = new Date(); en30.setDate(hoy.getDate()+30);
@@ -3426,7 +3505,7 @@ function renderTrazabilidadDetalle() {
   ` : '<span style="color:var(--texto-suave);font-style:italic;">No se vinculó lote de semilla</span>';
 
   // ── SIEMBRA ──
-  const caps = Array.isArray(siem.capillas)?siem.capillas.join(', '):siem.capillas;
+  const caps = capParse(siem.capillas).map(o=>o.c+' ('+o.s+')').join(', ');
   document.getElementById('traz-siembra-info').innerHTML = `
     <strong>Lote:</strong> <span class="lote-badge">${siem.lote}</span><br>
     <strong>Fecha:</strong> ${fmt(siem.fecha)}<br>
@@ -3648,7 +3727,7 @@ function generarReporte() {
     headers=['Lote','Fecha','Cultivo','Variedad','Ubicación','Capillas','Surcos','Semilla usada','Est. Cosecha','Etapa'];
     const filtradas = applyFiltros(DB.siembras);
     rows = filtradas.map(s=>{
-      const caps = Array.isArray(s.capillas)?s.capillas.join(','):s.capillas;
+      const caps = capParse(s.capillas).map(o=>o.c+' ('+o.s+')').join(', ');
       return [
         s.lote, fmt(s.fecha),
         DB.cultivos.find(c=>c.id===s.cultivo_id)?.nombre||'—',
@@ -5253,13 +5332,13 @@ function editarSiembra(id){
   document.getElementById('se-fecha').value = siem.fecha||'';
   document.getElementById('se-ubicacion').value = siem.ubicacion||'FM';
   document.getElementById('se-cant-semilla').value = siem.cant_semilla||'';
-  document.getElementById('se-surcos').value = siem.surcos||'';
   document.getElementById('se-fecha-cosecha').value = siem.fecha_cosecha_est||'';
   document.getElementById('se-etapa').value = siem.etapa||'creciendo';
   document.getElementById('se-encargado').value = siem.encargado||'';
   document.getElementById('se-obs').value = siem.observaciones||'';
-  editSiembraCapillas = capArr(siem.capillas);
-  pintarCapillas('se-capilla-grid','se-capillas-info', editSiembraCapillas, siem.id, 'toggleCapEdit');
+  editCapillasSel = capParse(siem.capillas);
+  poblarSelCapillaGen('se-capilla-sel', siem.id, editCapillasSel);
+  renderListaCapillas('tabla-se-capillas','se-capillas-info', editCapillasSel, 'quitarCapillaEdit');
   openModal('modal-siembra');
 }
 async function guardarEdicionSiembra(){
@@ -5267,10 +5346,10 @@ async function guardarEdicionSiembra(){
   const fecha = document.getElementById('se-fecha').value;
   const ub = document.getElementById('se-ubicacion').value;
   const loteSemId = document.getElementById('se-lote').value;
-  const surcos = parseInt(document.getElementById('se-surcos').value)||0;
-  if(!fecha||!ub||surcos<=0){ toast('Completá fecha, ubicación y surcos','error'); return; }
+  if(!fecha||!ub){ toast('Completá fecha y ubicación','error'); return; }
   if(!loteSemId){ toast('Seleccioná el lote liberado','error'); return; }
-  if(editSiembraCapillas.length===0){ toast('Seleccioná al menos una capilla','error'); return; }
+  if(editCapillasSel.length===0){ toast('Agregá al menos una capilla con surcos','error'); return; }
+  const surcos = editCapillasSel.reduce((a,o)=>a+o.s,0);
   const sem = DB.semillas.find(s=>s.id===loteSemId);
   const cant = parseFloat(document.getElementById('se-cant-semilla').value)||0;
   // Validar que no se exceda lo liberado del lote (sumando de vuelta lo de esta misma siembra si es el mismo lote)
@@ -5281,7 +5360,7 @@ async function guardarEdicionSiembra(){
     fecha, ubicacion: ub,
     cultivo_id: sem.cultivo_id, variedad_id: sem.variedad_id,
     semilla_lote_id: loteSemId, cant_semilla: cant,
-    capillas: [...editSiembraCapillas].sort((a,b)=>a-b),
+    capillas: capStr(editCapillasSel.slice().sort((a,b)=>a.c-b.c)),
     surcos,
     fecha_cosecha_est: document.getElementById('se-fecha-cosecha').value||null,
     etapa: document.getElementById('se-etapa').value,
@@ -5289,7 +5368,7 @@ async function guardarEdicionSiembra(){
     observaciones: document.getElementById('se-obs').value,
   };
   Object.assign(siem, upd);
-  try { await sbFetch('agro_siembras','PATCH',{...upd,capillas:upd.capillas.join(',')},`?id=eq.${siem.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
+  try { await sbFetch('agro_siembras','PATCH',{...upd},`?id=eq.${siem.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
   closeModal('modal-siembra');
   renderSiembras(); renderCosechasLista?.(); poblarLotesSiembra(); actualizarPanel();
   toast('✅ Siembra actualizada');
@@ -5334,34 +5413,48 @@ function cultivoEmoji(nombre){
 function renderMapaCapillas(){
   const cont=document.getElementById('rep-mapa'); if(!cont) return;
   const activas = DB.siembras.filter(s=>s.etapa!=='agotado');
-  const porCapilla={};
-  activas.forEach(s=>capArr(s.capillas).forEach(nn=>{ if(!porCapilla[nn]) porCapilla[nn]=s; }));
-  const totalOcu=Object.keys(porCapilla).length;
-  const creciendo=Object.values(porCapilla).filter(s=>s.etapa==='creciendo').length;
-  const cosechando=Object.values(porCapilla).filter(s=>s.etapa==='cosechando').length;
+  const porCapilla={}; // c -> [{s, surcos}]
+  activas.forEach(s=>capParse(s.capillas).forEach(o=>{ (porCapilla[o.c]=porCapilla[o.c]||[]).push({s, surcos:o.s}); }));
+  const capillasConSiembra=Object.keys(porCapilla).length;
+  let surcosCrec=0, surcosCos=0, surcosUsados=0;
+  Object.values(porCapilla).forEach(arr=>arr.forEach(x=>{ surcosUsados+=x.surcos; if(x.s.etapa==='cosechando') surcosCos+=x.surcos; else surcosCrec+=x.surcos; }));
+  const surcosTot=CAPILLAS_TOTAL*SURCOS_POR_CAPILLA;
   let html=`<div class="mapa-legend">
-    <span><i class="mapa-dot" style="background:var(--verde-medio)"></i> En crecimiento (${creciendo})</span>
-    <span><i class="mapa-dot" style="background:var(--tierra)"></i> Cosechando (${cosechando})</span>
-    <span><i class="mapa-dot" style="background:var(--borde)"></i> Libre (${CAPILLAS_TOTAL-totalOcu})</span>
-    <span style="margin-left:auto;font-weight:700;color:var(--verde-oscuro);">${totalOcu} / ${CAPILLAS_TOTAL} capillas ocupadas</span>
+    <span><i class="mapa-dot" style="background:var(--verde-medio)"></i> Surcos en crecimiento (${surcosCrec})</span>
+    <span><i class="mapa-dot" style="background:var(--tierra)"></i> Surcos cosechando (${surcosCos})</span>
+    <span><i class="mapa-dot" style="background:var(--borde)"></i> Surcos libres (${surcosTot-surcosUsados})</span>
+    <span style="margin-left:auto;font-weight:700;color:var(--verde-oscuro);">${capillasConSiembra}/${CAPILLAS_TOTAL} capillas con siembra · ${surcosUsados}/${surcosTot} surcos</span>
   </div><div class="mapa-grid">`;
   for(let i=1;i<=CAPILLAS_TOTAL;i++){
-    const s=porCapilla[i];
-    if(!s){
+    const arr=porCapilla[i];
+    if(!arr){
       html+=`<div class="mapa-cell libre"><div class="mapa-num"><span>${i}</span></div><div class="mapa-emoji">·</div><div class="mapa-txt">Libre</div></div>`;
-    } else {
+      continue;
+    }
+    const usados=arr.reduce((a,x)=>a+x.surcos,0);
+    const libres=SURCOS_POR_CAPILLA-usados;
+    const hayCos=arr.some(x=>x.s.etapa==='cosechando');
+    const cls = arr.length>1 ? 'mixta' : (hayCos?'cosechando':'creciendo');
+    const ub={FM:'FM',INV:'INV'}[arr[0].s.ubicacion]||arr[0].s.ubicacion||'';
+    let cuerpo='';
+    if(arr.length===1){
+      const s=arr[0].s;
       const cult=DB.cultivos.find(c=>c.id===s.cultivo_id)?.nombre||'—';
       const vari=DB.variedades.find(v=>v.id===s.variedad_id)?.nombre||'';
-      const cls=s.etapa==='cosechando'?'cosechando':'creciendo';
-      const etapaTxt=s.etapa==='cosechando'?'🌾 Cosechando':'🌱 Creciendo';
-      const ub={FM:'FM',INV:'INV'}[s.ubicacion]||s.ubicacion||'';
-      html+=`<div class="mapa-cell ${cls}" title="Capilla ${i} — ${cult} ${vari} · Lote ${s.lote} · ${etapaTxt}">
-        <div class="mapa-num"><span>${i}</span>${ub?'<span class="mapa-ub">'+ub+'</span>':''}</div>
-        <div class="mapa-emoji">${cultivoEmoji(cult)}</div>
-        <div class="mapa-txt"><strong>${cult}</strong>${vari?'<br><span>'+vari+'</span>':''}</div>
-        <div class="mapa-etapa">${etapaTxt}</div>
-      </div>`;
+      const et=s.etapa==='cosechando'?'🌾':'🌱';
+      cuerpo=`<div class="mapa-emoji">${cultivoEmoji(cult)}</div><div class="mapa-txt"><strong>${cult}</strong>${vari?'<br><span>'+vari+'</span>':''}</div><div class="mapa-etapa">${et} ${arr[0].surcos} surco(s)</div>`;
+    } else {
+      cuerpo=`<div class="mapa-multi">`+arr.map(x=>{
+        const cult=DB.cultivos.find(c=>c.id===x.s.cultivo_id)?.nombre||'—';
+        const et=x.s.etapa==='cosechando'?'🌾':'🌱';
+        return `<div class="mapa-mini"><span>${cultivoEmoji(cult)}</span> <strong>${cult}</strong> ${et}${x.surcos}</div>`;
+      }).join('')+`</div>`;
     }
+    const libreTxt = libres>0 ? `<div class="mapa-libre">${libres} surco(s) libre(s)</div>` : '';
+    html+=`<div class="mapa-cell ${cls}" title="Capilla ${i} — ${usados}/${SURCOS_POR_CAPILLA} surcos usados">
+      <div class="mapa-num"><span>${i}</span>${ub?'<span class="mapa-ub">'+ub+'</span>':''}</div>
+      ${cuerpo}${libreTxt}
+    </div>`;
   }
   html+='</div>';
   cont.innerHTML=html;
@@ -5582,7 +5675,6 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
       <div class="field readonly"><label>Cultivo · Variedad</label><input type="text" id="se-info-cv" readonly/></div>
       <div class="field readonly"><label>Marca</label><input type="text" id="se-info-marca" readonly/></div>
       <div class="field"><label>Cantidad de semilla usada</label><input type="number" id="se-cant-semilla" min="0" step="0.001"/></div>
-      <div class="field"><label>Total surcos *</label><input type="number" id="se-surcos" min="1"/></div>
       <div class="field"><label>Fecha estimada cosecha</label><input type="date" id="se-fecha-cosecha"/></div>
       <div class="field"><label>Etapa</label>
         <select id="se-etapa">
@@ -5594,11 +5686,16 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
       <div class="field"><label>Encargado</label><input type="text" id="se-encargado"/></div>
       <div class="field col-span-2"><label>Observaciones</label><textarea id="se-obs" rows="2"></textarea></div>
     </div>
-    <div class="field" style="margin-top:12px;">
-      <label>Capillas (1 a 95)</label>
-      <div class="cap-grid" id="se-capilla-grid"></div>
-      <div id="se-capillas-info" style="font-size:12px;color:var(--texto-suave);margin-top:4px;"></div>
+    <div class="section-sep" style="margin-top:14px;">Capillas y surcos (6 por capilla)</div>
+    <div class="form-grid">
+      <div class="field"><label>Capilla</label><select id="se-capilla-sel" onchange="onSelCapillaEdit()"><option value="">— Seleccionar capilla —</option></select></div>
+      <div class="field"><label>Surcos a usar (máx 6)</label><input type="number" id="se-capilla-surcos" min="1" max="6" placeholder="0"/></div>
+      <div class="field" style="align-self:end;"><button class="btn-secondary" onclick="agregarCapillaEdit()" style="border-color:var(--verde-medio);color:var(--verde-medio);font-weight:700;">➕ Agregar capilla</button></div>
     </div>
+    <div class="tbl-wrap" style="margin-top:8px;">
+      <table><thead><tr><th>Capilla</th><th>Surcos usados</th><th></th></tr></thead><tbody id="tabla-se-capillas"><tr class="empty-row"><td colspan="3">Sin capillas agregadas</td></tr></tbody></table>
+    </div>
+    <div id="se-capillas-info" style="font-size:12px;color:var(--texto-suave);margin-top:6px;"></div>
     <div class="modal-actions" style="justify-content:space-between;margin-top:16px;">
       <button class="btn-secondary" style="border-color:var(--rojo);color:var(--rojo);" onclick="eliminarSiembra()">🗑️ Eliminar</button>
       <div style="display:flex;gap:8px;">
@@ -5613,4 +5710,3 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 <div id="sql-output" style="display:none"></div>
 <script src="/navbar.js"></script>
 </body>
-</html>
