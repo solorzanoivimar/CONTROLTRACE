@@ -554,14 +554,18 @@ function detalleOP(codigo){
    <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button></div>`);
 }
 
+/* Normaliza códigos escaneados: tolera lectores con distribución de teclado
+   distinta (que escriben L'00017 o L/00017 en vez de L-00017). */
+function normCode(s){return (s||'').toString().toUpperCase().replace(/[^A-Z0-9]/g,'');}
+function fixCode(s){return (s||'').toString().trim().toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
 function prodScan(){
   const i=$('pp_scan'),msg=$('pp_scanmsg'),sel=$('pp_lote');if(!i||!sel)return;
   let v=(i.value||'').trim();if(!v){if(msg)msg.innerHTML='Escaneá o tipeá un código de lote.';return;}
   try{const o=JSON.parse(v);v=o.lote||o.op||v;}catch(e){}
-  v=v.toUpperCase();
-  const opt=[...sel.options].find(o=>o.value&&o.value.toUpperCase()===v);
+  v=fixCode(v);const nv=normCode(v);
+  const opt=[...sel.options].find(o=>o.value&&normCode(o.value)===nv);
   if(opt){sel.value=opt.value;i.value='';if(msg)msg.innerHTML=`✓ Lote <b>${opt.value}</b> cargado.`;onLoteChange();return;}
-  const r=S.recepciones.find(x=>(x.codigo_lote||'').toUpperCase()===v);
+  const r=S.recepciones.find(x=>normCode(x.codigo_lote)===nv);
   if(msg){
     if(r&&r.estado==='anulada')msg.innerHTML=`⚠️ El lote <b>${v}</b> está anulado: no se puede procesar.`;
     else if(r)msg.innerHTML=`⚠️ El lote <b>${v}</b> ya no tiene stock disponible en cámara.`;
@@ -1210,7 +1214,7 @@ function viewTraz(){
    <div id="t_panel"></div>`;
   const i=$('t_scan');i.focus();i.addEventListener('keydown',e=>{if(e.key==='Enter')traceGo();});
 }
-function traceGo(){const i=$('t_scan');let v=(i.value||'').trim();try{const o=JSON.parse(v);v=o.op||o.lote||v;}catch(e){}trace(v.toUpperCase());}
+function traceGo(){const i=$('t_scan');let v=(i.value||'').trim();try{const o=JSON.parse(v);v=o.op||o.lote||v;}catch(e){}trace(fixCode(v));}
 function notFoundTraz(code){$('t_panel').innerHTML=`<div class="card"><div class="empty" style="padding:30px"><div style="font-size:36px">🔍</div><h3>Código no encontrado</h3><p>No hay registros para <b>${code||'—'}</b>. Probá con un lote (L-), producción (P-), despacho (D-) o número de remito.</p></div></div>`;}
 function showTraceEntrega(e){const cli=S.clientes.find(c=>c.id===e.cliente_id)||{};const lotes=[...new Set(e.items.map(it=>it.loteRef).filter(Boolean))];
   $('t_panel').innerHTML=`<div class="card"><div class="card-h"><h3>Remito ${e.numero_remito}</h3><span class="tag ok">${fmtD(e.fecha)}</span></div>
@@ -1646,9 +1650,10 @@ function cargaRender(){const e=S.entregas.find(x=>x.id===cargaState.entregaId);i
   const sc=$('cg_scan');if(sc){sc.focus();sc.addEventListener('keydown',ev=>{if(ev.key==='Enter'){cargaScan(sc.value);sc.value='';}});}
 }
 function cargaScan(txt){if(!txt)return;let lote='';try{const o=JSON.parse(txt);lote=(o.lote||'').toString();}catch(e){lote=txt.trim();}
+  lote=fixCode(lote);const nl=normCode(lote);
   const ent=S.entregas.find(x=>x.id===cargaState.entregaId);let idx=-1;
-  ent.items.forEach((it,i)=>{if(idx<0&&it.loteRef===lote&&cargaState.loaded[i]<(+it.cajas||0))idx=i;});
-  if(idx<0)ent.items.forEach((it,i)=>{if(idx<0&&it.loteRef===lote)idx=i;});
+  ent.items.forEach((it,i)=>{if(idx<0&&normCode(it.loteRef)===nl&&cargaState.loaded[i]<(+it.cajas||0))idx=i;});
+  if(idx<0)ent.items.forEach((it,i)=>{if(idx<0&&normCode(it.loteRef)===nl)idx=i;});
   if(idx>=0){cargaState.loaded[idx]++;banner('Caja sumada: '+ent.items[idx].producto,'');}
   else{cargaState.extras.push(lote||'?');banner('Caja no pertenece a este remito','warn');}
   cargaRender();
