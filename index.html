@@ -1190,12 +1190,43 @@ async function downloadReportePDF(){
 
 // ---- CONSULTA DE TRAZABILIDAD ----
 function recById(codigo){return S.recepciones.find(r=>r.codigo_lote===codigo);}
-function labelLoteRec(codigo){const r=recById(codigo);if(!r)return;
-  modal(`<h3>Etiqueta de lote ${r.codigo_lote}</h3><p class="hint">Imprimila y pegala en la mercadería en cámara para identificarla.</p>
-  <div class="lblsheet" id="lblArea"><div class="lbl box"><div class="bx-h">${esc(r.materia_prima||'')}<br><span style="font-weight:400;font-size:9px">LOTE DE MATERIA PRIMA</span></div><div class="qrwrap" id="qrl"></div><div style="text-align:center"><b class="mono" style="font-size:15px">${r.codigo_lote}</b></div><div style="font-size:9px;margin-top:4px;text-align:center">Proveedor: ${esc(r.proveedor||'—')}<br>${nf(r.kilos,1)} kg · ${fmtD(r.fecha)}</div></div></div>
-  <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-gold" onclick="printDoc('auto')">🖨️ Imprimir etiqueta</button></div>`);
-  qr($('qrl'),r.codigo_lote);
+function loteLblCfg(){const c=(S.empresa&&S.empresa.etiqueta_config)||{};const l=c.lote||{};return {w:+l.w||70,h:+l.h||30};}
+function labelLoteRec(codigo){const r=recById(codigo);if(!r)return;window._loteLbl=codigo;const s=loteLblCfg();
+  modal(`<h3>Etiqueta de lote ${r.codigo_lote}</h3><p class="hint">Pensada para rollo continuo. Ajustá la medida real de tu etiqueta y guardala: queda fija para las próximas.</p>
+  <div class="g2"><div><label>Ancho (mm)</label><input type="number" id="ll_w" value="${s.w}" min="20" max="200" step="0.5" oninput="renderLoteLbl()"></div><div><label>Alto (mm)</label><input type="number" id="ll_h" value="${s.h}" min="10" max="200" step="0.5" oninput="renderLoteLbl()"></div></div>
+  <div class="g2"><div><label>Cantidad a imprimir</label><input type="number" id="ll_n" value="1" min="1" max="200" oninput="renderLoteLbl()"></div><div style="display:flex;align-items:flex-end"><button class="btn btn-ghost btn-sm" style="width:100%" onclick="saveLoteLblSize()">💾 Guardar medida</button></div></div>
+  <div style="background:#efeae0;border-radius:10px;padding:14px;margin:12px 0;overflow:auto;display:flex;justify-content:center"><div id="lblArea"></div></div>
+  <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-gold" onclick="printLoteLbl()">🖨️ Imprimir etiqueta</button></div>`);
+  renderLoteLbl();
 }
+function loteLblQS(h){return Math.max(10,Math.min(h-3,26));}
+function loteLblHTML(r,w,h,i,last){const qs=loteLblQS(h);
+  return `<div style="width:${w}mm;height:${h}mm;background:#fff;color:#000;box-sizing:border-box;padding:1.5mm;display:flex;gap:2mm;align-items:center;overflow:hidden;font-family:Inter,Arial,sans-serif;${last?'':'page-break-after:always;break-after:page;'}">
+   <div id="qrl${i}" style="flex:0 0 ${qs}mm;width:${qs}mm;height:${qs}mm;display:flex;align-items:center;justify-content:center"></div>
+   <div style="flex:1;min-width:0;line-height:1.12">
+     <div style="font-weight:700;font-size:3.4mm;text-transform:uppercase;overflow:hidden">${esc(r.materia_prima||'')}</div>
+     <div style="font-size:2mm;letter-spacing:.06em;color:#333">LOTE DE MATERIA PRIMA</div>
+     <div style="font-weight:700;font-size:5.6mm;font-family:'Courier New',monospace;margin:.7mm 0">${r.codigo_lote}</div>
+     <div style="font-size:2.4mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.proveedor||'-')}</div>
+     <div style="font-size:2.4mm">${nf(r.kilos,1)} kg &middot; ${fmtD(r.fecha)}</div>
+   </div></div>`;
+}
+function renderLoteLbl(){const r=recById(window._loteLbl);if(!r)return;
+  const w=+$('ll_w').value||70,hh=+$('ll_h').value||30;const n=Math.max(1,Math.min(200,+$('ll_n').value||1));
+  let html='';for(let i=0;i<n;i++)html+=loteLblHTML(r,w,hh,i,i===n-1);
+  $('lblArea').innerHTML=html;const qs=loteLblQS(hh);
+  for(let i=0;i<n;i++){const el=$('qrl'+i);if(!el)continue;el.innerHTML='';
+    try{new QRCode(el,{text:r.codigo_lote,width:256,height:256,colorDark:'#000',colorLight:'#fff'});}catch(e){el.textContent=r.codigo_lote;}
+    el.querySelectorAll('canvas,img').forEach(x=>{x.style.width=qs+'mm';x.style.height=qs+'mm';});}
+}
+function printLoteLbl(){const w=+$('ll_w').value||70,hh=+$('ll_h').value||30;
+  let st=document.getElementById('dynpage');if(!st){st=document.createElement('style');st.id='dynpage';document.head.appendChild(st);}
+  st.textContent='@page{size:'+w+'mm '+hh+'mm;margin:0}';window.print();}
+async function saveLoteLblSize(){const w=+$('ll_w').value||70,hh=+$('ll_h').value||30;
+  const cfg=Object.assign({},(S.empresa&&S.empresa.etiqueta_config)||{});cfg.lote={w:w,h:hh};
+  const {error}=await sb.from('empresas').update({etiqueta_config:cfg}).eq('id',S.empresaId);
+  if(error)return banner('Error al guardar: '+error.message,'err');
+  S.empresa.etiqueta_config=cfg;banner('Medida guardada: '+w+'x'+hh+' mm','');}
 function compRecep(codigo){const r=recById(codigo);if(!r)return;const e=S.empresa;
   modal(`<h3>Comprobante de recepción ${r.codigo_lote}</h3><p class="hint">Para entregar al proveedor · se imprime en hoja A4.</p>
   <div id="lblArea"><div class="remito" style="max-width:560px"><div class="rh"><div style="font-size:11px"><b>${e.razon_social||''}</b><br>${e.cuit||''}<br>${e.dom_planta||e.dom_fiscal||''}${e.telefono?'<br>Tel '+e.telefono:''}</div><div class="rtitle">COMPROBANTE<br>DE RECEPCIÓN<br><span style="font-size:13px">${r.codigo_lote}</span></div></div>
