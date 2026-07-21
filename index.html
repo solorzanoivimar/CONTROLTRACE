@@ -11,6 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{--navy:#16243f;--steel:#3d5a80;--sky:#7c9cbf;--gold:#c9a24b;--gold-deep:#a9842f;--cream:#f5f2ea;--ink:#1c2536;--muted:#6b7689;--line:#e7e2d6;--sage:#4f7d6a;--sage-bg:#e9f1ec;--clay:#b5654a;--clay-bg:#f6ebe6;--amber-bg:#faf3e2;font-family:'Inter',system-ui,sans-serif}
 *{box-sizing:border-box}
@@ -1192,7 +1193,7 @@ function repClear(){repF={desde:'',hasta:'',prov:'',prod:'',cli:''};viewRep();}
 function repGo(t){repCur=t;REPS.forEach(r=>{const b=$('rs_'+r[0]);if(b)b.classList.toggle('btn-gold',r[0]===t);});repPaint();}
 function repExport(){const ex=window._repEx;if(!ex||ex.rows.length<2)return banner('No hay datos para exportar','warn');dlCSV('reporte_'+ex.name+'_'+today()+'.csv',ex.rows);}
 function capCalc(){const paq=+$('cap_paq').value||0,op=+$('cap_op').value||0,prod=+$('cap_prod').value||0;const el=$('cap_res');if(!el)return;if(paq<=0||prod<=0){el.innerHTML='Ingresá los <b>paquetes a preparar</b> y la <b>productividad</b> para calcular.';return;}const hh=paq/prod;const hs=op>0?hh/op:0;el.innerHTML=`Para preparar <b>${nf(paq)} paquetes</b> necesitás <b>${nf(hh,1)} horas-hombre</b>`+(op>0?` · con <b>${op} operario(s)</b> son <b>${nf(hs,1)} horas</b> de trabajo.`:` (ingresá operarios para estimar las horas).`);}
-function repPaint(){const b=$('repBody');if(!b)return;const t=repCur;const xbtn=`<button class="btn btn-ghost btn-sm" onclick="repExport()">⬇ Exportar CSV</button>`;let ex={name:t,rows:[]};
+function repPaint(){const b=$('repBody');if(!b)return;const t=repCur;const xbtn=`<button class="btn btn-ghost btn-sm" onclick="repExport()">⬇ Exportar a Excel</button>`;let ex={name:t,rows:[]};
   if(t==='diario'){b.innerHTML=`<div class="card"><div class="card-h"><h3>Reporte diario</h3><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input type="date" id="rep_fecha" value="${window._repFecha||today()}" onchange="window._repFecha=this.value;renderRep()" style="width:auto"><button class="btn btn-ghost btn-sm" onclick="printDoc('A4')">🖨️</button><button class="btn btn-gold btn-sm" id="rep_pdf" onclick="downloadReportePDF()">⬇ PDF</button></div></div><div id="rep_container"></div></div>`;renderRep();window._repEx={name:'',rows:[]};return;}
   if(t==='compras'){const m={};recFilt().forEach(r=>{const k=r.materia_prima||'—';m[k]=m[k]||{kg:0,$:0,n:0};m[k].kg+=+r.kilos||0;m[k].$+=+r.total||0;m[k].n++;});const tk=Object.values(m).reduce((a,v)=>a+v.kg,0),t$=Object.values(m).reduce((a,v)=>a+v.$,0);const ents=Object.entries(m).sort((a,b)=>b[1].$-a[1].$);
     ex.rows=[['Materia prima','Ingresos','Kilos','$ Total','$/kg prom']].concat(ents.map(([k,v])=>[k,v.n,+v.kg.toFixed(1),+v.$.toFixed(2),+(v.kg>0?v.$/v.kg:0).toFixed(2)]));
@@ -1589,7 +1590,23 @@ async function savePermisos(){const roles=['supervisor','comercial','preparador'
   $('cf_psave').innerHTML='Guardar permisos';$('cf_psave').disabled=false;}
 
 // ---- STOCK (MP en cámara, productos procesados, detalle por lote) ----
-function dlCSV(filename,rows){const csv=rows.map(r=>r.map(c=>`"${String(c==null?'':c).replace(/"/g,'""')}"`).join(',')).join('\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();banner('Descargado','');}
+function dlXLS(filename,rows,hoja){
+  const name=filename.replace(/\.(csv|xlsx)$/i,'')+'.xlsx';
+  if(typeof XLSX==='undefined'){return dlCSVfallback(filename,rows);}
+  try{
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    const anchos=(rows[0]||[]).map((_,c)=>{let m=10;rows.forEach(r=>{const v=r[c]==null?'':String(r[c]);if(v.length>m)m=v.length;});return {wch:Math.min(46,m+2)};});
+    ws['!cols']=anchos;
+    if(rows.length>1)ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length-1,c:(rows[0]||[]).length-1}})};
+    ws['!freeze']={xSplit:0,ySplit:1};
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,(hoja||'Datos').slice(0,31));
+    XLSX.writeFile(wb,name);
+    banner('Descargado: '+name,'');
+  }catch(e){dlCSVfallback(filename,rows);}
+}
+function dlCSVfallback(filename,rows){const csv=rows.map(r=>r.map(c=>{let v=String(c==null?'':c);if(typeof c==='number')v=v.replace('.',',');return '"'+v.replace(/"/g,'""')+'"';}).join(';')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename.replace(/\.xlsx$/i,'.csv');a.click();banner('Descargado en CSV','');}
+function dlCSV(filename,rows){return dlXLS(filename,rows);}
 function viewStock(){
   const totMP=S.recepciones.filter(r=>r.estado!=='anulada').reduce((s,r)=>s+stockLote(r),0);
   let totProd=0;S.producciones.filter(p=>p.estado!=='anulada').forEach(p=>p.outputs.forEach(o=>totProd+=stockOut(o)));
@@ -1608,18 +1625,59 @@ function viewStock(){
 function stkTab(t){window._stk=t;['mp','prod','lotes'].forEach(x=>{const b=$('stk_'+x);if(b)b.classList.toggle('btn-gold',x===t);});stkPaint();}
 function mpAgg(){const R=S.recepciones.filter(r=>r.estado!=='anulada');const mp={};R.forEach(r=>{const k=r.materia_prima||'—';mp[k]=mp[k]||{comp:0,proc:0,desc:0};mp[k].comp+=+r.kilos||0;mp[k].proc+=kgConsumidoLote(r.codigo_lote);mp[k].desc+=descartadoLote(r.codigo_lote);});return mp;}
 function prodAgg(){const ps={};S.producciones.filter(p=>p.estado!=='anulada').forEach(p=>p.outputs.forEach(o=>{ps[o.producto]=ps[o.producto]||{prod:0,desp:0,stock:0};ps[o.producto].prod+=+o.cantidad||0;ps[o.producto].desp+=despachadoDe(o.code);ps[o.producto].stock+=stockOut(o);}));return ps;}
-function stkPaint(){const t=window._stk||'mp';const b=$('stkBody');if(!b)return;
-  if(t==='mp'){const mp=mpAgg();const rows=Object.entries(mp).filter(([k,v])=>v.comp-v.proc-v.desc>0.001||v.desc>0.001).sort((a,b)=>(b[1].comp-b[1].proc-b[1].desc)-(a[1].comp-a[1].proc-a[1].desc));
-    b.innerHTML=`<div class="card-h" style="margin-bottom:10px"><h3 style="font-size:15px">Materia prima en cámara</h3><button class="btn btn-ghost btn-sm" onclick="stkExport('mp')">⬇ CSV</button></div>
-    <div style="overflow:auto"><table><thead><tr><th>Materia prima</th><th>Comprado kg</th><th>Procesado kg</th><th>Descartado kg</th><th>Stock kg</th></tr></thead><tbody>${rows.map(([k,v])=>`<tr><td>${k}</td><td class="mono">${nf(v.comp,1)}</td><td class="mono">${nf(v.proc,1)}</td><td class="mono">${v.desc>0?nf(v.desc,1):'—'}</td><td class="mono"><b>${nf(v.comp-v.proc-v.desc,1)}</b></td></tr>`).join('')||'<tr><td colspan=5 class=empty>Sin stock de materia prima</td></tr>'}</tbody></table></div>`;}
-  else if(t==='prod'){const ps=prodAgg();const rows=Object.entries(ps).filter(([k,v])=>v.stock>0).sort((a,b)=>b[1].stock-a[1].stock);
-    b.innerHTML=`<div class="card-h" style="margin-bottom:10px"><h3 style="font-size:15px">Productos procesados disponibles</h3><button class="btn btn-ghost btn-sm" onclick="stkExport('prod')">⬇ CSV</button></div>
-    <div style="overflow:auto"><table><thead><tr><th>Producto</th><th>Producido</th><th>Despachado</th><th>Stock</th></tr></thead><tbody>${rows.map(([k,v])=>`<tr><td>${k}</td><td class="mono">${nf(v.prod)}</td><td class="mono">${nf(v.desp)}</td><td class="mono"><b>${nf(v.stock)}</b></td></tr>`).join('')||'<tr><td colspan=4 class=empty>Sin productos en stock</td></tr>'}</tbody></table></div>`;}
-  else{const lotes=S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);
-    b.innerHTML=`<div class="card-h" style="margin-bottom:6px"><h3 style="font-size:15px">Detalle de lotes en cámara</h3></div><p class="hint">Cada lote con su stock remanente, del más antiguo al más nuevo (control PEPS).</p>
-    <div style="overflow:auto"><table><thead><tr><th>Lote</th><th>Materia prima</th><th>Proveedor</th><th>Ingreso</th><th>Stock</th></tr></thead><tbody>${lotes.map(r=>`<tr><td class="mono">${r.codigo_lote}</td><td>${r.materia_prima}</td><td>${r.proveedor||'—'}</td><td>${fmtD(r.fecha)}</td><td class="mono"><b>${nf(stockLote(r),1)} kg</b></td></tr>`).join('')||'<tr><td colspan=5 class=empty>Sin lotes con stock</td></tr>'}</tbody></table></div>`;}
+function stkData(t,q){
+  q=(q||'').trim().toLowerCase();
+  const inc=r=>!q||r.some(v=>String(v).toLowerCase().includes(q));
+  if(t==='mp'){const mp=mpAgg();
+    const rows=Object.entries(mp).filter(([k,v])=>v.comp-v.proc-v.desc>0.001||v.desc>0.001)
+      .sort((a,b)=>(b[1].comp-b[1].proc-b[1].desc)-(a[1].comp-a[1].proc-a[1].desc))
+      .map(([k,v])=>[k,+v.comp.toFixed(1),+v.proc.toFixed(1),+v.desc.toFixed(1),+(v.comp-v.proc-v.desc).toFixed(1)]).filter(inc);
+    return {titulo:'Stock de materia prima en cámara',head:['Materia prima','Comprado kg','Procesado kg','Descartado kg','Stock kg'],num:[0,1,1,1,1],dec:[0,1,1,1,1],rows};}
+  if(t==='prod'){const ps=prodAgg();
+    const rows=Object.entries(ps).filter(([k,v])=>v.stock>0).sort((a,b)=>b[1].stock-a[1].stock)
+      .map(([k,v])=>[k,Math.round(v.prod),Math.round(v.desp),Math.round(v.stock)]).filter(inc);
+    return {titulo:'Stock de productos procesados',head:['Producto','Producido','Despachado','Stock'],num:[0,1,1,1],dec:[0,0,0,0],rows};}
+  const rows=S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1)
+    .map(r=>[r.codigo_lote,r.materia_prima||'',r.proveedor||'',fmtD(r.fecha),+stockLote(r).toFixed(1)]).filter(inc);
+  return {titulo:'Detalle de lotes en cámara (PEPS)',head:['Lote','Materia prima','Proveedor','Ingreso','Stock kg'],num:[0,0,0,0,1],dec:[0,0,0,0,1],rows};
 }
-function stkExport(t){let rows;if(t==='mp'){const mp=mpAgg();rows=[['Materia prima','Comprado kg','Procesado kg','Descartado kg','Stock kg']].concat(Object.entries(mp).filter(([k,v])=>v.comp-v.proc-v.desc>0.001||v.desc>0.001).map(([k,v])=>[k,+v.comp.toFixed(1),+v.proc.toFixed(1),+v.desc.toFixed(1),+(v.comp-v.proc-v.desc).toFixed(1)]));}else{const ps=prodAgg();rows=[['Producto','Producido','Despachado','Stock']].concat(Object.entries(ps).filter(([k,v])=>v.stock>0).map(([k,v])=>[k,v.prod,v.desp,v.stock]));}dlCSV('stock_'+t+'_'+today()+'.csv',rows);}
+function stkPaint(){const t=window._stk||'mp';const b=$('stkBody');if(!b)return;const d=stkData(t,'');
+  b.innerHTML=`<div class="card-h" style="margin-bottom:10px"><h3 style="font-size:15px">${d.titulo}</h3><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="stkPrint()">🖨️ Planilla de conteo</button><button class="btn btn-ghost btn-sm" onclick="stkExport()">⬇ Excel</button></div></div>
+   <input id="stk_q" placeholder="🔎 Buscar por nombre, lote o proveedor…" value="${esc(window._stkQ||'')}" oninput="stkFilter(this.value)" style="margin-bottom:12px">
+   ${t==='lotes'?'<p class="hint">Cada lote con su stock remanente, del más antiguo al más nuevo (control PEPS).</p>':''}
+   <div style="overflow:auto"><table><thead><tr>${d.head.map((x,i)=>`<th${d.num[i]?' style="text-align:right"':''}>${x}</th>`).join('')}</tr></thead><tbody>
+   ${d.rows.map(r=>`<tr data-s="${esc(r.join(' ').toLowerCase())}">${r.map((v,i)=>{const last=i===r.length-1;const txt=d.num[i]?nf(v,d.dec[i]):esc(String(v));return `<td class="${d.num[i]?'mono':''}"${d.num[i]?' style="text-align:right"':''}>${last?`<b>${txt}</b>`:txt}</td>`;}).join('')}</tr>`).join('')||`<tr><td colspan=${d.head.length} class=empty>Sin datos</td></tr>`}
+   </tbody></table><div id="stk_none" class="empty" style="display:none">Sin resultados para la búsqueda</div></div>`;
+  if(window._stkQ)stkFilter(window._stkQ);
+}
+function stkFilter(v){window._stkQ=v;const q=(v||'').trim().toLowerCase();let vis=0;
+  document.querySelectorAll('#stkBody tbody tr[data-s]').forEach(tr=>{const ok=!q||tr.dataset.s.includes(q);tr.style.display=ok?'':'none';if(ok)vis++;});
+  const n=$('stk_none');if(n)n.style.display=vis?'none':'block';}
+function stkExport(){const t=window._stk||'mp';const d=stkData(t,window._stkQ);
+  dlXLS('stock_'+t+'_'+today()+'.xlsx',[d.head].concat(d.rows),d.titulo.slice(0,28));}
+function planillaHTML(titulo,head,num,dec,rows,nota){const e=S.empresa||{};const logo=empLogo();
+  return `<div style="width:186mm;box-sizing:border-box;font-family:Inter,Arial,sans-serif;color:#000;background:#fff">
+   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:3mm;margin-bottom:4mm">
+     <div style="display:flex;gap:4mm;align-items:center">${logo?`<img src="${logo}" style="height:14mm;max-width:34mm;object-fit:contain">`:''}
+       <div style="font-size:12px"><b style="font-size:15px">${esc(e.razon_social||'')}</b><br><b>${titulo}</b></div></div>
+     <div style="text-align:right;font-size:11px;line-height:1.6">Fecha: <b>${fmtD(today())}</b><br>Hora: ${horaDe(new Date().toISOString())} hs<br>Responsable: _______________</div>
+   </div>
+   ${nota?`<div style="font-size:11px;margin-bottom:3mm">${nota}</div>`:''}
+   <table style="width:100%;border-collapse:collapse;font-size:11px">
+    <thead><tr style="background:#eeeeee">
+      ${head.map((x,i)=>`<th style="border:1px solid #000;padding:1.6mm;text-align:${num[i]?'right':'left'}">${x}</th>`).join('')}
+      <th style="border:1px solid #000;padding:1.6mm;width:24mm">Conteo físico</th>
+      <th style="border:1px solid #000;padding:1.6mm;width:22mm">Diferencia</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>${r.map((v,i)=>`<td style="border:1px solid #000;padding:2mm;text-align:${num[i]?'right':'left'}">${num[i]?nf(v,dec[i]):esc(String(v))}</td>`).join('')}<td style="border:1px solid #000;height:7mm"></td><td style="border:1px solid #000"></td></tr>`).join('')||`<tr><td colspan="${head.length+2}" style="border:1px solid #000;padding:4mm;text-align:center">Sin datos</td></tr>`}</tbody>
+   </table>
+   <div style="margin-top:14mm;display:flex;justify-content:space-between;font-size:11px">
+     <div style="width:72mm;border-top:1px solid #000;padding-top:1.5mm;text-align:center">Contó</div>
+     <div style="width:72mm;border-top:1px solid #000;padding-top:1.5mm;text-align:center">Controló / Supervisor</div></div>
+  </div>`;}
+function stkPrint(){const t=window._stk||'mp';const d=stkData(t,window._stkQ);
+  modal(`<h3>Planilla de conteo</h3><p class="hint">Se imprime en A4 con dos columnas en blanco para anotar el conteo físico y la diferencia.${window._stkQ?' <b>Incluye solo lo que estás filtrando.</b>':''}</p>
+   <div style="background:#efeae0;border-radius:10px;padding:12px;margin:10px 0;overflow:auto;display:flex;justify-content:center"><div id="lblArea">${planillaHTML(d.titulo,d.head,d.num,d.dec,d.rows,'Planilla para control de inventario físico. Anotá el conteo real y la diferencia contra el sistema.')}</div></div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-gold" onclick="printDoc('A4')">🖨️ Imprimir (A4)</button></div>`);}
 
 // ---- STOCK DE INSUMOS ----
 async function reloadInsumos(){
@@ -1665,7 +1723,22 @@ function insuInv(){const bajos=S.insumos.filter(i=>i.activo&&+i.stock<=+i.minimo
    <div class="g2"><div><label>Stock inicial</label><input type="number" id="in_st" min="0" value="0"></div><div><label>Stock mínimo (alerta)</label><input type="number" id="in_min" min="0" value="0"></div></div>
    <label>Precio de costo (por unidad)</label><input type="number" id="in_costo" min="0" step="0.01" value="0">
    <button class="btn btn-gold btn-sm" style="margin:12px 0 18px" onclick="addInsumo()">+ Agregar insumo</button>
-   <div style="overflow:auto"><table><thead><tr><th>Insumo</th><th>Un.</th><th>Stock</th><th>Mín.</th><th>Costo</th><th>Estado</th><th></th></tr></thead><tbody>${S.insumos.map(i=>{const bajo=+i.stock<=+i.minimo;return `<tr style="${i.activo?'':'opacity:.5'}"><td>${i.nombre}</td><td>${i.unidad||'u'}</td><td class="mono"><b>${nf(i.stock,1)}</b></td><td class="mono">${nf(i.minimo,1)}</td><td class="mono">${money(i.costo||0)}</td><td><span class="tag ${bajo?'out':'ok'}">${bajo?'Bajo':'OK'}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="ingresoInsumo('${i.id}')">+ Ingreso</button> <button class="btn btn-ghost btn-sm" onclick="editInsumo('${i.id}')">Editar</button> <button class="btn btn-ghost btn-sm" onclick="ajusteInsumo('${i.id}')">Ajustar</button> <button class="btn btn-danger btn-sm" onclick="delInsumo('${i.id}')">✕</button></td></tr>`;}).join('')||'<tr><td colspan=7 class=empty>Sin insumos cargados</td></tr>'}</tbody></table></div>`;}
+   <div class="card-h" style="margin-bottom:10px"><h3 style="font-size:15px">Inventario</h3><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="insuPrint()">🖨️ Planilla de conteo</button><button class="btn btn-ghost btn-sm" onclick="insuExport()">⬇ Excel</button></div></div>
+   <input id="ins_q" placeholder="🔎 Buscar insumo…" value="${esc(window._insQ||'')}" oninput="insuFilter(this.value)" style="margin-bottom:12px">
+   <div style="overflow:auto"><table><thead><tr><th>Insumo</th><th>Un.</th><th style="text-align:right">Stock</th><th style="text-align:right">Mín.</th><th style="text-align:right">Costo</th><th style="text-align:right">Valorizado</th><th>Estado</th><th></th></tr></thead><tbody>${S.insumos.map(i=>{const bajo=+i.stock<=+i.minimo;return `<tr data-si="${esc((i.nombre+' '+(i.unidad||'')).toLowerCase())}" style="${i.activo?'':'opacity:.5'}"><td>${i.nombre}</td><td>${i.unidad||'u'}</td><td class="mono" style="text-align:right"><b>${nf(i.stock,1)}</b></td><td class="mono" style="text-align:right">${nf(i.minimo,1)}</td><td class="mono" style="text-align:right">${money(i.costo||0)}</td><td class="mono" style="text-align:right">${money((+i.stock||0)*(+i.costo||0))}</td><td><span class="tag ${bajo?'out':'ok'}">${bajo?'Bajo':'OK'}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="ingresoInsumo('${i.id}')">+ Ingreso</button> <button class="btn btn-ghost btn-sm" onclick="editInsumo('${i.id}')">Editar</button> <button class="btn btn-ghost btn-sm" onclick="ajusteInsumo('${i.id}')">Ajustar</button> <button class="btn btn-danger btn-sm" onclick="delInsumo('${i.id}')">✕</button></td></tr>`;}).join('')||'<tr><td colspan=8 class=empty>Sin insumos cargados</td></tr>'}</tbody></table><div id="ins_none" class="empty" style="display:none">Sin resultados para la búsqueda</div></div>`;
+  if(window._insQ)insuFilter(window._insQ);}
+function insuFilter(v){window._insQ=v;const q=(v||'').trim().toLowerCase();let vis=0;
+  document.querySelectorAll('#insu_body tbody tr[data-si]').forEach(tr=>{const ok=!q||tr.dataset.si.includes(q);tr.style.display=ok?'':'none';if(ok)vis++;});
+  const n=$('ins_none');if(n)n.style.display=vis?'none':'block';}
+function insuData(q){q=(q||'').trim().toLowerCase();
+  const rows=S.insumos.filter(i=>!q||(i.nombre+' '+(i.unidad||'')).toLowerCase().includes(q))
+    .map(i=>[i.nombre,i.unidad||'u',+(+i.stock||0).toFixed(1),+(+i.minimo||0).toFixed(1),+(+i.costo||0).toFixed(2),+((+i.stock||0)*(+i.costo||0)).toFixed(2),(+i.stock<=+i.minimo)?'Bajo':'OK']);
+  return {titulo:'Inventario de insumos',head:['Insumo','Unidad','Stock','Mínimo','Costo unit.','Valorizado','Estado'],num:[0,0,1,1,1,1,0],dec:[0,0,1,1,2,2,0],rows};}
+function insuExport(){const d=insuData(window._insQ);dlXLS('insumos_'+today()+'.xlsx',[d.head].concat(d.rows),'Insumos');}
+function insuPrint(){const d=insuData(window._insQ);
+  modal(`<h3>Planilla de conteo de insumos</h3><p class="hint">Se imprime en A4 con columnas en blanco para anotar el conteo físico y la diferencia.${window._insQ?' <b>Incluye solo lo que estás filtrando.</b>':''}</p>
+   <div style="background:#efeae0;border-radius:10px;padding:12px;margin:10px 0;overflow:auto;display:flex;justify-content:center"><div id="lblArea">${planillaHTML(d.titulo,d.head,d.num,d.dec,d.rows,'Planilla para control de inventario físico de insumos. Anotá el conteo real y la diferencia contra el sistema.')}</div></div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-gold" onclick="printDoc('A4')">🖨️ Imprimir (A4)</button></div>`);}
 async function addInsumo(){const nom=$('in_nom').value.trim();if(!nom)return banner('Indicá el nombre','warn');const st=+$('in_st').value||0;
   const {data,error}=await sb.from('insumos').insert({empresa_id:S.empresaId,nombre:nom,unidad:$('in_un').value.trim()||'u',stock:st,minimo:+$('in_min').value||0,costo:+$('in_costo').value||0}).select('id').single();
   if(error)return banner('Error: '+error.message,'err');
