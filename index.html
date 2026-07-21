@@ -709,7 +709,7 @@ function viewDesp(){
    <div id="despMode"></div>
    </div>
    <div class="card"><div class="card-h"><h3>Etiquetas generadas</h3>${periodSelect('desp')}</div>
-   <div style="overflow:auto"><table><thead><tr><th>ID</th><th>Fecha</th><th>Producto</th><th>Lote</th><th>Unid.</th><th></th></tr></thead><tbody>${despRows()}</tbody></table></div></div>
+   <div style="overflow:auto"><table><thead><tr><th>ID</th><th>Fecha</th><th>Producto</th><th>Lote</th><th>Unid.</th><th>Estado</th><th></th></tr></thead><tbody>${despRows()}</tbody></table></div></div>
   </div>`;
   despMode('uno');
 }
@@ -783,7 +783,7 @@ function renderDespInsumos(l){const w=$('d_insumos');if(!w)return;const receta=d
   w.innerHTML=`<label style="margin-top:8px">Insumos de despacho (sugerido automático, editable)</label>${receta.map(r=>`<div class="g2" style="grid-template-columns:1.5fr .6fr;align-items:center;margin-bottom:6px"><span style="font-size:13px">${r.nombre} <span style="color:var(--muted);font-size:11px">(${r.base==='caja'?'por caja':'por unidad'})</span></span><input type="number" min="0" step="0.01" data-ins="${r.insumo_id}" data-rec="${r.cantidad}" data-base="${r.base}" oninput="this.dataset.touch=1"></div>`).join('')}<div class="scan-note" style="margin-bottom:6px">Ajustá la cantidad real que sale (ej: pallets).</div>`;}
 function dCalc(){const cant=+$('d_cant').value||0,uxc=+$('d_uxc').value||1,vida=+$('d_vida').value||0,fecha=$('d_fecha').value;const cajas=cant?Math.ceil(cant/uxc):0;$('d_vto').value=(vida&&fecha)?fmtD(addDays(fecha,vida)):'';$('d_calc').innerHTML=cant?`${cajas} caja(s) de ${uxc} unidades`:'';
   document.querySelectorAll('#d_insumos input[data-ins]').forEach(inp=>{if(inp.dataset.touch)return;const base=inp.dataset.base==='caja'?cajas:cant;inp.value=+(base*(+inp.dataset.rec||0)).toFixed(2);});}
-function despRows(){return S.despachos.filter(d=>enPeriodo(d.fecha,'desp')).slice(0,300).map(d=>{const it=d.items[0]||{};const lts=it.consumido?lotesDeItem(it):[];const loteTxt=lts.length?lts.map(x=>x.lote).join(' + '):'—';return `<tr style="${d.estado==='anulada'?'opacity:.5':''}"><td class="mono">${d.id}</td><td>${fmtD(d.fecha)}</td><td>${(it.producto||'').slice(0,18)}</td><td class="mono">${loteTxt}</td><td class="mono">${nf(it.cantidad||0)}</td><td><button class="btn btn-ghost btn-sm" onclick="reLabels('${d.id}')">🏷️</button></td></tr>`;}).join('')||'<tr><td colspan=6 class=empty>Sin etiquetas en el período</td></tr>';}
+function despRows(){return S.despachos.filter(d=>enPeriodo(d.fecha,'desp')).slice(0,300).map(d=>{const it=d.items[0]||{};const lts=it.consumido?lotesDeItem(it):[];const loteTxt=lts.length?lts.map(x=>x.lote).join(' + '):'—';return `<tr style="${d.estado==='anulada'?'opacity:.5':''}"><td class="mono">${d.id}</td><td>${fmtD(d.fecha)}</td><td>${(it.producto||'').slice(0,18)}</td><td class="mono">${loteTxt}</td><td class="mono">${nf(it.cantidad||0)}</td><td><span class="tag ${d.estado==='anulada'?'out':'ok'}">${d.estado==='anulada'?'Anulada':'Activa'}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="reLabels('${d.id}')" title="Etiquetas">🏷️</button>${d.estado!=='anulada'?` <button class="btn btn-ghost btn-sm" onclick="editDesp('${d.id}')" title="Editar">✎</button> <button class="btn btn-danger btn-sm" onclick="anularDesp('${d.id}')" title="Anular">✕</button>`:''}</td></tr>`;}).join('')||'<tr><td colspan=7 class=empty>Sin etiquetas en el período</td></tr>';}
 async function genDesp(i){
   const l=window._labs[i];if(!l)return;const cant=+$('d_cant').value||0,fecha=$('d_fecha').value,cliFmt=$('d_cli').value,info=prodInfo(l.producto);
   const uxc=+$('d_uxc').value||info.uxc||1,vida=+$('d_vida').value||0;
@@ -813,6 +813,58 @@ async function genDesp(i){
   }catch(err){banner('Error: '+err.message,'err');$('d_gen').innerHTML='🏷️ Generar etiquetas (paquete + caja)';$('d_gen').disabled=false;}
 }
 function reLabels(id){const d=S.despachos.find(x=>x.id===id);if(d)renderLabels(d);}
+function despEnRemito(id){return S.entregas.filter(e=>e.estado!=='anulada').find(e=>(e.items||[]).some(it=>it.did===id));}
+function outsDeDesp(d){const it=d.items[0]||{};const prod=it.producto;const usados={};(it.consumido||[]).forEach(c=>usados[c.code]=(usados[c.code]||0)+(+c.cantidad||0));
+  const outs=[];S.producciones.filter(p=>p.estado!=='anulada').forEach(p=>p.outputs.forEach(o=>{if(o.producto!==prod)return;const act=usados[o.code]||0;const disp=stockOut(o)+act;if(disp>0.001||act>0)outs.push({code:o.code,op:p.id,lote:loteInfoDeProd(p).lote,disp,actual:act});}));
+  return outs;}
+function editDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;
+  const rem=despEnRemito(id);
+  if(rem)return modal(`<h3>No se puede editar ${id}</h3><p class="hint">Este despacho ya está incluido en el remito <b>${rem.numero_remito}</b>. Para modificarlo, primero hay que anular esa entrega.</p><div class="row"><button class="btn btn-gold" onclick="closeModal()">Entendido</button></div>`);
+  modal(`<h3>🔒 Editar despacho ${id}</h3><p class="hint">Editar un despacho cambia el stock de producto terminado. Por seguridad, ingresá el PIN del supervisor.</p><label>PIN de supervisor</label><input type="password" id="edp_pin" autocomplete="off"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="editDespAuth('${id}')">Continuar</button></div>`);}
+function editDespAuth(id){if($('edp_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');openEditDesp(id);}
+function openEditDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;const it=d.items[0]||{};
+  const outs=outsDeDesp(d);window._edDesp={id,outs};
+  modal(`<h3>Editar despacho ${id}</h3><p class="hint">Producto: <b>${esc(it.producto||'')}</b>. Corregí los lotes y las cantidades: las cajas se recalculan solas.</p>
+   <label>Unidades por lote</label>
+   ${outs.map((o,i)=>`<div class="g2" style="grid-template-columns:1.6fr .7fr;align-items:center;margin-bottom:6px"><span style="font-size:13px">Lote <b>${o.lote}</b> · ${o.op}<br><span style="color:var(--muted);font-size:11px">hasta ${nf(o.disp)} unidades</span></span><input type="number" min="0" max="${o.disp}" value="${o.actual}" data-ed="${i}" oninput="edCalc()"></div>`).join('')||'<div class="note">No hay lotes disponibles de este producto.</div>'}
+   <div class="g2"><div><label>Fecha de envasado</label><input type="date" id="ed_fecha" value="${d.fecha||today()}"></div><div><label>Formato</label><select id="ed_fmt"><option value="anonima" ${it.fmt==='anonima'?'selected':''}>La Anónima</option><option value="aizu" ${it.fmt==='aizu'?'selected':''}>AIZU</option><option value="micro" ${it.fmt==='micro'?'selected':''}>Microondas</option></select></div></div>
+   <div class="g2"><div><label>Unidades por caja</label><input type="number" id="ed_uxc" min="1" value="${it.uxc||1}" oninput="edCalc()"></div><div><label>Vencimiento</label><input type="date" id="ed_vto" value="${it.vto||''}"></div></div>
+   <div id="ed_calc" class="scan-note" style="margin:8px 0"></div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="ed_save" onclick="saveEditDesp()">Guardar cambios</button></div>`);
+  edCalc();}
+function edCalc(){const st=window._edDesp;if(!st)return;let tot=0;
+  document.querySelectorAll('input[data-ed]').forEach(inp=>{const o=st.outs[+inp.dataset.ed];const mx=o?o.disp:0;let v=Math.max(0,+inp.value||0);if(v>mx){v=mx;inp.value=+mx.toFixed(0);}tot+=v;});
+  const uxc=+$('ed_uxc').value||1;const cajas=tot?Math.ceil(tot/uxc):0;const resto=tot%uxc;
+  const el=$('ed_calc');if(el)el.innerHTML=tot?`Total: <b>${nf(tot)} unidades</b> → <b>${cajas} caja(s)</b> de ${uxc} u.${resto?` · la última queda con <b>${resto}</b>`:''}`:'Indicá al menos un lote con unidades.';}
+async function saveEditDesp(){const st=window._edDesp;if(!st)return;const d=S.despachos.find(x=>x.id===st.id);if(!d)return;
+  const consumido=[];let tot=0;
+  document.querySelectorAll('input[data-ed]').forEach(inp=>{const o=st.outs[+inp.dataset.ed];if(!o)return;const v=Math.max(0,Math.min(+inp.value||0,o.disp));if(v>0){consumido.push({code:o.code,cantidad:v});tot+=v;}});
+  if(!consumido.length)return banner('Indicá al menos un lote con unidades','warn');
+  const uxc=+$('ed_uxc').value||1,cajas=Math.ceil(tot/uxc),fecha=$('ed_fecha').value,vto=$('ed_vto').value||null,fmt=$('ed_fmt').value;
+  $('ed_save').innerHTML='<span class="spin"></span>Guardando...';$('ed_save').disabled=true;
+  try{
+    const {error:e1}=await sb.from('despachos').update({fecha,cliente_formato:fmt}).eq('empresa_id',S.empresaId).eq('id',d.uuid);if(e1)throw e1;
+    const {error:e2}=await sb.from('despacho_items').update({cantidad:tot,unidades_por_caja:uxc,cajas,vto,formato:fmt,consumido}).eq('empresa_id',S.empresaId).eq('despacho_id',d.uuid);if(e2)throw e2;
+    await reloadDespachos();closeModal();banner('Despacho '+st.id+' actualizado','');render();
+  }catch(err){banner('Error: '+err.message,'err');$('ed_save').innerHTML='Guardar cambios';$('ed_save').disabled=false;}}
+function anularDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;
+  const rem=despEnRemito(id);
+  if(rem)return modal(`<h3>No se puede anular ${id}</h3><p class="hint">Este despacho ya está incluido en el remito <b>${rem.numero_remito}</b>. Para anularlo, primero hay que anular esa entrega.</p><div class="row"><button class="btn btn-gold" onclick="closeModal()">Entendido</button></div>`);
+  modal(`<h3>🔒 Anular despacho ${id}</h3><p class="hint">El producto vuelve al stock disponible y los insumos consumidos se reponen. El despacho queda registrado como anulado (no se borra).</p>
+   <label>Motivo de la anulación</label><input id="an_mot" placeholder="ej: no se envía el pedido / lote equivocado">
+   <label>PIN de supervisor</label><input type="password" id="an_pin" autocomplete="off">
+   <div class="note" style="margin-top:10px">Si ya imprimiste etiquetas de este despacho, acordate de descartarlas físicamente.</div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" id="an_save" onclick="doAnularDesp('${id}')">Anular despacho</button></div>`);}
+async function doAnularDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;
+  if($('an_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');
+  const motivo=$('an_mot').value.trim();if(!motivo)return banner('Indicá el motivo de la anulación','warn');
+  $('an_save').innerHTML='<span class="spin"></span>Anulando...';$('an_save').disabled=true;
+  try{
+    const {error}=await sb.from('despachos').update({estado:'anulada',motivo_anulacion:motivo}).eq('empresa_id',S.empresaId).eq('id',d.uuid);if(error)throw error;
+    await restaurarInsumos(id);
+    await reloadInsumos();await reloadDespachos();
+    closeModal();banner('Despacho '+id+' anulado · stock e insumos repuestos','warn');render();
+  }catch(err){banner('Error: '+err.message,'err');$('an_save').innerHTML='Anular despacho';$('an_save').disabled=false;}}
 function qr(el,text){el.innerHTML='';new QRCode(el,{text,width:80,height:80,colorDark:'#000',colorLight:'#fff'});}
 function ean(el,code){try{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');el.appendChild(s);JsBarcode(s,code,{format:code&&code.length===13?'EAN13':'CODE128',height:38,fontSize:13,margin:2});}catch(e){el.textContent=code;}}
 function pkgLabel(producto,info,fmt,lote,vto,fecha,e,idx,muestra){
