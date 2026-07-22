@@ -177,6 +177,7 @@ $('modalBg').onclick=e=>{if(e.target===$('modalBg'))closeModal();};
 const MODS=[
   {id:'dash',ico:'▦',name:'Panel',grupo:'Operación',roles:['admin','supervisor','comercial','preparador']},
   {id:'rec',ico:'📥',name:'Recepción',grupo:'Operación',roles:['admin','supervisor','preparador']},
+  {id:'acond',ico:'🌽',name:'Acondicionamiento',grupo:'Operación',roles:['admin','supervisor','preparador']},
   {id:'prod',ico:'⚙️',name:'Producción',grupo:'Operación',roles:['admin','supervisor','preparador']},
   {id:'ens',ico:'🌿',name:'Ensamblado',grupo:'Operación',roles:['admin','supervisor','preparador']},
   {id:'descmp',ico:'🗑️',name:'Descarte de MP',grupo:'Operación',roles:['admin','supervisor','preparador']},
@@ -209,6 +210,7 @@ function render(){
   if(m&&m.soon){$('view').innerHTML=`<div class="card"><div class="constru"><div class="big">🚧</div><h3>${m.name} — en construcción</h3><p>Este módulo ya funciona en el piloto y lo estamos conectando a la nube en el próximo paso de la migración.</p></div></div>`;return;}
   if(cur==='dash')viewDash();
   else if(cur==='rec')viewRec();
+  else if(cur==='acond')viewAcond();
   else if(cur==='prod')viewProd();
   else if(cur==='desp')viewDesp();
   else if(cur==='ent')viewEnt();
@@ -252,6 +254,7 @@ async function boot(){
     S.empresa=emp;
     await reloadCatalogo();
     await reloadRecepciones();
+    await reloadAcond();
     await reloadProducciones();
     await reloadDespachos();
     await reloadEntregas();
@@ -353,8 +356,8 @@ function viewDash(){
 }
 
 // ---- RECEPCIÓN (conectada a la nube) ----
-let periodos={rec:'mes',prod:'mes',desp:'mes',ent:'mes'};
-let periodosR={rec:{d:'',h:''},prod:{d:'',h:''},desp:{d:'',h:''},ent:{d:'',h:''}};
+let periodos={rec:'mes',acond:'mes',prod:'mes',desp:'mes',ent:'mes'};
+let periodosR={rec:{d:'',h:''},acond:{d:'',h:''},prod:{d:'',h:''},desp:{d:'',h:''},ent:{d:'',h:''}};
 function enPeriodo(fecha,key){const p=periodos[key]||'mes';if(p==='todo')return true;if(!fecha)return false;const now=new Date();const f=new Date(fecha+'T00:00:00');
   if(p==='rango'){const r=periodosR[key]||{};if(r.d&&fecha<r.d)return false;if(r.h&&fecha>r.h)return false;return true;}
   if(p==='mes')return f.getFullYear()===now.getFullYear()&&f.getMonth()===now.getMonth();
@@ -452,12 +455,95 @@ async function doAnularRecep(codigo){
 function recActiva(codigo){return S.recepciones.find(r=>r.codigo_lote===codigo&&r.estado!=='anulada');}
 function kgConsumidoLote(codigo){let s=0;S.producciones.filter(p=>p.estado!=='anulada').forEach(p=>{if(p.loteId===codigo)s+=+p.mpKg||0;(p.lotes||[]).forEach(l=>{if(l.loteId===codigo)s+=+l.kg||0;});});return s;}
 function descartadoLote(codigo){return (S.descartes||[]).filter(d=>d.codigo_lote===codigo).reduce((s,d)=>s+(+d.kg||0),0);}
-function stockLote(r){return Math.max(0,(+r.kilos||0)-kgConsumidoLote(r.codigo_lote)-descartadoLote(r.codigo_lote));}
+function acondConsumidoLote(uuid){return (S.acond||[]).filter(a=>a.estado!=='anulada'&&a.recepcionId===uuid).reduce((s,a)=>s+(+a.kgEnt||0),0);}
+function stockLote(r){return Math.max(0,(+r.kilos||0)-kgConsumidoLote(r.codigo_lote)-descartadoLote(r.codigo_lote)-acondConsumidoLote(r.uuid));}
 function lotesConStock(){return S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);}
 function lotesDeMP(mp){return S.recepciones.filter(r=>r.estado!=='anulada'&&(r.materia_prima||'').toUpperCase()===(mp||'').toUpperCase()&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);}
 function lotesAnteriores(r){return S.recepciones.filter(x=>x.estado!=='anulada'&&x.codigo_lote!==r.codigo_lote&&(x.materia_prima||'').toUpperCase()===(r.materia_prima||'').toUpperCase()&&x.fecha<r.fecha&&stockLote(x)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);}
 function eligibleProds(mp){return S.productos.filter(p=>(p.tipo||'simple')==='simple'&&(S.prodMP[p.nombre]||[]).some(x=>(x||'').toUpperCase()===(mp||'').toUpperCase()));}
 function horasEntre(ini,fin){if(!ini||!fin)return 0;const[h1,m1]=ini.split(':').map(Number),[h2,m2]=fin.split(':').map(Number);let d=(h2*60+m2)-(h1*60+m1);if(d<0)d+=1440;return d/60;}
+
+// ================= ACONDICIONAMIENTO (pelado / pre-proceso) =================
+async function reloadAcond(){
+  const {data}=await sb.from('acondicionamientos').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false});
+  S.acond=(data||[]).map(a=>({id:a.codigo,uuid:a.id,fecha:a.fecha,recepcionId:a.recepcion_id,materia:a.materia_prima,proceso:a.proceso,kgEnt:+a.kg_entrada||0,kgSal:+a.kg_salida||0,cajasSal:+a.cajas_salida||0,prodSal:a.producto_salida,loteSal:a.lote_salida,recSalId:a.recepcion_salida_id,operarios:+a.operarios||0,horas:+a.horas||0,estado:a.estado}));
+}
+function recByUuid(uuid){return S.recepciones.find(r=>r.uuid===uuid);}
+function viewAcond(){
+  const lotes=S.recepciones.filter(r=>r.estado!=='anulada'&&r.origen!=='acondicionamiento'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);
+  $('view').innerHTML=`
+   <div class="card" style="margin-bottom:16px"><div class="card-h"><h3>Nuevo acondicionamiento</h3></div>
+   <p class="hint">Un pre-proceso sobre la materia prima (ej: <b>pelado del choclo</b>). Registra la <b>primera merma</b> y genera un <b>lote intermedio</b> (ej: CHOCLO PELADO) que después se usa como materia prima en el envasado. El costo de la merma se traslada al lote pelado.</p>
+   <label>📷 Escanear / elegir lote de materia prima</label>
+   <div style="display:flex;gap:8px;align-items:center">
+     <input id="ac_scan" autocomplete="off" placeholder="Escaneá la etiqueta del lote…" onkeydown="if(event.key==='Enter'){event.preventDefault();acScan();}" style="flex:1">
+     <button class="btn btn-ghost btn-sm" onclick="acScan()">Buscar</button>
+   </div>
+   <select id="ac_lote" onchange="acPick()" style="margin-top:8px"><option value="">— elegí un lote —</option>${lotes.map(r=>`<option value="${r.codigo_lote}">${r.codigo_lote} · ${r.materia_prima} · ${nf(stockLote(r),1)}kg disp.</option>`).join('')}</select>
+   <div id="ac_panel"></div></div>
+   <div class="card"><div class="card-h"><h3>Acondicionamientos</h3>${periodSelect('acond')}</div>
+   <div style="overflow:auto"><table><thead><tr><th>Código</th><th>Fecha</th><th>Proceso</th><th>Entrada</th><th>Salida</th><th>Merma</th><th>Rinde</th><th>Lote generado</th><th>Estado</th><th></th></tr></thead><tbody>${acondRows()}</tbody></table></div></div>`;
+  setTimeout(()=>{const i=$('ac_scan');if(i)i.focus();},60);
+}
+function acondRows(){return (S.acond||[]).filter(a=>enPeriodo(a.fecha,'acond')).slice(0,300).map(a=>{const merma=Math.max(0,a.kgEnt-a.kgSal);const rinde=a.kgEnt>0?a.kgSal/a.kgEnt*100:0;return `<tr style="${a.estado==='anulada'?'opacity:.5':''}"><td class="mono">${a.id}</td><td>${fmtD(a.fecha)}</td><td>${esc(a.proceso||'Pelado')}</td><td class="mono">${nf(a.kgEnt,1)} kg</td><td class="mono">${nf(a.kgSal,1)} kg</td><td class="mono">${nf(merma,1)} kg</td><td class="mono">${nf(rinde,1)}%</td><td class="mono">${a.loteSal||'—'} <span style="color:var(--muted)">(${esc((a.prodSal||'').slice(0,14))})</span></td><td><span class="tag ${a.estado==='anulada'?'out':'ok'}">${a.estado==='anulada'?'Anulada':'Activa'}</span></td><td style="white-space:nowrap">${a.estado!=='anulada'?`<button class="btn btn-ghost btn-sm" onclick="labelLoteRec('${a.loteSal}')" title="Etiqueta del lote pelado">🏷️</button> <button class="btn btn-danger btn-sm" onclick="anularAcond('${a.id}')" title="Anular">✕</button>`:''}</td></tr>`;}).join('')||'<tr><td colspan=10 class=empty>Sin acondicionamientos en el período</td></tr>';}
+function acScan(){const i=$('ac_scan'),sel=$('ac_lote');if(!i||!sel)return;let v=(i.value||'').trim();if(!v)return;try{const o=JSON.parse(v);v=o.lote||o.op||v;}catch(e){}v=fixCode(v);const nv=normCode(v);const opt=[...sel.options].find(o=>o.value&&normCode(o.value)===nv);if(opt){sel.value=opt.value;i.value='';acPick();}else banner('No encontré el lote '+v+' con stock','warn');}
+function acPick(){const cl=$('ac_lote').value;const r=S.recepciones.find(x=>x.codigo_lote===cl);const panel=$('ac_panel');if(!r){panel.innerHTML='';return;}
+  const disp=stockLote(r);
+  panel.innerHTML=`<div class="scan-note" style="margin:10px 0">Lote <b>${r.codigo_lote}</b> · ${r.materia_prima} · disponible <b>${nf(disp,1)} kg</b> · costo prom. ${money(adjPriceKg(r.materia_prima))}/kg</div>
+   <div class="g2"><div><label>Proceso</label><input id="ac_proc" value="Pelado" placeholder="ej: Pelado"></div><div><label>Fecha</label><input type="date" id="ac_fecha" value="${today()}"></div></div>
+   <div class="g2"><div><label>Kg de MP a procesar</label><input type="number" id="ac_kgent" min="0" max="${disp}" step="0.01" value="${+disp.toFixed(2)}" oninput="acCalc()"></div><div><label>Kg obtenidos (acondicionado)</label><input type="number" id="ac_kgsal" min="0" step="0.01" oninput="acCalc()"></div></div>
+   <div class="g2"><div><label>Producto resultante</label><input id="ac_prodsal" value="${esc(sugProdPelado(r.materia_prima))}" placeholder="ej: CHOCLO PELADO"></div><div><label>Cajas obtenidas</label><input type="number" id="ac_cajas" min="0" value="0"></div></div>
+   <div class="g2"><div><label>Operarios</label><input type="number" id="ac_op" min="0" value="0"></div><div><label>Horas</label><input type="number" id="ac_hs" min="0" step="0.5" value="0"></div></div>
+   <div id="ac_calc" class="scan-note" style="margin:8px 0"></div>
+   <button class="btn btn-gold" id="ac_gen" style="width:100%;margin-top:6px" onclick="genAcond()">🌽 Registrar acondicionamiento</button>`;
+  acCalc();
+}
+function sugProdPelado(mat){mat=(mat||'').toUpperCase();if(mat.includes('CHOCLO'))return 'CHOCLO PELADO';return (mat.replace(' CON CHALA','')+' ACONDICIONADO').trim();}
+function acCalc(){const ent=+$('ac_kgent').value||0,sal=+$('ac_kgsal').value||0;const el=$('ac_calc');if(!el)return;const merma=Math.max(0,ent-sal);const rinde=ent>0?sal/ent*100:0;
+  if(sal>ent){el.innerHTML=`<span style="color:var(--clay)">⚠️ Los kg obtenidos no pueden superar los kg procesados.</span>`;return;}
+  el.innerHTML=ent&&sal?`Merma (chala): <b>${nf(merma,1)} kg</b> · Rinde del pelado: <b>${nf(rinde,1)}%</b>`:'Ingresá kg procesados y kg obtenidos.';}
+async function genAcond(){
+  const cl=$('ac_lote').value;const r=S.recepciones.find(x=>x.codigo_lote===cl);if(!r)return banner('Elegí un lote','warn');
+  const ent=+$('ac_kgent').value||0,sal=+$('ac_kgsal').value||0,proc=$('ac_proc').value.trim()||'Pelado';
+  const prodSal=$('ac_prodsal').value.trim();const cajas=+$('ac_cajas').value||0,op=+$('ac_op').value||0,hs=+$('ac_hs').value||0,fecha=$('ac_fecha').value;
+  if(ent<=0||sal<=0)return banner('Cargá los kg procesados y obtenidos','warn');
+  if(sal>ent)return banner('Los kg obtenidos no pueden superar los procesados','warn');
+  if(ent>stockLote(r)+0.001)return banner('No hay tantos kg disponibles en el lote','warn');
+  if(!prodSal)return banner('Indicá el producto resultante (ej: CHOCLO PELADO)','warn');
+  // Opción A: el lote pelado hereda el costo total de los kg entrados, absorbido en los kg de salida
+  const costoEntrada=ent*adjPriceKg(r.materia_prima);
+  const precioSal=sal>0?+(costoEntrada/sal).toFixed(4):0;
+  $('ac_gen').innerHTML='<span class="spin"></span>Registrando...';$('ac_gen').disabled=true;
+  try{
+    const {data:numA,error:e1}=await sb.rpc('siguiente_numero',{p_tipo:'acond'});if(e1)throw e1;
+    const codigo='AC-'+pad(numA);
+    // 1) recepción "virtual" para el lote intermedio pelado (queda como MP disponible)
+    const {data:numL,error:e2}=await sb.rpc('siguiente_numero',{p_tipo:'lote'});if(e2)throw e2;
+    const loteSal='L-'+pad(numL);
+    const {data:recSal,error:e3}=await sb.from('recepciones').insert({empresa_id:S.empresaId,codigo_lote:loteSal,fecha,proveedor:'ACOND · '+r.codigo_lote,materia_prima:prodSal,cajas,kilos:sal,precio_kilo:precioSal,total:+(sal*precioSal).toFixed(2),recibido_por:S.nombre,estado:'activa',origen:'acondicionamiento'}).select('id').single();if(e3)throw e3;
+    // 2) el acondicionamiento
+    const {data:acRow,error:e4}=await sb.from('acondicionamientos').insert({empresa_id:S.empresaId,codigo,fecha,recepcion_id:r.uuid,materia_prima:r.materia_prima,proceso:proc,kg_entrada:ent,kg_salida:sal,cajas_salida:cajas,producto_salida:prodSal,lote_salida:loteSal,recepcion_salida_id:recSal.id,operarios:op,horas:hs,estado:'activa'}).select('id').single();if(e4)throw e4;
+    // 3) vincular la recepción virtual a su acondicionamiento
+    await sb.from('recepciones').update({acond_id:acRow.id}).eq('id',recSal.id).eq('empresa_id',S.empresaId);
+    // 4) descontar del lote original: registramos el consumo como un acondicionamiento en la merma via kgConsumido (ver acondConsumidoLote)
+    await reloadRecepciones();await reloadAcond();
+    const d={codigo,loteSal,prodSal,sal,ent};
+    banner('Acondicionamiento '+codigo+' · lote '+loteSal+' generado','');
+    render();labelLoteRec(loteSal);
+  }catch(err){banner('Error: '+err.message,'err');$('ac_gen').innerHTML='🌽 Registrar acondicionamiento';$('ac_gen').disabled=false;}
+}
+async function anularAcond(codigo){const a=(S.acond||[]).find(x=>x.id===codigo);if(!a)return;
+  const rSal=recByUuid(a.recSalId);
+  if(rSal&&stockLote(rSal)<a.kgSal-0.001)return modal(`<h3>No se puede anular ${codigo}</h3><p class="hint">El lote pelado <b>${a.loteSal}</b> ya se usó (total o parcialmente) en una producción. Anulá primero esa producción.</p><div class="row"><button class="btn btn-gold" onclick="closeModal()">Entendido</button></div>`);
+  modal(`<h3>🔒 Anular acondicionamiento ${codigo}</h3><p class="hint">Se libera el stock del lote original y se elimina el lote pelado <b>${a.loteSal}</b> (que no fue usado).</p><label>PIN de supervisor</label><input type="password" id="aca_pin" autocomplete="off"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" onclick="doAnularAcond('${codigo}')">Anular</button></div>`);}
+async function doAnularAcond(codigo){const a=(S.acond||[]).find(x=>x.id===codigo);if(!a)return;
+  if($('aca_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');
+  try{
+    await sb.from('acondicionamientos').update({estado:'anulada'}).eq('empresa_id',S.empresaId).eq('id',a.uuid);
+    if(a.recSalId)await sb.from('recepciones').update({estado:'anulada'}).eq('empresa_id',S.empresaId).eq('id',a.recSalId);
+    await reloadRecepciones();await reloadAcond();closeModal();banner('Acondicionamiento anulado','warn');render();
+  }catch(err){banner('Error: '+err.message,'err');}
+}
 
 function viewProd(){
   $('view').innerHTML=`<div class="grid2">
@@ -1202,9 +1288,11 @@ function repPaint(){const b=$('repBody');if(!b)return;const t=repCur;const xbtn=
     const rows=Object.entries(m).map(([k,v])=>{const realR=v.sP>0?v.sR/v.sP:0;const expR=v.sP>0?v.sE/v.sP:0;const perf=v.sE>0?v.sR/v.sE:null;return{k,v,realR,expR,perf};}).sort((a,b)=>(a.perf==null?2:a.perf)-(b.perf==null?2:b.perf));
     ex.rows=[['Proveedor','Kg comprados','$/kg','Rinde real (u/kg)','Rinde esperado (u/kg)','Desempeño %']].concat(rows.map(r=>[r.k,+r.v.kg.toFixed(1),+(r.v.kg>0?r.v.$/r.v.kg:0).toFixed(2),+r.realR.toFixed(1),r.expR?+r.expR.toFixed(1):'',r.perf!=null?+(r.perf*100).toFixed(0):'']));
     b.innerHTML=`<div class="card"><div class="card-h"><h3>Rinde por proveedor</h3>${xbtn}</div><p class="hint">Compara el rinde real de cada proveedor contra el rinde establecido en la ficha técnica. Los que rinden por debajo conviene renegociarlos.</p><div style="overflow:auto"><table><thead><tr><th>Proveedor</th><th>Kg comprados</th><th>$/kg</th><th>Rinde real</th><th>Esperado</th><th>Desempeño</th></tr></thead><tbody>${rows.map(r=>{const bad=r.perf!=null&&r.perf<0.95;return`<tr><td>${bad?'⚠️ ':''}${r.k}</td><td class="mono">${nf(r.v.kg,1)}</td><td class="mono">${money(r.v.kg>0?r.v.$/r.v.kg:0)}</td><td class="mono">${nf(r.realR,1)} u/kg</td><td class="mono">${r.expR?nf(r.expR,1)+' u/kg':'—'}</td><td>${r.perf==null?'<span class="tag">sin estándar</span>':r.perf>=1?`<span class="tag ok">Cumple ${nf(r.perf*100,0)}%</span>`:r.perf>=.95?`<span class="tag gold">Aceptable ${nf(r.perf*100,0)}%</span>`:`<span class="tag out">Bajo ${nf(r.perf*100,0)}%</span>`}</td></tr>`;}).join('')||'<tr><td colspan=6 class=empty>Sin datos para el filtro</td></tr>'}</tbody></table></div></div>`;}
-  if(t==='merma'){const m={};prodFilt().forEach(p=>{const r=recById(p.loteId);if(!r)return;const out=p.outputs.reduce((a,o)=>a+(+o.kilos||0),0);m[r.materia_prima]=m[r.materia_prima]||{proc:0,out:0};m[r.materia_prima].proc+=+p.mpKg||0;m[r.materia_prima].out+=out;});const ents=Object.entries(m);
-    ex.rows=[['Materia prima','Procesado kg','Obtenido kg','Merma kg','% Merma']].concat(ents.map(([k,v])=>{const me=Math.max(0,v.proc-v.out);return[k,+v.proc.toFixed(1),+v.out.toFixed(1),+me.toFixed(1),v.proc>0?+(me/v.proc*100).toFixed(1):''];}));
-    b.innerHTML=`<div class="card"><div class="card-h"><h3>Merma por producto</h3>${xbtn}</div><p class="hint">Diferencia entre kilos procesados y kilos de producto obtenido.</p><div style="overflow:auto"><table><thead><tr><th>Materia prima</th><th>Procesado kg</th><th>Obtenido kg</th><th>Merma kg</th><th>% Merma</th></tr></thead><tbody>${ents.map(([k,v])=>{const me=Math.max(0,v.proc-v.out);return`<tr><td>${k}</td><td class="mono">${nf(v.proc,1)}</td><td class="mono">${nf(v.out,1)}</td><td class="mono">${nf(me,1)}</td><td class="mono">${v.proc>0?nf(me/v.proc*100,1)+'%':'—'}</td></tr>`;}).join('')||'<tr><td colspan=5 class=empty>Sin datos para el filtro</td></tr>'}</tbody></table></div></div>`;}
+  if(t==='merma'){const m={};prodFilt().forEach(p=>{const r=recById(p.loteId);if(!r)return;const out=p.outputs.reduce((a,o)=>a+(+o.kilos||0),0);const k=r.materia_prima+' ‖ Envasado/Producción';m[k]=m[k]||{mp:r.materia_prima,etapa:'Envasado/Producción',proc:0,out:0};m[k].proc+=+p.mpKg||0;m[k].out+=out;});
+    (S.acond||[]).filter(a=>a.estado!=='anulada'&&inRange(a.fecha)&&(!repF.prod||a.materia===repF.prod)).forEach(a=>{const k=(a.materia||'')+' ‖ '+(a.proceso||'Pelado');m[k]=m[k]||{mp:a.materia||'',etapa:a.proceso||'Pelado',proc:0,out:0};m[k].proc+=+a.kgEnt||0;m[k].out+=+a.kgSal||0;});
+    const ents=Object.entries(m).sort((a,b)=>a[1].mp<b[1].mp?-1:1);
+    ex.rows=[['Materia prima','Etapa','Procesado kg','Obtenido kg','Merma kg','% Merma']].concat(ents.map(([k,v])=>{const me=Math.max(0,v.proc-v.out);return[v.mp,v.etapa,+v.proc.toFixed(1),+v.out.toFixed(1),+me.toFixed(1),v.proc>0?+(me/v.proc*100).toFixed(1):''];}));
+    b.innerHTML=`<div class="card"><div class="card-h"><h3>Merma por producto y etapa</h3>${xbtn}</div><p class="hint">Diferencia entre kilos procesados y obtenidos. Los productos con acondicionamiento (ej: pelado del choclo) muestran la merma de <b>cada etapa</b> por separado.</p><div style="overflow:auto"><table><thead><tr><th>Materia prima</th><th>Etapa</th><th>Procesado kg</th><th>Obtenido kg</th><th>Merma kg</th><th>% Merma</th></tr></thead><tbody>${ents.map(([k,v])=>{const me=Math.max(0,v.proc-v.out);return`<tr><td>${v.mp}</td><td><span class="tag ${v.etapa==='Envasado/Producción'?'ok':'gold'}">${v.etapa}</span></td><td class="mono">${nf(v.proc,1)}</td><td class="mono">${nf(v.out,1)}</td><td class="mono">${nf(me,1)}</td><td class="mono">${v.proc>0?nf(me/v.proc*100,1)+'%':'—'}</td></tr>`;}).join('')||'<tr><td colspan=6 class=empty>Sin datos para el filtro</td></tr>'}</tbody></table></div></div>`;}
   if(t==='ent'){const m={};S.entregas.filter(e=>e.estado!=='anulada'&&inRange(e.fecha)&&(!repF.cli||e.clienteNombre===repF.cli)).forEach(e=>{e.items.forEach(it=>{if(repF.prod&&it.producto!==repF.prod)return;m[e.clienteNombre]=m[e.clienteNombre]||{u:0,cajas:0,rem:new Set()};m[e.clienteNombre].u+=+it.cantidad||0;m[e.clienteNombre].cajas+=+it.cajas||0;m[e.clienteNombre].rem.add(e.numero_remito);});});const ents=Object.entries(m).sort((a,b)=>b[1].u-a[1].u);
     ex.rows=[['Cliente','Remitos','Unidades','Cajas']].concat(ents.map(([k,v])=>[k,v.rem.size,v.u,v.cajas]));
     b.innerHTML=`<div class="card"><div class="card-h"><h3>Entregas por cliente</h3>${xbtn}</div><p class="hint">Unidades y cajas entregadas en el período.</p><div style="overflow:auto"><table><thead><tr><th>Cliente</th><th>Remitos</th><th>Unidades</th><th>Cajas</th></tr></thead><tbody>${ents.map(([k,v])=>`<tr><td>${k}</td><td class="mono">${v.rem.size}</td><td class="mono">${nf(v.u)}</td><td class="mono">${nf(v.cajas)}</td></tr>`).join('')||'<tr><td colspan=4 class=empty>Sin entregas para el filtro</td></tr>'}</tbody></table></div></div>`;}
@@ -1419,6 +1507,10 @@ function trace(code){
   const ents=S.entregas.filter(e=>e.estado!=='anulada'&&e.items.some(it=>dispIds.has(it.did)));
   let nodes='';
   lotes.forEach(r=>{nodes+=`<div class="node"><div class="when">${fmtD(r.fecha)} · RECEPCIÓN</div><div class="what">${r.materia_prima} — Lote ${r.codigo_lote}</div><div class="det">Proveedor <b>${r.proveedor||'—'}</b> · ${nf(r.kilos,1)}kg${r.recibido_por?` · recibió ${r.recibido_por}`:''}<br>Stock en cámara: <b>${nf(stockLote(r),1)}kg</b></div></div>`;});
+  // Acondicionamiento (pelado): muestra el origen (choclo con chala) y la primera merma
+  let acondNodes='';
+  (S.acond||[]).filter(a=>a.estado!=='anulada'&&lotes.some(r=>r.uuid===a.recSalId)).forEach(a=>{const src=recByUuid(a.recepcionId);const merma=Math.max(0,a.kgEnt-a.kgSal);const rinde=a.kgEnt>0?a.kgSal/a.kgEnt*100:0;if(src&&!lotes.some(r=>r.uuid===src.uuid))acondNodes+=`<div class="node"><div class="when">${fmtD(src.fecha)} · RECEPCIÓN</div><div class="what">${src.materia_prima} — Lote ${src.codigo_lote}</div><div class="det">Proveedor <b>${src.proveedor||'—'}</b> · ${nf(src.kilos,1)}kg</div></div>`;acondNodes+=`<div class="node prod"><div class="when">${fmtD(a.fecha)} · ACONDICIONAMIENTO ${a.id}</div><div class="what">${esc(a.proceso||'Pelado')} — rinde ${nf(rinde,0)}%</div><div class="det">Entrada <b>${nf(a.kgEnt,1)}kg</b>${src?' ('+src.codigo_lote+')':''} → Salida <b>${nf(a.kgSal,1)}kg</b> de ${esc(a.prodSal||'')} (lote <b>${a.loteSal}</b>)<br>Merma (chala): <b>${nf(merma,1)}kg</b></div></div>`;});
+  nodes=acondNodes+nodes;
   const descMP=(S.descartes||[]).filter(d=>lotes.some(r=>r.codigo_lote===d.codigo_lote));
   descMP.forEach(d=>{nodes+=`<div class="node disc"><div class="when">${fmtD(d.fecha)} · DESCARTE DE MP ${d.codigo}</div><div class="what">${nf(d.kg,1)}kg de ${d.materia_prima} descartados</div><div class="det">${d.motivo?'Motivo: '+d.motivo:''}${d.registrado_por?' · '+d.registrado_por:''}</div></div>`;});
   prodsInChain.forEach(p=>{const ko=p.outputs.reduce((a,o)=>a+(+o.kilos||0),0);const rend=p.mpKg>0?ko/p.mpKg*100:0;const isEns=p.id.indexOf('E-')===0;const comps=isEns?S.ensConsumos.filter(c=>c.ensamblado_op===p.id):[];const orig=isEns?comps.map(c=>`${c.componente} (${c.codigo_lote})`).join(' + '):((p.lotes&&p.lotes.length)?p.lotes.map(l=>`${l.mp} ${l.loteId}`).join(' + '):p.loteId);nodes+=`<div class="node prod"><div class="when">${fmtD(p.fecha)} · ${isEns?'ENSAMBLADO':'PRODUCCIÓN'} ${p.id}</div><div class="what">${isEns?'Ensamblado de componentes':nf(p.mpKg,1)+'kg de MP · rinde '+nf(rend,0)+'%'}</div><div class="det">Origen: ${orig}<br>${p.outputs.map(o=>`${o.producto}: <b>${nf(o.cantidad)}u</b> · <span class="mono">${o.code}</span>`).join('<br>')}</div></div>`;});
