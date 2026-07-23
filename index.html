@@ -966,8 +966,15 @@ function boxLabel(producto,e,lote,fecha,cont,idx,muestra){
   return `<div class="lbl box">${muestra?'<div style="background:#b3402f;color:#fff;font-size:9px;font-weight:700;text-align:center;padding:1px;letter-spacing:.1em">MUESTRA</div>':''}<div class="bx-h">${producto.replace(' AIZU','')}<br>F.M.N</div><div style="text-align:center;font-size:9px;padding:3px">${(e.dom_planta||'').split(',')[0]}<br>R.E.N.S.P.A. ${e.renspa||''}<br>LOTE: ${lote} · ${fmtD(fecha)}</div><div class="qrwrap" id="bx${idx}"></div><div class="bx-c">CANTIDAD: ${cont} UNIDADES</div></div>`;
 }
 function etqSaved(){const c=S.empresa&&S.empresa.etiqueta_config;return (c&&c.paquete&&c.caja&&(c.paquete.elements||[]).length)?c:null;}
+function etqUID(){return 'd'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function etqNorm(cfg){if(cfg&&Array.isArray(cfg.designs)){const c=JSON.parse(JSON.stringify(cfg));c.logo=c.logo||'';c.assign=c.assign||{};(c.designs||[]).forEach(d=>{if(!d.kind)d.kind='paquete';});return c;}const logo=(cfg&&cfg.logo)||'';const pk=(cfg&&cfg.paquete)?JSON.parse(JSON.stringify(cfg.paquete)):etqDefault('paquete');const cj=(cfg&&cfg.caja)?JSON.parse(JSON.stringify(cfg.caja)):etqDefault('caja');const designs=[Object.assign({id:'seed-pk',name:'Paquete',kind:'paquete',isDefault:true},pk),Object.assign({id:'seed-cj',name:'Caja',kind:'caja',isDefault:true},cj)];return {logo:logo,designs:designs,assign:{}};}
+function etqCfg(){return etqNorm(S.empresa&&S.empresa.etiqueta_config);}
+function etqDefaultDesign(cfg,kind){return (cfg.designs||[]).find(d=>d.kind===kind&&d.isDefault)||(cfg.designs||[]).find(d=>d.kind===kind)||null;}
+function resolveDesign(cfg,prodId,kind){const a=cfg.assign&&cfg.assign[prodId];let d=null;if(a&&a[kind])d=(cfg.designs||[]).find(x=>x.id===a[kind]);if(!d)d=etqDefaultDesign(cfg,kind);return d;}
+function savedFor(prodName){const cfg=etqCfg();const pid=prodIdByName(prodName);const pk=resolveDesign(cfg,pid,'paquete'),cj=resolveDesign(cfg,pid,'caja');if(!pk&&!cj)return null;return {logo:cfg.logo,paquete:pk||etqDefault('paquete'),caja:cj||etqDefault('caja'),_pkName:pk&&pk.name,_cjName:cj&&cj.name};}
+function etqDesignOpts(cfg,kind,sel){let o='<option value="">— Por defecto —</option>';(cfg.designs||[]).filter(d=>d.kind===kind).forEach(d=>{o+='<option value="'+d.id+'"'+(sel===d.id?' selected':'')+'>'+esc(d.name)+(d.isDefault?' (por defecto)':'')+'</option>';});return o;}
 function tplLabelHTML(which,data,mu,prefix){const tpl=S.etq[which];const PX=3.78;const w=Math.round(tpl.w*PX),h=Math.round(tpl.h*PX);const r=renderTplLabel(tpl,data,prefix);const ban=mu?`<div style="position:absolute;left:0;top:0;width:100%;background:#b3402f;color:#fff;font-size:9px;font-weight:700;text-align:center;padding:1px;letter-spacing:.1em;z-index:5">MUESTRA · SIN VALOR COMERCIAL</div>`:'';const html=`<div class="tlbl" style="position:relative;width:${w}px;height:${h}px;background:#fff;color:#000;overflow:hidden;page-break-inside:avoid;margin:4px">${ban}${r.html}</div>`;return {html,barJobs:r.barJobs,qrJobs:r.qrJobs};}
-function printRoll(which){const d=window._lblData;if(!d)return;const saved=etqSaved();if(!saved)return banner('No hay diseño guardado','warn');
+function printRoll(which){const d=window._lblData;if(!d)return;const saved=savedFor((d.items[0]||{}).producto);if(!saved)return banner('No hay diseño guardado','warn');
   const it=d.items[0],e=S.empresa,fecha=d.fecha;const isEns=prodTipo(it.producto)==='comp_ensamblado';const mu=$('lbl_mu')?$('lbl_mu').checked:false;
   const pkgN=Math.max(0,+($('lbl_pkgN')?$('lbl_pkgN').value:0)||0),boxN=Math.max(0,+($('lbl_boxN')?$('lbl_boxN').value:0)||0);
   let op='',li=null,porCaja=15,binfo,info,lotesArr=[],lotSeq=[];
@@ -1005,7 +1012,7 @@ function renderLabels(d,opts){opts=opts||{};window._lblData=d;const it=d.items[0
   const loteLbl=isEns?op:(multi?lotesArr.map(x=>x.lote).join(' + '):(li?li.lote:'—'));
   const boxQR=isEns?op:(multi?d.id:(li?li.lote:'—'));
   const loteAt=k=>lotSeq.length?(lotSeq[k]||lotSeq[lotSeq.length-1]):loteLbl;
-  const saved=etqSaved();let tplMode=false,barJobsT=[],qrJobsT=[];
+  const saved=savedFor(it.producto);let tplMode=false,barJobsT=[],qrJobsT=[];
   if(saved){tplMode=true;const prev=S.etq;S.etq=saved;const pinfo=isEns?binfo:info;const perBox=isEns?porCaja:(it.uxc||1);
     const dataPkg={empresa:e.razon_social||'',producto:(it.producto||'').replace(' AIZU',''),contenido:(pinfo&&pinfo.kg?nf(pinfo.kg*1000)+' g':''),gtin:(pinfo&&pinfo.gtin)||'',qr:loteLbl,rnpa:(pinfo&&pinfo.rnpa)||'',rne:e.rne||'',env:fmtD(fecha),vto:it.vto?fmtD(it.vto):'—',lote:loteLbl};
     const dataBox={empresa:e.razon_social||'',producto:(it.producto||'').replace(' AIZU',''),contenido:perBox+' unidades',gtin:(pinfo&&pinfo.gtin)||'',qr:boxQR,rnpa:(pinfo&&pinfo.rnpa)||'',rne:e.rne||'',env:fmtD(fecha),vto:it.vto?fmtD(it.vto):'—',lote:loteLbl};
@@ -1019,7 +1026,7 @@ function renderLabels(d,opts){opts=opts||{};window._lblData=d;const it=d.items[0
     for(let k=0;k<pkgN;k++){const idx=pkgs.length;pkgs.push(pkgLabel(it.producto,info,it.fmt,loteAt(k),it.vto,fecha,e,idx,mu));if(info.gtin)bcJobs.push({id:'bc'+idx,code:info.gtin});}
     for(let b=0;b<boxN;b++){const idx=boxes.length;boxes.push(boxLabel(it.producto,e,loteLbl,fecha,it.uxc,idx,mu));qrJobs.push({id:'bx'+idx,text:boxQR});}
   }
-  modal(`<h3>Etiquetas — ${d.id}</h3><p class="hint">${multi?'Lotes':'Lote'} <b>${loteLbl}</b>${multi?` · <b>caja mixta</b>: el QR de la caja lleva ${d.id} y resuelve todos los lotes`:''}${isEns?' · caja de hierbas':''} · por defecto ${nf(defPkg)} de paquete + ${nf(defBox)} de caja.${tplMode?' <span class="tag ok">Diseño propio</span>':''}</p>
+  modal(`<h3>Etiquetas — ${d.id}</h3><p class="hint">${multi?'Lotes':'Lote'} <b>${loteLbl}</b>${multi?` · <b>caja mixta</b>: el QR de la caja lleva ${d.id} y resuelve todos los lotes`:''}${isEns?' · caja de hierbas':''} · por defecto ${nf(defPkg)} de paquete + ${nf(defBox)} de caja.${tplMode?` <span class="tag ok">📄 ${esc((saved&&saved._pkName)||'paquete')} + ${esc((saved&&saved._cjName)||'caja')}</span>`:''}</p>
     <div style="background:#f3efe6;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px">
       <div style="font-size:12px;font-weight:600;margin-bottom:6px">¿Cuántas imprimir? (útil si la impresora falló)</div>
       <div class="g2" style="grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
@@ -1536,7 +1543,7 @@ function canSee(rol,modId){if(rol==='admin')return true;const perm=(S.empresa&&S
 async function reloadOperarios(){const {data}=await sb.from('operarios').select('*').eq('empresa_id',S.empresaId).order('nombre');S.operarios=data||[];}
 /* ===== EDITOR DE ETIQUETAS (arrastrar y soltar) ===== */
 const ETQ_TYPES=[['logo','Logo','img'],['empresa','Razón social','text'],['producto','Producto','text'],['contenido','Contenido','text'],['gtin','Código de barras','bar'],['qr','Código QR','qr'],['rnpa','RNPA','text'],['rne','RNE','text'],['fecha_elab','Fecha elaboración','text'],['fecha_vto','Fecha vto','text'],['lote','Lote','text'],['texto','Cuadro de texto','text']];
-let etqCur='paquete',etqUidN=1,etqZoom=2;
+let etqCur=null,etqUidN=1,etqZoom=2;
 function etqId(){return 'e'+(etqUidN++)+Date.now().toString(36).slice(-3);}
 function etqDefault(which){
   if(which==='caja')return {w:100,h:70,cols:1,gapx:0,elements:[
@@ -1561,7 +1568,8 @@ function etqDefault(which){
     {id:etqId(),type:'fecha_vto',x:6,y:92,fs:8,bold:false,align:'left'}
   ]};
 }
-function etqLoad(){const cfg=S.empresa&&S.empresa.etiqueta_config;if(cfg&&cfg.paquete&&cfg.caja){S.etq=JSON.parse(JSON.stringify(cfg));if(!('logo'in S.etq))S.etq.logo='';}else{S.etq={logo:(cfg&&cfg.logo)||'',paquete:etqDefault('paquete'),caja:etqDefault('caja')};}}
+function etqLoad(){S.etq=etqNorm(S.empresa&&S.empresa.etiqueta_config);if(!etqCur||!(S.etq.designs||[]).some(d=>d.id===etqCur)){const f=(S.etq.designs||[])[0];etqCur=f?f.id:null;}}
+function curDesign(){return ((S.etq&&S.etq.designs)||[]).find(d=>d.id===etqCur)||((S.etq&&S.etq.designs)||[])[0]||null;}
 function etqSample(){const p=S.productos.find(x=>x.activo!==false)||{};return {empresa:(S.empresa&&S.empresa.razon_social)||'EMPRESA',producto:p.nombre||'PRODUCTO DE EJEMPLO',contenido:(p.contenido_kg?nf(p.contenido_kg,3)+' kg':'250 g'),gtin:p.gtin||'7791234567890',qr:'L-00001',rnpa:p.rnpa||'00-0000000',rne:p.rne||'13-000000',env:fmtD(today()),vto:fmtD(today())};}
 function etqVal(type,data,el){switch(type){case 'empresa':return data.empresa;case 'producto':return data.producto;case 'contenido':return data.contenido;case 'rnpa':return 'RNPA: '+data.rnpa;case 'rne':return 'RNE: '+data.rne;case 'fecha_elab':return 'Elab: '+data.env;case 'fecha_vto':return 'Vto: '+data.vto;case 'lote':return 'Lote: '+data.lote;case 'texto':return el.text||'Texto';default:return '';}}
 function renderTplLabel(tpl,data,prefix){let html='',barJobs=[],qrJobs=[];(tpl.elements||[]).forEach(el=>{const base=`position:absolute;left:${el.x}px;top:${el.y}px;`;const tc=ETQ_TYPES.find(t=>t[0]===el.type);const kind=tc?tc[2]:'text';
@@ -1572,12 +1580,27 @@ function renderTplLabel(tpl,data,prefix){let html='',barJobs=[],qrJobs=[];(tpl.e
 });return {html,barJobs,qrJobs};}
 function etqBar(el,code,w,h){el.innerHTML='';try{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');el.appendChild(s);JsBarcode(s,code||'0000000000000',{format:(code&&(''+code).length===13)?'EAN13':'CODE128',height:Math.max(14,h-12),fontSize:10,margin:0,displayValue:true});s.style.width=w+'px';s.style.height=h+'px';}catch(e){el.textContent=code;}}
 function etqQr(el,text,size){el.innerHTML='';try{new QRCode(el,{text:text||'L-00001',width:size,height:size,colorDark:'#000',colorLight:'#fff'});}catch(e){el.textContent=text;}}
-function cfgEtiquetas(){if(!S.etq)etqLoad();const tpl=S.etq[etqCur];
+function cfgEtiquetas(){if(!S.etq)etqLoad();if(!curDesign()){const f=(S.etq.designs||[])[0];etqCur=f?f.id:null;}
+  const tpl=curDesign();
+  const chip=d=>`<button class="btn btn-sm ${d.id===etqCur?'btn-gold':'btn-ghost'}" onclick="etqSwitch('${d.id}')">${esc(d.name)}${d.isDefault?' ★':''}</button>`;
+  const pkgs=(S.etq.designs||[]).filter(d=>d.kind==='paquete');
+  const cajas=(S.etq.designs||[]).filter(d=>d.kind==='caja');
   $('cfg_body').innerHTML=`<style>.etqEd{position:relative;background:#fff;border:1px solid var(--line);box-shadow:0 1px 6px rgba(0,0,0,.1)}.etqEd .etqEl{outline:1px dashed rgba(0,0,0,.18);cursor:move;box-sizing:border-box}</style>
-  <p class="hint">Diseñá tus etiquetas arrastrando cada dato a su lugar. Tocá un elemento para cambiar su letra/tamaño, agregá cuadros de texto, subí tu logo y elegí el tamaño de la etiqueta. <b>Guardá</b> al terminar. La impresión real con este diseño se conecta en el próximo paso.</p>
-  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-    <button class="btn btn-sm ${etqCur==='paquete'?'btn-gold':'btn-ghost'}" onclick="etqSwitch('paquete')">Etiqueta de paquete</button>
-    <button class="btn btn-sm ${etqCur==='caja'?'btn-gold':'btn-ghost'}" onclick="etqSwitch('caja')">Etiqueta de caja</button></div>
+  <p class="hint">Biblioteca de diseños de etiqueta. Creá los que necesites, nombralos y marcá uno “por defecto” (★) de cada tipo. Después, en la pestaña <b>Productos</b>, a cada producto le asignás qué diseño usa. En <b>Despacho</b> sale solo el que corresponde, sin elegir nada. Para <b>etiqueta preimpresa</b>, creá un diseño que solo tenga los datos variables (lote, fecha, código).</p>
+  <div style="background:#efeae0;border-radius:10px;padding:12px;margin-bottom:14px">
+    <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px">📦 Diseños de PAQUETE</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px">${pkgs.map(chip).join('')||'<span class="scan-note">Sin diseños</span>'} <button class="btn btn-ghost btn-sm" onclick="etqNew('paquete')">+ Nuevo de paquete</button></div>
+    <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px">📦 Diseños de CAJA</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">${cajas.map(chip).join('')||'<span class="scan-note">Sin diseños</span>'} <button class="btn btn-ghost btn-sm" onclick="etqNew('caja')">+ Nuevo de caja</button></div>
+  </div>
+  ${tpl?`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff">
+    <b style="font-family:'Space Grotesk'">Editando:</b> ${esc(tpl.name)} <span class="tag ok">${tpl.kind}</span>${tpl.isDefault?'<span class="tag ok">★ por defecto</span>':''}
+    <div style="flex:1;min-width:8px"></div>
+    <button class="btn btn-ghost btn-sm" onclick="etqRename()">✎ Renombrar</button>
+    <button class="btn btn-ghost btn-sm" onclick="etqDup()">⧉ Duplicar</button>
+    <button class="btn btn-ghost btn-sm" onclick="etqMakeDefault()" ${tpl.isDefault?'disabled':''}>★ Por defecto</button>
+    <button class="btn btn-danger btn-sm" onclick="etqDelDesign()">🗑 Borrar</button>
+  </div>
   <div class="g2" style="margin-bottom:12px"><div><label>Ancho (mm)</label><input type="number" id="etq_w" value="${tpl.w}" min="20" max="300" oninput="etqSize()"></div><div><label>Alto (mm)</label><input type="number" id="etq_h" value="${tpl.h}" min="15" max="300" oninput="etqSize()"></div></div>
   <div class="g2" style="margin-bottom:12px"><div><label>Etiquetas por fila (rollo SATO)</label><select id="etq_cols" onchange="etqRollSet()">${[1,2,3].map(n=>`<option value="${n}" ${(tpl.cols||1)===n?'selected':''}>${n} por fila</option>`).join('')}</select></div><div><label>Separación horizontal (mm)</label><input type="number" id="etq_gapx" value="${tpl.gapx||0}" min="0" step="0.5" oninput="etqRollSet()"></div></div>
   <label>Agregar a la etiqueta</label><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${ETQ_TYPES.map(t=>`<button class="btn btn-ghost btn-sm" onclick="etqAdd('${t[0]}')">+ ${t[1]}</button>`).join('')}</div>
@@ -1588,30 +1611,35 @@ function cfgEtiquetas(){if(!S.etq)etqLoad();const tpl=S.etq[etqCur];
     <div style="width:250px"><div id="etqProps"></div>
       <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
         <label class="btn btn-ghost btn-sm" style="cursor:pointer;text-align:center;justify-content:center">⬆ Subir logo<input type="file" accept="image/*" onchange="etqLogo(this)" style="display:none"></label>
-        <button class="btn btn-gold" onclick="etqSave()">💾 Guardar diseño</button>
-        <button class="btn btn-ghost btn-sm" onclick="etqReset()">↺ Restaurar por defecto</button></div></div>
-  </div>`;
-  etqRenderCanvas();etqRenderProps();
+        <button class="btn btn-gold" onclick="etqSave()">💾 Guardar biblioteca</button>
+        <button class="btn btn-ghost btn-sm" onclick="etqReset()">↺ Restaurar este a por defecto</button></div></div>
+  </div>`:'<p class="scan-note">Creá un diseño de paquete o de caja para empezar.</p>'}`;
+  if(curDesign()){etqRenderCanvas();etqRenderProps();}
 }
-function etqRenderCanvas(){const tpl=S.etq[etqCur];const PX=3.78;const cw=Math.round(tpl.w*PX),ch=Math.round(tpl.h*PX);const cv=$('etqCanvas');if(!cv)return;cv.style.width=cw+'px';cv.style.height=ch+'px';cv.style.transform='scale('+etqZoom+')';const sz=$('etqSizer');if(sz){sz.style.width=Math.round(cw*etqZoom)+'px';sz.style.height=Math.round(ch*etqZoom)+'px';}const {html,barJobs,qrJobs}=renderTplLabel(tpl,etqSample(),'etqc');cv.innerHTML=html;barJobs.forEach(j=>{const el=$(j.id);if(el)etqBar(el,j.code,j.w,j.h);});qrJobs.forEach(j=>{const el=$(j.id);if(el)etqQr(el,j.text,j.size);});
+function etqNew(kind){if(!S.etq)etqLoad();const base=etqDefault(kind);const n=(S.etq.designs||[]).filter(x=>x.kind===kind).length+1;const d=Object.assign({id:etqUID(),name:(kind==='paquete'?'Paquete ':'Caja ')+n,kind:kind,isDefault:!(S.etq.designs||[]).some(x=>x.kind===kind&&x.isDefault)},base);S.etq.designs.push(d);etqCur=d.id;S.etqSel=null;cfgEtiquetas();banner('Diseño creado · acordate de Guardar la biblioteca','');}
+function etqRename(){const tpl=curDesign();if(!tpl)return;const n=prompt('Nombre del diseño:',tpl.name);if(n===null)return;tpl.name=(n.trim()||tpl.name);cfgEtiquetas();}
+function etqDup(){const tpl=curDesign();if(!tpl)return;const d=JSON.parse(JSON.stringify(tpl));d.id=etqUID();d.name=tpl.name+' (copia)';d.isDefault=false;d.elements=(d.elements||[]).map(el=>Object.assign({},el,{id:etqId()}));S.etq.designs.push(d);etqCur=d.id;S.etqSel=null;cfgEtiquetas();banner('Diseño duplicado','');}
+function etqMakeDefault(){const tpl=curDesign();if(!tpl)return;(S.etq.designs||[]).forEach(d=>{if(d.kind===tpl.kind)d.isDefault=(d.id===tpl.id);});cfgEtiquetas();banner('Marcado por defecto · Guardá la biblioteca','');}
+function etqDelDesign(){const tpl=curDesign();if(!tpl)return;const same=(S.etq.designs||[]).filter(d=>d.kind===tpl.kind);if(same.length<=1)return banner('Debe quedar al menos un diseño de '+tpl.kind,'warn');if(!confirm('¿Borrar el diseño “'+tpl.name+'”? Los productos que lo tengan asignado pasarán a usar el por defecto.'))return;const wasDef=tpl.isDefault;S.etq.designs=(S.etq.designs||[]).filter(d=>d.id!==tpl.id);if(wasDef){const first=S.etq.designs.find(d=>d.kind===tpl.kind);if(first)first.isDefault=true;}const f=S.etq.designs.find(d=>d.kind===tpl.kind)||S.etq.designs[0];etqCur=f?f.id:null;S.etqSel=null;cfgEtiquetas();banner('Diseño borrado · Guardá la biblioteca','');}
+function etqRenderCanvas(){const tpl=curDesign();if(!tpl)return;const PX=3.78;const cw=Math.round(tpl.w*PX),ch=Math.round(tpl.h*PX);const cv=$('etqCanvas');if(!cv)return;cv.style.width=cw+'px';cv.style.height=ch+'px';cv.style.transform='scale('+etqZoom+')';const sz=$('etqSizer');if(sz){sz.style.width=Math.round(cw*etqZoom)+'px';sz.style.height=Math.round(ch*etqZoom)+'px';}const {html,barJobs,qrJobs}=renderTplLabel(tpl,etqSample(),'etqc');cv.innerHTML=html;barJobs.forEach(j=>{const el=$(j.id);if(el)etqBar(el,j.code,j.w,j.h);});qrJobs.forEach(j=>{const el=$(j.id);if(el)etqQr(el,j.text,j.size);});
   cv.querySelectorAll('.etqEl').forEach(node=>{node.onpointerdown=e=>etqDragStart(e,node.dataset.id);});
   if(S.etqSel){const sel=cv.querySelector('[data-id="'+S.etqSel+'"]');if(sel)sel.style.outline='2px solid #c9a24b';}
 }
 function etqSetZoom(z){etqZoom=z;const v=$('etqZoomV');if(v)v.textContent=z+'×';etqRenderCanvas();}
-function etqDragStart(e,id){e.preventDefault();etqSelect(id);const tpl=S.etq[etqCur];const el=tpl.elements.find(x=>x.id===id);if(!el)return;const cv=$('etqCanvas');const sx=e.clientX,sy=e.clientY,ox=el.x,oy=el.y;
+function etqDragStart(e,id){e.preventDefault();etqSelect(id);const tpl=curDesign();if(!tpl)return;const el=tpl.elements.find(x=>x.id===id);if(!el)return;const cv=$('etqCanvas');const sx=e.clientX,sy=e.clientY,ox=el.x,oy=el.y;
   const move=ev=>{let nx=ox+(ev.clientX-sx)/etqZoom,ny=oy+(ev.clientY-sy)/etqZoom;nx=Math.max(0,Math.min(nx,cv.clientWidth-6));ny=Math.max(0,Math.min(ny,cv.clientHeight-6));el.x=Math.round(nx);el.y=Math.round(ny);const node=cv.querySelector('[data-id="'+id+'"]');if(node){node.style.left=el.x+'px';node.style.top=el.y+'px';}const pos=$('etqPos');if(pos)pos.textContent='Posición: '+el.x+', '+el.y+' px';};
   const up=()=>{document.removeEventListener('pointermove',move);document.removeEventListener('pointerup',up);};
   document.addEventListener('pointermove',move);document.addEventListener('pointerup',up);
 }
 function etqSelect(id){S.etqSel=id;const cv=$('etqCanvas');if(cv)cv.querySelectorAll('.etqEl').forEach(n=>n.style.outline=n.dataset.id===id?'2px solid #c9a24b':'1px dashed rgba(0,0,0,.18)');etqRenderProps();}
 function etqSwitch(w){etqCur=w;S.etqSel=null;cfgEtiquetas();}
-function etqSize(){const tpl=S.etq[etqCur];tpl.w=+$('etq_w').value||tpl.w;tpl.h=+$('etq_h').value||tpl.h;etqRenderCanvas();}
-function etqRollSet(){const tpl=S.etq[etqCur];tpl.cols=+$('etq_cols').value||1;tpl.gapx=+$('etq_gapx').value||0;}
-function etqAdd(type){const tpl=S.etq[etqCur];const el={id:etqId(),type,x:10,y:10,fs:11,bold:false,align:'left'};if(type==='gtin'){el.w=130;el.h=36;}if(type==='qr'){el.w=80;}if(type==='logo'){el.w=70;el.h=44;}if(type==='texto'){el.text='Texto libre';el.fs=12;}tpl.elements.push(el);S.etqSel=el.id;etqRenderCanvas();etqRenderProps();banner('Elemento agregado · arrastralo a su lugar','');}
+function etqSize(){const tpl=curDesign();if(!tpl)return;tpl.w=+$('etq_w').value||tpl.w;tpl.h=+$('etq_h').value||tpl.h;etqRenderCanvas();}
+function etqRollSet(){const tpl=curDesign();if(!tpl)return;tpl.cols=+$('etq_cols').value||1;tpl.gapx=+$('etq_gapx').value||0;}
+function etqAdd(type){const tpl=curDesign();if(!tpl)return;const el={id:etqId(),type,x:10,y:10,fs:11,bold:false,align:'left'};if(type==='gtin'){el.w=130;el.h=36;}if(type==='qr'){el.w=80;}if(type==='logo'){el.w=70;el.h=44;}if(type==='texto'){el.text='Texto libre';el.fs=12;}tpl.elements.push(el);S.etqSel=el.id;etqRenderCanvas();etqRenderProps();banner('Elemento agregado · arrastralo a su lugar','');}
 function etqLogo(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{S.etq.logo=r.result;etqRenderCanvas();banner('Logo cargado · acordate de Guardar','');};r.readAsDataURL(f);}
-function etqDelEl(){const tpl=S.etq[etqCur];tpl.elements=tpl.elements.filter(x=>x.id!==S.etqSel);S.etqSel=null;etqRenderCanvas();etqRenderProps();}
-function etqProp(field,val,re){const tpl=S.etq[etqCur];const el=tpl.elements.find(x=>x.id===S.etqSel);if(!el)return;el[field]=val;etqRenderCanvas();if(re)etqRenderProps();}
-function etqRenderProps(){const box=$('etqProps');if(!box)return;const tpl=S.etq[etqCur];const el=tpl.elements.find(x=>x.id===S.etqSel);if(!el){box.innerHTML='<div class="scan-note">Tocá un elemento del lienzo para editar su tamaño, letra y posición. Arrastralo para moverlo.</div>';return;}const tc=ETQ_TYPES.find(t=>t[0]===el.type);const kind=tc?tc[2]:'text';const label=tc?tc[1]:el.type;
+function etqDelEl(){const tpl=curDesign();if(!tpl)return;tpl.elements=tpl.elements.filter(x=>x.id!==S.etqSel);S.etqSel=null;etqRenderCanvas();etqRenderProps();}
+function etqProp(field,val,re){const tpl=curDesign();if(!tpl)return;const el=tpl.elements.find(x=>x.id===S.etqSel);if(!el)return;el[field]=val;etqRenderCanvas();if(re)etqRenderProps();}
+function etqRenderProps(){const box=$('etqProps');if(!box)return;const tpl=curDesign();if(!tpl){box.innerHTML='';return;}const el=tpl.elements.find(x=>x.id===S.etqSel);if(!el){box.innerHTML='<div class="scan-note">Tocá un elemento del lienzo para editar su tamaño, letra y posición. Arrastralo para moverlo.</div>';return;}const tc=ETQ_TYPES.find(t=>t[0]===el.type);const kind=tc?tc[2]:'text';const label=tc?tc[1]:el.type;
   let h=`<div style="font-family:'Space Grotesk';font-weight:600;color:var(--navy);margin-bottom:8px">${label}</div>`;
   if(el.type==='texto')h+=`<label>Texto</label><input value="${esc(el.text||'')}" oninput="etqProp('text',this.value)">`;
   if(kind==='text'){h+=`<label>Tamaño de letra</label><input type="range" min="6" max="40" value="${el.fs||11}" oninput="etqProp('fs',+this.value)">
@@ -1625,7 +1653,7 @@ function etqRenderProps(){const box=$('etqProps');if(!box)return;const tpl=S.etq
   box.innerHTML=h;
 }
 async function etqSave(){const {error}=await sb.from('empresas').update({etiqueta_config:S.etq}).eq('id',S.empresaId);if(error)return banner('Error al guardar: '+error.message,'err');S.empresa.etiqueta_config=JSON.parse(JSON.stringify(S.etq));banner('Diseño de etiquetas guardado ✓','');}
-function etqReset(){if(!confirm('¿Restaurar el diseño por defecto de esta etiqueta? Se pierde lo que hayas cambiado en ella.'))return;S.etq[etqCur]=etqDefault(etqCur);S.etqSel=null;etqRenderCanvas();etqRenderProps();}
+function etqReset(){const tpl=curDesign();if(!tpl)return;if(!confirm('¿Restaurar este diseño al de fábrica de su tipo? Se pierde lo que hayas cambiado en él.'))return;const def=etqDefault(tpl.kind);tpl.w=def.w;tpl.h=def.h;tpl.cols=def.cols;tpl.gapx=def.gapx;tpl.elements=def.elements;S.etqSel=null;etqRenderCanvas();etqRenderProps();}
 
 let cfgTab='empresa';
 function viewCfg(){
@@ -2117,7 +2145,7 @@ function cfgProd(){const q=cfgProdQ.toLowerCase();const list=S.productos.filter(
   $('cfg_body').innerHTML=`<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><input id="cp_q" placeholder="Buscar producto..." value="${esc(cfgProdQ)}" oninput="cfgProdQ=this.value;cfgProd();setTimeout(()=>{const i=document.getElementById('cp_q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},0)" style="flex:1;min-width:180px"><button class="btn btn-gold btn-sm" onclick="editProducto()">+ Nuevo producto</button></div>
    <div style="overflow:auto"><table><thead><tr><th>Producto</th><th>Familia</th><th>U/caja</th><th>Tipo</th><th>Estado</th><th></th></tr></thead><tbody>${list.map(p=>`<tr style="${p.activo===false?'opacity:.5':''}"><td>${p.nombre}</td><td>${p.familia||''}</td><td class="mono">${p.unidades_por_caja||'—'}</td><td>${tipoLabel(p.tipo)}</td><td><span class="tag ${p.activo===false?'out':'ok'}">${p.activo===false?'Inactivo':'Activo'}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="editProducto('${p.id}')">Editar</button> <button class="btn btn-ghost btn-sm" onclick="toggleProducto('${p.id}')">${p.activo===false?'Activar':'Baja'}</button></td></tr>`).join('')||'<tr><td colspan=6 class=empty>Sin productos</td></tr>'}</tbody></table></div>
    <p class="hint" style="margin-top:8px">${S.productos.length} productos en total · mostrando ${list.length}.</p>`;}
-function editProducto(id){const p=id?S.productos.find(x=>x.id===id):{};const fams=['anonima','aizu','granel','otro'];const tipos=[['simple','Simple'],['comp_produccion','Compuesto (producción)'],['comp_ensamblado','Ensamblado']];
+function editProducto(id){const p=id?S.productos.find(x=>x.id===id):{};const _cfg=etqCfg();const _asg=(_cfg.assign||{})[id]||{};const fams=['anonima','aizu','granel','otro'];const tipos=[['simple','Simple'],['comp_produccion','Compuesto (producción)'],['comp_ensamblado','Ensamblado']];
   modal(`<h3>${id?'Editar':'Nuevo'} producto</h3>
    <label>Nombre</label><input id="pf_nom" value="${esc(p.nombre||'')}">
    <div class="g2"><div><label>Presentación</label><input id="pf_pres" value="${esc(p.presentacion||'')}" placeholder="CAJA X 10 UNIDADES"></div><div><label>Familia</label><select id="pf_fam">${fams.map(f=>`<option ${p.familia===f?'selected':''}>${f}</option>`).join('')}</select></div></div>
@@ -2126,12 +2154,16 @@ function editProducto(id){const p=id?S.productos.find(x=>x.id===id):{};const fam
    <div class="g2"><div><label>RNPA</label><input id="pf_rnpa" value="${esc(p.rnpa||'')}"></div><div><label>RNE</label><input id="pf_rne" value="${esc(p.rne||'')}"></div></div>
    <div class="g2"><div><label>GTIN (EAN-13)</label><input id="pf_gtin" value="${esc(p.gtin||'')}"></div><div><label>Tipo</label><select id="pf_tipo">${tipos.map(t=>`<option value="${t[0]}" ${(p.tipo||'simple')===t[0]?'selected':''}>${t[1]}</option>`).join('')}</select></div></div>
    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:6px"><input type="checkbox" id="pf_micro" ${p.microondas?'checked':''} style="width:auto"> Apto microondas</label>
+   <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)"><div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px">🏷️ Diseño de etiqueta</div><div class="g2"><div><label>Diseño de paquete</label><select id="pf_dpkg">${etqDesignOpts(_cfg,'paquete',_asg.paquete)}</select></div><div><label>Diseño de caja</label><select id="pf_dcaja">${etqDesignOpts(_cfg,'caja',_asg.caja)}</select></div></div><div class="scan-note" style="margin-top:4px">Con “Por defecto” usa el diseño marcado por defecto de cada tipo. Para etiqueta preimpresa, elegí un diseño que solo tenga los datos variables.</div></div>
    <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveProducto('${id||''}')">Guardar</button></div>`);}
 async function saveProducto(id){const nom=$('pf_nom').value.trim();if(!nom)return banner('Indicá el nombre','warn');
   const rec={empresa_id:S.empresaId,nombre:nom,presentacion:$('pf_pres').value.trim()||null,familia:$('pf_fam').value,contenido_kg:+$('pf_kg').value||null,unidades_por_caja:+$('pf_uxc').value||null,vida_util_dias:+$('pf_vida').value||null,rinde:+$('pf_rinde').value||null,rnpa:$('pf_rnpa').value.trim()||null,rne:$('pf_rne').value.trim()||null,gtin:$('pf_gtin').value.trim()||null,tipo:$('pf_tipo').value,microondas:$('pf_micro').checked};
-  try{let r;if(id)r=await sb.from('productos').update(rec).eq('id',id).eq('empresa_id',S.empresaId);else r=await sb.from('productos').insert(rec);if(r.error)throw r.error;
+  const _dpkg=$('pf_dpkg')?$('pf_dpkg').value:'';const _dcaja=$('pf_dcaja')?$('pf_dcaja').value:'';
+  try{let pid=id;if(id){const r=await sb.from('productos').update(rec).eq('id',id).eq('empresa_id',S.empresaId);if(r.error)throw r.error;}else{const r=await sb.from('productos').insert(rec).select('id').single();if(r.error)throw r.error;pid=r.data&&r.data.id;}
+    await saveEtqAssign(pid,_dpkg,_dcaja);
     await reloadCatalogo();closeModal();banner('Producto guardado','');cfgProd();
   }catch(err){banner('Error: '+err.message,'err');}}
+async function saveEtqAssign(pid,dpkg,dcaja){if(!pid)return;const cfg=etqCfg();cfg.assign=cfg.assign||{};if(!dpkg&&!dcaja)delete cfg.assign[pid];else cfg.assign[pid]={paquete:dpkg||null,caja:dcaja||null};const {error}=await sb.from('empresas').update({etiqueta_config:cfg}).eq('id',S.empresaId);if(error){banner('Producto guardado, pero no se pudo guardar el diseño asignado: '+error.message,'warn');return;}S.empresa.etiqueta_config=cfg;if(S.etq&&Array.isArray(S.etq.designs))S.etq.assign=JSON.parse(JSON.stringify(cfg.assign));}
 async function toggleProducto(id){const p=S.productos.find(x=>x.id===id);if(p.activo!==false&&!confirm('¿Dar de baja "'+p.nombre+'"? No se borra; queda inactivo y deja de ofrecerse.'))return;await sb.from('productos').update({activo:p.activo===false}).eq('id',id).eq('empresa_id',S.empresaId);await reloadCatalogo();banner('Producto actualizado','');cfgProd();}
 let cfgCliQ='';
 function cfgCli(){const q=cfgCliQ.toLowerCase();const list=S.clientes.filter(c=>!q||c.razon_social.toLowerCase().includes(q)||(c.cuit||'').toLowerCase().includes(q)).slice(0,300);
