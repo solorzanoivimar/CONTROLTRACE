@@ -1108,7 +1108,7 @@ async function reloadEntregas(){
   ]);
   const cliById={};S.clientes.forEach(c=>cliById[c.id]=c.razon_social);
   const despByUuid={};S.despachos.forEach(d=>despByUuid[d.uuid]=d.id);
-  S.entregas=(ents||[]).map(e=>({id:e.id,numero_remito:e.numero_remito,fecha:e.fecha,cliente_id:e.cliente_id,clienteNombre:cliById[e.cliente_id]||'',estado:e.estado,validado:e.validado||null,
+  S.entregas=(ents||[]).map(e=>({id:e.id,numero_remito:e.numero_remito,orden_compra:e.orden_compra||'',fecha:e.fecha,cliente_id:e.cliente_id,clienteNombre:cliById[e.cliente_id]||'',estado:e.estado,validado:e.validado||null,
     items:(items||[]).filter(it=>it.entrega_id===e.id).map(it=>({producto:it.producto_nombre,cantidad:+it.cantidad||0,cajas:it.cajas||0,precio:+it.precio||0,did:despByUuid[it.despacho_id]||null,loteRef:it.lote_ref}))}));
   S.preciosCliente={};(precios||[]).forEach(p=>{S.preciosCliente[p.cliente_id+'|'+p.producto_id]=+p.precio||0;});
 }
@@ -1121,6 +1121,7 @@ function viewEnt(){
    <p class="hint">Elegí el cliente y agregá los despachos etiquetados. El remito se arma solo con los datos fiscales.</p>
    <div class="g2"><div><label>Cliente</label><select id="e_cli" onchange="renderCart()">${opts||'<option>—</option>'}</select></div>
    <div><label>Fecha de entrega</label><input type="date" id="e_fecha" value="${today()}"></div></div>
+   <label>Orden de compra (opcional)</label><input id="e_oc" placeholder="N° de OC del cliente a despachar" autocomplete="off">
    <label style="margin-top:8px">Despachos listos para agregar</label><div id="e_pending"></div></div>
    <div class="card"><div class="card-h"><h3>Remito en preparación</h3><span class="tag" id="e_count" style="background:var(--amber-bg);color:#86571a">0 ítems</span></div>
    <div id="e_cart"></div>
@@ -1146,7 +1147,7 @@ async function emitRemito(){const cliId=$('e_cli').value;const cli=S.clientes.fi
   try{
     const {data:num,error:e1}=await sb.rpc('siguiente_numero',{p_tipo:'remito'});if(e1)throw e1;
     const nro=(S.empresa.pto_venta||'0001')+'-'+pad8(num);
-    const {data:eRow,error:e2}=await sb.from('entregas').insert({empresa_id:S.empresaId,numero_remito:nro,fecha,cliente_id:cliId,estado:'activa'}).select('id').single();
+    const {data:eRow,error:e2}=await sb.from('entregas').insert({empresa_id:S.empresaId,numero_remito:nro,fecha,cliente_id:cliId,estado:'activa',orden_compra:($('e_oc')?$('e_oc').value.trim():'')||null}).select('id').single();
     if(e2)throw e2;
     const items=remCart.items.map(it=>{const pv=it.precio!=null?it.precio:precioCli(cliId,it.producto);return {empresa_id:S.empresaId,entrega_id:eRow.id,producto_nombre:it.producto,producto_id:prodIdByName(it.producto),cantidad:it.cantidad,cajas:it.cajas,precio:pv,despacho_id:it.didUuid,lote_ref:it.loteRef};});
     const {error:e3}=await sb.from('entrega_items').insert(items);if(e3)throw e3;
@@ -1159,8 +1160,8 @@ async function emitRemito(){const cliId=$('e_cli').value;const cli=S.clientes.fi
   }catch(err){banner('Error: '+err.message,'err');$('e_save').innerHTML='✓ Emitir remito';$('e_save').disabled=false;}
 }
 function entRows(){return S.entregas.filter(e=>enPeriodo(e.fecha,'ent')).slice(0,300).map(e=>{const val=e.validado&&e.validado.carga;return `<tr style="${e.estado==='anulada'?'opacity:.5':''}"><td class="mono">${e.numero_remito}</td><td>${fmtD(e.fecha)}</td><td>${(e.clienteNombre||'').slice(0,26)}</td><td class="mono">${nf(e.items.reduce((a,i)=>a+(+i.cantidad||0),0))}</td><td>${val?`<button class="btn btn-ghost btn-sm" onclick="reRemito('${e.id}')">🧾 Imprimir</button>`:'<span class="tag" title="Se imprime al validar la carga">🔒 sin validar</span>'}</td></tr>`;}).join('')||'<tr><td colspan=5 class=empty>Sin remitos en el período</td></tr>';}
-function reRemito(id){const e=S.entregas.find(x=>x.id===id);if(!e)return;if(!(e.validado&&e.validado.carga))return banner('Este remito se imprime al validar la carga','warn');const cli=S.clientes.find(c=>c.id===e.cliente_id)||{};renderRemito({nro:e.numero_remito,fecha:e.fecha,cliData:cli,items:e.items});}
-function remitoHTML(e){const emp=S.empresa;const c=e.cliData||{};return `<div class="remito"><div class="rh"><div style="display:flex;gap:10px;align-items:center;font-size:10px">${empLogo()?`<img class="rlogo" src="${empLogo()}">`:''}<div><b>${emp.razon_social}</b><br>${emp.cuit||''}<br>${emp.dom_fiscal||''}</div></div><div class="rtitle">REMITO<br><span style="font-size:13px">${e.nro}</span></div><div style="text-align:right;font-size:11px">Fecha: ${fmtD(e.fecha)}<br><b style="font-family:Space Grotesk;color:#16243f">FMN</b></div></div>
+function reRemito(id){const e=S.entregas.find(x=>x.id===id);if(!e)return;if(!(e.validado&&e.validado.carga))return banner('Este remito se imprime al validar la carga','warn');const cli=S.clientes.find(c=>c.id===e.cliente_id)||{};renderRemito({nro:e.numero_remito,fecha:e.fecha,cliData:cli,items:e.items,oc:e.orden_compra});}
+function remitoHTML(e){const emp=S.empresa;const c=e.cliData||{};return `<div class="remito"><div class="rh"><div style="display:flex;gap:10px;align-items:center;font-size:10px">${empLogo()?`<img class="rlogo" src="${empLogo()}">`:''}<div><b>${emp.razon_social}</b><br>${emp.cuit||''}<br>${emp.dom_fiscal||''}</div></div><div class="rtitle">REMITO<br><span style="font-size:13px">${e.nro}</span></div><div style="text-align:right;font-size:10px">Fecha: ${fmtD(e.fecha)}${e.oc?`<br><b>O. Compra:</b> ${esc(e.oc)}`:''}<br><b style="font-family:Space Grotesk;color:#16243f">FMN</b></div></div>
   <div style="display:flex;justify-content:space-between;gap:20px;padding:8px 0;border-bottom:1px solid #000;font-size:10px"><div><b>Cliente:</b> ${c.razon_social||''}<br><b>CUIT:</b> ${c.cuit||'—'}<br><b>Domicilio:</b> ${c.domicilio||'—'}</div><div style="text-align:right"><b>Localidad:</b> ${c.localidad||'—'}<br><b>Cond. IVA:</b> ${c.iva||'—'}<br><b>Tel:</b> ${c.telefono||'—'}</div></div>
   <table><thead><tr><th>Artículo</th><th style="text-align:right">Cantidad</th><th style="text-align:right">Bultos</th></tr></thead><tbody>${e.items.map(it=>`<tr><td>${it.producto}</td><td class="mono" style="text-align:right">${nf(it.cantidad,2)}</td><td class="mono" style="text-align:right">${nf(it.cajas,2)}</td></tr>`).join('')}</tbody></table>
   <div class="rspacer"></div>
@@ -1551,7 +1552,7 @@ function notFoundTraz(code){$('t_panel').innerHTML=`<div class="card"><div class
 function showTraceEntrega(e){const cli=S.clientes.find(c=>c.id===e.cliente_id)||{};const lotes=[...new Set(e.items.map(it=>it.loteRef).filter(Boolean))];
   $('t_panel').innerHTML=`<div class="card"><div class="card-h"><h3>Remito ${e.numero_remito}</h3><span class="tag ok">${fmtD(e.fecha)}</span></div>
    <div style="font-size:13px;line-height:1.7;margin-bottom:10px">Cliente: <b>${e.clienteNombre||''}</b> · CUIT ${cli.cuit||'—'}<br>Lotes entregados: ${lotes.map(l=>`<b>${l}</b>`).join(', ')||'—'}</div>
-   <div id="lblArea">${remitoHTML({nro:e.numero_remito,fecha:e.fecha,cliData:cli,items:e.items})}</div>
+   <div id="lblArea">${remitoHTML({nro:e.numero_remito,fecha:e.fecha,cliData:cli,items:e.items,oc:e.orden_compra})}</div>
    <p class="hint" style="margin-top:8px">Para ver la cadena completa hacia atrás, consultá uno de los lotes entregados.</p></div>`;}
 function trace(code){
   const panel=$('t_panel');if(!code)return notFoundTraz(code);
@@ -2133,7 +2134,7 @@ async function cargaGuardar(forzado,nota){const e=S.entregas.find(x=>x.id===carg
   const validado={carga:true,at:new Date().toISOString(),by:S.nombre||'',forzado,dif,extras:cargaState.extras,nota};
   const {error}=await sb.from('entregas').update({validado}).eq('id',e.id).eq('empresa_id',S.empresaId);
   if(error)return banner('Error: '+error.message,'err');
-  const remData={nro:e.numero_remito,fecha:e.fecha,cliData:S.clientes.find(c=>c.id===e.cliente_id)||{},items:e.items};
+  const remData={nro:e.numero_remito,fecha:e.fecha,cliData:S.clientes.find(c=>c.id===e.cliente_id)||{},items:e.items,oc:e.orden_compra};
   await reloadEntregas();cargaState=null;banner(forzado?'Carga validada con diferencias · imprimí el remito':'Carga validada ✓ · imprimí el remito','');render();
   renderRemito(remData);
 }
