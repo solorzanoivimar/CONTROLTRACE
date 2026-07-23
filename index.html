@@ -239,6 +239,7 @@ async function doLogin(){
   await boot();
 }
 function lmsg(t,ok){const m=$('lmsg');m.textContent=t;m.className='msg '+(ok?'ok':'err');}
+function pinAuth(v){v=(v||'').trim();if(!v)return null;const master=(((S.empresa&&S.empresa.pin)||'1234')+'').trim();if(v===master)return {nombre:(S.empresa&&S.empresa.pin_nombre)||'Supervisor'};const list=(S.empresa&&S.empresa.autorizadores)||[];const f=list.find(a=>a&&a.activo!==false&&((a.pin||'')+'').trim()===v);return f?{nombre:f.nombre||'Autorizador'}:null;}
 $('btnLogin').onclick=doLogin;
 $('password').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 $('btnLogout').onclick=async()=>{await sb.auth.signOut();location.reload();};
@@ -472,7 +473,7 @@ async function saveRecep(){
 function editRecep(codigo){
   modal(`<h3>🔒 Editar recepción ${codigo}</h3><p class="hint">Editar una recepción modifica el stock. Por seguridad, ingresá el PIN del supervisor.</p><label>PIN de supervisor</label><input type="password" id="re_pin" placeholder="••••"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="editRecepAuth('${codigo}')">Continuar</button></div>`);
 }
-function editRecepAuth(codigo){if($('re_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');openEditRecep(codigo);}
+function editRecepAuth(codigo){if(!pinAuth($('re_pin').value))return banner('PIN incorrecto','err');openEditRecep(codigo);}
 function openEditRecep(codigo){
   const r=S.recepciones.find(x=>x.codigo_lote===codigo);if(!r)return;
   modal(`<h3>Editar ${codigo}</h3>
@@ -498,7 +499,7 @@ function anularRecep(codigo){
    <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" onclick="doAnularRecep('${codigo}')">Anular</button></div>`);
 }
 async function doAnularRecep(codigo){
-  if($('a_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');
+  if(!pinAuth($('a_pin').value))return banner('PIN incorrecto','err');
   const {error}=await sb.from('recepciones').update({estado:'anulada',motivo_anulacion:$('a_mot').value.trim()}).eq('empresa_id',S.empresaId).eq('codigo_lote',codigo);
   if(error){banner('Error: '+error.message,'err');return;}
   await reloadRecepciones();closeModal();banner(codigo+' anulada','warn');render();
@@ -590,7 +591,7 @@ async function anularAcond(codigo){const a=(S.acond||[]).find(x=>x.id===codigo);
   if(rSal&&stockLote(rSal)<a.kgSal-0.001)return modal(`<h3>No se puede anular ${codigo}</h3><p class="hint">El lote pelado <b>${a.loteSal}</b> ya se usó (total o parcialmente) en una producción. Anulá primero esa producción.</p><div class="row"><button class="btn btn-gold" onclick="closeModal()">Entendido</button></div>`);
   modal(`<h3>🔒 Anular acondicionamiento ${codigo}</h3><p class="hint">Se libera el stock del lote original y se elimina el lote pelado <b>${a.loteSal}</b> (que no fue usado).</p><label>PIN de supervisor</label><input type="password" id="aca_pin" autocomplete="off"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" onclick="doAnularAcond('${codigo}')">Anular</button></div>`);}
 async function doAnularAcond(codigo){const a=(S.acond||[]).find(x=>x.id===codigo);if(!a)return;
-  if($('aca_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');
+  if(!pinAuth($('aca_pin').value))return banner('PIN incorrecto','err');
   try{
     await sb.from('acondicionamientos').update({estado:'anulada'}).eq('empresa_id',S.empresaId).eq('id',a.uuid);
     if(a.recSalId)await sb.from('recepciones').update({estado:'anulada'}).eq('empresa_id',S.empresaId).eq('id',a.recSalId);
@@ -757,7 +758,7 @@ async function saveProd(codigo){
     await reloadProducciones();banner('Producción '+codigoOp+' abierta','');go('prod');
   }catch(err){banner('Error: '+err.message,'err');$('pp_save').innerHTML='Abrir producción';$('pp_save').disabled=false;}
 }
-function fefoAuth(codigo){if($('fefo_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');window._fefoOk=window._fefoOk||{};window._fefoOk[codigo]=true;closeModal();saveProd(codigo);}
+function fefoAuth(codigo){if(!pinAuth($('fefo_pin').value))return banner('PIN incorrecto','err');window._fefoOk=window._fefoOk||{};window._fefoOk[codigo]=true;closeModal();saveProd(codigo);}
 
 function editProd(codigo){
   const p=S.producciones.find(x=>x.id===codigo);if(!p)return;
@@ -810,7 +811,7 @@ async function doValidarProd(codigo){
   await reloadProducciones();await reloadInsumos();closeModal();banner(codigo+' validada 🔒','');render();
 }
 async function unlockProd(codigo){
-  if($('up_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');
+  if(!pinAuth($('up_pin').value))return banner('PIN incorrecto','err');
   const p=S.producciones.find(x=>x.id===codigo);
   await sb.from('producciones').update({estado:'abierta'}).eq('empresa_id',S.empresaId).eq('id',p.uuid);
   await restaurarInsumos(codigo);
@@ -961,7 +962,7 @@ function editDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;
   const rem=despEnRemito(id);
   if(rem)return modal(`<h3>No se puede editar ${id}</h3><p class="hint">Este despacho ya está incluido en el remito <b>${rem.numero_remito}</b>. Para modificarlo, primero hay que anular esa entrega.</p><div class="row"><button class="btn btn-gold" onclick="closeModal()">Entendido</button></div>`);
   modal(`<h3>🔒 Editar despacho ${id}</h3><p class="hint">Editar un despacho cambia el stock de producto terminado. Por seguridad, ingresá el PIN del supervisor.</p><label>PIN de supervisor</label><input type="password" id="edp_pin" autocomplete="off"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="editDespAuth('${id}')">Continuar</button></div>`);}
-function editDespAuth(id){if($('edp_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');openEditDesp(id);}
+function editDespAuth(id){if(!pinAuth($('edp_pin').value))return banner('PIN incorrecto','err');openEditDesp(id);}
 function openEditDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;const it=d.items[0]||{};
   const outs=outsDeDesp(d);window._edDesp={id,outs};
   modal(`<h3>Editar despacho ${id}</h3><p class="hint">Producto: <b>${esc(it.producto||'')}</b>. Corregí los lotes y las cantidades: las cajas se recalculan solas.</p>
@@ -996,7 +997,7 @@ function anularDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;
    <div class="note" style="margin-top:10px">Si ya imprimiste etiquetas de este despacho, acordate de descartarlas físicamente.</div>
    <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" id="an_save" onclick="doAnularDesp('${id}')">Anular despacho</button></div>`);}
 async function doAnularDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;
-  if($('an_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');
+  if(!pinAuth($('an_pin').value))return banner('PIN incorrecto','err');
   const motivo=$('an_mot').value.trim();if(!motivo)return banner('Indicá el motivo de la anulación','warn');
   $('an_save').innerHTML='<span class="spin"></span>Anulando...';$('an_save').disabled=true;
   try{
@@ -1736,6 +1737,7 @@ function cfgEmpresa(){const e=S.empresa;$('cfg_body').innerHTML=`
    <div class="g2"><div><label>RENSPA</label><input id="cf_renspa" value="${esc(e.renspa)}"></div><div><label>RNE</label><input id="cf_rne" value="${esc(e.rne)}"></div></div>
    <div class="g2"><div><label>Punto de venta</label><input id="cf_pv" value="${esc(e.pto_venta)}"></div><div><label>Teléfono</label><input id="cf_tel" value="${esc(e.tel)}"></div></div>
    <div class="g2"><div><label>Email</label><input id="cf_email" value="${esc(e.email)}"></div><div><label>PIN de supervisor</label><input id="cf_pin" value="${esc(e.pin)}" placeholder="••••"></div></div>
+   <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><div style="font-family:'Space Grotesk';font-weight:600;color:var(--navy)">🔑 Autorizadores adicionales</div><p class="hint" style="margin:4px 0 8px">Personas que también pueden autorizar operaciones (anular, editar, desbloquear, PEPS) con su propio PIN, por si el supervisor principal no está presente. Cada una con su PIN. Dejá en blanco lo que no uses.</p>${[0,1,2].map(i=>{const a=(e.autorizadores||[])[i]||{};return `<div class="g2" style="margin-bottom:6px"><div><label>Nombre autorizador ${i+1}</label><input id="au_n${i}" value="${esc(a.nombre||'')}" placeholder="Nombre y apellido"></div><div><label>PIN</label><input id="au_p${i}" value="${esc(a.pin||'')}" placeholder="ej: 4 dígitos" autocomplete="off"></div></div>`;}).join('')}</div>
    <label style="margin-top:10px">Logo de la empresa <span style="color:var(--muted);font-weight:400">(sale en el comprobante de recepción y en las etiquetas)</span></label>
    <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px">
      <div style="width:100px;height:64px;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden">${empLogo()?`<img src="${empLogo()}" style="max-width:100%;max-height:100%;object-fit:contain">`:'<span style="font-size:11px;color:var(--muted)">sin logo</span>'}</div>
@@ -1751,7 +1753,7 @@ async function empLogoUp(input){const f=input.files&&input.files[0];if(!f)return
     S.empresa.etiqueta_config=cfg;if(S.etq)S.etq.logo=rd.result;banner('Logo guardado','');cfgEmpresa();};
   rd.readAsDataURL(f);}
 async function saveEmpresa(){$('cf_save').innerHTML='<span class="spin"></span>Guardando...';$('cf_save').disabled=true;
-  try{const upd={razon_social:$('cf_rs').value.trim(),cuit:$('cf_cuit').value.trim(),dom_fiscal:$('cf_domf').value.trim(),dom_planta:$('cf_domp').value.trim(),renspa:$('cf_renspa').value.trim(),rne:$('cf_rne').value.trim(),pto_venta:$('cf_pv').value.trim(),tel:$('cf_tel').value.trim(),email:$('cf_email').value.trim(),pin:$('cf_pin').value.trim()||'1234'};
+  try{const upd={razon_social:$('cf_rs').value.trim(),cuit:$('cf_cuit').value.trim(),dom_fiscal:$('cf_domf').value.trim(),dom_planta:$('cf_domp').value.trim(),renspa:$('cf_renspa').value.trim(),rne:$('cf_rne').value.trim(),pto_venta:$('cf_pv').value.trim(),tel:$('cf_tel').value.trim(),email:$('cf_email').value.trim(),pin:$('cf_pin').value.trim()||'1234',autorizadores:[0,1,2].map(i=>({nombre:($('au_n'+i)?$('au_n'+i).value.trim():''),pin:($('au_p'+i)?$('au_p'+i).value.trim():''),activo:true})).filter(a=>a.pin)};
     const {error}=await sb.from('empresas').update(upd).eq('id',S.empresaId);if(error)throw error;
     Object.assign(S.empresa,upd);$('empName').textContent=S.empresa.razon_social;banner('Datos de empresa guardados','');
   }catch(err){banner('Error: '+err.message,'err');}
@@ -2125,7 +2127,7 @@ function cargaValidar(){const dif=cargaDifs();const hayDif=dif.length>0||cargaSt
   if(!hayDif)return cargaGuardar(false,'');
   modal(`<h3>Hay diferencias en la carga</h3><p class="hint">${dif.map(d=>`${d.producto}: esperadas ${d.esperado}, cargadas ${d.cargado}`).join('<br>')}${cargaState.extras.length?`<br>${cargaState.extras.length} caja(s) ajenas`:''}</p><label>PIN del supervisor para autorizar</label><input type="password" id="cg_pin" autocomplete="off"><label>Nota (motivo de la diferencia)</label><input id="cg_nota" placeholder="ej: faltó 1 caja, se despacha igual"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="cargaPinOk()">Autorizar y validar</button></div>`);
 }
-function cargaPinOk(){if($('cg_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');const nota=$('cg_nota').value.trim();closeModal();cargaGuardar(true,nota);}
+function cargaPinOk(){if(!pinAuth($('cg_pin').value))return banner('PIN incorrecto','err');const nota=$('cg_nota').value.trim();closeModal();cargaGuardar(true,nota);}
 async function cargaGuardar(forzado,nota){const e=S.entregas.find(x=>x.id===cargaState.entregaId);const dif=cargaDifs();
   const validado={carga:true,at:new Date().toISOString(),by:S.nombre||'',forzado,dif,extras:cargaState.extras,nota};
   const {error}=await sb.from('entregas').update({validado}).eq('id',e.id).eq('empresa_id',S.empresaId);
@@ -2277,7 +2279,7 @@ function dsPick(){const cl=$('ds_lote').value;const r=S.recepciones.find(x=>x.co
 function dsLoss(){const cl=$('ds_lote').value;const r=S.recepciones.find(x=>x.codigo_lote===cl);const kg=+$('ds_kg').value||0;const el=$('ds_lossv');if(!el)return;if(r&&kg>0){el.innerHTML=`Pérdida estimada: <b>${money(kg*avgPriceKg(r.materia_prima))}</b> (precio prom. ${money(avgPriceKg(r.materia_prima))}/kg)`;}else el.innerHTML='';}
 async function saveDescarte(){const cl=$('ds_lote').value;const kg=+$('ds_kg').value||0;
   if(!cl)return banner('Elegí un lote','warn');if(kg<=0)return banner('Indicá los kilos','warn');
-  if($('ds_pin').value!==(S.empresa.pin||'1234'))return banner('PIN incorrecto','err');
+  if(!pinAuth($('ds_pin').value))return banner('PIN incorrecto','err');
   const r=S.recepciones.find(x=>x.codigo_lote===cl);const disp=r?stockLote(r):0;
   if(kg>disp+0.001)return banner('Solo hay '+nf(disp,1)+'kg disponibles en ese lote','warn');
   $('ds_save').innerHTML='<span class="spin"></span>Registrando...';$('ds_save').disabled=true;
