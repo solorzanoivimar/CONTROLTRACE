@@ -104,11 +104,11 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
 .node .what{font-weight:600;color:var(--ink);font-size:14px;margin:2px 0}
 .node .det{font-size:12px;color:var(--muted);line-height:1.6}
 @media print{body *{visibility:hidden}#lblArea,#lblArea *,#repSheet,#repSheet *{visibility:visible}#lblArea,#repSheet{position:absolute;left:0;top:0}#repSheet{border:0}.modal{box-shadow:none;border:0}}
-.remito{background:#fff;color:#000;border:1px solid #000;padding:14px;font-size:12px}
-.remito .rh{display:flex;justify-content:space-between;border-bottom:1px solid #000;padding-bottom:8px}
-.remito .rtitle{font-size:16px;font-weight:700;text-align:center;flex:1;font-family:'Space Grotesk'}
-.remito table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:8px}.remito th,.remito td{border-bottom:1px solid #ccc;padding:5px 8px}
-.remito .obs{border:1px solid #000;min-height:54px;margin-top:12px;padding:6px;font-size:11px}
+.remito{background:#fff;color:#000;border:1px solid #000;padding:12px;font-size:10.5px;display:flex;flex-direction:column;min-height:255mm;box-sizing:border-box}
+.remito .rh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:1px solid #000;padding-bottom:8px}
+.remito .rtitle{font-size:15px;font-weight:700;text-align:center;flex:1;font-family:'Space Grotesk'}
+.remito table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}.remito th,.remito td{border-bottom:1px solid #ccc;padding:3px 6px}.remito .rspacer{flex:1 1 auto}.remito .rlogo{max-height:52px;max-width:150px;object-fit:contain}
+.remito .obs{border:1px solid #000;min-height:48px;margin-top:12px;padding:6px;font-size:10px;flex-shrink:0}
 .linkrow{display:flex;align-items:center;gap:8px}
 </style>
 </head>
@@ -1160,9 +1160,10 @@ async function emitRemito(){const cliId=$('e_cli').value;const cli=S.clientes.fi
 }
 function entRows(){return S.entregas.filter(e=>enPeriodo(e.fecha,'ent')).slice(0,300).map(e=>{const val=e.validado&&e.validado.carga;return `<tr style="${e.estado==='anulada'?'opacity:.5':''}"><td class="mono">${e.numero_remito}</td><td>${fmtD(e.fecha)}</td><td>${(e.clienteNombre||'').slice(0,26)}</td><td class="mono">${nf(e.items.reduce((a,i)=>a+(+i.cantidad||0),0))}</td><td>${val?`<button class="btn btn-ghost btn-sm" onclick="reRemito('${e.id}')">🧾 Imprimir</button>`:'<span class="tag" title="Se imprime al validar la carga">🔒 sin validar</span>'}</td></tr>`;}).join('')||'<tr><td colspan=5 class=empty>Sin remitos en el período</td></tr>';}
 function reRemito(id){const e=S.entregas.find(x=>x.id===id);if(!e)return;if(!(e.validado&&e.validado.carga))return banner('Este remito se imprime al validar la carga','warn');const cli=S.clientes.find(c=>c.id===e.cliente_id)||{};renderRemito({nro:e.numero_remito,fecha:e.fecha,cliData:cli,items:e.items});}
-function remitoHTML(e){const emp=S.empresa;const c=e.cliData||{};return `<div class="remito"><div class="rh"><div style="font-size:11px"><b>${emp.razon_social}</b><br>${emp.cuit||''}<br>${emp.dom_fiscal||''}</div><div class="rtitle">REMITO<br><span style="font-size:13px">${e.nro}</span></div><div style="text-align:right;font-size:11px">Fecha: ${fmtD(e.fecha)}<br><b style="font-family:Space Grotesk;color:#16243f">FMN</b></div></div>
-  <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #000;font-size:11px"><div><b>Cliente:</b> ${c.razon_social||''}<br><b>CUIT:</b> ${c.cuit||'—'}<br><b>Domicilio:</b> ${c.domicilio||'—'}</div><div style="text-align:right"><b>Localidad:</b> ${c.localidad||'—'}<br><b>Cond. IVA:</b> ${c.iva||'—'}<br><b>Tel:</b> ${c.telefono||'—'}</div></div>
+function remitoHTML(e){const emp=S.empresa;const c=e.cliData||{};return `<div class="remito"><div class="rh"><div style="display:flex;gap:10px;align-items:center;font-size:10px">${empLogo()?`<img class="rlogo" src="${empLogo()}">`:''}<div><b>${emp.razon_social}</b><br>${emp.cuit||''}<br>${emp.dom_fiscal||''}</div></div><div class="rtitle">REMITO<br><span style="font-size:13px">${e.nro}</span></div><div style="text-align:right;font-size:11px">Fecha: ${fmtD(e.fecha)}<br><b style="font-family:Space Grotesk;color:#16243f">FMN</b></div></div>
+  <div style="display:flex;justify-content:space-between;gap:20px;padding:8px 0;border-bottom:1px solid #000;font-size:10px"><div><b>Cliente:</b> ${c.razon_social||''}<br><b>CUIT:</b> ${c.cuit||'—'}<br><b>Domicilio:</b> ${c.domicilio||'—'}</div><div style="text-align:right"><b>Localidad:</b> ${c.localidad||'—'}<br><b>Cond. IVA:</b> ${c.iva||'—'}<br><b>Tel:</b> ${c.telefono||'—'}</div></div>
   <table><thead><tr><th>Artículo</th><th style="text-align:right">Cantidad</th><th style="text-align:right">Bultos</th></tr></thead><tbody>${e.items.map(it=>`<tr><td>${it.producto}</td><td class="mono" style="text-align:right">${nf(it.cantidad,2)}</td><td class="mono" style="text-align:right">${nf(it.cajas,2)}</td></tr>`).join('')}</tbody></table>
+  <div class="rspacer"></div>
   <div class="obs"><b>OBSERVACIÓN:</b></div></div>`;}
 function printDoc(size){let st=document.getElementById('dynpage');if(!st){st=document.createElement('style');st.id='dynpage';document.head.appendChild(st);}const a4=(size==='A4'||size==='a4');st.textContent='@page{size:'+(size||'auto')+';margin:'+(a4?'12mm':'6mm')+'}';window.print();}
 function renderRemito(e){modal(`<h3>Remito ${e.nro}</h3><p class="hint">Documento interno para el cliente (sin precios) · se imprime en hoja A4</p><div id="lblArea">${remitoHTML(e)}</div><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-gold" onclick="printDoc('A4')">Imprimir remito (A4)</button></div>`);}
