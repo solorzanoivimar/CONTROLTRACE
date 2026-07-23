@@ -191,7 +191,8 @@ const MODS=[
   {id:'insu',ico:'📦',name:'Insumos',grupo:'Análisis',roles:['admin','supervisor','preparador']},
   {id:'rep',ico:'📊',name:'Reportes',grupo:'Análisis',roles:['admin','supervisor','comercial']},
   {id:'costeo',ico:'💲',name:'Costeo',grupo:'Análisis',roles:['admin','comercial']},
-  {id:'cfg',ico:'⚙️',name:'Configuración',grupo:'Sistema',roles:['admin']}
+  {id:'cfg',ico:'⚙️',name:'Configuración',grupo:'Sistema',roles:['admin']},
+  {id:'usuarios',ico:'👥',name:'Usuarios',grupo:'Sistema',roles:['admin','supervisor']}
 ];
 function buildNav(){
   const allowed=MODS.filter(m=>canSee(S.rol,m.id));
@@ -202,7 +203,7 @@ function buildNav(){
 }
 function go(v){cur=v;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render();}
 
-const META={dash:['PANEL','Panel de control'],rec:['PASO 1 · ENTRADA','Recepción de mercadería'],prod:['PASO 2 · PROCESO','Producción'],desp:['PASO 3 · ETIQUETADO','Despacho y etiquetas'],ent:['PASO 4 · SALIDA','Entrega y remito'],ped:['DEMANDA','Pedidos y plan de compra'],rep:['DIRECCIÓN','Reporte diario'],traz:['CONSULTA','Consultar trazabilidad'],cfg:['SISTEMA','Configuración'],stock:['ANÁLISIS','Stock en cámara'],insu:['ANÁLISIS','Stock de insumos'],costeo:['ANÁLISIS','Costeo de productos'],dev:['OPERACIÓN','Devoluciones'],carga:['OPERACIÓN','Validación de carga'],ens:['OPERACIÓN','Ensamblado'],descmp:['OPERACIÓN','Descarte de materia prima']};
+const META={dash:['PANEL','Panel de control'],rec:['PASO 1 · ENTRADA','Recepción de mercadería'],prod:['PASO 2 · PROCESO','Producción'],desp:['PASO 3 · ETIQUETADO','Despacho y etiquetas'],ent:['PASO 4 · SALIDA','Entrega y remito'],ped:['DEMANDA','Pedidos y plan de compra'],rep:['DIRECCIÓN','Reporte diario'],traz:['CONSULTA','Consultar trazabilidad'],cfg:['SISTEMA','Configuración'],stock:['ANÁLISIS','Stock en cámara'],insu:['ANÁLISIS','Stock de insumos'],costeo:['ANÁLISIS','Costeo de productos'],dev:['OPERACIÓN','Devoluciones'],carga:['OPERACIÓN','Validación de carga'],ens:['OPERACIÓN','Ensamblado'],descmp:['OPERACIÓN','Descarte de materia prima'],usuarios:['SISTEMA','Usuarios y accesos']};
 function render(){
   const m=MODS.find(x=>x.id===cur);
   $('crumb').textContent=(META[cur]||[m.name.toUpperCase(),m.name])[0];
@@ -218,6 +219,7 @@ function render(){
   else if(cur==='rep')viewRep();
   else if(cur==='traz')viewTraz();
   else if(cur==='cfg')viewCfg();
+  else if(cur==='usuarios')viewUsuarios();
   else if(cur==='stock')viewStock();
   else if(cur==='insu')viewInsu();
   else if(cur==='costeo')viewCosteo();
@@ -246,9 +248,10 @@ async function boot(){
   try{
     const {data:{user}}=await sb.auth.getUser();
     if(!user){showLogin();return;}
-    const {data:perfil,error:e1}=await sb.from('perfiles').select('nombre,rol,empresa_id').eq('id',user.id).single();
+    const {data:perfil,error:e1}=await sb.from('perfiles').select('nombre,rol,empresa_id,activo').eq('id',user.id).single();
     if(e1)throw new Error('Perfil: '+e1.message);
-    S.empresaId=perfil.empresa_id;S.rol=perfil.rol;S.nombre=perfil.nombre;
+    S.empresaId=perfil.empresa_id;S.rol=perfil.rol;S.nombre=perfil.nombre;S._uid=user.id;
+    if(perfil.activo===false){await sb.auth.signOut();showLogin();lmsg('Tu usuario está inactivo. Contactá al administrador.',0);return;}
     const {data:emp,error:e2}=await sb.from('empresas').select('*').eq('id',perfil.empresa_id).single();
     if(e2)throw new Error('Empresa: '+e2.message);
     S.empresa=emp;
@@ -274,6 +277,56 @@ async function boot(){
   }catch(err){lmsg('❌ '+err.message,0);$('btnLogin').innerHTML='Ingresar';$('btnLogin').disabled=false;}
 }
 function showLogin(){$('app').style.display='none';$('login').style.display='flex';}
+
+// ================= MÓDULO USUARIOS (accesos) =================
+const ROL_LABEL={admin:'Administrador',supervisor:'Supervisor',comercial:'Comercial',preparador:'Preparador',chofer:'Chofer'};
+function rolLabel(r){return ROL_LABEL[r]||r;}
+function usuarioRoles(){const base=['supervisor','comercial','preparador','chofer'];if(S.rol==='admin')base.unshift('admin');return base;}
+function rolOpts(sel){return usuarioRoles().map(r=>`<option value="${r}" ${r===sel?'selected':''}>${rolLabel(r)}</option>`).join('');}
+function viewUsuarios(){
+  $('view').innerHTML=`<div class="card"><div class="card-h"><h3>Usuarios y accesos</h3></div>
+    <p class="hint">Creá usuarios de acceso al sistema para tu empresa. Definís una contraseña inicial y se la comunicás a la persona; después puede cambiarla. (Los operarios del padrón, para "recibido por", se gestionan aparte en Configuración → Operarios.)</p>
+    <div class="g2" style="align-items:end;gap:10px"><div><label>Nombre y apellido</label><input id="u_nom" placeholder="Ej: Luis Sevilla"></div><div><label>Correo (para ingresar)</label><input id="u_email" type="email" placeholder="persona@empresa.com" autocomplete="off"></div></div>
+    <div class="g2" style="align-items:end;gap:10px;margin-top:8px"><div><label>Contraseña inicial</label><input id="u_pass" type="text" placeholder="mínimo 6 caracteres" autocomplete="off"></div><div><label>Rol</label><select id="u_rol">${rolOpts('preparador')}</select></div></div>
+    <div class="row" style="margin-top:10px"><button class="btn btn-gold" id="u_btn" onclick="crearUsuario()">+ Crear usuario</button></div>
+    <div id="u_list" style="margin-top:18px"><p class="hint">Cargando usuarios…</p></div>
+  </div>`;
+  cargarUsuarios();
+}
+async function cargarUsuarios(){
+  const box=$('u_list');if(!box)return;box.innerHTML='<p class="hint">Cargando usuarios…</p>';
+  const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'list'}});
+  if(error||(data&&data.error)){box.innerHTML=`<div class="note" style="color:var(--danger,#b3402f)">No se pudieron cargar los usuarios: ${esc((data&&data.error)||(error&&error.message)||'error')}.<br>Verificá que la Edge Function <b>manage-users</b> esté desplegada en Supabase.</div>`;return;}
+  const users=(data&&data.users)||[];
+  box.innerHTML=`<div style="overflow:auto"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>${users.map(u=>userRow(u)).join('')||'<tr><td colspan=5 class=empty>Sin usuarios</td></tr>'}</tbody></table></div>`;
+}
+function userRow(u){const yo=(u.id===S._uid);const esAdminAjeno=(S.rol==='supervisor'&&u.rol==='admin');
+  const rolSel=`<select ${(yo||esAdminAjeno)?'disabled':''} onchange="cambiarRol('${u.id}',this.value)">${usuarioRoles().map(r=>`<option value="${r}" ${u.rol===r?'selected':''}>${rolLabel(r)}</option>`).join('')}${(esAdminAjeno&&!usuarioRoles().includes('admin'))?`<option value="admin" selected>${rolLabel('admin')}</option>`:''}</select>`;
+  const accion=(yo||esAdminAjeno)?'':`<button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}',${u.activo===false})">${u.activo===false?'Activar':'Dar de baja'}</button>`;
+  return `<tr style="${u.activo===false?'opacity:.55':''}"><td>${esc(u.nombre||'—')}${yo?' <span class="tag ok">vos</span>':''}</td><td class="mono">${esc(u.email||'—')}</td><td>${rolSel}</td><td><span class="tag ${u.activo===false?'out':'ok'}">${u.activo===false?'Inactivo':'Activo'}</span></td><td style="white-space:nowrap">${accion}</td></tr>`;
+}
+async function crearUsuario(){
+  const nombre=$('u_nom').value.trim(),email=$('u_email').value.trim(),password=$('u_pass').value,rol=$('u_rol').value;
+  if(!nombre||!email||!password)return banner('Completá nombre, correo y contraseña','warn');
+  if(password.length<6)return banner('La contraseña debe tener al menos 6 caracteres','warn');
+  const b=$('u_btn');b.disabled=true;b.textContent='Creando…';
+  const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'create',nombre,email,password,rol}});
+  b.disabled=false;b.textContent='+ Crear usuario';
+  if(error||(data&&data.error))return banner('Error: '+esc((data&&data.error)||(error&&error.message)||'no se pudo crear'),'err');
+  banner('Usuario creado ✓','');$('u_nom').value='';$('u_email').value='';$('u_pass').value='';cargarUsuarios();
+}
+async function cambiarRol(id,rol){
+  const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'set-role',id,rol}});
+  if(error||(data&&data.error)){banner('Error: '+esc((data&&data.error)||(error&&error.message)),'err');cargarUsuarios();return;}
+  banner('Rol actualizado ✓','');
+}
+async function toggleUsuario(id,activar){
+  if(!confirm(activar?'¿Reactivar este usuario? Podrá volver a ingresar.':'¿Dar de baja este usuario? No podrá ingresar al sistema.'))return;
+  const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'set-active',id,activo:activar}});
+  if(error||(data&&data.error)){banner('Error: '+esc((data&&data.error)||(error&&error.message)),'err');return;}
+  banner('Usuario actualizado ✓','');cargarUsuarios();
+}
+
 async function reloadCatalogo(){
   const [{data:prod},{data:cli},{data:prov},{data:mat},{data:comp}]=await Promise.all([
     sb.from('productos').select('*').eq('empresa_id',S.empresaId).order('nombre'),
