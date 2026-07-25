@@ -129,11 +129,18 @@
     right.appendChild(usr);
   }
 
-  const btnPortal = document.createElement('a');
-  btnPortal.href = '/';
-  btnPortal.className = 'cm-btn-portal';
-  btnPortal.textContent = '⬅ Portal';
-  right.appendChild(btnPortal);
+  const btnSalir = document.createElement('a');
+  btnSalir.href = '#';
+  btnSalir.className = 'cm-btn-portal';
+  btnSalir.textContent = '⎋ Salir';
+  btnSalir.title = 'Cerrar sesión';
+  btnSalir.onclick = function(e){
+    e.preventDefault();
+    try { sessionStorage.removeItem('fmn'); sessionStorage.removeItem('fmn_sesion'); } catch(_){ }
+    try { Object.keys(localStorage).forEach(function(k){ if(k.indexOf('sb-')===0) localStorage.removeItem(k); }); } catch(_){ }
+    window.location.href = '/';
+  };
+  right.appendChild(btnSalir);
 
   nav.appendChild(brand);
   nav.appendChild(tabs);
