@@ -312,7 +312,7 @@ function show(email,nombre,rol){
   b.className="rol-badge rol-"+rol;
   const mods=MODS[rol]||MODS.galpon;
   const activos=mods.filter(m=>!m.prox);
-  if(activos.length===1){window.location.href=activos[0].url;return;}
+  if(activos.length>=1){window.location.href=activos[0].url;return;}
   document.getElementById("mg").innerHTML=mods.map(m=>
     '<a class="mod-card '+m.id+(m.prox?" prox":"")+'" href="'+(m.url||"#")+'"'+(m.prox?' tabindex="-1"':"")+">"+
     '<span class="mod-ico">'+m.ico+"</span>"+
