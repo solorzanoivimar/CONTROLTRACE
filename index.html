@@ -270,7 +270,7 @@ body::after{
 // ══════════ CONTROL MAX · Login con SSO (supabase-js) ══════════
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 function destinoPorAcceso(acceso){
   acceso=(acceso||'').toLowerCase();
