@@ -2294,11 +2294,7 @@ async function saveDescarte(){const cl=$('ds_lote').value;const kg=+$('ds_kg').v
 }
 
 // ---- ARRANQUE: sesión persistente ----
-(async()=>{
-  const {data:{session}}=await sb.auth.getSession();
-  if(session){await boot();}
-  else{showLogin();}
-})();
+(async()=>{ await boot(); })();
 </script>
 <script src="/navbar.js"></script>
 </body>
