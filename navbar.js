@@ -1,7 +1,7 @@
 (function() {
   // ── Sesión del portal (el portal guarda en 'fmn'; dejamos fallback por compatibilidad) ──
   function getSesion() {
-    try { return JSON.parse(sessionStorage.getItem('fmn') || sessionStorage.getItem('fmn_sesion')); }
+    try { return JSON.parse(localStorage.getItem('fmn') || sessionStorage.getItem('fmn') || sessionStorage.getItem('fmn_sesion')); }
     catch(e) { return null; }
   }
   const sesion = getSesion();
@@ -136,7 +136,7 @@
   btnSalir.title = 'Cerrar sesión';
   btnSalir.onclick = function(e){
     e.preventDefault();
-    try { sessionStorage.removeItem('fmn'); sessionStorage.removeItem('fmn_sesion'); } catch(_){ }
+    try { localStorage.removeItem('fmn'); sessionStorage.removeItem('fmn'); sessionStorage.removeItem('fmn_sesion'); } catch(_){ }
     try { Object.keys(localStorage).forEach(function(k){ if(k.indexOf('sb-')===0) localStorage.removeItem(k); }); } catch(_){ }
     window.location.href = '/';
   };
