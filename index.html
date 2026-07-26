@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
+<head><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CONTROL MAX</title>
@@ -267,67 +267,56 @@ body::after{
 
 </div>
 <script>
-const SU="https://gfovibpzpyjebkgdwuya.supabase.co";
-const SK="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmb3ZpYnB6cHlqZWJrZ2R3dXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTY0NjcsImV4cCI6MjA5NzQ3MjQ2N30.jFrtGrJ5UB30nyNriu7sbPSOT2s_B0QHyzyQS3mP_MM";
-const MODS={
-  admin:[
-    {id:"trace",c:"CONTROL ",s:"TRACE",sc:"s-trace",ico:"🏭",desc:"Galpón · Recepción · Trazabilidad · Remitos",tag:"Galpón",tc:"t-dorado",url:"/CONTROLTRACE/index.html"},
-    {id:"agro", c:"CONTROL ",s:"AGRO", sc:"s-agro", ico:"🌿",desc:"Finca · Invernadero · Siembras · Cosecha",  tag:"Campo",  tc:"t-verde", url:"/CONTROLTRACE/controlagro/index.html"},
-    {id:"plus", c:"CONTROL ",s:"PLUS", sc:"s-plus", ico:"🧾",desc:"Facturación · ARCA · Cuenta corriente",     tag:"Próximo",tc:"t-gris",  url:null,prox:true},
-  ],
-  galpon:[{id:"trace",c:"CONTROL ",s:"TRACE",sc:"s-trace",ico:"🏭",desc:"Galpón · Recepción · Trazabilidad · Remitos",tag:"Galpón",tc:"t-dorado",url:"/CONTROLTRACE/index.html"}],
-  finca: [{id:"agro", c:"CONTROL ",s:"AGRO", sc:"s-agro", ico:"🌿",desc:"Finca · Invernadero · Siembras · Cosecha",  tag:"Campo",  tc:"t-verde", url:"/CONTROLTRACE/controlagro/index.html"}],
-};
-async function sp(p,b){const r=await fetch(SU+p,{method:"POST",headers:{"apikey":SK,"Content-Type":"application/json"},body:JSON.stringify(b)});return r.json();}
-async function sg(t,f){const r=await fetch(SU+"/rest/v1/"+t+f,{headers:{"apikey":SK,"Authorization":"Bearer "+SK}});return r.json();}
-window.addEventListener("DOMContentLoaded",()=>{
-  document.getElementById("ip").addEventListener("keydown",e=>{if(e.key==="Enter")login();});
-  document.getElementById("ie").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("ip").focus();});
-  const s=gs();if(s)show(s.email,s.nombre,s.rol);
-});
+// ══════════ CONTROL MAX · Login con SSO (supabase-js) ══════════
+const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
+const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+function destinoPorAcceso(acceso){
+  acceso=(acceso||'').toLowerCase();
+  if(acceso==='finca') return '/CONTROLTRACE/controlagro/index.html';
+  return '/CONTROLTRACE/index.html'; // galpon, admin, dueño -> Control Trace
+}
+
+async function entrar(user){
+  // Acceso a módulos (CONTROL MAX) se define en user_roles
+  const {data:roles}=await sb.from('user_roles').select('rol,nombre,email,activo').eq('user_id',user.id).limit(1);
+  const r=(roles&&roles[0])||null;
+  if(!r || r.activo===false){
+    se('Tu usuario no tiene acceso asignado. Contactá al administrador.');
+    await sb.auth.signOut(); rb(); return;
+  }
+  const acceso=(r.rol||'').toLowerCase();
+  const sesion={email:r.email||user.email, nombre:r.nombre||user.email, rol:acceso};
+  try{ localStorage.setItem('fmn', JSON.stringify(sesion)); sessionStorage.setItem('fmn', JSON.stringify(sesion)); }catch(_){}
+  window.location.href=destinoPorAcceso(acceso);
+}
+
 async function login(){
-  const email=document.getElementById("ie").value.trim();
-  const pass=document.getElementById("ip").value;
-  const btn=document.getElementById("bl");
-  if(!email||!pass){se("Completá email y contraseña.");return;}
+  const email=document.getElementById('ie').value.trim();
+  const pass=document.getElementById('ip').value;
+  const btn=document.getElementById('bl');
+  if(!email||!pass){se('Completá email y contraseña.');return;}
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Verificando...';
-  document.getElementById("em").classList.remove("show");
+  document.getElementById('em').classList.remove('show');
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error||!data||!data.user){se('Usuario o contraseña incorrectos.');rb();return;}
+  await entrar(data.user);
+}
+
+window.addEventListener('DOMContentLoaded', async ()=>{
+  document.getElementById('ip').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+  document.getElementById('ie').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('ip').focus();});
+  const bl=document.getElementById('bl'); if(bl) bl.onclick=login;
+  // Si ya hay sesión abierta, entra directo (SSO)
   try{
-    const a=await sp("/auth/v1/token?grant_type=password",{email,password:pass});
-    if(a.error||!a.access_token){se("Usuario o contraseña incorrectos.");rb();return;}
-    const roles=await sg("user_roles","?user_id=eq."+a.user.id+"&activo=eq.true&limit=1");
-    if(!roles||!roles.length){se("Sin permisos asignados. Contactá al administrador.");rb();return;}
-    const{rol,nombre,email:em}=roles[0];
-    ss({email:em||email,nombre:nombre||email,rol});
-    show(em||email,nombre||email,rol);
-  }catch(e){se("Error de conexión. Intentá de nuevo.");rb();}
-}
-function show(email,nombre,rol){
-  document.getElementById("lw").classList.add("hide");
-  document.getElementById("portal").classList.add("show");
-  document.getElementById("pn").textContent=nombre||email;
-  document.getElementById("pe").textContent=email;
-  const b=document.getElementById("pb");
-  b.textContent={admin:"⚙️ Administrador",galpon:"🏭 Galpón",finca:"🌿 Finca"}[rol]||rol;
-  b.className="rol-badge rol-"+rol;
-  const mods=MODS[rol]||MODS.galpon;
-  const activos=mods.filter(m=>!m.prox);
-  if(activos.length>=1){window.location.href=activos[0].url;return;}
-  document.getElementById("mg").innerHTML=mods.map(m=>
-    '<a class="mod-card '+m.id+(m.prox?" prox":"")+'" href="'+(m.url||"#")+'"'+(m.prox?' tabindex="-1"':"")+">"+
-    '<span class="mod-ico">'+m.ico+"</span>"+
-    '<div class="mod-nombre"><span class="c">'+m.c+'</span><span class="'+m.sc+'">'+m.s+"</span></div>"+
-    '<div class="mod-desc">'+m.desc+"</div>"+
-    '<span class="mod-tag '+m.tc+'">'+m.tag+"</span>"+
-    "</a>"
-  ).join("");
-}
-function logout(){cs();document.getElementById("portal").classList.remove("show");document.getElementById("lw").classList.remove("hide");document.getElementById("ie").value="";document.getElementById("ip").value="";rb();}
-function ss(d){sessionStorage.setItem("fmn",JSON.stringify(d));}
-function gs(){try{return JSON.parse(sessionStorage.getItem("fmn"));}catch(e){return null;}}
-function cs(){sessionStorage.removeItem("fmn");}
-function se(m){const el=document.getElementById("em");el.textContent=m;el.classList.add("show");}
-function rb(){const b=document.getElementById("bl");b.disabled=false;b.textContent="Ingresar al sistema";}
+    const {data:{session}}=await sb.auth.getSession();
+    if(session && session.user){ await entrar(session.user); }
+  }catch(_){}
+});
+
+function se(m){const el=document.getElementById('em');el.textContent=m;el.classList.add('show');}
+function rb(){const b=document.getElementById('bl');b.disabled=false;b.textContent='Ingresar al sistema';}
 </script>
 </body>
 </html>
