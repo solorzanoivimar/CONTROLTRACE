@@ -155,7 +155,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
 <script>
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
 
 const $=id=>document.getElementById(id);
 const S={empresaId:null,empresa:null,rol:null,nombre:null,productos:[],clientes:[],proveedores:[],materias:[],prodMP:{},recetas:{},recepciones:[],producciones:[],despachos:[],entregas:[],preciosCliente:{},pedidos:[],operarios:[],insumos:[],prodInsumos:{},insumoMovs:[],costos:{},devoluciones:[],componentes:{},ensConsumos:[],descartes:[]};
