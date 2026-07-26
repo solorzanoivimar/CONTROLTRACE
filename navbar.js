@@ -136,7 +136,7 @@
   btnSalir.title = 'Cerrar sesión';
   btnSalir.onclick = function(e){
     e.preventDefault();
-    try { localStorage.removeItem('fmn'); sessionStorage.removeItem('fmn'); sessionStorage.removeItem('fmn_sesion'); } catch(_){ }
+    try { localStorage.removeItem('fmn'); localStorage.removeItem('controlmax-auth'); sessionStorage.removeItem('fmn'); sessionStorage.removeItem('fmn_sesion'); } catch(_){ }
     try { Object.keys(localStorage).forEach(function(k){ if(k.indexOf('sb-')===0) localStorage.removeItem(k); }); } catch(_){ }
     window.location.href = '/';
   };
