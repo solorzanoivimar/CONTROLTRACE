@@ -288,154 +288,64 @@ function showLogin(){$('app').style.display='none';$('login').style.display='fle
 //  - user_roles (acceso CONTROL MAX: admin/galpon/finca)
 // Usa service_role (solo en el servidor). El solicitante debe ser admin o supervisor.
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const ALLOWED_ROLES  = ["admin", "supervisor", "comercial", "preparador", "chofer"];
-const ALLOWED_ACCESO = ["admin", "galpon", "finca"];
-
-const cors = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(obj: unknown, status = 200) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { ...cors, "Content-Type": "application/json" },
-  });
+const ROL_LABEL={admin:'Administrador',supervisor:'Supervisor',comercial:'Comercial',preparador:'Preparador',chofer:'Chofer'};
+function rolLabel(r){return ROL_LABEL[r]||r;}
+function usuarioRoles(){const base=['supervisor','comercial','preparador','chofer'];if(S.rol==='admin')base.unshift('admin');return base;}
+function rolOpts(sel){return usuarioRoles().map(r=>`<option value="${r}" ${r===sel?'selected':''}>${rolLabel(r)}</option>`).join('');}
+const ACCESO_LABEL={admin:'Administrador · los 3 módulos',galpon:'Galpón · Control Trace',finca:'Finca · CONTROLAGRO'};
+function accesosDisponibles(){const base=['galpon','finca'];if(S.rol==='admin')base.unshift('admin');return base;}
+function accesoOpts(sel){return accesosDisponibles().map(a=>`<option value="${a}" ${a===sel?'selected':''}>${ACCESO_LABEL[a]}</option>`).join('');}
+function viewUsuarios(){
+  $('view').innerHTML=`<div class="card"><div class="card-h"><h3>Usuarios y accesos</h3></div>
+    <p class="hint">Creá usuarios de acceso al sistema. "Acceso CONTROL MAX" define a qué módulo entra (Galpón→Control Trace, Finca→CONTROLAGRO, Administrador→los tres). "Rol en Control Trace" define qué puede hacer dentro de Control Trace.</p>
+    <div class="g2" style="align-items:end;gap:10px"><div><label>Nombre y apellido</label><input id="u_nom" placeholder="Ej: Luis Sevilla"></div><div><label>Correo (para ingresar)</label><input id="u_email" type="email" placeholder="persona@empresa.com" autocomplete="off"></div></div>
+    <div class="g2" style="align-items:end;gap:10px;margin-top:8px"><div><label>Contraseña inicial</label><input id="u_pass" type="text" placeholder="mínimo 6 caracteres" autocomplete="off"></div><div><label>Acceso CONTROL MAX</label><select id="u_acceso">${accesoOpts('galpon')}</select></div></div>
+    <div class="g2" style="align-items:end;gap:10px;margin-top:8px"><div><label>Rol en Control Trace</label><select id="u_rol">${rolOpts('preparador')}</select></div><div></div></div>
+    <div class="row" style="margin-top:10px"><button class="btn btn-gold" id="u_btn" onclick="crearUsuario()">+ Crear usuario</button></div>
+    <div id="u_list" style="margin-top:18px"><p class="hint">Cargando usuarios…</p></div>
+  </div>`;
+  cargarUsuarios();
 }
-
-// Crea o actualiza la fila de acceso CONTROL MAX en user_roles. Devuelve mensaje de error o null.
-async function setUserRole(admin: any, userId: string, rol: string, nombre: string | null, email: string | null, activo: boolean) {
-  const { data: ex } = await admin.from("user_roles").select("user_id").eq("user_id", userId).limit(1);
-  let error;
-  if (ex && ex.length) {
-    ({ error } = await admin.from("user_roles").update({ rol, nombre, email, activo }).eq("user_id", userId));
-  } else {
-    ({ error } = await admin.from("user_roles").insert({ user_id: userId, rol, nombre, email, activo }));
-  }
-  return error ? error.message : null;
+async function cargarUsuarios(){
+  const box=$('u_list');if(!box)return;box.innerHTML='<p class="hint">Cargando usuarios…</p>';
+  const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'list'}});
+  if(error||(data&&data.error)){box.innerHTML=`<div class="note" style="color:var(--danger,#b3402f)">No se pudieron cargar los usuarios: ${esc((data&&data.error)||(error&&error.message)||'error')}.<br>Verificá que la Edge Function <b>manage-users</b> esté desplegada en Supabase.</div>`;return;}
+  const users=(data&&data.users)||[];
+  box.innerHTML=`<div style="overflow:auto"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Acceso CONTROL MAX</th><th>Rol Control Trace</th><th>Estado</th><th></th></tr></thead><tbody>${users.map(u=>userRow(u)).join('')||'<tr><td colspan=6 class=empty>Sin usuarios</td></tr>'}</tbody></table></div>`;
 }
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-
-  try {
-    const url = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const authHeader = req.headers.get("Authorization") || "";
-
-    // 1) Identificar al solicitante
-    const asCaller = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } });
-    const { data: { user }, error: uerr } = await asCaller.auth.getUser();
-    if (uerr || !user) return json({ error: "No autenticado" }, 401);
-
-    // 2) Cliente service_role
-    const admin = createClient(url, serviceKey);
-
-    const { data: caller, error: cerr } = await admin
-      .from("perfiles").select("rol, empresa_id, activo").eq("id", user.id).single();
-    if (cerr || !caller) return json({ error: "Perfil del solicitante no encontrado" }, 403);
-    if (caller.activo === false) return json({ error: "Tu usuario está inactivo" }, 403);
-    if (!["admin", "supervisor"].includes(caller.rol)) return json({ error: "No autorizado" }, 403);
-
-    const body = await req.json().catch(() => ({}));
-    const action = body.action;
-    const empresa_id = caller.empresa_id;
-
-    // ---- LISTAR (perfiles + acceso de user_roles) ----
-    if (action === "list") {
-      const { data, error } = await admin
-        .from("perfiles").select("id, nombre, rol, email, activo").eq("empresa_id", empresa_id).order("nombre");
-      if (error) return json({ error: error.message }, 400);
-      const ids = (data || []).map((u: any) => u.id);
-      const accesoMap: Record<string, string> = {};
-      if (ids.length) {
-        const { data: ur } = await admin.from("user_roles").select("user_id, rol").in("user_id", ids);
-        (ur || []).forEach((r: any) => { accesoMap[r.user_id] = r.rol; });
-      }
-      const users = (data || []).map((u: any) => ({ ...u, acceso: accesoMap[u.id] || null }));
-      return json({ users });
-    }
-
-    // ---- CREAR ----
-    if (action === "create") {
-      const nombre = (body.nombre || "").trim();
-      const email = (body.email || "").trim().toLowerCase();
-      const password = body.password || "";
-      const rol = body.rol;
-      const acceso = ALLOWED_ACCESO.includes(body.acceso) ? body.acceso : (rol === "admin" ? "admin" : "galpon");
-      if (!nombre || !email || !password) return json({ error: "Faltan datos" }, 400);
-      if (password.length < 6) return json({ error: "La contraseña debe tener al menos 6 caracteres" }, 400);
-      if (!ALLOWED_ROLES.includes(rol)) return json({ error: "Rol inválido" }, 400);
-      if (caller.rol === "supervisor" && (rol === "admin" || acceso === "admin"))
-        return json({ error: "Un supervisor no puede crear administradores" }, 403);
-
-      const { data: created, error: e1 } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
-      if (e1) return json({ error: e1.message }, 400);
-
-      const newId = created.user!.id;
-      const { error: e2 } = await admin.from("perfiles")
-        .insert({ id: newId, nombre, rol, empresa_id, email, activo: true });
-      if (e2) {
-        await admin.auth.admin.deleteUser(newId);
-        return json({ error: "No se pudo crear el perfil: " + e2.message }, 400);
-      }
-      const accE = await setUserRole(admin, newId, acceso, nombre, email, true);
-      return json({ ok: true, id: newId, ...(accE ? { warn: "Usuario creado, pero no se pudo asignar el acceso CONTROL MAX: " + accE } : {}) });
-    }
-
-    // ---- Acciones sobre un usuario objetivo ----
-    const targetId = body.id;
-    if (!targetId) return json({ error: "Falta id" }, 400);
-    if (targetId === user.id) return json({ error: "No podés modificar tu propio usuario acá" }, 400);
-
-    const { data: target, error: terr } = await admin
-      .from("perfiles").select("id, rol, empresa_id, nombre, email").eq("id", targetId).single();
-    if (terr || !target) return json({ error: "Usuario no encontrado" }, 404);
-    if (target.empresa_id !== empresa_id) return json({ error: "El usuario pertenece a otra empresa" }, 403);
-    if (caller.rol === "supervisor" && target.rol === "admin")
-      return json({ error: "Un supervisor no puede modificar administradores" }, 403);
-
-    // ---- CAMBIAR ROL (Control Trace) ----
-    if (action === "set-role") {
-      const rol = body.rol;
-      if (!ALLOWED_ROLES.includes(rol)) return json({ error: "Rol inválido" }, 400);
-      if (caller.rol === "supervisor" && rol === "admin")
-        return json({ error: "Un supervisor no puede asignar el rol admin" }, 403);
-      const { error } = await admin.from("perfiles").update({ rol }).eq("id", targetId);
-      if (error) return json({ error: error.message }, 400);
-      return json({ ok: true });
-    }
-
-    // ---- CAMBIAR ACCESO (CONTROL MAX) ----
-    if (action === "set-acceso") {
-      const acceso = body.acceso;
-      if (!ALLOWED_ACCESO.includes(acceso)) return json({ error: "Acceso inválido" }, 400);
-      if (caller.rol === "supervisor" && acceso === "admin")
-        return json({ error: "Un supervisor no puede asignar el acceso admin" }, 403);
-      const err = await setUserRole(admin, targetId, acceso, target.nombre || null, target.email || null, true);
-      if (err) return json({ error: err }, 400);
-      return json({ ok: true });
-    }
-
-    // ---- ACTIVAR / DESACTIVAR ----
-    if (action === "set-active") {
-      const activo = !!body.activo;
-      const { error } = await admin.from("perfiles").update({ activo }).eq("id", targetId);
-      if (error) return json({ error: error.message }, 400);
-      await admin.from("user_roles").update({ activo }).eq("user_id", targetId);
-      await admin.auth.admin.updateUserById(targetId, { ban_duration: activo ? "none" : "876000h" });
-      return json({ ok: true });
-    }
-
-    return json({ error: "Acción desconocida" }, 400);
-  } catch (e) {
-    return json({ error: String((e as Error)?.message || e) }, 500);
-  }
-});
+function userRow(u){const yo=(u.id===S._uid);const esAdminAjeno=(S.rol==='supervisor'&&u.rol==='admin');
+  const accSel=`<select ${yo?'disabled':''} onchange="cambiarAcceso('${u.id}',this.value)">${accesosDisponibles().map(a=>`<option value="${a}" ${u.acceso===a?'selected':''}>${ACCESO_LABEL[a]}</option>`).join('')}${(u.acceso&&!accesosDisponibles().includes(u.acceso))?`<option value="${u.acceso}" selected>${ACCESO_LABEL[u.acceso]||u.acceso}</option>`:''}</select>`;
+  const rolSel=`<select ${(yo||esAdminAjeno)?'disabled':''} onchange="cambiarRol('${u.id}',this.value)">${usuarioRoles().map(r=>`<option value="${r}" ${u.rol===r?'selected':''}>${rolLabel(r)}</option>`).join('')}${(esAdminAjeno&&!usuarioRoles().includes('admin'))?`<option value="admin" selected>${rolLabel('admin')}</option>`:''}</select>`;
+  const accion=(yo||esAdminAjeno)?'':`<button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}',${u.activo===false})">${u.activo===false?'Activar':'Dar de baja'}</button>`;
+  return `<tr style="${u.activo===false?'opacity:.55':''}"><td>${esc(u.nombre||'—')}${yo?' <span class="tag ok">vos</span>':''}</td><td class="mono">${esc(u.email||'—')}</td><td>${accSel}</td><td>${rolSel}</td><td><span class="tag ${u.activo===false?'out':'ok'}">${u.activo===false?'Inactivo':'Activo'}</span></td><td style="white-space:nowrap">${accion}</td></tr>`;
+}
+async function crearUsuario(){
+  const nombre=$('u_nom').value.trim(),email=$('u_email').value.trim(),password=$('u_pass').value,rol=$('u_rol').value,acceso=$('u_acceso').value;
+  if(!nombre||!email||!password)return banner('Completá nombre, correo y contraseña','warn');
+  if(password.length<6)return banner('La contraseña debe tener al menos 6 caracteres','warn');
+  const b=$('u_btn');b.disabled=true;b.textContent='Creando…';
+  const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'create',nombre,email,password,rol,acceso}});
+  b.disabled=false;b.textContent='+ Crear usuario';
+  if(error||(data&&data.error))return banner('Error: '+esc((data&&data.error)||(error&&error.message)||'no se pudo crear'),'err');
+  banner((data&&data.warn)?('Usuario creado. '+esc(data.warn)):'Usuario creado ✓',(data&&data.warn)?'warn':'');
+  $('u_nom').value='';$('u_email').value='';$('u_pass').value='';cargarUsuarios();
+}
+async function cambiarRol(id,rol){
+  const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'set-role',id,rol}});
+  if(error||(data&&data.error)){banner('Error: '+esc((data&&data.error)||(error&&error.message)),'err');cargarUsuarios();return;}
+  banner('Rol actualizado ✓','');
+}
+async function cambiarAcceso(id,acceso){
+  const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'set-acceso',id,acceso}});
+  if(error||(data&&data.error)){banner('Error: '+esc((data&&data.error)||(error&&error.message)),'err');cargarUsuarios();return;}
+  banner('Acceso actualizado ✓','');
+}
+async function toggleUsuario(id,activar){
+  if(!confirm(activar?'¿Reactivar este usuario? Podrá volver a ingresar.':'¿Dar de baja este usuario? No podrá ingresar al sistema.'))return;
+  const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'set-active',id,activo:activar}});
+  if(error||(data&&data.error)){banner('Error: '+esc((data&&data.error)||(error&&error.message)),'err');return;}
+  banner('Usuario actualizado ✓','');cargarUsuarios();
+}
 
 async function reloadCatalogo(){
   const [{data:prod},{data:cli},{data:prov},{data:mat},{data:comp}]=await Promise.all([
