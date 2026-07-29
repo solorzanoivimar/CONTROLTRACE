@@ -158,7 +158,7 @@ const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
 
 const $=id=>document.getElementById(id);
-const S={empresaId:null,empresa:null,rol:null,nombre:null,productos:[],clientes:[],proveedores:[],materias:[],prodMP:{},recetas:{},recepciones:[],producciones:[],despachos:[],entregas:[],preciosCliente:{},pedidos:[],operarios:[],insumos:[],prodInsumos:{},insumoMovs:[],costos:{},devoluciones:[],componentes:{},ensConsumos:[],descartes:[]};
+const S={empresaId:null,empresa:null,rol:null,nombre:null,productos:[],clientes:[],proveedores:[],materias:[],prodMP:{},recetas:{},recepciones:[],producciones:[],despachos:[],entregas:[],preciosCliente:{},pedidos:[],operarios:[],insumos:[],prodInsumos:{},insumoMovs:[],costos:{},devoluciones:[],componentes:{},ensConsumos:[],descartes:[],novedades:[]};
 let remCart={items:[]};
 let cur='dash';
 
@@ -202,7 +202,7 @@ function buildNav(){
   $('nav').innerHTML=html;
 }
 function go(v){cur=v;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render();refreshModule(v);}
-const MOD_RELOAD={dash:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos()]),rec:()=>reloadRecepciones(),acond:()=>Promise.all([reloadRecepciones(),reloadAcond()]),prod:()=>Promise.all([reloadProducciones(),reloadRecepciones()]),ens:()=>Promise.all([reloadEnsamblados(),reloadProducciones()]),descmp:()=>Promise.all([reloadDescartes(),reloadRecepciones()]),desp:()=>Promise.all([reloadDespachos(),reloadProducciones()]),ent:()=>Promise.all([reloadEntregas(),reloadDespachos()]),dev:()=>Promise.all([reloadDevoluciones(),reloadEntregas()]),carga:()=>reloadEntregas(),ped:()=>reloadPedidos(),traz:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),stock:()=>Promise.all([reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadRecepciones()]),insu:()=>reloadInsumos(),costeo:()=>Promise.all([reloadCostos(),reloadCatalogo()]),rep:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos()])};
+const MOD_RELOAD={dash:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos()]),rec:()=>reloadRecepciones(),acond:()=>Promise.all([reloadRecepciones(),reloadAcond()]),prod:()=>Promise.all([reloadProducciones(),reloadRecepciones()]),ens:()=>Promise.all([reloadEnsamblados(),reloadProducciones()]),descmp:()=>Promise.all([reloadDescartes(),reloadRecepciones()]),desp:()=>Promise.all([reloadDespachos(),reloadProducciones()]),ent:()=>Promise.all([reloadEntregas(),reloadDespachos()]),dev:()=>Promise.all([reloadDevoluciones(),reloadEntregas()]),carga:()=>reloadEntregas(),ped:()=>reloadPedidos(),traz:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),stock:()=>Promise.all([reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadRecepciones()]),insu:()=>reloadInsumos(),costeo:()=>Promise.all([reloadCostos(),reloadCatalogo()]),rep:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos(),reloadNovedades()])};
 async function refreshModule(v){const fn=MOD_RELOAD[v];if(!fn)return;try{await fn();const mb=document.getElementById('modalBg');const modalOpen=mb&&mb.classList.contains('show');const a=document.activeElement,tn=a?a.tagName:'';const typing=(tn==='INPUT'||tn==='SELECT'||tn==='TEXTAREA');if(cur===v&&!modalOpen&&!typing)render();}catch(e){}}
 async function refreshNow(){const b=document.getElementById('btnRefresh');if(b)b.textContent='⏳ Actualizando…';try{const fn=MOD_RELOAD[cur];if(fn)await fn();render();banner('Datos actualizados ✓','');}catch(e){banner('No se pudo actualizar','err');}if(b)b.textContent='🔄 Actualizar';}
 
@@ -243,6 +243,8 @@ async function doLogin(){
 }
 function lmsg(t,ok){const m=$('lmsg');m.textContent=t;m.className='msg '+(ok?'ok':'err');}
 function pinAuth(v){v=(v||'').trim();if(!v)return null;const master=(((S.empresa&&S.empresa.pin)||'1234')+'').trim();if(v===master)return {nombre:(S.empresa&&S.empresa.pin_nombre)||'Supervisor'};const list=(S.empresa&&S.empresa.autorizadores)||[];const f=list.find(a=>a&&a.activo!==false&&((a.pin||'')+'').trim()===v);return f?{nombre:f.nombre||'Autorizador'}:null;}
+async function logNovedad(tipo,ref,detalle,auth){try{await sb.from('novedades').insert({empresa_id:S.empresaId,fecha:today(),tipo:tipo,referencia:ref||null,detalle:detalle||null,autorizado_por:(auth&&auth.nombre)||null,ejecutado_por:S.nombre||null});if(typeof reloadNovedades==='function')reloadNovedades();}catch(e){}}
+function authOK(pinValue,tipo,ref,detalle){const a=pinAuth(pinValue);if(!a){banner('PIN incorrecto','err');return false;}logNovedad(tipo,ref,detalle,a);return true;}
 $('btnLogin').onclick=doLogin;
 $('password').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 $('btnLogout').onclick=async()=>{await sb.auth.signOut();location.reload();};
@@ -272,6 +274,7 @@ async function boot(){
     await reloadDevoluciones();
     await reloadEnsamblados();
     await reloadDescartes();
+    await reloadNovedades();
     // pintar shell
     $('empName').textContent=emp.razon_social;
     $('whoName').textContent=S.nombre;$('whoRole').textContent=S.rol;
@@ -501,7 +504,7 @@ async function saveRecep(){
 function editRecep(codigo){
   modal(`<h3>🔒 Editar recepción ${codigo}</h3><p class="hint">Editar una recepción modifica el stock. Por seguridad, ingresá el PIN del supervisor.</p><label>PIN de supervisor</label><input type="password" id="re_pin" placeholder="••••"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="editRecepAuth('${codigo}')">Continuar</button></div>`);
 }
-function editRecepAuth(codigo){if(!pinAuth($('re_pin').value))return banner('PIN incorrecto','err');openEditRecep(codigo);}
+function editRecepAuth(codigo){if(!authOK($('re_pin').value,'editar_recepcion',codigo,'Edición de recepción'))return;openEditRecep(codigo);}
 function openEditRecep(codigo){
   const r=S.recepciones.find(x=>x.codigo_lote===codigo);if(!r)return;
   modal(`<h3>Editar ${codigo}</h3>
@@ -529,7 +532,7 @@ function anularRecep(codigo){
    <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" onclick="doAnularRecep('${codigo}')">Anular</button></div>`);
 }
 async function doAnularRecep(codigo){
-  if(!pinAuth($('a_pin').value))return banner('PIN incorrecto','err');
+  if(!authOK($('a_pin').value,'anular_recepcion',codigo,'Anulación · '+(($('a_mot')&&$('a_mot').value.trim())||'')))return;
   const {error}=await sb.from('recepciones').update({estado:'anulada',motivo_anulacion:$('a_mot').value.trim()}).eq('empresa_id',S.empresaId).eq('codigo_lote',codigo);
   if(error){banner('Error: '+error.message,'err');return;}
   await reloadRecepciones();closeModal();banner(codigo+' anulada','warn');render();
@@ -623,7 +626,7 @@ async function anularAcond(codigo){const a=(S.acond||[]).find(x=>x.id===codigo);
   if(rSal&&stockLote(rSal)<a.kgSal-0.001)return modal(`<h3>No se puede anular ${codigo}</h3><p class="hint">El lote pelado <b>${a.loteSal}</b> ya se usó (total o parcialmente) en una producción. Anulá primero esa producción.</p><div class="row"><button class="btn btn-gold" onclick="closeModal()">Entendido</button></div>`);
   modal(`<h3>🔒 Anular acondicionamiento ${codigo}</h3><p class="hint">Se libera el stock del lote original y se elimina el lote pelado <b>${a.loteSal}</b> (que no fue usado).</p><label>PIN de supervisor</label><input type="password" id="aca_pin" autocomplete="off"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" onclick="doAnularAcond('${codigo}')">Anular</button></div>`);}
 async function doAnularAcond(codigo){const a=(S.acond||[]).find(x=>x.id===codigo);if(!a)return;
-  if(!pinAuth($('aca_pin').value))return banner('PIN incorrecto','err');
+  if(!authOK($('aca_pin').value,'anular_acondicionamiento',codigo,'Anulación de acondicionamiento'))return;
   try{
     await sb.from('acondicionamientos').update({estado:'anulada'}).eq('empresa_id',S.empresaId).eq('id',a.uuid);
     if(a.recSalId)await sb.from('recepciones').update({estado:'anulada'}).eq('empresa_id',S.empresaId).eq('id',a.recSalId);
@@ -802,7 +805,7 @@ async function saveProd(codigo){
     await reloadProducciones();banner('Producción '+codigoOp+' abierta','');go('prod');
   }catch(err){banner('Error: '+err.message,'err');$('pp_save').innerHTML='Abrir producción';$('pp_save').disabled=false;}
 }
-function fefoAuth(codigo){if(!pinAuth($('fefo_pin').value))return banner('PIN incorrecto','err');window._fefoOk=window._fefoOk||{};window._fefoOk[codigo]=true;closeModal();saveProd(codigo);}
+function fefoAuth(codigo){if(!authOK($('fefo_pin').value,'peps_forzado',codigo,'Procesó salteando PEPS'))return;window._fefoOk=window._fefoOk||{};window._fefoOk[codigo]=true;closeModal();saveProd(codigo);}
 
 function editProd(codigo){
   const p=S.producciones.find(x=>x.id===codigo);if(!p)return;
@@ -858,7 +861,7 @@ async function doValidarProd(codigo){
   await reloadProducciones();await reloadInsumos();closeModal();banner(codigo+' validada 🔒','');render();
 }
 async function unlockProd(codigo){
-  if(!pinAuth($('up_pin').value))return banner('PIN incorrecto','err');
+  if(!authOK($('up_pin').value,'desbloqueo_produccion',codigo,'Desbloqueó producción validada'))return;
   const p=S.producciones.find(x=>x.id===codigo);
   await sb.from('producciones').update({estado:'abierta'}).eq('empresa_id',S.empresaId).eq('id',p.uuid);
   await restaurarInsumos(codigo);
@@ -1009,7 +1012,7 @@ function editDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;
   const rem=despEnRemito(id);
   if(rem)return modal(`<h3>No se puede editar ${id}</h3><p class="hint">Este despacho ya está incluido en el remito <b>${rem.numero_remito}</b>. Para modificarlo, primero hay que anular esa entrega.</p><div class="row"><button class="btn btn-gold" onclick="closeModal()">Entendido</button></div>`);
   modal(`<h3>🔒 Editar despacho ${id}</h3><p class="hint">Editar un despacho cambia el stock de producto terminado. Por seguridad, ingresá el PIN del supervisor.</p><label>PIN de supervisor</label><input type="password" id="edp_pin" autocomplete="off"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="editDespAuth('${id}')">Continuar</button></div>`);}
-function editDespAuth(id){if(!pinAuth($('edp_pin').value))return banner('PIN incorrecto','err');openEditDesp(id);}
+function editDespAuth(id){if(!authOK($('edp_pin').value,'editar_despacho',id,'Edición de despacho'))return;openEditDesp(id);}
 function openEditDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;const it=d.items[0]||{};
   const outs=outsDeDesp(d);window._edDesp={id,outs};
   modal(`<h3>Editar despacho ${id}</h3><p class="hint">Producto: <b>${esc(it.producto||'')}</b>. Corregí los lotes y las cantidades: las cajas se recalculan solas.</p>
@@ -1044,7 +1047,7 @@ function anularDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;
    <div class="note" style="margin-top:10px">Si ya imprimiste etiquetas de este despacho, acordate de descartarlas físicamente.</div>
    <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" id="an_save" onclick="doAnularDesp('${id}')">Anular despacho</button></div>`);}
 async function doAnularDesp(id){const d=S.despachos.find(x=>x.id===id);if(!d)return;
-  if(!pinAuth($('an_pin').value))return banner('PIN incorrecto','err');
+  if(!authOK($('an_pin').value,'anular_despacho',id,'Anulación · '+(($('an_mot')&&$('an_mot').value.trim())||'')))return;
   const motivo=$('an_mot').value.trim();if(!motivo)return banner('Indicá el motivo de la anulación','warn');
   $('an_save').innerHTML='<span class="spin"></span>Anulando...';$('an_save').disabled=true;
   try{
@@ -1223,14 +1226,14 @@ function detalleEntrega(id){const e=S.entregas.find(x=>x.id===id);if(!e)return;c
    <div class="row">${val?`<button class="btn btn-ghost" onclick="closeModal();reRemito('${e.id}')">🧾 Imprimir</button>`:''}${e.estado!=='anulada'?`<button class="btn btn-ghost" onclick="closeModal();editEntrega('${e.id}')">✎ Editar</button><button class="btn btn-danger" onclick="closeModal();anularEntrega('${e.id}')">✕ Anular</button>`:''}<button class="btn btn-gold" onclick="closeModal()">Cerrar</button></div>`);}
 function anularEntrega(id){const e=S.entregas.find(x=>x.id===id);if(!e)return;if(e.estado==='anulada')return banner('El remito ya está anulado','warn');
   modal(`<h3>🔒 Anular remito ${e.numero_remito}</h3><p class="hint">El remito queda anulado (no se borra, para la trazabilidad). Los despachos/lotes que tenía cargados vuelven a quedar <b>disponibles</b> para armar otro remito.${e.pedido_codigo?` El pedido <b>${esc(e.pedido_codigo)}</b> vuelve a <b>Pendiente</b>.`:''}</p><label>PIN de supervisor</label><input type="password" id="ae_pin" autocomplete="off"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" id="ae_save" onclick="doAnularEntrega('${id}')">Anular remito</button></div>`);}
-async function doAnularEntrega(id){const e=S.entregas.find(x=>x.id===id);if(!e)return;if(!pinAuth($('ae_pin').value))return banner('PIN incorrecto','err');$('ae_save').innerHTML='<span class="spin"></span>Anulando...';$('ae_save').disabled=true;
+async function doAnularEntrega(id){const e=S.entregas.find(x=>x.id===id);if(!e)return;if(!authOK($('ae_pin').value,'anular_remito',e.numero_remito,'Anulación de remito'))return;$('ae_save').innerHTML='<span class="spin"></span>Anulando...';$('ae_save').disabled=true;
   try{const {error}=await sb.from('entregas').update({estado:'anulada'}).eq('empresa_id',S.empresaId).eq('id',e.id);if(error)throw error;
     if(e.pedido_codigo){const pp=S.pedidos.find(x=>x.id===e.pedido_codigo);if(pp)await sb.from('pedidos').update({estado:'pendiente',numero_remito:null}).eq('empresa_id',S.empresaId).eq('id',pp.uuid);}
     await reloadEntregas();await reloadPedidos();await reloadDespachos();closeModal();banner('Remito '+e.numero_remito+' anulado · lotes liberados','warn');render();
   }catch(err){banner('Error: '+err.message,'err');$('ae_save').innerHTML='Anular remito';$('ae_save').disabled=false;}}
 function editEntrega(id){const e=S.entregas.find(x=>x.id===id);if(!e)return;if(e.estado==='anulada')return banner('El remito está anulado','warn');
   modal(`<h3>🔒 Editar remito ${e.numero_remito}</h3><p class="hint">Editar un remito emitido puede afectar stock y facturación. Por seguridad, ingresá el PIN de supervisor.</p><label>PIN de supervisor</label><input type="password" id="ee_pin" autocomplete="off"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="editEntregaAuth('${id}')">Continuar</button></div>`);}
-function editEntregaAuth(id){if(!pinAuth($('ee_pin').value))return banner('PIN incorrecto','err');openEditEntrega(id);}
+function editEntregaAuth(id){const e=S.entregas.find(x=>x.id===id);if(!authOK($('ee_pin').value,'editar_remito',e?e.numero_remito:id,'Edición de remito'))return;openEditEntrega(id);}
 function openEditEntrega(id){const e=S.entregas.find(x=>x.id===id);if(!e)return;window._edEnt={id,items:JSON.parse(JSON.stringify(e.items||[]))};
   modal(`<h3>Editar remito ${e.numero_remito}</h3>
    <div class="g2"><div><label>Fecha</label><input type="date" id="ee_fecha" value="${e.fecha}"></div><div><label>Orden de compra</label><input id="ee_oc" value="${esc(e.orden_compra||'')}" placeholder="opcional"></div></div>
@@ -1410,7 +1413,7 @@ function svgBars(data,color){
 }
 function groupSum(arr,keyFn,valFn){const m={};arr.forEach(x=>{const k=keyFn(x);m[k]=(m[k]||0)+valFn(x);});return Object.keys(m).map(k=>({label:k,value:m[k]})).sort((a,b)=>b.value-a.value);}
 let repF={desde:'',hasta:'',prov:'',prod:'',cli:''},repCur='diario';
-const REPS=[['diario','Diario'],['compras','Compras'],['prov','Rinde proveedor'],['merma','Merma'],['ent','Entregas'],['ventas','Ventas y utilidad'],['traza','Trazabilidad'],['pedidos','Pedidos'],['estac','Estacionalidad'],['comp','Comparativo'],['cumpl','Cumplimiento'],['capac','Capacidad h-h']];
+const REPS=[['diario','Diario'],['compras','Compras'],['prov','Rinde proveedor'],['merma','Merma'],['ent','Entregas'],['ventas','Ventas y utilidad'],['traza','Trazabilidad'],['pedidos','Pedidos'],['estac','Estacionalidad'],['comp','Comparativo'],['cumpl','Cumplimiento'],['capac','Capacidad h-h'],['novedades','Novedades 🔒']];
 function distinct(arr){return [...new Set(arr.filter(Boolean))].sort();}
 function inRange(f){if(repF.desde&&f<repF.desde)return false;if(repF.hasta&&f>repF.hasta)return false;return true;}
 function recFilt(){return S.recepciones.filter(r=>r.estado!=='anulada'&&inRange(r.fecha)&&(!repF.prov||r.proveedor===repF.prov)&&(!repF.prod||r.materia_prima===repF.prod));}
@@ -1504,6 +1507,7 @@ function repPaint(){const b=$('repBody');if(!b)return;const t=repCur;const xbtn=
     <div class="g2"><div><label>Paquetes a preparar</label><input type="number" id="cap_paq" placeholder="ej: 5000" oninput="capCalc()"></div><div><label>Operarios disponibles</label><input type="number" id="cap_op" placeholder="ej: 7" oninput="capCalc()"></div></div>
     <div class="g2"><div><label>Productividad (paquetes por hora-hombre)</label><input type="number" id="cap_prod" step="0.1" value="${avg>0?avg.toFixed(1):''}" placeholder="ej: 120" oninput="capCalc()"></div><div style="display:flex;align-items:flex-end"><button class="btn btn-gold" style="width:100%" onclick="capCalc()">Calcular</button></div></div>
     <div id="cap_res" class="scan-note" style="margin-top:10px"></div></div>`;}
+  if(t==='novedades'){const NL={anular_recepcion:'Anular recepción',editar_recepcion:'Editar recepción',anular_acondicionamiento:'Anular acondicionamiento',editar_acondicionamiento:'Editar acondicionamiento',peps_forzado:'PEPS forzado',desbloqueo_produccion:'Desbloquear producción',editar_despacho:'Editar despacho',anular_despacho:'Anular despacho',anular_remito:'Anular remito',editar_remito:'Editar remito',validar_carga_dif:'Carga con diferencias',descarte:'Descarte MP',anular_descarte:'Anular descarte',editar_descarte:'Editar descarte',anular_devolucion:'Anular devolución',editar_devolucion:'Editar devolución'};const rows=(S.novedades||[]).filter(n=>inRange(n.fecha));ex.rows=[['Fecha','Hora','Operación','Referencia','Detalle','Autorizó','Ejecutó']].concat(rows.map(n=>[n.fecha,(n.created_at||'').slice(11,16),NL[n.tipo]||n.tipo,n.referencia||'',n.detalle||'',n.autorizado_por||'',n.ejecutado_por||'']));b.innerHTML=`<div class="card"><div class="card-h"><h3>Novedades · operaciones autorizadas con PIN</h3><div style="display:flex;gap:8px;align-items:center"><span class="tag ok">${rows.length} registro(s)</span>${xbtn}</div></div><p class="hint">Auditoría de todo lo que requirió PIN de supervisor. Se registra desde que se activó esta versión (lo anterior no figura).</p><div style="overflow:auto"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Operación</th><th>Ref.</th><th>Detalle</th><th>Autorizó</th><th>Ejecutó</th></tr></thead><tbody>${rows.map(n=>`<tr><td>${fmtD(n.fecha)}</td><td class="mono">${(n.created_at||'').slice(11,16)}</td><td><span class="tag">${esc(NL[n.tipo]||n.tipo)}</span></td><td class="mono">${esc(n.referencia||'—')}</td><td>${esc(n.detalle||'')}</td><td>${esc(n.autorizado_por||'—')}</td><td>${esc(n.ejecutado_por||'—')}</td></tr>`).join('')||'<tr><td colspan=7 class=empty>Sin novedades en el período</td></tr>'}</tbody></table></div></div>`;}
   window._repEx=ex;
 }
 
@@ -2234,7 +2238,7 @@ function cargaValidar(){const dif=cargaDifs();const hayDif=dif.length>0||cargaSt
   if(!hayDif)return cargaGuardar(false,'');
   modal(`<h3>Hay diferencias en la carga</h3><p class="hint">${dif.map(d=>`${d.producto}: esperadas ${d.esperado}, cargadas ${d.cargado}`).join('<br>')}${cargaState.extras.length?`<br>${cargaState.extras.length} caja(s) ajenas`:''}</p><label>PIN del supervisor para autorizar</label><input type="password" id="cg_pin" autocomplete="off"><label>Nota (motivo de la diferencia)</label><input id="cg_nota" placeholder="ej: faltó 1 caja, se despacha igual"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="cargaPinOk()">Autorizar y validar</button></div>`);
 }
-function cargaPinOk(){if(!pinAuth($('cg_pin').value))return banner('PIN incorrecto','err');const nota=$('cg_nota').value.trim();closeModal();cargaGuardar(true,nota);}
+function cargaPinOk(){const nota=$('cg_nota').value.trim();if(!authOK($('cg_pin').value,'validar_carga_dif',null,'Validó carga con diferencias'+(nota?': '+nota:'')))return;closeModal();cargaGuardar(true,nota);}
 async function cargaGuardar(forzado,nota){const e=S.entregas.find(x=>x.id===cargaState.entregaId);const dif=cargaDifs();
   const validado={carga:true,at:new Date().toISOString(),by:S.nombre||'',forzado,dif,extras:cargaState.extras,nota};
   const {error}=await sb.from('entregas').update({validado}).eq('id',e.id).eq('empresa_id',S.empresaId);
@@ -2371,6 +2375,7 @@ async function toggleProveedor(id){const p=S.proveedores.find(x=>x.id===id);awai
 
 // ---- DESCARTE DE MATERIA PRIMA ----
 async function reloadDescartes(){const {data}=await sb.from('descartes').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false});S.descartes=data||[];}
+async function reloadNovedades(){const {data}=await sb.from('novedades').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false});S.novedades=data||[];}
 function viewDescarte(){const lotes=S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);
   const perdidaTotal=(S.descartes||[]).reduce((s,d)=>s+(+d.kg||0)*avgPriceKg(d.materia_prima),0);
   $('view').innerHTML=`<div class="kpis" style="grid-template-columns:repeat(2,1fr)">
@@ -2392,7 +2397,7 @@ function dsPick(){const cl=$('ds_lote').value;const r=S.recepciones.find(x=>x.co
 function dsLoss(){const cl=$('ds_lote').value;const r=S.recepciones.find(x=>x.codigo_lote===cl);const kg=+$('ds_kg').value||0;const el=$('ds_lossv');if(!el)return;if(r&&kg>0){el.innerHTML=`Pérdida estimada: <b>${money(kg*avgPriceKg(r.materia_prima))}</b> (precio prom. ${money(avgPriceKg(r.materia_prima))}/kg)`;}else el.innerHTML='';}
 async function saveDescarte(){const cl=$('ds_lote').value;const kg=+$('ds_kg').value||0;
   if(!cl)return banner('Elegí un lote','warn');if(kg<=0)return banner('Indicá los kilos','warn');
-  if(!pinAuth($('ds_pin').value))return banner('PIN incorrecto','err');
+  if(!authOK($('ds_pin').value,'descarte',cl,'Descarte de '+nf(kg,1)+'kg · '+($('ds_motivo').value.trim()||'')))return;
   const r=S.recepciones.find(x=>x.codigo_lote===cl);const disp=r?stockLote(r):0;
   if(kg>disp+0.001)return banner('Solo hay '+nf(disp,1)+'kg disponibles en ese lote','warn');
   $('ds_save').innerHTML='<span class="spin"></span>Registrando...';$('ds_save').disabled=true;
