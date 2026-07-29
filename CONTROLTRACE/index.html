@@ -671,34 +671,43 @@ function prodMode(m){
 function alocarPEPS(mp,kgNec){const lots=lotesDeMP(mp);const out=[];let rem=kgNec;for(const l of lots){const av=stockLote(l);if(av<=0)continue;const take=Math.min(av,rem);if(take<=0)break;out.push({recepcionUuid:l.id,codigo_lote:l.codigo_lote,fecha:l.fecha,mp,kg:+take.toFixed(3)});rem-=take;if(rem<=0.001)break;}return {asign:out,falta:Math.max(0,rem)};}
 function onCompChange(){
   const nombre=$('cp_prod').value;const panel=$('cp_panel');if(!nombre){panel.innerHTML='';return;}
-  const receta=S.recetas[nombre]||[];window._compReceta=receta;
-  let comp='';receta.forEach(r=>{const lots=lotesDeMP(r.mp);const tot=lots.reduce((a,l)=>a+stockLote(l),0);
-    comp+=`<div style="margin:6px 0;font-size:13px"><b>${r.mp}</b> <span style="color:var(--muted)">— receta ${nf(r.cantidad,3)} kg/paq · stock ${nf(tot,1)}kg en ${lots.length} lote(s)</span></div>`;});
-  panel.innerHTML=`${comp}<div class="note" style="margin:8px 0;padding:9px 12px">El sistema toma de los lotes en orden <b>PEPS</b> (primero el más antiguo) y reparte entre varios si hace falta.</div>
-   <label>Cantidad de paquetes a producir</label><input type="number" id="cp_paq" min="1" placeholder="ej: 100" oninput="compCalc()">
-   <div id="cp_calc" class="scan-note" style="margin:8px 0"></div>
+  const receta=S.recetas[nombre]||[];window._comp={nombre:nombre,receta:receta,alloc:{}};
+  if(!receta.length){panel.innerHTML='<div class="note" style="margin:8px 0">Este producto no tiene receta cargada. Cargá los componentes en <b>Configuración &rarr; Productos &rarr; Editar</b> (sección Componentes).</div>';return;}
+  panel.innerHTML=`<label>Cantidad de paquetes a producir</label><input type="number" id="cp_paq" min="1" placeholder="ej: 100" oninput="cpReqRender()">
+   <div id="cp_alloc" style="margin-top:10px"></div>
+   <div class="note" style="margin:6px 0;padding:8px 10px;font-size:12px">Por cada componente elegí el/los lote(s) y los kg. El botón <b>&#8635; Sugerir PEPS</b> completa con el criterio primero-entra-primero-sale (podés cambiarlo).</div>
    <div class="g2"><div><label>Operarios</label><input type="number" id="cp_oper" min="1"></div><div><label>Hora inicio</label><input type="time" id="cp_ini"></div></div>
    <div class="g2"><div><label>Hora fin</label><input type="time" id="cp_fin"></div><div></div></div>
-   <button class="btn btn-gold" id="cp_save" style="width:100%;margin-top:14px" onclick="saveCompuesto('${esc(nombre)}')">Producir compuesto</button>`;
+   <button class="btn btn-gold" id="cp_save" style="width:100%;margin-top:14px" onclick="saveCompuesto()">Producir compuesto</button>`;
+  cpReqRender();
 }
-function compCalc(){const paq=+$('cp_paq').value||0;const receta=window._compReceta||[];let html='';receta.forEach(r=>{const kg=paq*r.cantidad;const {asign,falta}=alocarPEPS(r.mp,kg);html+=`<div style="margin-bottom:3px"><b>${r.mp}: ${nf(kg,3)}kg</b> ${falta>0.001?`<span style="color:var(--clay)">⚠ faltan ${nf(falta,2)}kg en cámara</span>`:'→ '+asign.map(a=>`${nf(a.kg,2)}kg de ${a.codigo_lote} (${fmtD(a.fecha)})`).join(' + ')}</div>`;});$('cp_calc').innerHTML=paq?html:'';}
-async function saveCompuesto(nombre){
-  const paq=+$('cp_paq').value||0;if(!paq)return banner('Indicá la cantidad de paquetes','warn');
-  const receta=window._compReceta||S.recetas[nombre]||[];if(!receta.length)return banner('El producto no tiene receta cargada','warn');
+function cpReq(mp){const paq=+($('cp_paq')?$('cp_paq').value:0)||0;const r=(window._comp.receta||[]).find(x=>x.mp===mp);return paq*((r&&r.cantidad)||0);}
+function cpReqRender(){const st=window._comp;if(!st)return;st.receta.forEach(r=>{if(st.alloc[r.mp]===undefined&&cpReq(r.mp)>0){st.alloc[r.mp]=alocarPEPS(r.mp,cpReq(r.mp)).asign.map(x=>({lote:x.codigo_lote,kg:x.kg}));}});cpDraw();}
+function cpDraw(){const st=window._comp;if(!st)return;const w=$('cp_alloc');if(w)w.innerHTML=st.receta.map((r,ci)=>cpCompBlock(ci)).join('');}
+function cpMp(ci){return window._comp.receta[ci].mp;}
+function cpCompBlock(ci){const st=window._comp;const mp=st.receta[ci].mp;const req=cpReq(mp);const rows=st.alloc[mp]||[];const alloc=rows.reduce((a,x)=>a+(+x.kg||0),0);const lots=lotesDeMP(mp);const opt=sel=>`<option value="">— elegí lote —</option>`+lots.map(l=>`<option value="${l.codigo_lote}" ${sel===l.codigo_lote?'selected':''}>${l.codigo_lote} · ${fmtD(l.fecha)} · ${nf(stockLote(l),1)}kg</option>`).join('')+((sel&&!lots.some(l=>l.codigo_lote===sel))?`<option value="${sel}" selected>${sel} (sin stock)</option>`:'');
+  return `<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><b>${esc(mp)}</b> <span class="mono" style="color:${alloc+0.001>=req?'var(--sage)':'var(--clay)'}">${nf(alloc,2)} / ${nf(req,2)} kg</span></div>${rows.map((x,i)=>`<div class="g2" style="grid-template-columns:1.6fr .7fr auto;align-items:center;margin-top:6px"><select onchange="cpSet(${ci},${i},'lote',this.value)">${opt(x.lote)}</select><input type="number" min="0" step="0.01" value="${x.kg||''}" placeholder="kg" onchange="cpSet(${ci},${i},'kg',this.value)"><button class="btn btn-danger btn-sm" onclick="cpDel(${ci},${i})">✕</button></div>`).join('')||'<div class="scan-note" style="margin-top:4px">Sin lotes. Agregá uno o usá Sugerir PEPS.</div>'}<div style="margin-top:6px;display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="cpAdd(${ci})">+ Otro lote</button><button class="btn btn-ghost btn-sm" onclick="cpSeed(${ci})">&#8635; Sugerir PEPS</button></div></div>`;
+}
+function cpSet(ci,i,f,v){const st=window._comp;const mp=cpMp(ci);if(!st.alloc[mp]||!st.alloc[mp][i])return;st.alloc[mp][i][f]=(f==='kg')?(+v||0):v;cpDraw();}
+function cpAdd(ci){const st=window._comp;const mp=cpMp(ci);st.alloc[mp]=st.alloc[mp]||[];st.alloc[mp].push({lote:'',kg:0});cpDraw();}
+function cpDel(ci,i){const st=window._comp;const mp=cpMp(ci);(st.alloc[mp]||[]).splice(i,1);cpDraw();}
+function cpSeed(ci){const st=window._comp;const mp=cpMp(ci);st.alloc[mp]=alocarPEPS(mp,cpReq(mp)).asign.map(x=>({lote:x.codigo_lote,kg:x.kg}));cpDraw();}
+async function saveCompuesto(){const st=window._comp;if(!st)return;const nombre=st.nombre;const paq=+($('cp_paq')?$('cp_paq').value:0)||0;if(!paq)return banner('Indicá la cantidad de paquetes','warn');
   const comps=[];
-  for(const r of receta){const kg=paq*r.cantidad;const {asign,falta}=alocarPEPS(r.mp,kg);if(falta>0.001)return banner('No alcanza el stock de '+r.mp+' (faltan '+nf(falta,2)+'kg)','warn');asign.forEach(a=>comps.push(a));}
+  for(const r of st.receta){const req=cpReq(r.mp);const rows=(st.alloc[r.mp]||[]).filter(x=>x.lote&&x.kg>0);const alloc=rows.reduce((a,x)=>a+(+x.kg||0),0);
+    if(alloc+0.01<req)return banner('Faltan lotes para '+r.mp+': asignaste '+nf(alloc,2)+' de '+nf(req,2)+' kg','warn');
+    for(const x of rows){const rec=recById(x.lote);if(!rec)return banner('Lote no encontrado: '+x.lote,'warn');if(+x.kg>stockLote(rec)+0.01)return banner('El lote '+x.lote+' no tiene '+nf(x.kg,2)+'kg disponibles','warn');comps.push({recepcionUuid:rec.id,codigo_lote:x.lote,mp:r.mp,kg:+(+x.kg).toFixed(3)});}
+  }
+  if(!comps.length)return banner('Asigná al menos un lote por componente','warn');
   $('cp_save').innerHTML='<span class="spin"></span>Guardando...';$('cp_save').disabled=true;
   try{
     const {data:opNum,error:e1}=await sb.rpc('siguiente_numero',{p_tipo:'op'});if(e1)throw e1;
     const codigoOp='P-'+pad(opNum);const totalKg=comps.reduce((a,c)=>a+c.kg,0);
     const ini=$('cp_ini').value,fin=$('cp_fin').value;
-    const {data:prodRow,error:e2}=await sb.from('producciones').insert({empresa_id:S.empresaId,codigo_op:codigoOp,recepcion_id:null,fecha:today(),mp_kg:totalKg,operarios:+$('cp_oper').value||0,hora_inicio:ini||null,hora_fin:fin||null,horas:horasEntre(ini,fin),estado:'abierta'}).select('id').single();
-    if(e2)throw e2;
+    const {data:prodRow,error:e2}=await sb.from('producciones').insert({empresa_id:S.empresaId,codigo_op:codigoOp,recepcion_id:null,fecha:today(),mp_kg:totalKg,operarios:+$('cp_oper').value||0,hora_inicio:ini||null,hora_fin:fin||null,horas:horasEntre(ini,fin),estado:'abierta'}).select('id').single();if(e2)throw e2;
     const {data:pn}=await sb.rpc('siguiente_numero',{p_tipo:'prod'});
-    const {error:e3}=await sb.from('produccion_outputs').insert({empresa_id:S.empresaId,produccion_id:prodRow.id,codigo_prod:'PR-'+pad(pn),producto_nombre:nombre,cantidad:paq,kilos:+(paq*(prodKg(nombre)||0)).toFixed(3)});
-    if(e3)throw e3;
-    const {error:e4}=await sb.from('produccion_lotes').insert(comps.map(c=>({empresa_id:S.empresaId,produccion_id:prodRow.id,recepcion_id:c.recepcionUuid,codigo_lote:c.codigo_lote,materia_prima:c.mp,kg:c.kg})));
-    if(e4)throw e4;
+    const {error:e3}=await sb.from('produccion_outputs').insert({empresa_id:S.empresaId,produccion_id:prodRow.id,codigo_prod:'PR-'+pad(pn),producto_nombre:nombre,cantidad:paq,kilos:+(paq*(prodKg(nombre)||0)).toFixed(3)});if(e3)throw e3;
+    const {error:e4}=await sb.from('produccion_lotes').insert(comps.map(c=>({empresa_id:S.empresaId,produccion_id:prodRow.id,recepcion_id:c.recepcionUuid,codigo_lote:c.codigo_lote,materia_prima:c.mp,kg:c.kg})));if(e4)throw e4;
     await reloadProducciones();banner('Compuesto '+codigoOp+' producido','');go('prod');
   }catch(err){banner('Error: '+err.message,'err');$('cp_save').innerHTML='Producir compuesto';$('cp_save').disabled=false;}
 }
@@ -804,10 +813,12 @@ function editProd(codigo){
      <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-danger" onclick="anularProd('${codigo}')">Anular</button></div>`);
     return;
   }
-  const r=S.recepciones.find(x=>x.id===p.recepcionUuid);const elig=(r?eligibleProds(r.materia_prima):[]);const optsBase=(elig.length?elig:S.productos);
+  const r=S.recepciones.find(x=>x.id===p.recepcionUuid);const elig=(r?eligibleProds(r.materia_prima):[]);const optsBase=(elig.length?elig:S.productos);window._epKgCaja=(r&&r.cajas>0)?r.kilos/r.cajas:0;
   const rowsHtml=p.outputs.map(o=>epRow(o,optsBase)).join('')||epRow(null,optsBase);
   modal(`<h3>Completar ${codigo}</h3><p class="hint">Cargá los paquetes resultantes y el tiempo de producción. Al terminar, validá.</p>
-   <label>MP utilizada (kg)</label><input type="number" id="ep_mp" step="0.01" value="${p.mpKg}">
+   <label>MP utilizada</label>
+   <div class="g2"><div><label style="font-weight:400;font-size:11px;color:var(--muted)">Cajas</label><input type="number" id="ep_cajas" min="0" step="1" placeholder="${(r&&r.cajas)||0}" oninput="epCajasCalc()"></div><div><label style="font-weight:400;font-size:11px;color:var(--muted)">Kilos (auto, editable)</label><input type="number" id="ep_mp" step="0.01" value="${p.mpKg}"></div></div>
+   ${(r&&r.cajas>0)?`<div class="scan-note">Lote ${r.codigo_lote}: ${nf(r.cajas)} cajas / ${nf(r.kilos,1)} kg ≈ <b>${nf(r.kilos/r.cajas,2)} kg/caja</b>. Poné las cajas y completa los kilos.</div>`:''}
    <label style="margin-top:12px">Productos</label><div id="ep_outs">${rowsHtml}</div>
    <button class="btn btn-ghost btn-sm" onclick="epAddRow()" style="margin:6px 0 10px">+ Agregar producto</button>
    <div class="g2"><div><label>Operarios</label><input type="number" id="ep_op" value="${p.operarios||''}"></div><div><label>Hora inicio</label><input type="time" id="ep_ini" value="${p.horaIni||''}"></div></div>
@@ -815,6 +826,7 @@ function editProd(codigo){
    <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveEditProd('${codigo}')">Guardar</button></div>`);
   window._epOpts=optsBase.map(p=>`<option>${p.nombre}</option>`).join('');
 }
+function epCajasCalc(){const c=+($('ep_cajas')?$('ep_cajas').value:0)||0;const kgc=window._epKgCaja||0;if(kgc>0&&$('ep_mp'))$('ep_mp').value=+(c*kgc).toFixed(2);}
 function epCalc(el){const row=el.closest('[data-eprow]');const cant=+row.querySelector('.ep_c').value||0;const k=row.querySelector('.ep_k');if(k.dataset.touch)return;const kg=prodKg(row.querySelector('.ep_prod').value);k.value=(cant&&kg)?+(cant*kg).toFixed(3):'';}
 function epRow(o,optsBase){const sel=o?o.producto:'';const opts=optsBase.map(p=>`<option ${p.nombre===sel?'selected':''}>${p.nombre}</option>`).join('');return `<div class="g2" data-eprow style="grid-template-columns:1.6fr .7fr .7fr auto;margin-bottom:6px"><select class="ep_prod" onchange="epCalc(this)">${opts}</select><input class="ep_c" type="number" placeholder="paq." value="${o?o.cantidad:''}" oninput="epCalc(this)"><input class="ep_k" type="number" step="0.01" placeholder="kg" value="${o?o.kilos:''}" oninput="this.dataset.touch=1"><button class="btn btn-ghost btn-sm" onclick="this.parentNode.remove()">✕</button></div>`;}
 function epAddRow(){const w=$('ep_outs');const d=document.createElement('div');d.innerHTML=`<div class="g2" data-eprow style="grid-template-columns:1.6fr .7fr .7fr auto;margin-bottom:6px"><select class="ep_prod" onchange="epCalc(this)">${window._epOpts||''}</select><input class="ep_c" type="number" placeholder="paq." oninput="epCalc(this)"><input class="ep_k" type="number" step="0.01" placeholder="kg" oninput="this.dataset.touch=1"><button class="btn btn-ghost btn-sm" onclick="this.parentNode.remove()">✕</button></div>`;w.appendChild(d.firstChild);}
@@ -2305,7 +2317,7 @@ function cfgProd(){const q=cfgProdQ.toLowerCase();const list=S.productos.filter(
   $('cfg_body').innerHTML=`<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><input id="cp_q" placeholder="Buscar producto..." value="${esc(cfgProdQ)}" oninput="cfgProdQ=this.value;cfgProd();setTimeout(()=>{const i=document.getElementById('cp_q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},0)" style="flex:1;min-width:180px"><button class="btn btn-gold btn-sm" onclick="editProducto()">+ Nuevo producto</button></div>
    <div style="overflow:auto"><table><thead><tr><th>Producto</th><th>Familia</th><th>U/caja</th><th>Tipo</th><th>Estado</th><th></th></tr></thead><tbody>${list.map(p=>`<tr style="${p.activo===false?'opacity:.5':''}"><td>${p.nombre}</td><td>${p.familia||''}</td><td class="mono">${p.unidades_por_caja||'—'}</td><td>${tipoLabel(p.tipo)}</td><td><span class="tag ${p.activo===false?'out':'ok'}">${p.activo===false?'Inactivo':'Activo'}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="editProducto('${p.id}')">Editar</button> <button class="btn btn-ghost btn-sm" onclick="toggleProducto('${p.id}')">${p.activo===false?'Activar':'Baja'}</button></td></tr>`).join('')||'<tr><td colspan=6 class=empty>Sin productos</td></tr>'}</tbody></table></div>
    <p class="hint" style="margin-top:8px">${S.productos.length} productos en total · mostrando ${list.length}.</p>`;}
-function editProducto(id){const p=id?S.productos.find(x=>x.id===id):{};const _cfg=etqCfg();const _asg=(_cfg.assign||{})[id]||{};const fams=['anonima','aizu','granel','otro'];const tipos=[['simple','Simple'],['comp_produccion','Compuesto (producción)'],['comp_ensamblado','Ensamblado']];
+function editProducto(id){const p=id?S.productos.find(x=>x.id===id):{};window._pfReceta=JSON.parse(JSON.stringify((p&&p.nombre&&S.recetas[p.nombre])||[]));const _matOpts=[...new Set([...(S.recepciones||[]).map(r=>r.materia_prima),...Object.values(S.recetas||{}).flat().map(x=>x&&x.mp)].filter(Boolean))].sort().map(m=>`<option value="${esc(m)}">`).join('');const _cfg=etqCfg();const _asg=(_cfg.assign||{})[id]||{};const fams=['anonima','aizu','granel','otro'];const tipos=[['simple','Simple'],['comp_produccion','Compuesto (producción)'],['comp_ensamblado','Ensamblado']];
   modal(`<h3>${id?'Editar':'Nuevo'} producto</h3>
    <label>Nombre</label><input id="pf_nom" value="${esc(p.nombre||'')}">
    <div class="g2"><div><label>Presentación</label><input id="pf_pres" value="${esc(p.presentacion||'')}" placeholder="CAJA X 10 UNIDADES"></div><div><label>Familia</label><select id="pf_fam">${fams.map(f=>`<option ${p.familia===f?'selected':''}>${f}</option>`).join('')}</select></div></div>
@@ -2315,12 +2327,18 @@ function editProducto(id){const p=id?S.productos.find(x=>x.id===id):{};const _cf
    <div class="g2"><div><label>GTIN (EAN-13)</label><input id="pf_gtin" value="${esc(p.gtin||'')}"></div><div><label>Tipo</label><select id="pf_tipo">${tipos.map(t=>`<option value="${t[0]}" ${(p.tipo||'simple')===t[0]?'selected':''}>${t[1]}</option>`).join('')}</select></div></div>
    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:6px"><input type="checkbox" id="pf_micro" ${p.microondas?'checked':''} style="width:auto"> Apto microondas</label>
    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)"><div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px">🏷️ Diseño de etiqueta</div><div class="g2"><div><label>Diseño de paquete</label><select id="pf_dpkg">${etqDesignOpts(_cfg,'paquete',_asg.paquete)}</select></div><div><label>Diseño de caja</label><select id="pf_dcaja">${etqDesignOpts(_cfg,'caja',_asg.caja)}</select></div></div><div class="scan-note" style="margin-top:4px">Con “Por defecto” usa el diseño marcado por defecto de cada tipo. Para etiqueta preimpresa, elegí un diseño que solo tenga los datos variables.</div></div>
-   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveProducto('${id||''}')">Guardar</button></div>`);}
+   <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)"><div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px">🧪 Componentes / receta (materias primas)</div><div class="scan-note" style="margin-bottom:6px">Para productos <b>compuestos</b>: qué materias primas lleva y cuántos <b>kg por paquete</b>. En producción se pedirá un lote de cada una.</div><datalist id="dl_pfmat">${_matOpts}</datalist><div id="pf_receta"></div><button type="button" class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="pfRecetaAdd()">+ Agregar componente</button></div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveProducto('${id||''}')">Guardar</button></div>`);pfRecetaRows();}
+function pfRecetaRows(){const w=$('pf_receta');if(!w)return;const rr=window._pfReceta||[];w.innerHTML=rr.map((r,i)=>`<div class="g2" style="grid-template-columns:1.6fr .7fr auto;align-items:center;margin-bottom:6px"><input list="dl_pfmat" value="${esc(r.mp||'')}" placeholder="Materia prima" oninput="window._pfReceta[${i}].mp=this.value"><input type="number" min="0" step="0.001" value="${r.cantidad||''}" placeholder="kg/paq" oninput="window._pfReceta[${i}].cantidad=+this.value||0"><button class="btn btn-danger btn-sm" onclick="pfRecetaDel(${i})">✕</button></div>`).join('')||'<div class="scan-note">Sin componentes. Para un producto compuesto, agregá sus materias primas.</div>';}
+function pfRecetaAdd(){window._pfReceta=window._pfReceta||[];window._pfReceta.push({mp:'',cantidad:0});pfRecetaRows();}
+function pfRecetaDel(i){(window._pfReceta||[]).splice(i,1);pfRecetaRows();}
+async function saveRecetaProd(pid){if(!pid)return;const rr=(window._pfReceta||[]).map(r=>({mp:(r.mp||'').trim().toUpperCase(),cantidad:+r.cantidad||0})).filter(r=>r.mp&&r.cantidad>0);const {error:ed}=await sb.from('producto_materias').delete().eq('empresa_id',S.empresaId).eq('producto_id',pid);if(ed)throw ed;if(rr.length){const {error}=await sb.from('producto_materias').insert(rr.map(r=>({empresa_id:S.empresaId,producto_id:pid,materia_prima:r.mp,cantidad:r.cantidad,por_kilo:false})));if(error)throw error;}}
 async function saveProducto(id){const nom=$('pf_nom').value.trim();if(!nom)return banner('Indicá el nombre','warn');
   const rec={empresa_id:S.empresaId,nombre:nom,presentacion:$('pf_pres').value.trim()||null,familia:$('pf_fam').value,contenido_kg:+$('pf_kg').value||null,unidades_por_caja:+$('pf_uxc').value||null,vida_util_dias:+$('pf_vida').value||null,rinde:+$('pf_rinde').value||null,rnpa:$('pf_rnpa').value.trim()||null,rne:$('pf_rne').value.trim()||null,gtin:$('pf_gtin').value.trim()||null,tipo:$('pf_tipo').value,microondas:$('pf_micro').checked};
   const _dpkg=$('pf_dpkg')?$('pf_dpkg').value:'';const _dcaja=$('pf_dcaja')?$('pf_dcaja').value:'';
   try{let pid=id;if(id){const r=await sb.from('productos').update(rec).eq('id',id).eq('empresa_id',S.empresaId);if(r.error)throw r.error;}else{const r=await sb.from('productos').insert(rec).select('id').single();if(r.error)throw r.error;pid=r.data&&r.data.id;}
     await saveEtqAssign(pid,_dpkg,_dcaja);
+    await saveRecetaProd(pid);
     await reloadCatalogo();closeModal();banner('Producto guardado','');cfgProd();
   }catch(err){banner('Error: '+err.message,'err');}}
 async function saveEtqAssign(pid,dpkg,dcaja){if(!pid)return;const cfg=etqCfg();cfg.assign=cfg.assign||{};if(!dpkg&&!dcaja)delete cfg.assign[pid];else cfg.assign[pid]={paquete:dpkg||null,caja:dcaja||null};const {error}=await sb.from('empresas').update({etiqueta_config:cfg}).eq('id',S.empresaId);if(error){banner('Producto guardado, pero no se pudo guardar el diseño asignado: '+error.message,'warn');return;}S.empresa.etiqueta_config=cfg;if(S.etq&&Array.isArray(S.etq.designs))S.etq.assign=JSON.parse(JSON.stringify(cfg.assign));}
