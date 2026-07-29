@@ -143,7 +143,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       </div>
     </nav>
     <div class="main">
-      <div class="top"><div><div class="crumb" id="crumb">—</div><h2 id="title">—</h2></div></div>
+      <div class="top" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div><div class="crumb" id="crumb">—</div><h2 id="title">—</h2></div><button class="btn btn-ghost btn-sm" id="btnRefresh" onclick="refreshNow()" title="Actualizar datos con lo último cargado por otros usuarios">🔄 Actualizar</button></div>
       <div class="view" id="view"></div>
     </div>
   </div>
@@ -201,7 +201,10 @@ function buildNav(){
     html+=`<button data-v="${m.id}" onclick="go('${m.id}')"><span class="ico">${m.ico}</span><span>${m.name}</span></button>`;});
   $('nav').innerHTML=html;
 }
-function go(v){cur=v;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render();}
+function go(v){cur=v;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render();refreshModule(v);}
+const MOD_RELOAD={dash:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos()]),rec:()=>reloadRecepciones(),acond:()=>Promise.all([reloadRecepciones(),reloadAcond()]),prod:()=>Promise.all([reloadProducciones(),reloadRecepciones()]),ens:()=>Promise.all([reloadEnsamblados(),reloadProducciones()]),descmp:()=>Promise.all([reloadDescartes(),reloadRecepciones()]),desp:()=>Promise.all([reloadDespachos(),reloadProducciones()]),ent:()=>Promise.all([reloadEntregas(),reloadDespachos()]),dev:()=>Promise.all([reloadDevoluciones(),reloadEntregas()]),carga:()=>reloadEntregas(),ped:()=>reloadPedidos(),traz:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),stock:()=>Promise.all([reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadRecepciones()]),insu:()=>reloadInsumos(),costeo:()=>Promise.all([reloadCostos(),reloadCatalogo()]),rep:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos()])};
+async function refreshModule(v){const fn=MOD_RELOAD[v];if(!fn)return;try{await fn();const mb=document.getElementById('modalBg');const modalOpen=mb&&mb.classList.contains('show');const a=document.activeElement,tn=a?a.tagName:'';const typing=(tn==='INPUT'||tn==='SELECT'||tn==='TEXTAREA');if(cur===v&&!modalOpen&&!typing)render();}catch(e){}}
+async function refreshNow(){const b=document.getElementById('btnRefresh');if(b)b.textContent='⏳ Actualizando…';try{const fn=MOD_RELOAD[cur];if(fn)await fn();render();banner('Datos actualizados ✓','');}catch(e){banner('No se pudo actualizar','err');}if(b)b.textContent='🔄 Actualizar';}
 
 const META={dash:['PANEL','Panel de control'],rec:['PASO 1 · ENTRADA','Recepción de mercadería'],prod:['PASO 2 · PROCESO','Producción'],desp:['PASO 3 · ETIQUETADO','Despacho y etiquetas'],ent:['PASO 4 · SALIDA','Entrega y remito'],ped:['DEMANDA','Pedidos y plan de compra'],rep:['DIRECCIÓN','Reporte diario'],traz:['CONSULTA','Consultar trazabilidad'],cfg:['SISTEMA','Configuración'],stock:['ANÁLISIS','Stock en cámara'],insu:['ANÁLISIS','Stock de insumos'],costeo:['ANÁLISIS','Costeo de productos'],dev:['OPERACIÓN','Devoluciones'],carga:['OPERACIÓN','Validación de carga'],ens:['OPERACIÓN','Ensamblado'],descmp:['OPERACIÓN','Descarte de materia prima'],usuarios:['SISTEMA','Usuarios y accesos']};
 function render(){
@@ -1418,7 +1421,7 @@ function repPaint(){const b=$('repBody');if(!b)return;const t=repCur;const xbtn=
     <div style="display:flex;gap:8px">${ks.map(k=>`<div style="flex:1;text-align:center;font-size:10px;color:var(--muted)">${k.slice(5)}/${k.slice(2,4)}</div>`).join('')}</div></div>`;}
   if(t==='comp'){const A=window._compA||{d:repF.desde,h:repF.hasta},B=window._compB||{d:'',h:''};const fa=p=>(!A.d||p.fecha>=A.d)&&(!A.h||p.fecha<=A.h),fb=p=>(!B.d||p.fecha>=B.d)&&(!B.h||p.fecha<=B.h);
     const base=window._compBase||'demanda';
-    const cmpClis=distinct([...(S.pedidos||[]).map(p=>p.clienteNombre),...(S.entregas||[]).map(e=>e.clienteNombre)].filter(Boolean));
+    const cmpClis=distinct([...(S.clientes||[]).map(c=>c.razon_social),...(S.pedidos||[]).map(p=>p.clienteNombre),...(S.entregas||[]).map(e=>e.clienteNombre)].filter(Boolean)).sort((a,b)=>a<b?-1:1);
     const cli=(window._compCli!=null?window._compCli:repF.cli)||'';
     function aggc(filt){const m={};if(base==='ventas'){(S.entregas||[]).filter(e=>e.estado!=='anulada'&&(!cli||e.clienteNombre===cli)&&filt(e)).forEach(e=>{const gross=e.items.reduce((a,it)=>a+((+it.precio||0)*(+it.cantidad||0)),0);const dAmt=e.descuento_tipo==='pct'?gross*((+e.descuento_valor||0)/100):(e.descuento_tipo==='monto'?Math.min(+e.descuento_valor||0,gross):0);const f=gross>0?(gross-dAmt)/gross:1;e.items.forEach(it=>{if(repF.prod&&it.producto!==repF.prod)return;m[it.producto]=m[it.producto]||{paq:0,imp:0};m[it.producto].paq+=(+it.cantidad||0);m[it.producto].imp+=(+it.precio||0)*(+it.cantidad||0)*f;});});}else{(S.pedidos||[]).filter(p=>(!cli||p.clienteNombre===cli)&&filt(p)).forEach(p=>p.items.forEach(it=>{if(repF.prod&&it.producto!==repF.prod)return;m[it.producto]=m[it.producto]||{paq:0,imp:0};m[it.producto].paq+=(+it.paquetes||0);m[it.producto].imp+=(+it.paquetes||0)*(+it.precio||0);}));}return m;}
     const ma=aggc(fa),mb=aggc(fb);const prods=[...new Set([...Object.keys(ma),...Object.keys(mb)])].sort();
