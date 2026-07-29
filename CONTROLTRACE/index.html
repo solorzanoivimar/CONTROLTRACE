@@ -1094,9 +1094,10 @@ function printRoll(which){const d=window._lblData;if(!d)return;const saved=saved
   const data=which==='paquete'?dataPkg:dataBox;const N=which==='paquete'?pkgN:boxN;
   if(N<=0){S.etq=prev;return banner('No hay etiquetas de '+(which==='paquete'?'paquete':'caja')+' para imprimir','warn');}
   let cells=[],barJobs=[],qrJobs=[];for(let i=0;i<N;i++){const dd=which==='paquete'?Object.assign({},data,{lote:loteAt(i),qr:loteAt(i)}):data;const r=tplLabelHTML(which,dd,mu,which[0]+'r'+i);cells.push(r.html);barJobs=barJobs.concat(r.barJobs);qrJobs=qrJobs.concat(r.qrJobs);}
+  if(tpl.rot){const wpx=Math.round(tpl.w*PX),hpx=Math.round(tpl.h*PX);cells=cells.map(c=>`<div style="width:${hpx}px;height:${wpx}px;position:relative;overflow:hidden;display:inline-block;vertical-align:top"><div style="position:absolute;top:0;left:0;width:${wpx}px;height:${hpx}px;transform-origin:top left;transform:translateY(${wpx}px) rotate(-90deg)">${c}</div></div>`);}
   let rows='';for(let i=0;i<cells.length;i+=cols){rows+=`<div style="display:flex;gap:${Math.round(gap*PX)}px;page-break-after:always;break-after:page">${cells.slice(i,i+cols).join('')}</div>`;}
   S.etq=prev;
-  const pageW=(cols*tpl.w+(cols-1)*gap).toFixed(1),pageH=tpl.h;
+  const pageW=(tpl.rot?(cols*tpl.h+(cols-1)*gap):(cols*tpl.w+(cols-1)*gap)).toFixed(1),pageH=(tpl.rot?tpl.w:tpl.h);
   let st=document.getElementById('dynpage');if(!st){st=document.createElement('style');st.id='dynpage';document.head.appendChild(st);}st.textContent='@page{size:'+pageW+'mm '+pageH+'mm;margin:0}';
   const area=$('lblArea');const bk=area.innerHTML,bks=area.getAttribute('style')||'';area.setAttribute('style','');area.innerHTML=rows;
   barJobs.forEach(j=>{const el=$(j.id);if(el)etqBar(el,j.code,j.w,j.h);});qrJobs.forEach(j=>{const el=$(j.id);if(el)etqQr(el,j.text,j.size);});
@@ -1769,6 +1770,7 @@ function cfgEtiquetas(){if(!S.etq)etqLoad();if(!curDesign()){const f=(S.etq.desi
   </div>
   <div class="g2" style="margin-bottom:12px"><div><label>Ancho (mm)</label><input type="number" id="etq_w" value="${tpl.w}" min="20" max="300" oninput="etqSize()"></div><div><label>Alto (mm)</label><input type="number" id="etq_h" value="${tpl.h}" min="15" max="300" oninput="etqSize()"></div></div>
   <div class="g2" style="margin-bottom:12px"><div><label>Etiquetas por fila (rollo SATO)</label><select id="etq_cols" onchange="etqRollSet()">${[1,2,3].map(n=>`<option value="${n}" ${(tpl.cols||1)===n?'selected':''}>${n} por fila</option>`).join('')}</select></div><div><label>Separación horizontal (mm)</label><input type="number" id="etq_gapx" value="${tpl.gapx||0}" min="0" step="0.5" oninput="etqRollSet()"></div></div>
+  <label style="display:flex;align-items:center;gap:6px;margin-bottom:12px;cursor:pointer;font-size:13px"><input type="checkbox" id="etq_rot" ${tpl.rot?'checked':''} onchange="etqRollSet()" style="width:auto"> <b>Rotar 90°</b> — para rollos donde las etiquetas van en columnas verticales (ej: ACELGA 3 columnas)</label>
   <label>Agregar a la etiqueta</label><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${ETQ_TYPES.map(t=>`<button class="btn btn-ghost btn-sm" onclick="etqAdd('${t[0]}')">+ ${t[1]}</button>`).join('')}</div>
   <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
     <div style="flex:1;min-width:300px;overflow:auto;padding:16px;background:#efeae0;border-radius:10px">
@@ -1808,7 +1810,7 @@ function etqDragStart(e,id){e.preventDefault();etqSelect(id);const tpl=curDesign
 function etqSelect(id){S.etqSel=id;const cv=$('etqCanvas');if(cv)cv.querySelectorAll('.etqEl').forEach(n=>n.style.outline=n.dataset.id===id?'2px solid #c9a24b':'1px dashed rgba(0,0,0,.18)');etqRenderProps();}
 function etqSwitch(w){etqCur=w;S.etqSel=null;cfgEtiquetas();}
 function etqSize(){const tpl=curDesign();if(!tpl)return;tpl.w=+$('etq_w').value||tpl.w;tpl.h=+$('etq_h').value||tpl.h;etqRenderCanvas();}
-function etqRollSet(){const tpl=curDesign();if(!tpl)return;tpl.cols=+$('etq_cols').value||1;tpl.gapx=+$('etq_gapx').value||0;}
+function etqRollSet(){const tpl=curDesign();if(!tpl)return;tpl.cols=+$('etq_cols').value||1;tpl.gapx=+$('etq_gapx').value||0;tpl.rot=$('etq_rot')?$('etq_rot').checked:false;}
 function etqAdd(type){const tpl=curDesign();if(!tpl)return;const el={id:etqId(),type,x:10,y:10,fs:11,bold:false,align:'left'};if(type==='gtin'){el.w=130;el.h=36;}if(type==='qr'){el.w=80;}if(type==='logo'){el.w=70;el.h=44;el.which='aizu';}if(type==='texto'){el.text='Texto libre';el.fs=12;}tpl.elements.push(el);S.etqSel=el.id;etqRenderCanvas();etqRenderProps();banner('Elemento agregado · arrastralo a su lugar','');}
 function etqLogo(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{S.etq.logo=r.result;etqRenderCanvas();banner('Logo cargado · acordate de Guardar','');};r.readAsDataURL(f);}
 function etqLogoSlot(input,which){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{S.etq.logos=S.etq.logos||{};S.etq.logos[which]=r.result;cfgEtiquetas();banner('Logo '+which.toUpperCase()+' cargado · acordate de Guardar la biblioteca','');};r.readAsDataURL(f);}
