@@ -184,8 +184,8 @@ const MODS=[
   {id:'prod',ico:'⚙️',name:'Producción',grupo:'Operación',roles:['admin','supervisor','preparador']},
   {id:'ens',ico:'🌿',name:'Ensamblado',grupo:'Operación',roles:['admin','supervisor','preparador']},
   {id:'descmp',ico:'🗑️',name:'Descarte de MP',grupo:'Operación',roles:['admin','supervisor','preparador']},
-  {id:'desp',ico:'🏷️',name:'Despacho',grupo:'Operación',roles:['admin','supervisor','preparador']},
-  {id:'ent',ico:'🚚',name:'Entrega',grupo:'Operación',roles:['admin','supervisor','comercial']},
+  {id:'desp',ico:'🏷️',name:'Impresión de Etiquetas',grupo:'Operación',roles:['admin','supervisor','preparador']},
+  {id:'ent',ico:'🧾',name:'Remitos',grupo:'Operación',roles:['admin','supervisor','comercial']},
   {id:'dev',ico:'↩️',name:'Devoluciones',grupo:'Operación',roles:['admin','supervisor','comercial']},
   {id:'carga',ico:'✅',name:'Validación de carga',grupo:'Operación',roles:['admin','supervisor','chofer']},
   {id:'ped',ico:'📋',name:'Pedidos',grupo:'Análisis',roles:['admin','supervisor','comercial']},
@@ -209,7 +209,7 @@ const MOD_RELOAD={dash:()=>Promise.all([reloadRecepciones(),reloadProducciones()
 async function refreshModule(v){const fn=MOD_RELOAD[v];if(!fn)return;try{await fn();const mb=document.getElementById('modalBg');const modalOpen=mb&&mb.classList.contains('show');const a=document.activeElement,tn=a?a.tagName:'';const typing=(tn==='INPUT'||tn==='SELECT'||tn==='TEXTAREA');if(cur===v&&!modalOpen&&!typing)render();}catch(e){}}
 async function refreshNow(){const b=document.getElementById('btnRefresh');if(b)b.textContent='⏳ Actualizando…';try{const fn=MOD_RELOAD[cur];if(fn)await fn();render();banner('Datos actualizados ✓','');}catch(e){banner('No se pudo actualizar','err');}if(b)b.textContent='🔄 Actualizar';}
 
-const META={dash:['PANEL','Panel de control'],rec:['PASO 1 · ENTRADA','Recepción de mercadería'],prod:['PASO 2 · PROCESO','Producción'],desp:['PASO 3 · ETIQUETADO','Despacho y etiquetas'],ent:['PASO 4 · SALIDA','Entrega y remito'],ped:['DEMANDA','Pedidos y plan de compra'],rep:['DIRECCIÓN','Reporte diario'],traz:['CONSULTA','Consultar trazabilidad'],cfg:['SISTEMA','Configuración'],stock:['ANÁLISIS','Stock en cámara'],insu:['ANÁLISIS','Stock de insumos'],costeo:['ANÁLISIS','Costeo de productos'],dev:['OPERACIÓN','Devoluciones'],carga:['OPERACIÓN','Validación de carga'],ens:['OPERACIÓN','Ensamblado'],descmp:['OPERACIÓN','Descarte de materia prima'],usuarios:['SISTEMA','Usuarios y accesos']};
+const META={dash:['PANEL','Panel de control'],rec:['PASO 1 · ENTRADA','Recepción de mercadería'],prod:['PASO 2 · PROCESO','Producción'],desp:['PASO 3 · ETIQUETADO','Impresión de etiquetas'],ent:['PASO 4 · SALIDA','Remitos'],ped:['DEMANDA','Pedidos y plan de compra'],rep:['DIRECCIÓN','Reporte diario'],traz:['CONSULTA','Consultar trazabilidad'],cfg:['SISTEMA','Configuración'],stock:['ANÁLISIS','Stock en cámara'],insu:['ANÁLISIS','Stock de insumos'],costeo:['ANÁLISIS','Costeo de productos'],dev:['OPERACIÓN','Devoluciones'],carga:['OPERACIÓN','Validación de carga'],ens:['OPERACIÓN','Ensamblado'],descmp:['OPERACIÓN','Descarte de materia prima'],usuarios:['SISTEMA','Usuarios y accesos']};
 function render(){
   const m=MODS.find(x=>x.id===cur);
   $('crumb').textContent=(META[cur]||[m.name.toUpperCase(),m.name])[0];
@@ -422,7 +422,6 @@ function viewDash(){
     <div class="kpi steel"><div class="lab">🏬 MP en cámara</div><div class="val">${nf(totMP,0)}</div><div class="un">kg en stock</div></div>
     <div class="kpi gold"><div class="lab">🥗 Productos en stock</div><div class="val">${nf(totProd)}</div><div class="un">unidades listas</div></div>
     <div class="kpi navy"><div class="lab">⚙️ Producido este mes</div><div class="val">${nf(prodMesU)}</div><div class="un">unidades</div></div>
-    <div class="kpi steel"><div class="lab">🏷️ Despachado este mes</div><div class="val">${nf(despMesU)}</div><div class="un">unidades</div></div>
     <div class="kpi gold"><div class="lab">📋 Pedidos pendientes</div><div class="val">${nf(pedPend)}</div><div class="un">por cumplir</div></div>
     <div class="kpi navy"><div class="lab">💸 Pérdida descarte (mes)</div><div class="val">${money(perdMes)}</div><div class="un">MP descartada</div></div>
   </div>
@@ -1578,7 +1577,6 @@ function renderRep(){
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
       ${card('📥 Recibido',nf(kgRec,1)+' kg',recs.length+' lote(s)','linear-gradient(135deg,#16243f,#2a466b)')}
       ${card('⚙️ Producido',nf(paqProd)+' paq.',prods.length+' orden(es)','linear-gradient(135deg,#3d5a80,#5878a0)')}
-      ${card('🏷️ Despachado',nf(uDesp)+' u.',desps.length+' despacho(s)','linear-gradient(135deg,#4f7d6a,#6a9885)')}
       ${card('🚚 Entregado',nf(uEnt)+' u.',ents.length+' remito(s) · '+money(ventaEnt),'linear-gradient(135deg,#c9a24b,#a9842f)')}
     </div>
     <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:22px">
@@ -1587,7 +1585,6 @@ function renderRep(){
     </div>
     ${secTable('Recepciones del día',['Materia prima','Kg','Proveedor','Lote','Recibió'],recRows2)}
     ${secTable('Producción del día',['Producto','Paquetes','Lote','OP'],prodRows2)}
-    ${secTable('Despachos / etiquetado del día',['Producto','Unidades','Cajas','Lote'],despRows2)}
     ${secTable('Entregas del día',['Remito','Cliente','Unidades'],entRows2)}
     <div style="margin-top:20px;padding-top:10px;border-top:1px solid #e7e2d6;font-size:10px;color:#6b7689;text-align:center">${e.razon_social} · Reporte generado automáticamente el ${fmtD(today())} · CONTROL TRACE · Sistema de Gestión</div>
   </div>`;
@@ -1965,7 +1962,7 @@ function viewStock(){
   stkTab(window._stk||'mp');
 }
 function stkTab(t){window._stk=t;['mp','prod','lotes'].forEach(x=>{const b=$('stk_'+x);if(b)b.classList.toggle('btn-gold',x===t);});stkPaint();}
-function mpAgg(){const R=S.recepciones.filter(r=>r.estado!=='anulada');const mp={};R.forEach(r=>{const k=r.materia_prima||'—';mp[k]=mp[k]||{comp:0,proc:0,desc:0};mp[k].comp+=+r.kilos||0;mp[k].proc+=kgConsumidoLote(r.codigo_lote);mp[k].desc+=descartadoLote(r.codigo_lote);});return mp;}
+function mpAgg(){const R=S.recepciones.filter(r=>r.estado!=='anulada');const mp={};R.forEach(r=>{const k=r.materia_prima||'—';mp[k]=mp[k]||{comp:0,proc:0,desc:0,caj:0,lotes:[]};mp[k].comp+=+r.kilos||0;mp[k].proc+=kgConsumidoLote(r.codigo_lote)+acondConsumidoLote(r.id);mp[k].desc+=descartadoLote(r.codigo_lote);const stL=stockLote(r);mp[k].caj+=((+r.kilos||0)>0?stL/(+r.kilos)*(+r.cajas||0):0);if(stL>0.001)mp[k].lotes.push(r.codigo_lote);});return mp;}
 function prodAgg(){const ps={};S.producciones.filter(p=>p.estado!=='anulada').forEach(p=>p.outputs.forEach(o=>{ps[o.producto]=ps[o.producto]||{prod:0,desp:0,stock:0};ps[o.producto].prod+=+o.cantidad||0;ps[o.producto].desp+=despachadoDe(o.code);ps[o.producto].stock+=stockOut(o);}));return ps;}
 function stkData(t,q){
   q=(q||'').trim().toLowerCase();
@@ -1973,15 +1970,15 @@ function stkData(t,q){
   if(t==='mp'){const mp=mpAgg();
     const rows=Object.entries(mp).filter(([k,v])=>v.comp-v.proc-v.desc>0.001||v.desc>0.001)
       .sort((a,b)=>(b[1].comp-b[1].proc-b[1].desc)-(a[1].comp-a[1].proc-a[1].desc))
-      .map(([k,v])=>[k,+v.comp.toFixed(1),+v.proc.toFixed(1),+v.desc.toFixed(1),+(v.comp-v.proc-v.desc).toFixed(1)]).filter(inc);
-    return {titulo:'Stock de materia prima en cámara',head:['Materia prima','Comprado kg','Procesado kg','Descartado kg','Stock kg'],num:[0,1,1,1,1],dec:[0,1,1,1,1],rows};}
+      .map(([k,v])=>[k,v.lotes.join(', ')||'—',+v.comp.toFixed(1),+v.proc.toFixed(1),+v.desc.toFixed(1),Math.round(v.caj),+(v.comp-v.proc-v.desc).toFixed(1)]).filter(inc);
+    return {titulo:'Stock de materia prima en cámara',head:['Materia prima','N° de lote','Comprado kg','Procesado kg','Descartado kg','Stock cajas','Stock kg'],num:[0,0,1,1,1,1,1],dec:[0,0,1,1,1,0,1],rows};}
   if(t==='prod'){const ps=prodAgg();
     const rows=Object.entries(ps).filter(([k,v])=>v.stock>0).sort((a,b)=>b[1].stock-a[1].stock)
       .map(([k,v])=>[k,Math.round(v.prod),Math.round(v.desp),Math.round(v.stock)]).filter(inc);
     return {titulo:'Stock de productos procesados',head:['Producto','Producido','Despachado','Stock'],num:[0,1,1,1],dec:[0,0,0,0],rows};}
   const rows=S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1)
-    .map(r=>[r.codigo_lote,r.materia_prima||'',r.proveedor||'',fmtD(r.fecha),+stockLote(r).toFixed(1)]).filter(inc);
-  return {titulo:'Detalle de lotes en cámara (PEPS)',head:['Lote','Materia prima','Proveedor','Ingreso','Stock kg'],num:[0,0,0,0,1],dec:[0,0,0,0,1],rows};
+    .map(r=>[r.codigo_lote,r.materia_prima||'',r.proveedor||'',fmtD(r.fecha),Math.round((+r.kilos||0)>0?stockLote(r)/(+r.kilos)*(+r.cajas||0):0),+stockLote(r).toFixed(1)]).filter(inc);
+  return {titulo:'Detalle de lotes en cámara (PEPS)',head:['Lote','Materia prima','Proveedor','Ingreso','Stock cajas','Stock kg'],num:[0,0,0,0,1,1],dec:[0,0,0,0,0,1],rows};
 }
 function stkPaint(){const t=window._stk||'mp';const b=$('stkBody');if(!b)return;const d=stkData(t,'');
   b.innerHTML=`<div class="card-h" style="margin-bottom:10px"><h3 style="font-size:15px">${d.titulo}</h3><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="stkPrint()">🖨️ Planilla de conteo</button><button class="btn btn-ghost btn-sm" onclick="stkExport()">⬇ Excel</button></div></div>
