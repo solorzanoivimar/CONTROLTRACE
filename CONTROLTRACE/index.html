@@ -141,6 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v49 · stock por lote</div>
       </div>
     </nav>
     <div class="main">
@@ -1963,7 +1964,7 @@ function viewStock(){
 }
 function stkTab(t){window._stk=t;['mp','prod','lotes'].forEach(x=>{const b=$('stk_'+x);if(b)b.classList.toggle('btn-gold',x===t);});stkPaint();}
 function mpAgg(){const R=S.recepciones.filter(r=>r.estado!=='anulada');const mp={};R.forEach(r=>{const k=r.materia_prima||'—';mp[k]=mp[k]||{comp:0,proc:0,desc:0,caj:0,lotes:[]};mp[k].comp+=+r.kilos||0;mp[k].proc+=kgConsumidoLote(r.codigo_lote)+acondConsumidoLote(r.id);mp[k].desc+=descartadoLote(r.codigo_lote);const stL=stockLote(r);mp[k].caj+=((+r.kilos||0)>0?stL/(+r.kilos)*(+r.cajas||0):0);if(stL>0.001)mp[k].lotes.push(r.codigo_lote);});return mp;}
-function prodAgg(){const ps={};S.producciones.filter(p=>p.estado!=='anulada').forEach(p=>p.outputs.forEach(o=>{ps[o.producto]=ps[o.producto]||{prod:0,desp:0,stock:0};ps[o.producto].prod+=+o.cantidad||0;ps[o.producto].desp+=despachadoDe(o.code);ps[o.producto].stock+=stockOut(o);}));return ps;}
+function prodAgg(){const names=[...new Set(S.producciones.filter(p=>p.estado==='validada').flatMap(p=>p.outputs.map(o=>o.producto)))];const ps={};names.forEach(n=>{const lts=[];lotesDeProducto(n).forEach(l=>{const st=stockLoteProd(n,l);if(st>0.001)lts.push({lote:l,stock:st});});lts.sort((a,b)=>a.lote.localeCompare(b.lote));ps[n]={lotes:lts,stock:lts.reduce((s,x)=>s+x.stock,0)};});return ps;}
 function stkData(t,q){
   q=(q||'').trim().toLowerCase();
   const inc=r=>!q||r.some(v=>String(v).toLowerCase().includes(q));
@@ -1973,9 +1974,9 @@ function stkData(t,q){
       .map(([k,v])=>[k,v.lotes.join(', ')||'—',+v.comp.toFixed(1),+v.proc.toFixed(1),+v.desc.toFixed(1),Math.round(v.caj),+(v.comp-v.proc-v.desc).toFixed(1)]).filter(inc);
     return {titulo:'Stock de materia prima en cámara',head:['Materia prima','N° de lote','Comprado kg','Procesado kg','Descartado kg','Stock cajas','Stock kg'],num:[0,0,1,1,1,1,1],dec:[0,0,1,1,1,0,1],rows};}
   if(t==='prod'){const ps=prodAgg();
-    const rows=Object.entries(ps).filter(([k,v])=>v.stock>0).sort((a,b)=>b[1].stock-a[1].stock)
-      .map(([k,v])=>[k,Math.round(v.prod),Math.round(v.desp),Math.round(v.stock)]).filter(inc);
-    return {titulo:'Stock de productos procesados',head:['Producto','Producido','Despachado','Stock'],num:[0,1,1,1],dec:[0,0,0,0],rows};}
+    const rows=Object.entries(ps).filter(([k,v])=>v.stock>0.001).sort((a,b)=>b[1].stock-a[1].stock)
+      .map(([k,v])=>[k,v.lotes.map(x=>x.lote+': '+nf(x.stock)).join(' · ')||'—',Math.round(v.stock)]).filter(inc);
+    return {titulo:'Stock de productos procesados (producción cerrada)',head:['Producto','Lotes (stock por lote)','Stock total'],num:[0,0,1],dec:[0,0,0],rows};}
   const rows=S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1)
     .map(r=>[r.codigo_lote,r.materia_prima||'',r.proveedor||'',fmtD(r.fecha),Math.round((+r.kilos||0)>0?stockLote(r)/(+r.kilos)*(+r.cajas||0):0),+stockLote(r).toFixed(1)]).filter(inc);
   return {titulo:'Detalle de lotes en cámara (PEPS)',head:['Lote','Materia prima','Proveedor','Ingreso','Stock cajas','Stock kg'],num:[0,0,0,0,1,1],dec:[0,0,0,0,0,1],rows};
