@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v49 · stock por lote</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v50 · stock por lote</div>
       </div>
     </nav>
     <div class="main">
@@ -1781,7 +1781,7 @@ function renderTplLabel(tpl,data,prefix){let html='',barJobs=[],qrJobs=[];(tpl.e
   else if(kind==='qr'){const id=prefix+'_'+el.id;qrJobs.push({id,text:data.qr,size:el.w||80});html+=`<div class="etqEl" data-id="${el.id}" id="${id}" style="${base}width:${el.w||80}px;height:${el.w||80}px"></div>`;}
   else{const val=etqVal(el.type,data,el);html+=`<div class="etqEl" data-id="${el.id}" style="${base}font-size:${el.fs||11}px;font-weight:${el.bold?'700':'400'};text-align:${el.align||'left'};font-family:Inter,sans-serif;color:#111;line-height:1.15;white-space:nowrap">${esc(val)}</div>`;}
 });return {html,barJobs,qrJobs};}
-function etqBar(el,code,w,h){el.innerHTML='';try{const isEan=code&&(''+code).length===13;const s=document.createElementNS('http://www.w3.org/2000/svg','svg');el.appendChild(s);JsBarcode(s,code||'0000000000000',{format:isEan?'EAN13':'CODE128',width:2,height:Math.max(18,(h||40)-16),fontSize:11,textMargin:1,margin:2,displayValue:true});const natW=+s.getAttribute('width')||(w||120),natH=+s.getAttribute('height')||(h||40);s.setAttribute('viewBox','0 0 '+natW+' '+natH);s.setAttribute('preserveAspectRatio','xMidYMid meet');s.setAttribute('shape-rendering','crispEdges');s.removeAttribute('width');s.removeAttribute('height');s.style.display='block';s.style.width=(w||120)+'px';s.style.height=(h||40)+'px';}catch(e){el.textContent=code;}}
+function etqBar(el,code,w,h){el.innerHTML='';try{const isEan=code&&(''+code).length===13;const s=document.createElementNS('http://www.w3.org/2000/svg','svg');el.appendChild(s);JsBarcode(s,code||'0000000000000',{format:isEan?'EAN13':'CODE128',width:2,height:Math.max(18,(h||40)-16),fontSize:11,textMargin:1,margin:2,displayValue:true});const natW=+s.getAttribute('width')||(w||120),natH=+s.getAttribute('height')||(h||40);s.setAttribute('viewBox','0 0 '+natW+' '+natH);s.setAttribute('preserveAspectRatio','xMidYMid meet');s.setAttribute('shape-rendering','crispEdges');s.removeAttribute('width');s.removeAttribute('height');s.style.display='block';s.style.width='100%';s.style.height='100%';}catch(e){el.textContent=code;}}
 function etqQr(el,text,size){el.innerHTML='';try{new QRCode(el,{text:text||'L-00001',width:size,height:size,colorDark:'#000',colorLight:'#fff'});}catch(e){el.textContent=text;}}
 function cfgEtiquetas(){if(!S.etq)etqLoad();if(!curDesign()){const f=(S.etq.designs||[])[0];etqCur=f?f.id:null;}
   const tpl=curDesign();
