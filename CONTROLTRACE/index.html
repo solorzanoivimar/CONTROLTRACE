@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v53 · stock por lote</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v54 · stock por lote</div>
       </div>
     </nav>
     <div class="main">
@@ -1201,18 +1201,19 @@ function viewEnt(){
   $('view').innerHTML=`<div class="grid2 stackv">
    <div class="card"><div class="card-h"><h3>Preparar entrega</h3></div>
    <p class="hint">Armá el remito manual o desde un pedido. Por cada renglón elegí el producto y su lote con stock (PEPS, más viejo primero), la cantidad y el precio. Si usás varios lotes del mismo producto, el remito los agrupa en un solo renglón.</p>
-   <div class="g2"><div><label>Cliente</label><select id="e_cli" onchange="renderCart()">${opts||'<option>—</option>'}</select></div>
-   <div><label>Fecha de entrega</label><input type="date" id="e_fecha" value="${today()}"></div></div>
-   <label>Orden de compra (opcional)</label><input id="e_oc" placeholder="N° de OC del cliente a despachar" autocomplete="off">
+   <div class="g2"><div><label>Cliente</label><select id="e_cli" onchange="remCart.cliId=this.value;renderCart()">${opts||'<option>—</option>'}</select></div>
+   <div><label>Fecha de entrega</label><input type="date" id="e_fecha" value="${today()}" onchange="remCart.fecha=this.value"></div></div>
+   <label>Orden de compra (opcional)</label><input id="e_oc" placeholder="N° de OC del cliente a despachar" autocomplete="off" oninput="remCart.oc=this.value">
    <label style="margin-top:8px">Cargar desde pedido (opcional)</label><select id="e_pedido" onchange="loadPedidoToCart(this.value)"><option value="">— sin pedido / carga manual —</option>${(S.pedidos||[]).filter(p=>p.estado!=='cumplido').sort((a,b)=>a.fecha<b.fecha?1:-1).map(p=>`<option value="${p.id}">${p.id} · ${esc((p.clienteNombre||'').slice(0,22))} · ${fmtD(p.fecha)} · ${nf(p.items.reduce((a,i)=>a+(+i.paquetes||0),0))}u</option>`).join('')}</select>
    <button class="btn btn-ghost btn-sm" onclick="remAddLine()" style="margin-top:10px">+ Agregar producto</button></div>
    <div class="card"><div class="card-h"><h3>Remito en preparación</h3><span class="tag" id="e_count" style="background:var(--amber-bg);color:#86571a">0 ítems</span></div>
    <div id="e_cart"></div>
-   <button class="btn btn-gold" id="e_save" style="width:100%;margin-top:12px" disabled onclick="emitRemito()">✓ Emitir remito</button></div>
+   <button class="btn btn-gold" id="e_save" style="width:100%;margin-top:12px" disabled onclick="emitRemito()">✓ Emitir remito</button><button class="btn btn-ghost btn-sm" onclick="remNuevo()" style="width:100%;margin-top:6px">🗑 Vaciar / empezar nuevo</button></div>
    <div class="card" style="grid-column:1/-1"><div class="card-h"><h3>Remitos emitidos</h3>${periodSelect('ent')}</div>
    <div style="overflow:auto"><table><thead><tr><th>Remito</th><th>Fecha</th><th>Cliente</th><th>Unid.</th><th></th></tr></thead><tbody>${entRows()}</tbody></table></div></div>
   </div>`;
-  if(window._editRemito&&remCart.editId!==window._editRemito){const ee=S.entregas.find(x=>x.id===window._editRemito);if(ee&&ee.estado!=='anulada'){if($('e_cli'))$('e_cli').value=ee.cliente_id;if($('e_fecha'))$('e_fecha').value=ee.fecha;if($('e_oc'))$('e_oc').value=ee.orden_compra||'';remCart={items:(ee.items||[]).map(function(it){return {producto:it.producto,cantidad:+it.cantidad||0,cajas:+it.cajas||0,loteRef:it.loteRef||null,precio:it.precio};}),editId:ee.id,editNumero:ee.numero_remito,editPedido:ee.pedido_codigo||null,descTipo:ee.descuento_tipo||'',descValor:ee.descuento_valor||0};}else{window._editRemito=null;remCart={items:[]};}}else if(!remCart.editId){remCart={items:[]};}
+  if(window._editRemito&&remCart.editId!==window._editRemito){const ee=S.entregas.find(x=>x.id===window._editRemito);if(ee&&ee.estado!=='anulada'){remCart={items:(ee.items||[]).map(function(it){return {producto:it.producto,cantidad:+it.cantidad||0,cajas:+it.cajas||0,loteRef:it.loteRef||null,precio:it.precio};}),editId:ee.id,editNumero:ee.numero_remito,editPedido:ee.pedido_codigo||null,cliId:ee.cliente_id,fecha:ee.fecha,oc:ee.orden_compra||'',descTipo:ee.descuento_tipo||'',descValor:ee.descuento_valor||0};}else{window._editRemito=null;}}
+  if(remCart.cliId&&$('e_cli'))$('e_cli').value=remCart.cliId;if(remCart.fecha&&$('e_fecha'))$('e_fecha').value=remCart.fecha;if(remCart.oc!=null&&$('e_oc'))$('e_oc').value=remCart.oc;
   renderPending();renderCart();
 }
 function renderPending(){const d=S.despachos.filter(x=>x.estado!=='anulada'&&!despachoEntregado(x.id)&&!remCart.items.some(it=>it.did===x.id));const w=$('e_pending');if(!w)return;
@@ -1221,12 +1222,13 @@ function addFromDesp(did){const d=S.despachos.find(x=>x.id===did);if(!d)return;c
 function despachosLibres(prod){return S.despachos.filter(d=>d.estado!=='anulada'&&!despachoEntregado(d.id)&&!remCart.items.some(it=>it.did===d.id)&&((d.items[0]||{}).producto)===prod).map(d=>{const it=d.items[0]||{};const lts=it.consumido?lotesDeItem(it):[];const loteRef=lts.length?lts.map(x=>x.lote).join(' + '):'—';return {id:d.id,didUuid:d.uuid,loteRef,cantidad:it.cantidad,cajas:it.cajas};});}
 function assignDesp(i,did){const row=remCart.items[i];if(!row)return;if(!did){row.did=null;row.didUuid=null;row.loteRef=null;row.cajas=0;renderCart();renderPending();return;}if(remCart.items.some((x,j)=>j!==i&&x.did===did))return banner('Ese lote ya está en otro renglón','warn');const d=S.despachos.find(x=>x.id===did);if(!d)return;const it=d.items[0]||{};const lts=it.consumido?lotesDeItem(it):[];const loteRef=lts.length?lts.map(x=>x.lote).join(' + '):'—';row.did=d.id;row.didUuid=d.uuid;row.loteRef=loteRef;row.cajas=it.cajas;if(!row.cantidad||row.cantidad>it.cantidad)row.cantidad=it.cantidad;renderCart();renderPending();}
 function splitCartLine(i){const it=remCart.items[i];if(!it)return;remCart.items.splice(i+1,0,{producto:it.producto,cantidad:0,cajas:0,loteRef:null,precio:it.precio,fromPedido:true});renderCart();banner('Elegí el otro lote y repartí las cantidades','');}
-function loadPedidoToCart(codigo){if(!codigo)return;const p=S.pedidos.find(x=>x.id===codigo);if(!p)return;if(remCart.items.length&&!confirm('Esto reemplaza lo que tengas cargado en el remito. ¿Continuar?')){const s=$('e_pedido');if(s)s.value='';return;}if($('e_cli'))$('e_cli').value=p.cliente_id;remCart={items:(p.items||[]).map(it=>({producto:it.producto,cantidad:+it.paquetes||0,cajas:Math.ceil((+it.paquetes||0)/(prodInfo(it.producto).uxc||1)),loteRef:null,precio:it.precio,fromPedido:true})),pedidoCodigo:codigo};renderCart();banner('Pedido '+codigo+' cargado · elegí el lote (PEPS) de cada renglón','');}
+function loadPedidoToCart(codigo){if(!codigo)return;const p=S.pedidos.find(x=>x.id===codigo);if(!p)return;if(remCart.items.length&&!confirm('Esto reemplaza lo que tengas cargado en el remito. ¿Continuar?')){const s=$('e_pedido');if(s)s.value='';return;}if($('e_cli'))$('e_cli').value=p.cliente_id;remCart={items:(p.items||[]).map(it=>({producto:it.producto,cantidad:+it.paquetes||0,cajas:Math.ceil((+it.paquetes||0)/(prodInfo(it.producto).uxc||1)),loteRef:null,precio:it.precio,fromPedido:true})),pedidoCodigo:codigo,cliId:p.cliente_id};renderCart();banner('Pedido '+codigo+' cargado · elegí el lote (PEPS) de cada renglón','');}
 function lotesStockDeProducto(prod){const out=[];lotesDeProducto(prod).forEach(l=>{const st=stockLoteProd(prod,l);if(st>0.001){let f='';const p=S.producciones.find(x=>x.estado==='validada'&&loteDeProd(x)===l&&x.outputs.some(o=>o.producto===prod));f=p?p.fecha:'';out.push({lote:l,stock:st,fecha:f});}});out.sort((a,b)=>((a.fecha||'').localeCompare(b.fecha||''))||a.lote.localeCompare(b.lote));return out;}
 function remAddLine(){const p=(S.productos[0]||{}).nombre||'';remCart.items.push({producto:p,cantidad:0,cajas:0,loteRef:null,precio:null});renderCart();}
 function remChangeProd(i,prod){const it=remCart.items[i];if(!it)return;it.producto=prod;it.loteRef=null;it.precio=null;it.cajas=0;renderCart();}
 function assignLote(i,lote){const it=remCart.items[i];if(!it)return;it.loteRef=lote||null;if(lote){const st=stockLoteProd(it.producto,lote);if(!it.cantidad||it.cantidad>st)it.cantidad=st;it.cajas=Math.ceil((+it.cantidad||0)/(prodInfo(it.producto).uxc||1));}renderCart();}
 function remSetCant(i,v){const it=remCart.items[i];if(!it)return;it.cantidad=Math.max(0,+v||0);it.cajas=Math.ceil((+it.cantidad||0)/(prodInfo(it.producto).uxc||1));renderCart();}
+function remNuevo(){window._editRemito=null;remCart={items:[]};go('ent');}
 function renderCart(){const c=$('e_cart');if(!c)return;const cliId=$('e_cli')?$('e_cli').value:'';if($('e_count'))$('e_count').textContent=remCart.items.length+' ítems';{const _sv=$('e_save');if(_sv){_sv.disabled=!remCart.items.some(x=>x.loteRef&&+x.cantidad>0);_sv.innerHTML=remCart.editId?('💾 Guardar cambios '+(remCart.editNumero||'')):'✓ Emitir remito';_sv.onclick=remCart.editId?saveRemitoEdit:emitRemito;}}
   if(!remCart.items.length){c.innerHTML='<div class="empty" style="padding:24px">Agregá productos (+ Agregar producto) o cargá un pedido para armar el remito.</div>';return;}
   let totV=0;
