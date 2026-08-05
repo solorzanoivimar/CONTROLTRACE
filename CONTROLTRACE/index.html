@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v59 · stock por lote</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v60 · stock por lote</div>
       </div>
     </nav>
     <div class="main">
@@ -583,7 +583,7 @@ async function reloadAcond(){
 }
 function recByUuid(uuid){return S.recepciones.find(r=>r.id===uuid);}
 function viewAcond(){
-  const lotes=S.recepciones.filter(r=>r.estado!=='anulada'&&r.origen!=='acondicionamiento'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);
+  const lotes=S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);
   $('view').innerHTML=`
    <div class="card" style="margin-bottom:16px"><div class="card-h"><h3>Nuevo acondicionamiento</h3></div>
    <p class="hint">Un pre-proceso sobre la materia prima (ej: <b>pelado del choclo</b>). Registra la <b>primera merma</b> y genera un <b>lote intermedio</b> (ej: CHOCLO PELADO) que después se usa como materia prima en el envasado. El costo de la merma se traslada al lote pelado.</p>
@@ -624,6 +624,7 @@ function acCajasCalc(){const c=+($('ac_cajent')?$('ac_cajent').value:0)||0;const
 function acCalc(){const ent=+$('ac_kgent').value||0,sal=+$('ac_kgsal').value||0;const el=$('ac_calc');if(!el)return;const merma=Math.max(0,ent-sal);const rinde=ent>0?sal/ent*100:0;
   if(sal>ent){el.innerHTML=`<span style="color:var(--clay)">⚠️ Los kg obtenidos no pueden superar los kg procesados.</span>`;return;}
   el.innerHTML=ent&&sal?`Merma (chala): <b>${nf(merma,1)} kg</b> · Rinde del pelado: <b>${nf(rinde,1)}%</b>`:'Ingresá kg procesados y kg obtenidos.';}
+function rootLote(code){const i=(code||'').indexOf('·');return i>=0?code.slice(0,i):(code||'');}
 async function recalcPeladoRec(recSalId){const acs=(S.acond||[]).filter(a=>a.estado!=='anulada'&&a.recSalId===recSalId);let kilos=0,cajas=0,total=0;acs.forEach(a=>{kilos+=+a.kgSal||0;cajas+=+a.cajasSal||0;total+=(+a.kgEnt||0)*adjPriceKg(a.materia||'');});kilos=+kilos.toFixed(3);total=+total.toFixed(2);const precio=kilos>0?+(total/kilos).toFixed(4):0;await sb.from('recepciones').update({kilos,cajas,total,precio_kilo:precio}).eq('id',recSalId).eq('empresa_id',S.empresaId);}
 async function genAcond(){
   const cl=$('ac_lote').value;const r=S.recepciones.find(x=>x.codigo_lote===cl);if(!r)return banner('Elegí un lote','warn');
@@ -645,7 +646,7 @@ async function genAcond(){
     const prev=(S.acond||[]).find(a=>a.estado!=='anulada'&&a.recepcionId===r.id&&(a.prodSal||'').trim().toUpperCase()===prodKey&&a.recSalId&&recByUuid(a.recSalId));
     let loteSal,recSalId,nuevoLote=false;
     if(prev){loteSal=prev.loteSal;recSalId=prev.recSalId;}
-    else{nuevoLote=true;const {data:numL,error:e2}=await sb.rpc('siguiente_numero',{p_tipo:'lote'});if(e2)throw e2;loteSal='L-'+pad(numL);const {data:recSal,error:e3}=await sb.from('recepciones').insert({empresa_id:S.empresaId,codigo_lote:loteSal,fecha,proveedor:'ACOND · '+r.codigo_lote,materia_prima:prodSal,cajas,kilos:sal,precio_kilo:precioSal,total:+(sal*precioSal).toFixed(2),recibido_por:S.nombre,estado:'activa',origen:'acondicionamiento'}).select('id').single();if(e3)throw e3;recSalId=recSal.id;}
+    else{nuevoLote=true;const _root=rootLote(r.codigo_lote);let _mx=0;S.recepciones.forEach(x=>{if(x.origen==='acondicionamiento'&&rootLote(x.codigo_lote)===_root){const _i=x.codigo_lote.lastIndexOf('·');const _n=_i>=0?(parseInt(x.codigo_lote.slice(_i+1))||0):0;if(_n>_mx)_mx=_n;}});loteSal=_root+'·'+(_mx+1);const {data:recSal,error:e3}=await sb.from('recepciones').insert({empresa_id:S.empresaId,codigo_lote:loteSal,fecha,proveedor:'ACOND · '+r.codigo_lote,materia_prima:prodSal,cajas,kilos:sal,precio_kilo:precioSal,total:+(sal*precioSal).toFixed(2),recibido_por:S.nombre,estado:'activa',origen:'acondicionamiento'}).select('id').single();if(e3)throw e3;recSalId=recSal.id;}
     const {data:acRow,error:e4}=await sb.from('acondicionamientos').insert({empresa_id:S.empresaId,codigo,fecha,recepcion_id:r.id,materia_prima:r.materia_prima,proceso:proc,kg_entrada:ent,kg_salida:sal,cajas_salida:cajas,producto_salida:prodSal,lote_salida:loteSal,recepcion_salida_id:recSalId,operarios:op,horas:hs,estado:'activa'}).select('id').single();if(e4)throw e4;
     if(nuevoLote)await sb.from('recepciones').update({acond_id:acRow.id}).eq('id',recSalId).eq('empresa_id',S.empresaId);
     await reloadRecepciones();await reloadAcond();
