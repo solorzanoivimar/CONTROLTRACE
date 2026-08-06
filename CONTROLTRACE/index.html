@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v64 · etiquetas por lote</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v65 · sync de ajustes</div>
       </div>
     </nav>
     <div class="main">
@@ -208,8 +208,8 @@ function buildNav(){
 }
 function go(v){if(v!=='ent')window._editRemito=null;cur=v;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render();refreshModule(v);}
 const MOD_RELOAD={dash:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos()]),rec:()=>reloadRecepciones(),acond:()=>Promise.all([reloadRecepciones(),reloadAcond()]),prod:()=>Promise.all([reloadProducciones(),reloadRecepciones()]),ens:()=>Promise.all([reloadEnsamblados(),reloadProducciones()]),descmp:()=>Promise.all([reloadDescartes(),reloadRecepciones()]),ajuste:()=>Promise.all([reloadAjustes(),reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),desp:()=>Promise.all([reloadDespachos(),reloadProducciones()]),ent:()=>Promise.all([reloadEntregas(),reloadDespachos()]),dev:()=>Promise.all([reloadDevoluciones(),reloadEntregas()]),carga:()=>reloadEntregas(),ped:()=>reloadPedidos(),traz:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),stock:()=>Promise.all([reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadRecepciones()]),insu:()=>reloadInsumos(),costeo:()=>Promise.all([reloadCostos(),reloadCatalogo()]),rep:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos(),reloadNovedades()])};
-async function refreshModule(v){const fn=MOD_RELOAD[v];if(!fn)return;try{await fn();const mb=document.getElementById('modalBg');const modalOpen=mb&&mb.classList.contains('show');const a=document.activeElement,tn=a?a.tagName:'';const typing=(tn==='INPUT'||tn==='SELECT'||tn==='TEXTAREA');if(cur===v&&!modalOpen&&!typing)render();}catch(e){}}
-async function refreshNow(){const b=document.getElementById('btnRefresh');if(b)b.textContent='⏳ Actualizando…';try{const fn=MOD_RELOAD[cur];if(fn)await fn();render();banner('Datos actualizados ✓','');}catch(e){banner('No se pudo actualizar','err');}if(b)b.textContent='🔄 Actualizar';}
+async function refreshModule(v){const fn=MOD_RELOAD[v];if(!fn)return;try{await Promise.all([fn(),reloadAjustes()]);const mb=document.getElementById('modalBg');const modalOpen=mb&&mb.classList.contains('show');const a=document.activeElement,tn=a?a.tagName:'';const typing=(tn==='INPUT'||tn==='SELECT'||tn==='TEXTAREA');if(cur===v&&!modalOpen&&!typing)render();}catch(e){}}
+async function refreshNow(){const b=document.getElementById('btnRefresh');if(b)b.textContent='⏳ Actualizando…';try{const fn=MOD_RELOAD[cur];await Promise.all([fn?fn():Promise.resolve(),reloadAjustes()]);render();banner('Datos actualizados ✓','');}catch(e){banner('No se pudo actualizar','err');}if(b)b.textContent='🔄 Actualizar';}
 
 const META={dash:['PANEL','Panel de control'],rec:['PASO 1 · ENTRADA','Recepción de mercadería'],prod:['PASO 2 · PROCESO','Producción'],desp:['PASO 3 · ETIQUETADO','Impresión de etiquetas'],ent:['PASO 4 · SALIDA','Remitos'],ped:['DEMANDA','Pedidos y plan de compra'],rep:['DIRECCIÓN','Reporte diario'],traz:['CONSULTA','Consultar trazabilidad'],cfg:['SISTEMA','Configuración'],stock:['ANÁLISIS','Stock en cámara'],insu:['ANÁLISIS','Stock de insumos'],costeo:['ANÁLISIS','Costeo de productos'],dev:['OPERACIÓN','Devoluciones'],carga:['OPERACIÓN','Validación de carga'],ens:['OPERACIÓN','Ensamblado'],descmp:['OPERACIÓN','Descarte de materia prima'],usuarios:['SISTEMA','Usuarios y accesos']};
 function render(){
@@ -284,6 +284,7 @@ async function boot(){
     await reloadDevoluciones();
     await reloadEnsamblados();
     await reloadDescartes();
+    await reloadAjustes();
     await reloadNovedades();
     // pintar shell
     $('empName').textContent=emp.razon_social;
