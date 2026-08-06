@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v60 · stock por lote</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v62 · ajuste de stock</div>
       </div>
     </nav>
     <div class="main">
@@ -160,7 +160,7 @@ const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
 
 const $=id=>document.getElementById(id);
-const S={empresaId:null,empresa:null,rol:null,nombre:null,productos:[],clientes:[],proveedores:[],materias:[],prodMP:{},recetas:{},recepciones:[],producciones:[],despachos:[],entregas:[],preciosCliente:{},pedidos:[],operarios:[],insumos:[],prodInsumos:{},insumoMovs:[],costos:{},devoluciones:[],componentes:{},ensConsumos:[],descartes:[],novedades:[]};
+const S={empresaId:null,empresa:null,rol:null,nombre:null,productos:[],clientes:[],proveedores:[],materias:[],prodMP:{},recetas:{},recepciones:[],producciones:[],despachos:[],entregas:[],preciosCliente:{},pedidos:[],operarios:[],insumos:[],prodInsumos:{},insumoMovs:[],costos:{},devoluciones:[],componentes:{},ensConsumos:[],descartes:[],novedades:[],ajustes:[]};
 let remCart={items:[]};
 let cur='dash';
 
@@ -185,6 +185,7 @@ const MODS=[
   {id:'prod',ico:'⚙️',name:'Producción',grupo:'Operación',roles:['admin','supervisor','preparador']},
   {id:'ens',ico:'🌿',name:'Ensamblado',grupo:'Operación',roles:['admin','supervisor','preparador']},
   {id:'descmp',ico:'🗑️',name:'Descarte de MP',grupo:'Operación',roles:['admin','supervisor','preparador']},
+  {id:'ajuste',ico:'⚖️',name:'Ajuste de stock',grupo:'Operación',roles:['admin','supervisor']},
   {id:'desp',ico:'🏷️',name:'Impresión de Etiquetas',grupo:'Operación',roles:['admin','supervisor','preparador']},
   {id:'ent',ico:'🧾',name:'Remitos',grupo:'Operación',roles:['admin','supervisor','comercial']},
   {id:'dev',ico:'↩️',name:'Devoluciones',grupo:'Operación',roles:['admin','supervisor','comercial']},
@@ -206,7 +207,7 @@ function buildNav(){
   $('nav').innerHTML=html;
 }
 function go(v){if(v!=='ent')window._editRemito=null;cur=v;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render();refreshModule(v);}
-const MOD_RELOAD={dash:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos()]),rec:()=>reloadRecepciones(),acond:()=>Promise.all([reloadRecepciones(),reloadAcond()]),prod:()=>Promise.all([reloadProducciones(),reloadRecepciones()]),ens:()=>Promise.all([reloadEnsamblados(),reloadProducciones()]),descmp:()=>Promise.all([reloadDescartes(),reloadRecepciones()]),desp:()=>Promise.all([reloadDespachos(),reloadProducciones()]),ent:()=>Promise.all([reloadEntregas(),reloadDespachos()]),dev:()=>Promise.all([reloadDevoluciones(),reloadEntregas()]),carga:()=>reloadEntregas(),ped:()=>reloadPedidos(),traz:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),stock:()=>Promise.all([reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadRecepciones()]),insu:()=>reloadInsumos(),costeo:()=>Promise.all([reloadCostos(),reloadCatalogo()]),rep:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos(),reloadNovedades()])};
+const MOD_RELOAD={dash:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos()]),rec:()=>reloadRecepciones(),acond:()=>Promise.all([reloadRecepciones(),reloadAcond()]),prod:()=>Promise.all([reloadProducciones(),reloadRecepciones()]),ens:()=>Promise.all([reloadEnsamblados(),reloadProducciones()]),descmp:()=>Promise.all([reloadDescartes(),reloadRecepciones()]),ajuste:()=>Promise.all([reloadAjustes(),reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),desp:()=>Promise.all([reloadDespachos(),reloadProducciones()]),ent:()=>Promise.all([reloadEntregas(),reloadDespachos()]),dev:()=>Promise.all([reloadDevoluciones(),reloadEntregas()]),carga:()=>reloadEntregas(),ped:()=>reloadPedidos(),traz:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),stock:()=>Promise.all([reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadRecepciones()]),insu:()=>reloadInsumos(),costeo:()=>Promise.all([reloadCostos(),reloadCatalogo()]),rep:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos(),reloadNovedades()])};
 async function refreshModule(v){const fn=MOD_RELOAD[v];if(!fn)return;try{await fn();const mb=document.getElementById('modalBg');const modalOpen=mb&&mb.classList.contains('show');const a=document.activeElement,tn=a?a.tagName:'';const typing=(tn==='INPUT'||tn==='SELECT'||tn==='TEXTAREA');if(cur===v&&!modalOpen&&!typing)render();}catch(e){}}
 async function refreshNow(){const b=document.getElementById('btnRefresh');if(b)b.textContent='⏳ Actualizando…';try{const fn=MOD_RELOAD[cur];if(fn)await fn();render();banner('Datos actualizados ✓','');}catch(e){banner('No se pudo actualizar','err');}if(b)b.textContent='🔄 Actualizar';}
 
@@ -234,6 +235,7 @@ function render(){
   else if(cur==='ens')viewEns();
   else if(cur==='descmp')viewDescarte();
   else if(cur==='carga')viewCarga();
+  else if(cur==='ajuste')viewAjuste();
 }
 
 // ---- LOGIN ----
@@ -567,7 +569,8 @@ function recActiva(codigo){return S.recepciones.find(r=>r.codigo_lote===codigo&&
 function kgConsumidoLote(codigo){let s=0;S.producciones.filter(p=>p.estado!=='anulada').forEach(p=>{if(p.loteId===codigo)s+=+p.mpKg||0;(p.lotes||[]).forEach(l=>{if(l.loteId===codigo)s+=+l.kg||0;});});return s;}
 function descartadoLote(codigo){return (S.descartes||[]).filter(d=>d.estado!=='anulada'&&d.codigo_lote===codigo).reduce((s,d)=>s+(+d.kg||0),0);}
 function acondConsumidoLote(uuid){return (S.acond||[]).filter(a=>a.estado!=='anulada'&&a.recepcionId===uuid).reduce((s,a)=>s+(+a.kgEnt||0),0);}
-function stockLote(r){return Math.max(0,(+r.kilos||0)-kgConsumidoLote(r.codigo_lote)-descartadoLote(r.codigo_lote)-acondConsumidoLote(r.id));}
+function ajusteLoteMP(lote){return (S.ajustes||[]).filter(a=>a.estado!=='anulada'&&a.tipo==='mp'&&a.lote===lote).reduce((s,a)=>s+(+a.cantidad||0),0);}
+function stockLote(r){return Math.max(0,(+r.kilos||0)-kgConsumidoLote(r.codigo_lote)-descartadoLote(r.codigo_lote)-acondConsumidoLote(r.id)+ajusteLoteMP(r.codigo_lote));}
 function lotesConStock(){return S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);}
 function lotesDeMP(mp){return S.recepciones.filter(r=>r.estado!=='anulada'&&(r.materia_prima||'').toUpperCase()===(mp||'').toUpperCase()&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);}
 function loteNum(r){const m=(''+((r&&r.codigo_lote)||'')).match(/(\d+)/);return m?+m[1]:0;}
@@ -919,7 +922,8 @@ function loteDeProd(p){return loteInfoDeProd(p).lote;}
 function producidoLote(prod,lote){let s=0;S.producciones.forEach(p=>{if(p.estado!=='validada')return;if(loteDeProd(p)!==lote)return;p.outputs.forEach(o=>{if(o.producto===prod)s+=+o.cantidad||0;});});return s;}
 function entregadoLote(prod,lote){let s=0;(S.entregas||[]).forEach(e=>{if(e.estado==='anulada')return;(e.items||[]).forEach(it=>{if(it.producto===prod&&(it.loteRef||'')===lote)s+=+it.cantidad||0;});});return s;}
 function reingLote(prod,lote){let s=0;(S.devoluciones||[]).forEach(d=>{if(d.estado==='anulada')return;if(d.tipo==='reingreso_pt'&&d.producto_nombre===prod&&(d.lote_ref||'')===lote)s+=+d.cantidad||0;});return s;}
-function stockLoteProd(prod,lote){return Math.max(0,producidoLote(prod,lote)+reingLote(prod,lote)-entregadoLote(prod,lote));}
+function ajusteLotePT(prod,lote){return (S.ajustes||[]).filter(a=>a.estado!=='anulada'&&a.tipo==='pt'&&a.item===prod&&a.lote===lote).reduce((s,a)=>s+(+a.cantidad||0),0);}
+function stockLoteProd(prod,lote){return Math.max(0,producidoLote(prod,lote)+reingLote(prod,lote)-entregadoLote(prod,lote)+ajusteLotePT(prod,lote));}
 function lotesDeProducto(name){const set=new Set();S.producciones.forEach(p=>{if(p.estado==='validada'&&p.outputs.some(o=>o.producto===name))set.add(loteDeProd(p));});(S.entregas||[]).forEach(e=>{if(e.estado!=='anulada')(e.items||[]).forEach(it=>{if(it.producto===name&&it.loteRef)set.add(it.loteRef);});});return [...set];}
 function prodByCode(code){for(const p of S.producciones){for(const o of p.outputs){if(o.code===code)return p;}}return null;}
 function loteInfoDeProd(p){if(p.lotes&&p.lotes.length){return {lote:p.id,op:p.id,origen:p.lotes.map(l=>`${l.mp} ${l.loteId}`)};}return {lote:p.loteId||p.id,op:p.id,origen:[p.loteId||p.id]};}
@@ -1570,7 +1574,7 @@ function repPaint(){const b=$('repBody');if(!b)return;const t=repCur;const xbtn=
     <div class="g2"><div><label>Paquetes a preparar</label><input type="number" id="cap_paq" placeholder="ej: 5000" oninput="capCalc()"></div><div><label>Operarios disponibles</label><input type="number" id="cap_op" placeholder="ej: 7" oninput="capCalc()"></div></div>
     <div class="g2"><div><label>Productividad (paquetes por hora-hombre)</label><input type="number" id="cap_prod" step="0.1" value="${avg>0?avg.toFixed(1):''}" placeholder="ej: 120" oninput="capCalc()"></div><div style="display:flex;align-items:flex-end"><button class="btn btn-gold" style="width:100%" onclick="capCalc()">Calcular</button></div></div>
     <div id="cap_res" class="scan-note" style="margin-top:10px"></div></div>`;}
-  if(t==='novedades'){const NL={anular_recepcion:'Anular recepción',editar_recepcion:'Editar recepción',anular_acondicionamiento:'Anular acondicionamiento',editar_acondicionamiento:'Editar acondicionamiento',peps_forzado:'PEPS forzado',desbloqueo_produccion:'Desbloquear producción',editar_despacho:'Editar despacho',anular_despacho:'Anular despacho',anular_remito:'Anular remito',editar_remito:'Editar remito',validar_carga_dif:'Carga con diferencias',descarte:'Descarte MP',anular_descarte:'Anular descarte',editar_descarte:'Editar descarte',anular_devolucion:'Anular devolución',editar_devolucion:'Editar devolución'};const rows=(S.novedades||[]).filter(n=>inRange(n.fecha));ex.rows=[['Fecha','Hora','Operación','Referencia','Detalle','Autorizó','Ejecutó']].concat(rows.map(n=>[n.fecha,(n.created_at||'').slice(11,16),NL[n.tipo]||n.tipo,n.referencia||'',n.detalle||'',n.autorizado_por||'',n.ejecutado_por||'']));b.innerHTML=`<div class="card"><div class="card-h"><h3>Novedades · operaciones autorizadas con PIN</h3><div style="display:flex;gap:8px;align-items:center"><span class="tag ok">${rows.length} registro(s)</span>${xbtn}</div></div><p class="hint">Auditoría de todo lo que requirió PIN de supervisor. Se registra desde que se activó esta versión (lo anterior no figura).</p><div style="overflow:auto"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Operación</th><th>Ref.</th><th>Detalle</th><th>Autorizó</th><th>Ejecutó</th></tr></thead><tbody>${rows.map(n=>`<tr><td>${fmtD(n.fecha)}</td><td class="mono">${(n.created_at||'').slice(11,16)}</td><td><span class="tag">${esc(NL[n.tipo]||n.tipo)}</span></td><td class="mono">${esc(n.referencia||'—')}</td><td>${esc(n.detalle||'')}</td><td>${esc(n.autorizado_por||'—')}</td><td>${esc(n.ejecutado_por||'—')}</td></tr>`).join('')||'<tr><td colspan=7 class=empty>Sin novedades en el período</td></tr>'}</tbody></table></div></div>`;}
+  if(t==='novedades'){const NL={anular_recepcion:'Anular recepción',editar_recepcion:'Editar recepción',anular_acondicionamiento:'Anular acondicionamiento',editar_acondicionamiento:'Editar acondicionamiento',peps_forzado:'PEPS forzado',desbloqueo_produccion:'Desbloquear producción',editar_despacho:'Editar despacho',anular_despacho:'Anular despacho',anular_remito:'Anular remito',editar_remito:'Editar remito',validar_carga_dif:'Carga con diferencias',descarte:'Descarte MP',anular_descarte:'Anular descarte',editar_descarte:'Editar descarte',anular_devolucion:'Anular devolución',editar_devolucion:'Editar devolución',ajuste_stock:'Ajuste de stock',anular_ajuste:'Anular ajuste de stock'};const rows=(S.novedades||[]).filter(n=>inRange(n.fecha));ex.rows=[['Fecha','Hora','Operación','Referencia','Detalle','Autorizó','Ejecutó']].concat(rows.map(n=>[n.fecha,(n.created_at||'').slice(11,16),NL[n.tipo]||n.tipo,n.referencia||'',n.detalle||'',n.autorizado_por||'',n.ejecutado_por||'']));b.innerHTML=`<div class="card"><div class="card-h"><h3>Novedades · operaciones autorizadas con PIN</h3><div style="display:flex;gap:8px;align-items:center"><span class="tag ok">${rows.length} registro(s)</span>${xbtn}</div></div><p class="hint">Auditoría de todo lo que requirió PIN de supervisor. Se registra desde que se activó esta versión (lo anterior no figura).</p><div style="overflow:auto"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Operación</th><th>Ref.</th><th>Detalle</th><th>Autorizó</th><th>Ejecutó</th></tr></thead><tbody>${rows.map(n=>`<tr><td>${fmtD(n.fecha)}</td><td class="mono">${(n.created_at||'').slice(11,16)}</td><td><span class="tag">${esc(NL[n.tipo]||n.tipo)}</span></td><td class="mono">${esc(n.referencia||'—')}</td><td>${esc(n.detalle||'')}</td><td>${esc(n.autorizado_por||'—')}</td><td>${esc(n.ejecutado_por||'—')}</td></tr>`).join('')||'<tr><td colspan=7 class=empty>Sin novedades en el período</td></tr>'}</tbody></table></div></div>`;}
   window._repEx=ex;
 }
 
@@ -1998,20 +2002,17 @@ function stkData(t,q){
       .sort((a,b)=>(b[1].comp-b[1].proc-b[1].desc)-(a[1].comp-a[1].proc-a[1].desc))
       .map(([k,v])=>[k,v.lotes.join(', ')||'—',+v.comp.toFixed(1),+v.proc.toFixed(1),+v.desc.toFixed(1),Math.round(v.caj),+(v.comp-v.proc-v.desc).toFixed(1)]).filter(inc);
     return {titulo:'Stock de materia prima en cámara',head:['Materia prima','N° de lote','Comprado kg','Procesado kg','Descartado kg','Stock cajas','Stock kg'],num:[0,0,1,1,1,1,1],dec:[0,0,1,1,1,0,1],rows};}
-  if(t==='prod'){const ps=prodAgg();
-    const rows=Object.entries(ps).filter(([k,v])=>v.stock>0.001).sort((a,b)=>b[1].stock-a[1].stock)
-      .map(([k,v])=>[k,v.lotes.map(x=>x.lote+': '+nf(x.stock)).join(' · ')||'—',Math.round(v.stock)]).filter(inc);
-    return {titulo:'Stock de productos procesados (producción cerrada)',head:['Producto','Lotes (stock por lote)','Stock total'],num:[0,0,1],dec:[0,0,0],rows};}
-  const rows=S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1)
-    .map(r=>[r.codigo_lote,r.materia_prima||'',r.proveedor||'',fmtD(r.fecha),Math.round((+r.kilos||0)>0?stockLote(r)/(+r.kilos)*(+r.cajas||0):0),+stockLote(r).toFixed(1)]).filter(inc);
-  return {titulo:'Detalle de lotes en cámara (PEPS)',head:['Lote','Materia prima','Proveedor','Ingreso','Stock cajas','Stock kg'],num:[0,0,0,0,1,1],dec:[0,0,0,0,0,1],rows};
+  if(t==='prod'){const ps=prodAgg();const items=Object.entries(ps).filter(([k,v])=>v.stock>0.001).sort((a,b)=>a[0]<b[0]?-1:1);const rows=[],rk=[];let gt=0;items.forEach(([k,v])=>{v.lotes.forEach(x=>{rows.push([k,x.lote,Math.round(x.stock)]);rk.push('d');});rows.push([k+' — Total',(v.lotes.length)+' lote(s)',Math.round(v.stock)]);rk.push('s');gt+=v.stock;});if(rows.length){rows.push(['TOTAL GENERAL','',Math.round(gt)]);rk.push('t');}
+    return {titulo:'Stock de productos procesados — por lote (producción cerrada)',head:['Producto','Lote','Stock (u.)'],num:[0,0,1],dec:[0,0,0],rows,rk};}
+  const recs=S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001);const byM={},ordm=[];recs.forEach(r=>{const k=r.materia_prima||'—';if(!(k in byM)){byM[k]=[];ordm.push(k);}byM[k].push(r);});ordm.sort();const rows=[],rk=[];let gk=0,gc=0;ordm.forEach(k=>{const list=byM[k].slice().sort((a,b)=>a.fecha<b.fecha?-1:1);let sk=0,sc=0;list.forEach(r=>{const kg=+stockLote(r).toFixed(1),cj=Math.round((+r.kilos||0)>0?stockLote(r)/(+r.kilos)*(+r.cajas||0):0);sk+=kg;sc+=cj;gk+=kg;gc+=cj;rows.push([r.codigo_lote,k,r.proveedor||'',fmtD(r.fecha),cj,kg]);rk.push('d');});rows.push([k+' — Total','','','',sc,+sk.toFixed(1)]);rk.push('s');});if(rows.length){rows.push(['TOTAL GENERAL','','','',gc,+gk.toFixed(1)]);rk.push('t');}
+  return {titulo:'Stock de materia prima — por lote (PEPS)',head:['Lote','Materia prima','Proveedor','Ingreso','Stock cajas','Stock kg'],num:[0,0,0,0,1,1],dec:[0,0,0,0,0,1],rows,rk};
 }
 function stkPaint(){const t=window._stk||'mp';const b=$('stkBody');if(!b)return;const d=stkData(t,'');
   b.innerHTML=`<div class="card-h" style="margin-bottom:10px"><h3 style="font-size:15px">${d.titulo}</h3><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="stkPrint()">🖨️ Planilla de conteo</button><button class="btn btn-ghost btn-sm" onclick="stkExport()">⬇ Excel</button></div></div>
    <input id="stk_q" placeholder="🔎 Buscar por nombre, lote o proveedor…" value="${esc(window._stkQ||'')}" oninput="stkFilter(this.value)" style="margin-bottom:12px">
    ${t==='lotes'?'<p class="hint">Cada lote con su stock remanente, del más antiguo al más nuevo (control PEPS).</p>':''}
    <div style="overflow:auto"><table><thead><tr>${d.head.map((x,i)=>`<th${d.num[i]?' style="text-align:right"':''}>${x}</th>`).join('')}</tr></thead><tbody>
-   ${d.rows.map(r=>`<tr data-s="${esc(r.join(' ').toLowerCase())}">${r.map((v,i)=>{const last=i===r.length-1;const txt=d.num[i]?nf(v,d.dec[i]):esc(String(v));return `<td class="${d.num[i]?'mono':''}"${d.num[i]?' style="text-align:right"':''}>${last?`<b>${txt}</b>`:txt}</td>`;}).join('')}</tr>`).join('')||`<tr><td colspan=${d.head.length} class=empty>Sin datos</td></tr>`}
+   ${d.rows.map((r,ri)=>{const kind=(d.rk&&d.rk[ri])||'d';const sum=kind!=='d';return `<tr ${sum?'class="stk-sum"':`data-s="${esc(r.join(' ').toLowerCase())}"`} style="${kind==='s'?'background:#f0ece2;font-weight:700':kind==='t'?'border-top:2px solid #000;font-weight:700':''}">${r.map((v,i)=>{const isn=d.num[i];const txt=isn?nf(v,d.dec[i]):esc(String(v));return `<td class="${isn?'mono':''}"${isn?' style="text-align:right"':''}>${(sum||i===r.length-1)?`<b>${txt}</b>`:txt}</td>`;}).join('')}</tr>`;}).join('')||`<tr><td colspan=${d.head.length} class=empty>Sin datos</td></tr>`}
    </tbody></table><div id="stk_none" class="empty" style="display:none">Sin resultados para la búsqueda</div></div>`;
   if(window._stkQ)stkFilter(window._stkQ);
 }
@@ -2456,6 +2457,47 @@ async function toggleProveedor(id){const p=S.proveedores.find(x=>x.id===id);awai
 // ---- DESCARTE DE MATERIA PRIMA ----
 async function reloadDescartes(){const {data}=await sb.from('descartes').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false});S.descartes=data||[];}
 async function reloadNovedades(){const {data}=await sb.from('novedades').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false});S.novedades=data||[];}
+async function reloadAjustes(){try{const {data,error}=await sb.from('ajustes_stock').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false});if(error)throw error;S.ajustes=data||[];}catch(e){S.ajustes=[];}}
+function ajMPitems(){return [...new Set(S.recepciones.filter(r=>r.estado!=='anulada').map(r=>r.materia_prima))].filter(Boolean).sort();}
+function ajPTitems(){const set=new Set();S.producciones.forEach(p=>{if(p.estado==='validada')(p.outputs||[]).forEach(o=>set.add(o.producto));});return [...set].sort();}
+function ajLotesMP(item){return S.recepciones.filter(r=>r.estado!=='anulada'&&r.materia_prima===item).sort((a,b)=>a.fecha<b.fecha?-1:1).map(r=>({lote:r.codigo_lote,stock:stockLote(r)}));}
+function ajLotesPT(item){return lotesDeProducto(item).map(l=>({lote:l,stock:stockLoteProd(item,l)}));}
+function ajRow(a){const cant=(+a.cantidad||0);const un=a.tipo==='mp'?'kg':'u';const dec=un==='kg'?1:0;return `<tr style="${a.estado==='anulada'?'opacity:.5':''}"><td class="mono">${esc(a.codigo||'')}</td><td>${fmtD(a.fecha)}</td><td>${a.tipo==='mp'?'MP':'PT'}</td><td>${esc((a.item||'').slice(0,16))}</td><td class="mono">${esc(a.lote||'—')}</td><td class="mono"><span class="tag ${cant>=0?'ok':'out'}">${cant>=0?'+':''}${nf(cant,dec)} ${un}</span></td><td>${esc((a.motivo||'').slice(0,20))}</td><td>${esc(a.autorizado_por||'—')}</td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="detalleAjuste('${a.codigo}')" title="Ver">\U0001f50d</button>${a.estado!=='anulada'?` <button class="btn btn-danger btn-sm" onclick="anularAjuste('${a.codigo}')" title="Anular">✕</button>`:' <span class="tag out">Anulado</span>'}</td></tr>`;}
+function viewAjuste(){const acts=(S.ajustes||[]).filter(a=>a.estado!=='anulada').length;
+  $('view').innerHTML=`<div class="kpis" style="grid-template-columns:repeat(2,1fr)">
+     <div class="kpi steel"><div class="lab">⚖️ Ajustes activos</div><div class="val">${acts}</div><div class="un">afectan el stock</div></div>
+     <div class="kpi gold"><div class="lab">\U0001f4cb Total registros</div><div class="val">${(S.ajustes||[]).length}</div><div class="un">incluye anulados</div></div>
+   </div>
+   <div class="card" style="margin-bottom:16px"><div class="card-h"><h3>Registrar ajuste de stock</h3></div>
+   <p class="hint">Corrección manual de inventario por conteo físico, rotura, merma no registrada o error de carga. Suma (+) o resta (−) sobre un lote puntual. No borra historial: queda en Novedades y se puede anular. Requiere PIN del supervisor.</p>
+   <div class="g2"><div><label>Tipo</label><select id="aj_tipo" onchange="ajTipo()"><option value="mp">Materia prima (kg)</option><option value="pt">Producto terminado (unidades)</option></select></div><div><label>Ítem</label><select id="aj_item" onchange="ajItem()"><option value="">— elegir —</option></select></div></div>
+   <label>Lote</label><select id="aj_lote"><option value="">— elegí el ítem primero —</option></select>
+   <div class="g2"><div><label>Signo</label><select id="aj_signo"><option value="1">+ Sumar</option><option value="-1">− Restar</option></select></div><div><label>Cantidad</label><input type="number" id="aj_cant" min="0" step="0.01"></div></div>
+   <label>Motivo (obligatorio)</label><input id="aj_motivo" placeholder="ej: conteo físico / rotura / merma no registrada">
+   <label>PIN del supervisor</label><input type="password" id="aj_pin" autocomplete="off">
+   <button class="btn btn-gold" id="aj_save" style="margin-top:14px" onclick="saveAjuste()">Registrar ajuste</button></div>
+   <div class="card"><div class="card-h"><h3>Ajustes recientes</h3></div><div style="overflow:auto"><table><thead><tr><th>Código</th><th>Fecha</th><th>Tipo</th><th>Ítem</th><th>Lote</th><th>Cantidad</th><th>Motivo</th><th>Autorizó</th><th></th></tr></thead><tbody>${(S.ajustes||[]).slice(0,20).map(a=>ajRow(a)).join('')||'<tr><td colspan=9 class=empty>Sin ajustes registrados</td></tr>'}</tbody></table></div></div>`;
+  ajTipo();
+}
+function ajTipo(){const el=$('aj_tipo');if(!el)return;const t=el.value;const items=t==='mp'?ajMPitems():ajPTitems();const sel=$('aj_item');if(sel)sel.innerHTML='<option value="">— elegir —</option>'+items.map(i=>`<option value="${esc(i)}">${esc(i)}</option>`).join('');ajItem();}
+function ajItem(){const te=$('aj_tipo'),ie=$('aj_item');if(!te||!ie)return;const t=te.value,it=ie.value;const un=t==='mp'?'kg':'u',dec=un==='kg'?1:0;const lotes=!it?[]:(t==='mp'?ajLotesMP(it):ajLotesPT(it));const sel=$('aj_lote');if(sel)sel.innerHTML=lotes.length?('<option value="">— elegir lote —</option>'+lotes.map(l=>`<option value="${esc(l.lote)}">${esc(l.lote)} · ${nf(l.stock,dec)} ${un} actual</option>`).join('')):'<option value="">— sin lotes —</option>';}
+async function saveAjuste(){const t=$('aj_tipo').value,it=$('aj_item').value,lote=$('aj_lote').value,signo=+$('aj_signo').value,mag=+$('aj_cant').value||0,mot=$('aj_motivo').value.trim();
+  if(!it)return banner('Elegí el ítem','warn');if(!lote)return banner('Elegí el lote','warn');if(mag<=0)return banner('Indicá la cantidad','warn');if(!mot)return banner('El motivo es obligatorio','warn');
+  const cant=signo*mag,un=t==='mp'?'kg':'u',dec=un==='kg'?1:0;
+  if(cant<0){let disp=0;if(t==='mp'){const r=S.recepciones.find(x=>x.codigo_lote===lote&&x.estado!=='anulada');disp=r?stockLote(r):0;}else disp=stockLoteProd(it,lote);if(mag>disp+0.001)return banner('Solo hay '+nf(disp,dec)+' '+un+' en ese lote','warn');}
+  const auth=pinAuth($('aj_pin').value);if(!auth)return banner('PIN incorrecto','err');
+  $('aj_save').innerHTML='<span class="spin"></span>Registrando...';$('aj_save').disabled=true;
+  try{const {data:num,error:e1}=await sb.rpc('siguiente_numero',{p_tipo:'ajuste'});if(e1)throw e1;const codigo='AJ-'+pad(num);
+    const {error}=await sb.from('ajustes_stock').insert({empresa_id:S.empresaId,codigo,fecha:today(),tipo:t,item:it,lote,cantidad:cant,motivo:mot,estado:'activo',registrado_por:S.nombre||'',autorizado_por:auth.nombre});
+    if(error)throw error;
+    logNovedad('ajuste_stock',codigo,(t==='mp'?'MP':'PT')+' '+it+' lote '+lote+' · '+(cant>=0?'+':'')+nf(cant,dec)+un+' · '+mot,auth);
+    await reloadAjustes();banner('Ajuste '+codigo+' registrado','');render();
+  }catch(err){banner('Error: '+err.message,'err');$('aj_save').innerHTML='Registrar ajuste';$('aj_save').disabled=false;}
+}
+function detalleAjuste(c){const a=(S.ajustes||[]).find(x=>x.codigo===c);if(!a)return;const un=a.tipo==='mp'?'kg':'u',dec=un==='kg'?1:0,cant=+a.cantidad||0;modal(`<h3>Ajuste ${esc(a.codigo||'')}</h3><div style="font-size:13px;line-height:1.9"><b>Fecha:</b> ${fmtD(a.fecha)}<br><b>Tipo:</b> ${a.tipo==='mp'?'Materia prima (kg)':'Producto terminado (u)'}<br><b>Ítem:</b> ${esc(a.item||'—')}<br><b>Lote:</b> ${esc(a.lote||'—')}<br><b>Cantidad:</b> ${cant>=0?'+':''}${nf(cant,dec)} ${un}<br><b>Motivo:</b> ${esc(a.motivo||'—')}<br><b>Autorizó:</b> ${esc(a.autorizado_por||'—')}<br><b>Registró:</b> ${esc(a.registrado_por||'—')}<br><b>Estado:</b> ${a.estado==='anulada'?'<span class="tag out">Anulado</span>':'<span class="tag ok">Activo</span>'}</div><div class="row"><button class="btn btn-gold" onclick="closeModal()">Cerrar</button></div>`);}
+function anularAjuste(c){const a=(S.ajustes||[]).find(x=>x.codigo===c);if(!a||a.estado==='anulada')return;const un=a.tipo==='mp'?'kg':'u',dec=un==='kg'?1:0,cant=+a.cantidad||0;modal(`<h3>\U0001f512 Anular ajuste ${esc(a.codigo||'')}</h3><p class="hint">Se revierte el efecto de <b>${cant>=0?'+':''}${nf(cant,dec)} ${un}</b> sobre el lote <b>${esc(a.lote||'—')}</b>. El stock vuelve a su valor previo.</p><label>PIN del supervisor</label><input type="password" id="anaj_pin" autocomplete="off"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" id="anaj_save" onclick="doAnularAjuste('${c}')">Anular</button></div>`);}
+async function doAnularAjuste(c){const a=(S.ajustes||[]).find(x=>x.codigo===c);if(!a)return;if(!authOK($('anaj_pin').value,'anular_ajuste',c,'Anulación de ajuste '+c))return;$('anaj_save').innerHTML='<span class="spin"></span>...';$('anaj_save').disabled=true;try{const {error}=await sb.from('ajustes_stock').update({estado:'anulada'}).eq('empresa_id',S.empresaId).eq('id',a.id);if(error)throw error;await reloadAjustes();closeModal();banner('Ajuste anulado · stock revertido','warn');render();}catch(err){banner('Error: '+err.message,'err');$('anaj_save').innerHTML='Anular';$('anaj_save').disabled=false;}}
+
 function viewDescarte(){const lotes=S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);
   const perdidaTotal=(S.descartes||[]).reduce((s,d)=>s+(+d.kg||0)*avgPriceKg(d.materia_prima),0);
   $('view').innerHTML=`<div class="kpis" style="grid-template-columns:repeat(2,1fr)">
