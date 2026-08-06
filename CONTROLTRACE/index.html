@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v66 · producción compuesta</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v67 · filtro de lotes por MP</div>
       </div>
     </nav>
     <div class="main">
@@ -573,6 +573,10 @@ function acondConsumidoLote(uuid){return (S.acond||[]).filter(a=>a.estado!=='anu
 function ajusteLoteMP(lote){return (S.ajustes||[]).filter(a=>a.estado!=='anulada'&&a.tipo==='mp'&&a.lote===lote).reduce((s,a)=>s+(+a.cantidad||0),0);}
 function stockLote(r){return Math.max(0,(+r.kilos||0)-kgConsumidoLote(r.codigo_lote)-descartadoLote(r.codigo_lote)-acondConsumidoLote(r.id)+ajusteLoteMP(r.codigo_lote));}
 function lotesConStock(){return S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);}
+function mpConStock(){return [...new Set(lotesConStock().map(r=>r.materia_prima).filter(Boolean))].sort();}
+function loteOptsFiltrado(filter){const f=(filter||'').trim().toUpperCase();const ls=lotesConStock().filter(r=>!f||(r.materia_prima||'').toUpperCase().includes(f));return '<option value="">— elegí un lote —</option>'+ls.map(r=>`<option value="${r.codigo_lote}">${r.codigo_lote} · ${r.materia_prima} · ${nf(stockLote(r),1)}kg disp.</option>`).join('');}
+function ppFilterLotes(){const el=$('pp_lote');if(el)el.innerHTML=loteOptsFiltrado($('pp_mpf')?$('pp_mpf').value:'');}
+function acFilterLotes(){const el=$('ac_lote');if(el)el.innerHTML=loteOptsFiltrado($('ac_mpf')?$('ac_mpf').value:'');}
 function lotesDeMP(mp){return S.recepciones.filter(r=>r.estado!=='anulada'&&(r.materia_prima||'').toUpperCase()===(mp||'').toUpperCase()&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);}
 function loteNum(r){const m=(''+((r&&r.codigo_lote)||'')).match(/(\d+)/);return m?+m[1]:0;}
 function recAntes(x,r){if((x.fecha||'')<(r.fecha||''))return true;if((x.fecha||'')>(r.fecha||''))return false;if(x.created_at&&r.created_at)return x.created_at<r.created_at;return loteNum(x)<loteNum(r);}
@@ -596,14 +600,16 @@ function viewAcond(){
      <input id="ac_scan" autocomplete="off" placeholder="Escaneá la etiqueta del lote…" onkeydown="if(event.key==='Enter'){event.preventDefault();acScan();}" style="flex:1">
      <button class="btn btn-ghost btn-sm" onclick="acScan()">Buscar</button>
    </div>
-   <select id="ac_lote" onchange="acPick()" style="margin-top:8px"><option value="">— elegí un lote —</option>${lotes.map(r=>`<option value="${r.codigo_lote}">${r.codigo_lote} · ${r.materia_prima} · ${nf(stockLote(r),1)}kg disp.</option>`).join('')}</select>
+   <input id="ac_mpf" list="dl_acmp" autocomplete="off" placeholder="Materia prima — escribí para filtrar (ej: choclo)" oninput="acFilterLotes()" style="margin-top:8px">
+   <datalist id="dl_acmp">${mpConStock().map(m=>`<option value="${esc(m)}">`).join('')}</datalist>
+   <select id="ac_lote" onchange="acPick()" style="margin-top:8px">${loteOptsFiltrado('')}</select>
    <div id="ac_panel"></div></div>
    <div class="card"><div class="card-h"><h3>Acondicionamientos</h3>${periodSelect('acond')}</div>
    <div style="overflow:auto"><table><thead><tr><th>Código</th><th>Fecha</th><th>Proceso</th><th>Entrada</th><th>Salida</th><th>Merma</th><th>Rinde</th><th>Lote generado</th><th>Estado</th><th></th></tr></thead><tbody>${acondRows()}</tbody></table></div></div>`;
   setTimeout(()=>{const i=$('ac_scan');if(i)i.focus();},60);
 }
 function acondRows(){return (S.acond||[]).filter(a=>enPeriodo(a.fecha,'acond')).slice(0,300).map(a=>{const merma=Math.max(0,a.kgEnt-a.kgSal);const rinde=a.kgEnt>0?a.kgSal/a.kgEnt*100:0;return `<tr style="${a.estado==='anulada'?'opacity:.5':''}"><td class="mono">${a.id}</td><td>${fmtD(a.fecha)}</td><td>${esc(a.proceso||'Pelado')}</td><td class="mono">${nf(a.kgEnt,1)} kg</td><td class="mono">${nf(a.kgSal,1)} kg</td><td class="mono">${nf(merma,1)} kg</td><td class="mono">${nf(rinde,1)}%</td><td class="mono">${a.loteSal||'—'} <span style="color:var(--muted)">(${esc((a.prodSal||'').slice(0,14))})</span></td><td><span class="tag ${a.estado==='anulada'?'out':'ok'}">${a.estado==='anulada'?'Anulada':'Activa'}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="detalleAcond('${a.id}')" title="Ver">🔍</button>${a.estado!=='anulada'?` <button class="btn btn-ghost btn-sm" onclick="labelLoteRec('${a.loteSal}')" title="Etiqueta del lote pelado">🏷️</button> <button class="btn btn-ghost btn-sm" onclick="editAcond('${a.id}')" title="Editar">✎</button> <button class="btn btn-danger btn-sm" onclick="anularAcond('${a.id}')" title="Anular">✕</button>`:' <span class="tag out">Anulada</span>'}</td></tr>`;}).join('')||'<tr><td colspan=10 class=empty>Sin acondicionamientos en el período</td></tr>';}
-function acScan(){const i=$('ac_scan'),sel=$('ac_lote');if(!i||!sel)return;let v=(i.value||'').trim();if(!v)return;try{const o=JSON.parse(v);v=o.lote||o.op||v;}catch(e){}v=fixCode(v);const nv=normCode(v);const opt=[...sel.options].find(o=>o.value&&normCode(o.value)===nv);if(opt){sel.value=opt.value;i.value='';acPick();}else banner('No encontré el lote '+v+' con stock','warn');}
+function acScan(){const i=$('ac_scan'),sel=$('ac_lote');if(!i||!sel)return;const _mpf=$('ac_mpf');if(_mpf)_mpf.value='';sel.innerHTML=loteOptsFiltrado('');let v=(i.value||'').trim();if(!v)return;try{const o=JSON.parse(v);v=o.lote||o.op||v;}catch(e){}v=fixCode(v);const nv=normCode(v);const opt=[...sel.options].find(o=>o.value&&normCode(o.value)===nv);if(opt){sel.value=opt.value;i.value='';acPick();}else banner('No encontré el lote '+v+' con stock','warn');}
 function acPick(){const cl=$('ac_lote').value;const r=S.recepciones.find(x=>x.codigo_lote===cl);const panel=$('ac_panel');if(!r){panel.innerHTML='';return;}
   const disp=stockLote(r);const kgCaja=(r.cajas>0)?r.kilos/r.cajas:0;const cajasDisp=kgCaja>0?disp/kgCaja:0;window._acKgCaja=kgCaja;window._acMat=r.materia_prima;
   panel.innerHTML=`<div class="scan-note" style="margin:10px 0">Lote <b>${r.codigo_lote}</b> · ${r.materia_prima} · disponible <b>${nf(disp,1)} kg</b>${cajasDisp?` (≈ ${nf(cajasDisp,1)} cajas)`:''} · costo prom. ${money(adjPriceKg(r.materia_prima))}/kg</div>
@@ -702,7 +708,10 @@ function prodMode(m){
        <button class="btn btn-ghost btn-sm" onclick="prodScan()">Buscar</button>
      </div>
      <div id="pp_scanmsg" class="scan-note" style="margin:6px 0 12px">El lector escribe el código y lo confirma solo. Si preferís, tipeá el lote y tocá Buscar.</div>
-     <label>…o elegilo de la lista</label><select id="pp_lote" onchange="onLoteChange()"><option value="">— elegí un lote —</option>${opts}</select><div id="pp_panel"></div>`;
+     <label>Materia prima (escribí para filtrar)</label>
+     <input id="pp_mpf" list="dl_ppmp" autocomplete="off" placeholder="Escribí la MP (ej: acelga) para ver solo sus lotes" oninput="ppFilterLotes()">
+     <datalist id="dl_ppmp">${mpConStock().map(m=>`<option value="${esc(m)}">`).join('')}</datalist>
+     <label style="margin-top:8px">Lote a procesar</label><select id="pp_lote" onchange="onLoteChange()">${loteOptsFiltrado('')}</select><div id="pp_panel"></div>`;
     setTimeout(()=>{const i=$('pp_scan');if(i)i.focus();},60);
   }else{
     const comps=S.productos.filter(p=>(p.tipo||'')==='comp_produccion');
@@ -788,7 +797,7 @@ function detalleOP(codigo){
 function normCode(s){return (s||'').toString().toUpperCase().replace(/[^A-Z0-9]/g,'');}
 function fixCode(s){return (s||'').toString().trim().toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
 function prodScan(){
-  const i=$('pp_scan'),msg=$('pp_scanmsg'),sel=$('pp_lote');if(!i||!sel)return;
+  const i=$('pp_scan'),msg=$('pp_scanmsg'),sel=$('pp_lote');if(!i||!sel)return;const _mpf=$('pp_mpf');if(_mpf)_mpf.value='';sel.innerHTML=loteOptsFiltrado('');
   let v=(i.value||'').trim();if(!v){if(msg)msg.innerHTML='Escaneá o tipeá un código de lote.';return;}
   try{const o=JSON.parse(v);v=o.lote||o.op||v;}catch(e){}
   v=fixCode(v);const nv=normCode(v);
