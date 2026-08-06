@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v65 · sync de ajustes</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v66 · producción compuesta</div>
       </div>
     </nav>
     <div class="main">
@@ -708,7 +708,7 @@ function prodMode(m){
     const comps=S.productos.filter(p=>(p.tipo||'')==='comp_produccion');
     if(!comps.length){c.innerHTML='<p class="hint">No hay productos compuestos por producción definidos todavía.</p>';return;}
     const opts=comps.map(p=>`<option value="${esc(p.nombre)}">${p.nombre}</option>`).join('');
-    c.innerHTML=`<p class="hint">Elegí el producto compuesto. El sistema pide un lote por cada componente de su receta y calcula los kilos solo, descontando de cada lote.</p>
+    c.innerHTML=`<p class="hint">Elegí el producto compuesto. Cargás un lote por componente y los <b>kilos reales a procesar</b> de cada uno (como el simple, con dos MP). Se abre la producción para poder adelantar etiquetas; los paquetes se ajustan al completar.</p>
      <label>Producto compuesto</label><select id="cp_prod" onchange="onCompChange()"><option value="">— elegí —</option>${opts}</select><div id="cp_panel"></div>`;
   }
 }
@@ -717,12 +717,12 @@ function onCompChange(){
   const nombre=$('cp_prod').value;const panel=$('cp_panel');if(!nombre){panel.innerHTML='';return;}
   const receta=S.recetas[nombre]||[];window._comp={nombre:nombre,receta:receta,alloc:{}};
   if(!receta.length){panel.innerHTML='<div class="note" style="margin:8px 0">Este producto no tiene receta cargada. Cargá los componentes en <b>Configuración &rarr; Productos &rarr; Editar</b> (sección Componentes).</div>';return;}
-  panel.innerHTML=`<label>Cantidad de paquetes a producir</label><input type="number" id="cp_paq" min="1" placeholder="ej: 100" oninput="cpReqRender()">
+  panel.innerHTML=`<label>Paquetes a producir (estimado)</label><input type="number" id="cp_paq" min="1" placeholder="ej: 100" oninput="cpReqRender()">
    <div id="cp_alloc" style="margin-top:10px"></div>
-   <div class="note" style="margin:6px 0;padding:8px 10px;font-size:12px">Por cada componente elegí el/los lote(s) y los kg. El botón <b>&#8635; Sugerir PEPS</b> completa con el criterio primero-entra-primero-sale (podés cambiarlo).</div>
+   <div class="note" style="margin:6px 0;padding:8px 10px;font-size:12px">Por cada componente elegí el/los lote(s) y tipeá los <b>kilos reales a procesar</b> (libre). <b>&#8635; Sugerir PEPS</b> propone kg = paquetes × receta, pero podés cambiarlos. La diferencia entre kilos procesados y kilos en los paquetes queda como <b>merma</b>.</div>
    <div class="g2"><div><label>Operarios</label><input type="number" id="cp_oper" min="1"></div><div><label>Hora inicio</label><input type="time" id="cp_ini"></div></div>
    <div class="g2"><div><label>Hora fin</label><input type="time" id="cp_fin"></div><div></div></div>
-   <button class="btn btn-gold" id="cp_save" style="width:100%;margin-top:14px" onclick="saveCompuesto()">Producir compuesto</button>`;
+   <button class="btn btn-gold" id="cp_save" style="width:100%;margin-top:14px" onclick="saveCompuesto()">Abrir producción</button>`;
   cpReqRender();
 }
 function cpReq(mp){const paq=+($('cp_paq')?$('cp_paq').value:0)||0;const r=(window._comp.receta||[]).find(x=>x.mp===mp);return paq*((r&&r.cantidad)||0);}
@@ -730,7 +730,7 @@ function cpReqRender(){const st=window._comp;if(!st)return;st.receta.forEach(r=>
 function cpDraw(){const st=window._comp;if(!st)return;const w=$('cp_alloc');if(w)w.innerHTML=st.receta.map((r,ci)=>cpCompBlock(ci)).join('');}
 function cpMp(ci){return window._comp.receta[ci].mp;}
 function cpCompBlock(ci){const st=window._comp;const mp=st.receta[ci].mp;const req=cpReq(mp);const rows=st.alloc[mp]||[];const alloc=rows.reduce((a,x)=>a+(+x.kg||0),0);const lots=lotesDeMP(mp);const opt=sel=>`<option value="">— elegí lote —</option>`+lots.map(l=>`<option value="${l.codigo_lote}" ${sel===l.codigo_lote?'selected':''}>${l.codigo_lote} · ${fmtD(l.fecha)} · ${nf(stockLote(l),1)}kg</option>`).join('')+((sel&&!lots.some(l=>l.codigo_lote===sel))?`<option value="${sel}" selected>${sel} (sin stock)</option>`:'');
-  return `<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><b>${esc(mp)}</b> <span class="mono" style="color:${alloc+0.001>=req?'var(--sage)':'var(--clay)'}">${nf(alloc,2)} / ${nf(req,2)} kg</span></div>${rows.map((x,i)=>`<div class="g2" style="grid-template-columns:1.6fr .7fr auto;align-items:center;margin-top:6px"><select onchange="cpSet(${ci},${i},'lote',this.value)">${opt(x.lote)}</select><input type="number" min="0" step="0.01" value="${x.kg||''}" placeholder="kg" onchange="cpSet(${ci},${i},'kg',this.value)"><button class="btn btn-danger btn-sm" onclick="cpDel(${ci},${i})">✕</button></div>`).join('')||'<div class="scan-note" style="margin-top:4px">Sin lotes. Agregá uno o usá Sugerir PEPS.</div>'}<div style="margin-top:6px;display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="cpAdd(${ci})">+ Otro lote</button><button class="btn btn-ghost btn-sm" onclick="cpSeed(${ci})">&#8635; Sugerir PEPS</button></div></div>`;
+  return `<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><b>${esc(mp)}</b> <span class="mono" style="color:var(--steel)">${nf(alloc,2)} kg${req>0?` · sug. ~${nf(req,2)}`:''}</span></div>${rows.map((x,i)=>`<div class="g2" style="grid-template-columns:1.6fr .7fr auto;align-items:center;margin-top:6px"><select onchange="cpSet(${ci},${i},'lote',this.value)">${opt(x.lote)}</select><input type="number" min="0" step="0.01" value="${x.kg||''}" placeholder="kg" onchange="cpSet(${ci},${i},'kg',this.value)"><button class="btn btn-danger btn-sm" onclick="cpDel(${ci},${i})">✕</button></div>`).join('')||'<div class="scan-note" style="margin-top:4px">Sin lotes. Agregá uno o usá Sugerir PEPS.</div>'}<div style="margin-top:6px;display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="cpAdd(${ci})">+ Otro lote</button><button class="btn btn-ghost btn-sm" onclick="cpSeed(${ci})">&#8635; Sugerir PEPS</button></div></div>`;
 }
 function cpSet(ci,i,f,v){const st=window._comp;const mp=cpMp(ci);if(!st.alloc[mp]||!st.alloc[mp][i])return;st.alloc[mp][i][f]=(f==='kg')?(+v||0):v;cpDraw();}
 function cpAdd(ci){const st=window._comp;const mp=cpMp(ci);st.alloc[mp]=st.alloc[mp]||[];st.alloc[mp].push({lote:'',kg:0});cpDraw();}
@@ -738,8 +738,8 @@ function cpDel(ci,i){const st=window._comp;const mp=cpMp(ci);(st.alloc[mp]||[]).
 function cpSeed(ci){const st=window._comp;const mp=cpMp(ci);st.alloc[mp]=alocarPEPS(mp,cpReq(mp)).asign.map(x=>({lote:x.codigo_lote,kg:x.kg}));cpDraw();}
 async function saveCompuesto(){const st=window._comp;if(!st)return;const nombre=st.nombre;const paq=+($('cp_paq')?$('cp_paq').value:0)||0;if(!paq)return banner('Indicá la cantidad de paquetes','warn');
   const comps=[];
-  for(const r of st.receta){const req=cpReq(r.mp);const rows=(st.alloc[r.mp]||[]).filter(x=>x.lote&&x.kg>0);const alloc=rows.reduce((a,x)=>a+(+x.kg||0),0);
-    if(alloc+0.01<req)return banner('Faltan lotes para '+r.mp+': asignaste '+nf(alloc,2)+' de '+nf(req,2)+' kg','warn');
+  for(const r of st.receta){const rows=(st.alloc[r.mp]||[]).filter(x=>x.lote&&x.kg>0);
+    if(!rows.length)return banner('Asigná lote y kilos para '+r.mp,'warn');
     for(const x of rows){const rec=recById(x.lote);if(!rec)return banner('Lote no encontrado: '+x.lote,'warn');if(+x.kg>stockLote(rec)+0.01)return banner('El lote '+x.lote+' no tiene '+nf(x.kg,2)+'kg disponibles','warn');comps.push({recepcionUuid:rec.id,codigo_lote:x.lote,mp:r.mp,kg:+(+x.kg).toFixed(3)});}
   }
   if(!comps.length)return banner('Asigná al menos un lote por componente','warn');
@@ -752,8 +752,8 @@ async function saveCompuesto(){const st=window._comp;if(!st)return;const nombre=
     const {data:pn}=await sb.rpc('siguiente_numero',{p_tipo:'prod'});
     const {error:e3}=await sb.from('produccion_outputs').insert({empresa_id:S.empresaId,produccion_id:prodRow.id,codigo_prod:'PR-'+pad(pn),producto_nombre:nombre,cantidad:paq,kilos:+(paq*(prodKg(nombre)||0)).toFixed(3)});if(e3)throw e3;
     const {error:e4}=await sb.from('produccion_lotes').insert(comps.map(c=>({empresa_id:S.empresaId,produccion_id:prodRow.id,recepcion_id:c.recepcionUuid,codigo_lote:c.codigo_lote,materia_prima:c.mp,kg:c.kg})));if(e4)throw e4;
-    await reloadProducciones();banner('Compuesto '+codigoOp+' producido','');go('prod');
-  }catch(err){banner('Error: '+err.message,'err');$('cp_save').innerHTML='Producir compuesto';$('cp_save').disabled=false;}
+    await reloadProducciones();banner('Compuesto '+codigoOp+' abierto','');go('prod');
+  }catch(err){banner('Error: '+err.message,'err');$('cp_save').innerHTML='Abrir producción';$('cp_save').disabled=false;}
 }
 async function anularProd(codigo){const p=S.producciones.find(x=>x.id===codigo);if(!confirm('¿Anular '+codigo+'? Se libera el stock que había consumido.'))return;await sb.from('producciones').update({estado:'anulada'}).eq('empresa_id',S.empresaId).eq('id',p.uuid);await restaurarInsumos(codigo);await reloadProducciones();await reloadInsumos();closeModal();banner(codigo+' anulada','warn');render();}
 function prodReportRows(){const rows=[];S.producciones.filter(p=>p.estado!=='anulada'&&enPeriodo(p.fecha,'prod')).forEach(p=>{const li=loteInfoDeProd(p);(p.outputs||[]).forEach(o=>{rows.push({producto:o.producto,lote:li.lote,op:p.id,fecha:p.fecha,cant:+o.cantidad||0,kilos:+o.kilos||0,estado:p.estado});});});return rows;}
@@ -807,12 +807,12 @@ function onLoteChange(){
   const r=recActiva(codigo);const st=stockLote(r);
   const ant=lotesAnteriores(r);
   const fefo=ant.length?`<div class="note" style="margin:12px 0"><b>⚠️ Atención — PEPS (primero entra, primero sale)</b><br>Hay lotes de ${r.materia_prima} con ingreso anterior y stock: ${ant.map(x=>`<b>${x.codigo_lote}</b> (${fmtD(x.fecha)}, ${nf(stockLote(x),1)}kg)`).join(', ')}. Lo recomendado es procesar primero el más antiguo. Para procesar este igual, el supervisor autoriza con PIN.</div>`:'';
-  window._eligOpts=(eligibleProds(r.materia_prima).length?eligibleProds(r.materia_prima):S.productos).map(p=>`<option>${p.nombre}</option>`).join('');window._ppKgCaja=(r.cajas>0)?r.kilos/r.cajas:0;
+  window._eligOpts=(eligibleProds(r.materia_prima).length?eligibleProds(r.materia_prima):S.productos).map(p=>`<option>${p.nombre}</option>`).join('');window._ppKgCaja=(r.cajas>0)?r.kilos/r.cajas:0;const kgCaja=window._ppKgCaja;const cajasStock=kgCaja>0?st/kgCaja:0;const yaProcesado=((+r.kilos||0)-st)>0.01;
   panel.innerHTML=`${fefo}
    <div style="font-size:13px;color:var(--muted);margin:8px 0">Disponible: <b style="color:var(--steel)">${nf(st,1)} kg</b>${(r.cajas>0&&r.kilos>0)?` (≈ ${nf(st/(r.kilos/r.cajas),1)} cajas)`:''} de ${r.materia_prima}</div>
    <label>Materia prima a utilizar</label>
-   <div class="g2"><div><label style="font-weight:400;font-size:11px;color:var(--muted)">Cajas a procesar</label><input type="number" id="pp_cajas" min="0" step="1" placeholder="${r.cajas||0}" oninput="ppCajasCalc()"></div><div><label style="font-weight:400;font-size:11px;color:var(--muted)">Kilos (auto, editable)</label><input type="number" id="pp_mp" min="0" step="0.01" value="${st}"></div></div>
-   <div class="scan-note">${r.cajas>0?`Este lote: ${nf(r.cajas)} cajas / ${nf(r.kilos,1)} kg ≈ <b>${nf(r.kilos/r.cajas,2)} kg/caja</b>. Indicá las cajas y el sistema completa los kilos.`:'Este lote no tiene cajas registradas; cargá los kilos directo.'}</div>
+   <div class="g2"><div><label style="font-weight:400;font-size:11px;color:var(--muted)">Cajas a procesar</label><input type="number" id="pp_cajas" min="0" step="1" placeholder="${nf(cajasStock,0)}" oninput="ppCajasCalc()"></div><div><label style="font-weight:400;font-size:11px;color:var(--muted)">Kilos (auto, editable)</label><input type="number" id="pp_mp" min="0" step="0.01" value="${st}"></div></div>
+   <div class="scan-note">${r.cajas>0?`En stock: <b>${nf(cajasStock,1)} cajas</b> / ${nf(st,1)} kg (≈ ${nf(kgCaja,2)} kg/caja)${yaProcesado?` · lote ya procesado parcialmente (recibidas ${nf(r.cajas)} cajas / ${nf(r.kilos,1)} kg)`:''}. Indicá las cajas a procesar y el sistema completa los kilos.`:'Este lote no tiene cajas registradas; cargá los kilos directo.'}</div>
    <label style="margin-top:14px">Productos resultantes</label><div id="pp_outs"></div>
    <button class="btn btn-ghost btn-sm" onclick="addOutRow()" style="margin:6px 0 12px">+ Agregar producto</button>
    <div class="g2"><div><label>Operarios</label><input type="number" id="pp_oper" min="1" placeholder="ej: 7"></div><div><label>Hora inicio</label><input type="time" id="pp_ini"></div></div>
@@ -854,12 +854,7 @@ function fefoAuth(codigo){if(!authOK($('fefo_pin').value,'peps_forzado',codigo,'
 function editProd(codigo){
   const p=S.producciones.find(x=>x.id===codigo);if(!p)return;
   if(p.estado==='validada'){modal(`<h3>🔒 Producción validada</h3><p class="hint">${codigo} está bloqueada. Para corregirla, el supervisor ingresa su PIN.</p><label>PIN de supervisor</label><input type="password" id="up_pin" placeholder="••••"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" onclick="unlockProd('${codigo}')">Desbloquear</button></div>`);return;}
-  if((p.lotes||[]).length){
-    modal(`<h3>Producción de compuesto ${codigo}</h3><p class="hint">Es una producción multi-lote (compuesto). Para corregirla, anulala y volvé a generarla.</p>
-     <div style="font-size:13px;line-height:1.7">${p.outputs.map(o=>`<b>${o.producto}</b> — ${nf(o.cantidad)} paquetes`).join('')}<br><span style="color:var(--muted)">Componentes consumidos:</span><br>${p.lotes.map(l=>`· ${l.mp}: <b>${nf(l.kg,3)}kg</b> del lote ${l.loteId}`).join('<br>')}</div>
-     <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-danger" onclick="anularProd('${codigo}')">Anular</button></div>`);
-    return;
-  }
+  if((p.lotes||[]).length){editCompuesto(codigo);return;}
   const r=S.recepciones.find(x=>x.id===p.recepcionUuid);const elig=(r?eligibleProds(r.materia_prima):[]);const optsBase=(elig.length?elig:S.productos);window._epKgCaja=(r&&r.cajas>0)?r.kilos/r.cajas:0;
   const rowsHtml=p.outputs.map(o=>epRow(o,optsBase)).join('')||epRow(null,optsBase);
   modal(`<h3>Completar ${codigo}</h3><p class="hint">Cargá los paquetes resultantes y el tiempo de producción. Al terminar, validá.</p>
@@ -892,6 +887,34 @@ async function saveEditProd(codigo){
     await reloadProducciones();closeModal();banner(codigo+' actualizada','');render();
   }catch(err){banner('Error: '+err.message,'err');}
 }
+function editCompuesto(codigo){const p=S.producciones.find(x=>x.id===codigo);if(!p)return;const nombre=(p.outputs[0]||{}).producto||'';let receta=S.recetas[nombre]||[];const alloc={};(p.lotes||[]).forEach(l=>{(alloc[l.mp]=alloc[l.mp]||[]).push({lote:l.loteId,kg:l.kg});});if(!receta.length)receta=Object.keys(alloc).map(mp=>({mp,cantidad:0}));receta.forEach(r=>{if(!alloc[r.mp])alloc[r.mp]=[];});window._compEdit={codigo,uuid:p.uuid,nombre,receta,alloc};const paq=(p.outputs[0]||{}).cantidad||0;
+  modal(`<h3>Completar / editar ${codigo}</h3><p class="hint">Compuesto <b>${esc(nombre)}</b>. Ajustá los <b>paquetes reales</b> y, si hace falta, los <b>kilos</b> de cada componente. La diferencia entre kilos procesados y kilos en los paquetes queda como merma. Al terminar, validá desde la lista.</p>
+   <label>Paquetes producidos</label><input type="number" id="ce_paq" min="0" value="${paq}">
+   <div id="ce_alloc" style="margin-top:10px"></div>
+   <div class="g2"><div><label>Operarios</label><input type="number" id="ce_op" value="${p.operarios||''}"></div><div><label>Hora inicio</label><input type="time" id="ce_ini" value="${p.horaIni||''}"></div></div>
+   <div class="g2"><div><label>Hora fin</label><input type="time" id="ce_fin" value="${p.horaFin||''}"></div><div></div></div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="ce_save" onclick="saveEditCompuesto()">Guardar</button></div>`);
+  ceDraw();}
+function ceMp(ci){return window._compEdit.receta[ci].mp;}
+function ceDraw(){const st=window._compEdit;if(!st)return;const w=$('ce_alloc');if(w)w.innerHTML=st.receta.map((r,ci)=>ceCompBlock(ci)).join('');}
+function ceCompBlock(ci){const st=window._compEdit;const mp=st.receta[ci].mp;const rows=st.alloc[mp]||[];const alloc=rows.reduce((a,x)=>a+(+x.kg||0),0);const lots=lotesDeMP(mp);const opt=sel=>`<option value="">— elegí lote —</option>`+lots.map(l=>`<option value="${l.codigo_lote}" ${sel===l.codigo_lote?'selected':''}>${l.codigo_lote} · ${fmtD(l.fecha)} · ${nf(stockLote(l),1)}kg</option>`).join('')+((sel&&!lots.some(l=>l.codigo_lote===sel))?`<option value="${sel}" selected>${sel} (sin stock / ya usado)</option>`:'');
+  return `<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><b>${esc(mp)}</b> <span class="mono" style="color:var(--steel)">${nf(alloc,2)} kg</span></div>${rows.map((x,i)=>`<div class="g2" style="grid-template-columns:1.6fr .7fr auto;align-items:center;margin-top:6px"><select onchange="ceSet(${ci},${i},'lote',this.value)">${opt(x.lote)}</select><input type="number" min="0" step="0.01" value="${x.kg||''}" placeholder="kg" onchange="ceSet(${ci},${i},'kg',this.value)"><button class="btn btn-danger btn-sm" onclick="ceDel(${ci},${i})">✕</button></div>`).join('')||'<div class="scan-note" style="margin-top:4px">Sin lotes. Agregá uno.</div>'}<div style="margin-top:6px"><button class="btn btn-ghost btn-sm" onclick="ceAdd(${ci})">+ Otro lote</button></div></div>`;}
+function ceSet(ci,i,f,v){const st=window._compEdit;const mp=ceMp(ci);if(!st.alloc[mp]||!st.alloc[mp][i])return;st.alloc[mp][i][f]=(f==='kg')?(+v||0):v;ceDraw();}
+function ceAdd(ci){const st=window._compEdit;const mp=ceMp(ci);st.alloc[mp]=st.alloc[mp]||[];st.alloc[mp].push({lote:'',kg:0});ceDraw();}
+function ceDel(ci,i){const st=window._compEdit;const mp=ceMp(ci);(st.alloc[mp]||[]).splice(i,1);ceDraw();}
+async function saveEditCompuesto(){const st=window._compEdit;if(!st)return;const paq=+($('ce_paq').value)||0;if(!paq)return banner('Indicá los paquetes producidos','warn');
+  const comps=[];for(const r of st.receta){const rows=(st.alloc[r.mp]||[]).filter(x=>x.lote&&x.kg>0);if(!rows.length)return banner('Falta lote y kilos para '+r.mp,'warn');for(const x of rows){const rec=recById(x.lote);if(!rec)return banner('Lote no encontrado: '+x.lote,'warn');comps.push({recepcionUuid:rec.id,codigo_lote:x.lote,mp:r.mp,kg:+(+x.kg).toFixed(3)});}}
+  const btn=$('ce_save');if(btn){btn.innerHTML='<span class="spin"></span>...';btn.disabled=true;}
+  try{const totalKg=comps.reduce((a,c)=>a+c.kg,0);const ini=$('ce_ini').value,fin=$('ce_fin').value;
+    const {error:e1}=await sb.from('producciones').update({mp_kg:totalKg,operarios:+$('ce_op').value||0,hora_inicio:ini||null,hora_fin:fin||null,horas:horasEntre(ini,fin)}).eq('empresa_id',S.empresaId).eq('id',st.uuid);if(e1)throw e1;
+    const {error:e2}=await sb.from('produccion_lotes').delete().eq('empresa_id',S.empresaId).eq('produccion_id',st.uuid);if(e2)throw e2;
+    const {error:e3}=await sb.from('produccion_lotes').insert(comps.map(c=>({empresa_id:S.empresaId,produccion_id:st.uuid,recepcion_id:c.recepcionUuid,codigo_lote:c.codigo_lote,materia_prima:c.mp,kg:c.kg})));if(e3)throw e3;
+    const pcur=S.producciones.find(x=>x.uuid===st.uuid);let code=(pcur&&pcur.outputs[0])?pcur.outputs[0].code:null;
+    await sb.from('produccion_outputs').delete().eq('empresa_id',S.empresaId).eq('produccion_id',st.uuid);
+    if(!code){const {data:pn}=await sb.rpc('siguiente_numero',{p_tipo:'prod'});code='PR-'+pad(pn);}
+    const {error:e4}=await sb.from('produccion_outputs').insert({empresa_id:S.empresaId,produccion_id:st.uuid,codigo_prod:code,producto_nombre:st.nombre,cantidad:paq,kilos:+(paq*(prodKg(st.nombre)||0)).toFixed(3)});if(e4)throw e4;
+    await reloadProducciones();closeModal();banner(st.codigo+' actualizada','');render();
+  }catch(err){banner('Error: '+err.message,'err');const b2=$('ce_save');if(b2){b2.innerHTML='Guardar';b2.disabled=false;}}}
 function validarProd(codigo){
   const p=S.producciones.find(x=>x.id===codigo);
   if(!p.outputs.some(o=>o.cantidad>0))return banner('Completá los paquetes antes de validar','warn');
