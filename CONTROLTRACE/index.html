@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v70 · compras por lote</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v71 · fix fecha específica</div>
       </div>
     </nav>
     <div class="main">
@@ -455,8 +455,8 @@ function enPeriodo(fecha,key){const p=periodos[key]||'mes';if(p==='todo')return 
   if(p==='3m'){const d=new Date(now.getFullYear(),now.getMonth()-2,1);return f>=d;}
   if(p==='año')return f.getFullYear()===now.getFullYear();
   return true;}
-function periodSelect(key){const p=periodos[key]||'mes';const r=periodosR[key]||{d:'',h:''};const opts=[['hoy','Hoy'],['mes','Mes actual'],['prev','Mes anterior'],['3m','Últimos 3 meses'],['año','Año actual'],['todo','Todo el histórico'],['rango','Fecha específica']];let html=`<span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted)">📅 Período <select onchange="setPeriodo('${key}',this.value)" style="width:auto;font-size:12px;padding:5px 8px;border:1px solid var(--steel);border-radius:8px;color:var(--navy);font-weight:600">${opts.map(o=>`<option value="${o[0]}" ${p===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`;if(p==='rango'){html+=` <input type="date" value="${r.d}" title="Desde" onchange="setPeriodoR('${key}','d',this.value)" style="width:auto;font-size:12px;padding:4px 6px"> <span>a</span> <input type="date" value="${r.h}" title="Hasta" onchange="setPeriodoR('${key}','h',this.value)" style="width:auto;font-size:12px;padding:4px 6px">`;}html+=`</span>`;return html;}
-function setPeriodoR(key,which,val){periodosR[key]=periodosR[key]||{d:'',h:''};periodosR[key][which]=val;render();}
+function periodSelect(key){const p=periodos[key]||'mes';const r=periodosR[key]||{d:'',h:''};const opts=[['hoy','Hoy'],['mes','Mes actual'],['prev','Mes anterior'],['3m','Últimos 3 meses'],['año','Año actual'],['todo','Todo el histórico'],['rango','Fecha específica']];let html=`<span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted)">📅 Período <select onchange="setPeriodo('${key}',this.value)" style="width:auto;font-size:12px;padding:5px 8px;border:1px solid var(--steel);border-radius:8px;color:var(--navy);font-weight:600">${opts.map(o=>`<option value="${o[0]}" ${p===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`;if(p==='rango'){html+=` <input type="date" value="${r.d}" title="Desde" onchange="setPeriodoR('${key}','d',this.value)" onkeydown="if(event.key==='Enter')render()" style="width:auto;font-size:12px;padding:4px 6px"> <span>a</span> <input type="date" value="${r.h}" title="Hasta" onchange="setPeriodoR('${key}','h',this.value)" onkeydown="if(event.key==='Enter')render()" style="width:auto;font-size:12px;padding:4px 6px"> <button class="btn btn-gold btn-sm" onclick="render()" style="padding:3px 10px;font-size:12px" title="Aplicar el rango de fechas">Aplicar</button>`;}html+=`</span>`;return html;}
+function setPeriodoR(key,which,val){periodosR[key]=periodosR[key]||{d:'',h:''};periodosR[key][which]=val;}
 function setPeriodo(key,val){periodos[key]=val;render();}
 function viewRec(){
   const provList=S.proveedores.map(p=>`<option value="${esc(p.nombre)}">`).join('');
