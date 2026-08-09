@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v75 · producto terminado en enteros</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v76 · editar reventa en unidades</div>
       </div>
     </nav>
     <div class="main">
@@ -532,8 +532,35 @@ function editRecep(codigo){
   modal(`<h3>🔒 Editar recepción ${codigo}</h3><p class="hint">Editar una recepción modifica el stock. Por seguridad, ingresá el PIN del supervisor.</p><label>PIN de supervisor</label><input type="password" id="re_pin" placeholder="••••"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="editRecepAuth('${codigo}')">Continuar</button></div>`);
 }
 function editRecepAuth(codigo){if(!authOK($('re_pin').value,'editar_recepcion',codigo,'Edición de recepción'))return;openEditRecep(codigo);}
+function openEditReventa(r){
+  const p=S.producciones.find(x=>x.recepcionUuid===r.id&&x.estado!=='anulada');
+  const o=p&&p.outputs&&p.outputs[0];
+  const unid=o?o.cantidad:(r.kilos||0);
+  window._edRvPuuid=p?p.uuid:null;
+  modal(`<h3>Editar reventa ${r.codigo_lote}</h3><p class="hint">Producto terminado ingresado por reventa. La cantidad se maneja en <b>unidades (paquetes)</b> y va directo al <b>stock de procesados</b>.</p>
+   <div class="g2"><div><label>Fecha</label><input type="date" id="erv_fecha" value="${r.fecha}"></div><div><label>Proveedor</label><input id="erv_prov" value="${esc(r.proveedor||'')}"></div></div>
+   <label>Producto</label><select id="erv_prod">${S.productos.map(x=>`<option ${x.nombre===r.materia_prima?'selected':''}>${esc(x.nombre)}</option>`).join('')}</select>
+   <div class="g2"><div><label>Unidades (paquetes)</label><input type="number" step="1" min="0" id="erv_unid" value="${unid}"></div><div><label>Cajas</label><input type="number" step="1" min="0" id="erv_cajas" value="${r.cajas||0}"></div></div>
+   <label>Costo por unidad</label><input type="number" step="0.01" id="erv_costo" value="${r.precio_kilo||0}">
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="erv_save" onclick="saveEditReventa('${r.codigo_lote}')">Guardar</button></div>`);
+}
+async function saveEditReventa(codigo){
+  const r=S.recepciones.find(x=>x.codigo_lote===codigo);if(!r)return;
+  const unid=Math.round(+$('erv_unid').value||0),cajas=Math.round(+$('erv_cajas').value||0),costo=+$('erv_costo').value||0,prodN=$('erv_prod').value.trim(),fecha=$('erv_fecha').value,prov=$('erv_prov').value.trim();
+  if(!unid)return banner('Indicá las unidades (paquetes)','warn');
+  const b=$('erv_save');if(b){b.innerHTML='<span class="spin"></span>...';b.disabled=true;}
+  try{
+    const {error:e1}=await sb.from('recepciones').update({fecha,proveedor:prov,materia_prima:prodN,cajas,kilos:unid,precio_kilo:costo,total:+(unid*costo).toFixed(2)}).eq('empresa_id',S.empresaId).eq('codigo_lote',codigo);if(e1)throw e1;
+    if(window._edRvPuuid){
+      const {error:e2}=await sb.from('producciones').update({fecha,mp_kg:unid}).eq('empresa_id',S.empresaId).eq('id',window._edRvPuuid);if(e2)throw e2;
+      const {error:e3}=await sb.from('produccion_outputs').update({producto_nombre:prodN,cantidad:unid,kilos:unid}).eq('empresa_id',S.empresaId).eq('produccion_id',window._edRvPuuid);if(e3)throw e3;
+    }
+    await reloadRecepciones();await reloadProducciones();closeModal();banner(codigo+' actualizada · '+nf(unid)+' u. en procesados','');render();
+  }catch(err){banner('Error: '+err.message,'err');const b2=$('erv_save');if(b2){b2.innerHTML='Guardar';b2.disabled=false;}}
+}
 function openEditRecep(codigo){
   const r=S.recepciones.find(x=>x.codigo_lote===codigo);if(!r)return;
+  if(r.origen==='reventa')return openEditReventa(r);
   modal(`<h3>Editar ${codigo}</h3>
    <div class="g2"><div><label>Fecha y hora</label><div style="display:flex;gap:6px"><input type="date" id="e_fecha" value="${r.fecha}" style="flex:1"><input type="time" id="e_hora" value="${esc(r.hora||'')}" style="width:104px"></div></div>
    <div><label>Recibido por</label><input id="e_recib" value="${esc(r.recibido_por)}"></div></div>
