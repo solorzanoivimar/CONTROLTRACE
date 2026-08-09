@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v73 · total + calculadora horas</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v74 · reorganización de módulos</div>
       </div>
     </nav>
     <div class="main">
@@ -179,23 +179,23 @@ $('modalBg').onclick=e=>{if(e.target===$('modalBg'))closeModal();};
 
 // NAV con permisos por rol (matriz aprobada)
 const MODS=[
-  {id:'dash',ico:'▦',name:'Panel',grupo:'Operación',roles:['admin','supervisor','comercial','preparador']},
-  {id:'rec',ico:'📥',name:'Recepción',grupo:'Operación',roles:['admin','supervisor','preparador']},
-  {id:'acond',ico:'🌽',name:'Acondicionamiento',grupo:'Operación',roles:['admin','supervisor','preparador']},
-  {id:'prod',ico:'⚙️',name:'Producción',grupo:'Operación',roles:['admin','supervisor','preparador']},
-  {id:'ens',ico:'🌿',name:'Ensamblado',grupo:'Operación',roles:['admin','supervisor','preparador']},
-  {id:'descmp',ico:'🗑️',name:'Descarte de MP',grupo:'Operación',roles:['admin','supervisor','preparador']},
-  {id:'ajuste',ico:'⚖️',name:'Ajuste de stock',grupo:'Operación',roles:['admin','supervisor']},
-  {id:'desp',ico:'🏷️',name:'Impresión de Etiquetas',grupo:'Operación',roles:['admin','supervisor','preparador']},
-  {id:'ent',ico:'🧾',name:'Remitos',grupo:'Operación',roles:['admin','supervisor','comercial']},
-  {id:'dev',ico:'↩️',name:'Devoluciones',grupo:'Operación',roles:['admin','supervisor','comercial']},
-  {id:'carga',ico:'✅',name:'Validación de carga',grupo:'Operación',roles:['admin','supervisor','chofer']},
-  {id:'ped',ico:'📋',name:'Pedidos',grupo:'Análisis',roles:['admin','supervisor','comercial']},
+  {id:'dash',ico:'▦',name:'Panel',grupo:'Operaciones',roles:['admin','supervisor','comercial','preparador']},
+  {id:'rec',ico:'📥',name:'Recepción',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
+  {id:'acond',ico:'🌽',name:'Acondicionamiento',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
+  {id:'prod',ico:'⚙️',name:'Producción',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
+  {id:'ens',ico:'🌿',name:'Ensamblado',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
+  {id:'descmp',ico:'🗑️',name:'Descarte de MP',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
+  {id:'dev',ico:'↩️',name:'Devoluciones',grupo:'Operaciones',roles:['admin','supervisor','comercial']},
+  {id:'carga',ico:'✅',name:'Validación de carga',grupo:'Operaciones',roles:['admin','supervisor','chofer']},
+  {id:'ped',ico:'📋',name:'Pedidos',grupo:'Administración',roles:['admin','supervisor','comercial']},
+  {id:'plan',ico:'🗓️',name:'Plan de producción',grupo:'Administración',roles:['admin','supervisor','comercial','preparador']},
+  {id:'ent',ico:'🧾',name:'Remitos',grupo:'Administración',roles:['admin','supervisor','comercial']},
+  {id:'ajuste',ico:'⚖️',name:'Ajuste de stock',grupo:'Administración',roles:['admin','supervisor']},
+  {id:'desp',ico:'🏷️',name:'Impresión de Etiquetas',grupo:'Administración',roles:['admin','supervisor','preparador']},
+  {id:'bd',ico:'🗂️',name:'Datos maestros',grupo:'Administración',roles:['admin','supervisor','comercial','preparador']},
   {id:'traz',ico:'🔎',name:'Trazabilidad',grupo:'Análisis',roles:['admin','supervisor','comercial','preparador']},
   {id:'stock',ico:'🏬',name:'Stock',grupo:'Análisis',roles:['admin','supervisor','comercial','preparador']},
-  {id:'insu',ico:'📦',name:'Insumos',grupo:'Análisis',roles:['admin','supervisor','preparador']},
   {id:'rep',ico:'📊',name:'Reportes',grupo:'Análisis',roles:['admin','supervisor','comercial']},
-  {id:'costeo',ico:'💲',name:'Costeo',grupo:'Análisis',roles:['admin','comercial']},
   {id:'cfg',ico:'⚙️',name:'Configuración',grupo:'Sistema',roles:['admin']},
   {id:'usuarios',ico:'👥',name:'Usuarios',grupo:'Sistema',roles:['admin','supervisor']}
 ];
@@ -207,11 +207,11 @@ function buildNav(){
   $('nav').innerHTML=html;
 }
 function go(v){if(v!=='ent')window._editRemito=null;cur=v;document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render();refreshModule(v);}
-const MOD_RELOAD={dash:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos()]),rec:()=>reloadRecepciones(),acond:()=>Promise.all([reloadRecepciones(),reloadAcond()]),prod:()=>Promise.all([reloadProducciones(),reloadRecepciones()]),ens:()=>Promise.all([reloadEnsamblados(),reloadProducciones()]),descmp:()=>Promise.all([reloadDescartes(),reloadRecepciones()]),ajuste:()=>Promise.all([reloadAjustes(),reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),desp:()=>Promise.all([reloadDespachos(),reloadProducciones()]),ent:()=>Promise.all([reloadEntregas(),reloadDespachos()]),dev:()=>Promise.all([reloadDevoluciones(),reloadEntregas()]),carga:()=>reloadEntregas(),ped:()=>reloadPedidos(),traz:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),stock:()=>Promise.all([reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadRecepciones()]),insu:()=>reloadInsumos(),costeo:()=>Promise.all([reloadCostos(),reloadCatalogo()]),rep:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos(),reloadNovedades()])};
+const MOD_RELOAD={dash:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos()]),rec:()=>reloadRecepciones(),acond:()=>Promise.all([reloadRecepciones(),reloadAcond()]),prod:()=>Promise.all([reloadProducciones(),reloadRecepciones()]),ens:()=>Promise.all([reloadEnsamblados(),reloadProducciones()]),descmp:()=>Promise.all([reloadDescartes(),reloadRecepciones()]),ajuste:()=>Promise.all([reloadAjustes(),reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),desp:()=>Promise.all([reloadDespachos(),reloadProducciones()]),ent:()=>Promise.all([reloadEntregas(),reloadDespachos()]),dev:()=>Promise.all([reloadDevoluciones(),reloadEntregas()]),carga:()=>reloadEntregas(),ped:()=>reloadPedidos(),plan:()=>Promise.all([reloadPedidos(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadRecepciones()]),bd:()=>Promise.all([reloadCatalogo(),reloadInsumos(),reloadCostos()]),traz:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas()]),stock:()=>Promise.all([reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadRecepciones()]),insu:()=>reloadInsumos(),costeo:()=>Promise.all([reloadCostos(),reloadCatalogo()]),rep:()=>Promise.all([reloadRecepciones(),reloadProducciones(),reloadDespachos(),reloadEntregas(),reloadPedidos(),reloadNovedades()])};
 async function refreshModule(v){const fn=MOD_RELOAD[v];if(!fn)return;try{await Promise.all([fn(),reloadAjustes()]);const mb=document.getElementById('modalBg');const modalOpen=mb&&mb.classList.contains('show');const a=document.activeElement,tn=a?a.tagName:'';const typing=(tn==='INPUT'||tn==='SELECT'||tn==='TEXTAREA');if(cur===v&&!modalOpen&&!typing)render();}catch(e){}}
 async function refreshNow(){const b=document.getElementById('btnRefresh');if(b)b.textContent='⏳ Actualizando…';try{const fn=MOD_RELOAD[cur];await Promise.all([fn?fn():Promise.resolve(),reloadAjustes()]);render();banner('Datos actualizados ✓','');}catch(e){banner('No se pudo actualizar','err');}if(b)b.textContent='🔄 Actualizar';}
 
-const META={dash:['PANEL','Panel de control'],rec:['PASO 1 · ENTRADA','Recepción de mercadería'],prod:['PASO 2 · PROCESO','Producción'],desp:['PASO 3 · ETIQUETADO','Impresión de etiquetas'],ent:['PASO 4 · SALIDA','Remitos'],ped:['DEMANDA','Pedidos y plan de compra'],rep:['DIRECCIÓN','Reporte diario'],traz:['CONSULTA','Consultar trazabilidad'],cfg:['SISTEMA','Configuración'],stock:['ANÁLISIS','Stock en cámara'],insu:['ANÁLISIS','Stock de insumos'],costeo:['ANÁLISIS','Costeo de productos'],dev:['OPERACIÓN','Devoluciones'],carga:['OPERACIÓN','Validación de carga'],ens:['OPERACIÓN','Ensamblado'],descmp:['OPERACIÓN','Descarte de materia prima'],usuarios:['SISTEMA','Usuarios y accesos']};
+const META={dash:['PANEL','Panel de control'],rec:['PASO 1 · ENTRADA','Recepción de mercadería'],prod:['PASO 2 · PROCESO','Producción'],desp:['PASO 3 · ETIQUETADO','Impresión de etiquetas'],ent:['PASO 4 · SALIDA','Remitos'],ped:['ADMINISTRACIÓN','Pedidos'],plan:['ADMINISTRACIÓN','Plan de producción'],bd:['ADMINISTRACIÓN','Datos maestros'],rep:['DIRECCIÓN','Reporte diario'],traz:['CONSULTA','Consultar trazabilidad'],cfg:['SISTEMA','Configuración'],stock:['ANÁLISIS','Stock en cámara'],insu:['ANÁLISIS','Stock de insumos'],costeo:['ANÁLISIS','Costeo de productos'],dev:['OPERACIÓN','Devoluciones'],carga:['OPERACIÓN','Validación de carga'],ens:['OPERACIÓN','Ensamblado'],descmp:['OPERACIÓN','Descarte de materia prima'],usuarios:['SISTEMA','Usuarios y accesos']};
 function render(){
   const m=MODS.find(x=>x.id===cur);
   $('crumb').textContent=(META[cur]||[m.name.toUpperCase(),m.name])[0];
@@ -236,6 +236,8 @@ function render(){
   else if(cur==='descmp')viewDescarte();
   else if(cur==='carga')viewCarga();
   else if(cur==='ajuste')viewAjuste();
+  else if(cur==='plan')viewPlan();
+  else if(cur==='bd')viewBD();
 }
 
 // ---- LOGIN ----
@@ -1387,9 +1389,9 @@ async function reloadPedidos(){
 function viewPed(){
   const clis=[...S.clientes].sort((a,b)=>a.razon_social<b.razon_social?-1:1);
   const opts=clis.map(c=>`<option value="${c.id}">${c.razon_social}</option>`).join('');
-  $('view').innerHTML=`<div class="grid2">
-   <div class="card"><div class="card-h"><h3>Cargar pedido</h3></div>
-   <p class="hint">Registrá el pedido del cliente en unidades (paquetes). El sistema calcula el importe y, abajo, qué falta producir y comprar.</p>
+  $('view').innerHTML=`
+   <div class="card" style="margin-bottom:16px"><div class="card-h"><h3>Cargar pedido</h3></div>
+   <p class="hint">Registrá el pedido del cliente en unidades (paquetes). El sistema calcula el importe. El plan de producción se arma en su módulo.</p>
    <div class="g2"><div><label>Cliente</label><select id="pd_cli" onchange="pedPrefillAll()">${opts||'<option>—</option>'}</select></div>
    <div><label>Fecha del pedido</label><input type="date" id="pd_fecha" value="${today()}"></div></div>
    <label style="margin-top:6px">Productos pedidos</label><div id="pd_lines"></div>
@@ -1397,15 +1399,17 @@ function viewPed(){
    <div id="pd_tot" class="scan-note" style="margin-bottom:10px"></div>
    <button class="btn btn-gold" id="pd_save" style="width:100%" onclick="savePedido()">✓ Registrar pedido</button></div>
    <div class="card"><div class="card-h"><h3>Pedidos recientes</h3><span style="font-size:12px;color:var(--muted)">${S.pedidos.length} total</span></div>
-   <div style="overflow:auto"><table><thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Paq.</th><th>Estado</th><th></th></tr></thead><tbody>${pedRows()}</tbody></table></div></div>
-   <div class="card" style="grid-column:1/-1"><div class="card-h"><h3>Plan de producción y compra</h3>
+   <div style="overflow:auto"><table><thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Paq.</th><th>Estado</th><th></th></tr></thead><tbody>${pedRows()}</tbody></table></div></div>`;
+  pedAddLine();
+}
+function viewPlan(){
+  $('view').innerHTML=`<div class="card"><div class="card-h"><h3>Plan de producción y compra</h3>
      <div style="display:flex;align-items:center;gap:6px;font-size:12px"><span style="color:var(--muted)">Rinde:</span><select id="pl_basis" onchange="window._rindeBasis=this.value;renderPlan()" style="width:auto;padding:5px 8px"><option value="cons">Conservador</option><option value="teo">Teórico</option><option value="real">Real prom.</option></select></div></div>
    <p class="hint">Elegí la <b>fecha de producción</b> y seleccioná de la lista los pedidos a producir ese día (uno o varios). Ajustá las cantidades: ves el stock y cuánto falta para cubrir. Abajo se arma la compra de materia prima.</p>
-   <div id="pl_panel"></div></div>
-  </div>`;
+   <div id="pl_panel"></div></div>`;
   if(!window._rindeBasis)window._rindeBasis='cons';
   document.getElementById('pl_basis').value=window._rindeBasis;
-  pedAddLine();renderPlan();
+  renderPlan();
 }
 function pedAddLine(){const w=$('pd_lines');const d=document.createElement('div');d.className='g2';d.setAttribute('data-pl','');d.style.gridTemplateColumns='1.5fr .7fr 1.1fr auto';d.style.marginBottom='6px';
   d.innerHTML=`<select class="pl_prod" onchange="pedPrefill(this);pedCalc()">${S.productos.map(p=>`<option>${p.nombre}</option>`).join('')}</select><input class="pl_cant" type="number" min="0" placeholder="unid." oninput="pedCalc()"><input class="pl_precio" type="number" min="0" step="0.01" placeholder="$/u" oninput="this.dataset.t=1;pedCalc()"><button class="btn btn-ghost btn-sm" onclick="this.parentNode.remove();pedCalc()">✕</button>`;
@@ -1968,9 +1972,21 @@ function etqRenderProps(){const box=$('etqProps');if(!box)return;const tpl=curDe
 async function etqSave(){const {error}=await sb.from('empresas').update({etiqueta_config:S.etq}).eq('id',S.empresaId);if(error)return banner('Error al guardar: '+error.message,'err');S.empresa.etiqueta_config=JSON.parse(JSON.stringify(S.etq));banner('Diseño de etiquetas guardado ✓','');}
 function etqReset(){const tpl=curDesign();if(!tpl)return;if(!confirm('¿Restaurar este diseño al de fábrica de su tipo? Se pierde lo que hayas cambiado en él.'))return;const def=etqDefault(tpl.kind);tpl.w=def.w;tpl.h=def.h;tpl.cols=def.cols;tpl.gapx=def.gapx;tpl.elements=def.elements;S.etqSel=null;etqRenderCanvas();etqRenderProps();}
 
+let bdTab='prod';
+function viewBD(){
+  const tabs=[['prod','Productos'],['cli','Clientes'],['prov','Proveedores'],['etq','Etiquetas'],['insu','Insumos'],['costeo','Costeo']];
+  $('view').innerHTML=`<div class="card"><div class="card-h"><h3>Datos maestros</h3></div>
+   <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">${tabs.map(t=>`<button class="btn btn-ghost btn-sm" id="bdt_${t[0]}" onclick="bdGo('${t[0]}')">${t[1]}</button>`).join('')}</div>
+   <div id="cfg_body"></div></div>`;
+  bdGo(bdTab);
+}
+function bdGo(t){bdTab=t;['prod','cli','prov','etq','insu','costeo'].forEach(x=>{const b=$('bdt_'+x);if(b)b.classList.toggle('btn-gold',x===t);});
+  if(t==='insu')return viewInsu();
+  if(t==='costeo')return viewCosteo();
+  ({prod:cfgProd,cli:cfgCli,prov:cfgProv,etq:cfgEtiquetas}[t]||cfgProd)();}
 let cfgTab='empresa';
 function viewCfg(){
-  const tabs=[['empresa','Empresa y PIN'],['operarios','Operarios'],['permisos','Permisos por rol'],['prod','Productos'],['cli','Clientes'],['prov','Proveedores'],['etq','Etiquetas']];
+  const tabs=[['empresa','Empresa y PIN'],['operarios','Operarios'],['permisos','Permisos por rol']];
   $('view').innerHTML=`<div class="card"><div class="card-h"><h3>Configuración</h3></div>
    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">${tabs.map(t=>`<button class="btn btn-ghost btn-sm" id="cft_${t[0]}" onclick="cfgGo('${t[0]}')">${t[1]}</button>`).join('')}</div>
    <div id="cfg_body"></div></div>`;
@@ -2144,7 +2160,7 @@ async function restaurarInsumos(opCode){
 }
 let insuTab='inv';
 function viewInsu(){
-  $('view').innerHTML=`<div class="card"><div class="card-h"><h3>Stock de insumos</h3></div>
+  (($('cfg_body')||$('view'))).innerHTML=`<div class="card"><div class="card-h"><h3>Stock de insumos</h3></div>
    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
      <button class="btn btn-ghost btn-sm" id="in_inv" onclick="insuGo('inv')">Inventario</button>
      <button class="btn btn-ghost btn-sm" id="in_rec" onclick="insuGo('rec')">Recetas por producto</button>
@@ -2245,7 +2261,7 @@ function mpCostoUnit(prodNombre){let cost=0,units=0;
   return {perUnit:0,metodo:'sin datos'};
 }
 function viewCosteo(){const prods=[...S.productos].sort((a,b)=>a.nombre<b.nombre?-1:1);
-  $('view').innerHTML=`<div class="card"><div class="card-h"><h3>Costeo de productos</h3></div>
+  (($('cfg_body')||$('view'))).innerHTML=`<div class="card"><div class="card-h"><h3>Costeo de productos</h3></div>
    <p class="hint">El costo de materia prima e insumos se calcula solo. Completá los cuatro gastos y el precio de venta para ver el margen.</p>
    <label>Producto</label><select id="co_prod" onchange="costeoPanel()">${prods.map(p=>`<option value="${esc(p.nombre)}">${p.nombre}</option>`).join('')}</select>
    <div id="co_panel" style="margin-top:14px"></div></div>`;
