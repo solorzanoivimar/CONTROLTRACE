@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v76 · editar reventa en unidades</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v77 · umbral lote vacío 100g</div>
       </div>
     </nav>
     <div class="main">
@@ -600,7 +600,7 @@ function kgConsumidoLote(codigo){let s=0;S.producciones.filter(p=>p.estado!=='an
 function descartadoLote(codigo){return (S.descartes||[]).filter(d=>d.estado!=='anulada'&&d.codigo_lote===codigo).reduce((s,d)=>s+(+d.kg||0),0);}
 function acondConsumidoLote(uuid){return (S.acond||[]).filter(a=>a.estado!=='anulada'&&a.recepcionId===uuid).reduce((s,a)=>s+(+a.kgEnt||0),0);}
 function ajusteLoteMP(lote){return (S.ajustes||[]).filter(a=>a.estado!=='anulada'&&a.tipo==='mp'&&a.lote===lote).reduce((s,a)=>s+(+a.cantidad||0),0);}
-function stockLote(r){return Math.max(0,(+r.kilos||0)-kgConsumidoLote(r.codigo_lote)-descartadoLote(r.codigo_lote)-acondConsumidoLote(r.id)+ajusteLoteMP(r.codigo_lote));}
+function stockLote(r){const raw=(+r.kilos||0)-kgConsumidoLote(r.codigo_lote)-descartadoLote(r.codigo_lote)-acondConsumidoLote(r.id)+ajusteLoteMP(r.codigo_lote);return raw<0.1?0:raw;}
 function lotesConStock(){return S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);}
 function mpConStock(){return [...new Set(lotesConStock().map(r=>r.materia_prima).filter(Boolean))].sort();}
 function loteOptsFiltrado(filter){const f=(filter||'').trim().toUpperCase();const ls=lotesConStock().filter(r=>!f||(r.materia_prima||'').toUpperCase().includes(f));return '<option value="">— elegí un lote —</option>'+ls.map(r=>`<option value="${r.codigo_lote}">${r.codigo_lote} · ${r.materia_prima} · ${nf(stockLote(r),1)}kg disp.</option>`).join('');}
