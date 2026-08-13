@@ -5109,12 +5109,40 @@ async function guardarEdicionCompra() {
 
   try { await sbFetch('agro_semillas_stock','PATCH',upd,`?id=eq.${c.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
 
+  // ── CRUCE AUTOMÁTICO: re-sincronizar cultivo/variedad de los registros vinculados a esta compra ──
+  // Se corre siempre al guardar, así queda todo consistente aunque la compra ya estuviera corregida.
+  let cascada = 0;
+  {
+    // Liberaciones de esta compra (vinculadas por semilla_id)
+    const libs = DB.liberaciones.filter(l => l.semilla_id === c.id &&
+                 (String(l.cultivo_id) !== String(cult) || String(l.variedad_id) !== String(vari)));
+    if(libs.length) {
+      try { await sbFetch('agro_liberaciones','PATCH',{cultivo_id:cult,variedad_id:vari},`?semilla_id=eq.${c.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
+      libs.forEach(l => { l.cultivo_id = cult; l.variedad_id = vari; });
+      cascada += libs.length;
+    }
+    // Siembras de esta compra (vinculadas por semilla_lote_id)
+    const sies = DB.siembras.filter(s => s.semilla_lote_id === c.id &&
+                 (String(s.cultivo_id) !== String(cult) || String(s.variedad_id) !== String(vari)));
+    if(sies.length) {
+      try { await sbFetch('agro_siembras','PATCH',{cultivo_id:cult,variedad_id:vari},`?semilla_lote_id=eq.${c.id}&tenant_id=eq.${TENANT_ID}`); } catch(e){}
+      sies.forEach(s => { s.cultivo_id = cult; s.variedad_id = vari; });
+      cascada += sies.length;
+    }
+    if(cascada > 0) {
+      if(typeof renderLiberaciones === 'function') renderLiberaciones();
+      if(typeof renderSiembras === 'function') renderSiembras();
+    }
+  }
+
   closeModal('modal-compra');
   renderCompras();
   renderStock();
   poblarLotesLiberacion();
   actualizarPanel();
-  toast('✅ Compra actualizada');
+  toast(cascada > 0
+    ? `✅ Compra actualizada · cultivo/variedad cruzado a ${cascada} registro(s) vinculado(s)`
+    : '✅ Compra actualizada');
 }
 
 async function eliminarCompra() {
