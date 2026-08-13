@@ -141,7 +141,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v77 · umbral lote vacío 100g</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v78 · ajuste sin lotes en 0</div>
       </div>
     </nav>
     <div class="main">
@@ -2574,7 +2574,7 @@ async function reloadNovedades(){const {data}=await sb.from('novedades').select(
 async function reloadAjustes(){try{const {data,error}=await sb.from('ajustes_stock').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false});if(error)throw error;S.ajustes=data||[];}catch(e){S.ajustes=[];}}
 function ajMPitems(){return [...new Set(S.recepciones.filter(r=>r.estado!=='anulada').map(r=>r.materia_prima))].filter(Boolean).sort();}
 function ajPTitems(){const set=new Set();S.producciones.forEach(p=>{if(p.estado==='validada')(p.outputs||[]).forEach(o=>set.add(o.producto));});return [...set].sort();}
-function ajPickLotes(arr){const shown=arr.filter(x=>x.stock>0.001);if(arr.length){const last=arr.slice().sort((a,b)=>(a.ord<b.ord?-1:a.ord>b.ord?1:0)).slice(-1)[0];if(last&&last.stock<=0.001&&!shown.some(s=>s.lote===last.lote))shown.push(last);}shown.sort((a,b)=>((a.fecha||'').localeCompare(b.fecha||''))||String(a.lote).localeCompare(String(b.lote)));return shown;}
+function ajPickLotes(arr){const shown=arr.filter(x=>x.stock>0.001);shown.sort((a,b)=>((a.fecha||'').localeCompare(b.fecha||''))||String(a.lote).localeCompare(String(b.lote)));return shown;}
 function ajGrid(tipo){const out=[];if(tipo==='mp'){ajMPitems().forEach(it=>{const arr=S.recepciones.filter(r=>r.estado!=='anulada'&&r.materia_prima===it).map(r=>({lote:r.codigo_lote,stock:stockLote(r),fecha:r.fecha,ord:(r.fecha||'')+'|'+(r.created_at||'')}));const lotes=ajPickLotes(arr);if(lotes.length)out.push({item:it,lotes,un:'kg',dec:1});});}else{ajPTitems().forEach(it=>{const arr=lotesDeProducto(it).map(l=>{const p=S.producciones.find(x=>x.estado==='validada'&&loteDeProd(x)===l&&x.outputs.some(o=>o.producto===it));const f=p?p.fecha:'';return {lote:l,stock:stockLoteProd(it,l),fecha:f,ord:(f||'')+'|'+l};});const lotes=ajPickLotes(arr);if(lotes.length)out.push({item:it,lotes,un:'u',dec:0});});}return out;}
 function ajRow(a){const cant=(+a.cantidad||0);const un=a.tipo==='mp'?'kg':'u';const dec=un==='kg'?1:0;return `<tr style="${a.estado==='anulada'?'opacity:.5':''}"><td class="mono">${esc(a.codigo||'')}</td><td>${fmtD(a.fecha)}</td><td>${a.tipo==='mp'?'MP':'PT'}</td><td>${esc((a.item||'').slice(0,16))}</td><td class="mono">${esc(a.lote||'—')}</td><td class="mono"><span class="tag ${cant>=0?'ok':'out'}">${cant>=0?'+':''}${nf(cant,dec)} ${un}</span></td><td>${esc((a.motivo||'').slice(0,20))}</td><td>${esc(a.autorizado_por||'—')}</td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="detalleAjuste('${a.codigo}')" title="Ver">🔍</button>${a.estado!=='anulada'?` <button class="btn btn-danger btn-sm" onclick="anularAjuste('${a.codigo}')" title="Anular">✕</button>`:' <span class="tag out">Anulado</span>'}</td></tr>`;}
 function viewAjuste(){const tipo=window._ajTipo||'mp';const grid=ajGrid(tipo);window._ajRows=[];let idx=0;let rows='';
