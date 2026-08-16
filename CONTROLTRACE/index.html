@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v80 · datos maestros + antiduplicados</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v81 · acondicionamiento: proceso desplegable + cajas</div>
       </div>
     </nav>
     <div class="main">
@@ -650,10 +650,10 @@ function acScan(){const i=$('ac_scan'),sel=$('ac_lote');if(!i||!sel)return;const
 function acPick(){const cl=$('ac_lote').value;const r=S.recepciones.find(x=>x.codigo_lote===cl);const panel=$('ac_panel');if(!r){panel.innerHTML='';return;}
   const disp=stockLote(r);const kgCaja=(r.cajas>0)?r.kilos/r.cajas:0;const cajasDisp=kgCaja>0?disp/kgCaja:0;window._acKgCaja=kgCaja;window._acMat=r.materia_prima;
   panel.innerHTML=`<div class="scan-note" style="margin:10px 0">Lote <b>${r.codigo_lote}</b> · ${r.materia_prima} · disponible <b>${nf(disp,1)} kg</b>${cajasDisp?` (≈ ${nf(cajasDisp,1)} cajas)`:''} · costo prom. ${money(adjPriceKg(r.materia_prima))}/kg</div>
-   <datalist id="ac_procList"><option>Pelado</option><option>Selección</option><option>Lavado</option><option>Selección y lavado</option><option>Corte</option></datalist><div class="g2"><div><label>Proceso</label><input id="ac_proc" list="ac_procList" value="${esc(sugProcAcond(r.materia_prima))}" placeholder="ej: Pelado / Selección y lavado" oninput="acProdSug()"></div><div><label>Fecha</label><input type="date" id="ac_fecha" value="${today()}"></div></div>
-   <div class="g2"><div><label>Cajas a pelar</label><input type="number" id="ac_cajent" min="0" step="1" placeholder="${cajasDisp?(''+nf(cajasDisp,0)):'0'}" oninput="acCajasCalc()"></div><div><label>Kg de MP a procesar</label><input type="number" id="ac_kgent" min="0" max="${disp}" step="0.01" value="${+disp.toFixed(2)}" oninput="acCalc()"></div></div>
+   <div class="g2"><div><label>Proceso</label><select id="ac_proc" onchange="acProdSug()">${['Pelado','Selección','Lavado','Selección y lavado','Corte'].map(o=>`<option ${sugProcAcond(r.materia_prima)===o?'selected':''}>${o}</option>`).join('')}</select></div><div><label>Fecha</label><input type="date" id="ac_fecha" value="${today()}"></div></div>
+   <div class="g2"><div><label>Cajas a acondicionar</label><input type="number" id="ac_cajent" min="0" step="1" placeholder="${cajasDisp?(''+nf(cajasDisp,0)):'0'}" oninput="acCajasCalc()"></div><div><label>Kg de MP a procesar</label><input type="number" id="ac_kgent" min="0" max="${disp}" step="0.01" value="${+disp.toFixed(2)}" oninput="acCalc()"></div></div>
    <label>Kg obtenidos (acondicionado)</label><input type="number" id="ac_kgsal" min="0" step="0.01" oninput="acCalc()">
-   ${kgCaja>0?`<div class="scan-note" style="margin-top:2px">Lote: ${nf(r.cajas)} cajas / ${nf(r.kilos,1)} kg ≈ <b>${nf(kgCaja,2)} kg/caja</b>. Poné las cajas a pelar y completa los kilos.</div>`:''}
+   ${kgCaja>0?`<div class="scan-note" style="margin-top:2px">Lote: ${nf(r.cajas)} cajas / ${nf(r.kilos,1)} kg ≈ <b>${nf(kgCaja,2)} kg/caja</b>. Poné las cajas a acondicionar y completá los kilos.</div>`:''}
    <div class="g2"><div><label>Producto resultante</label><input id="ac_prodsal" list="ac_prodList" value="${esc(sugProdAcond(r.materia_prima,sugProcAcond(r.materia_prima)))}" placeholder="ej: CHOCLO PELADO" oninput="this.dataset.t=1"><datalist id="ac_prodList">${sugProdOpts(r.materia_prima)}</datalist></div><div><label>Cajas obtenidas</label><input type="number" id="ac_cajas" min="0" value="0"></div></div>
    <div class="g2"><div><label>Operarios</label><input type="number" id="ac_op" min="0" value="0"></div><div><label>Horas</label><input type="number" id="ac_hs" min="0" step="0.5" value="0"></div></div>
    <div id="ac_calc" class="scan-note" style="margin:8px 0"></div>
