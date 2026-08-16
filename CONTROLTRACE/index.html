@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v81 · acondicionamiento: proceso desplegable + cajas</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v82 · ficha completa de proveedor</div>
       </div>
     </nav>
     <div class="main">
@@ -2575,11 +2575,24 @@ async function saveCliente(id){const rs=$('clf_rs').value.trim();if(!rs)return b
     await reloadCatalogo();closeModal();banner('Cliente guardado','');cfgCli();
   }catch(err){banner('Error: '+err.message,'err');}}
 async function toggleCliente(id){const c=S.clientes.find(x=>x.id===id);if(c.activo!==false&&!confirm('¿Dar de baja a "'+c.razon_social+'"?'))return;await sb.from('clientes').update({activo:c.activo===false}).eq('id',id).eq('empresa_id',S.empresaId);await reloadCatalogo();banner('Cliente actualizado','');cfgCli();}
-function cfgProv(){$('cfg_body').innerHTML=`<div class="g2"><div><label>Nuevo proveedor</label><input id="pv_nom" placeholder="Nombre del proveedor"></div><div style="display:flex;align-items:end"><button class="btn btn-gold btn-sm" onclick="addProveedor()">+ Agregar</button></div></div>
-   <div style="overflow:auto;margin-top:12px"><table><thead><tr><th>Proveedor</th><th>Estado</th><th></th></tr></thead><tbody>${S.proveedores.map(p=>`<tr style="${p.activo===false?'opacity:.5':''}"><td>${p.nombre}</td><td><span class="tag ${p.activo===false?'out':'ok'}">${p.activo===false?'Inactivo':'Activo'}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="editProveedor('${p.id}')">Editar</button> <button class="btn btn-ghost btn-sm" onclick="toggleProveedor('${p.id}')">${p.activo===false?'Activar':'Baja'}</button></td></tr>`).join('')||'<tr><td colspan=3 class=empty>Sin proveedores</td></tr>'}</tbody></table></div>`;}
-async function addProveedor(){const nom=$('pv_nom').value.trim();if(!nom)return banner('Indicá el nombre','warn');const {error}=await sb.from('proveedores').insert({empresa_id:S.empresaId,nombre:nom});if(error)return banner('Error: '+error.message,'err');await reloadCatalogo();banner('Proveedor agregado','');cfgProv();}
-function editProveedor(id){const p=S.proveedores.find(x=>x.id===id);modal(`<h3>Editar proveedor</h3><label>Nombre</label><input id="pv_ed" value="${esc(p.nombre)}"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveProveedor('${id}')">Guardar</button></div>`);}
-async function saveProveedor(id){const nom=$('pv_ed').value.trim();if(!nom)return banner('Indicá el nombre','warn');await sb.from('proveedores').update({nombre:nom}).eq('id',id).eq('empresa_id',S.empresaId);await reloadCatalogo();closeModal();banner('Proveedor guardado','');cfgProv();}
+let cfgProvQ='';
+function cfgProv(){const q=cfgProvQ.toLowerCase();const list=S.proveedores.filter(p=>!q||(p.nombre||'').toLowerCase().includes(q)||(p.telefono||'').toLowerCase().includes(q)||(p.email||'').toLowerCase().includes(q)||(p.direccion||'').toLowerCase().includes(q)).slice(0,400);
+   $('cfg_body').innerHTML=`<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><input id="pv_q" placeholder="Buscar proveedor..." value="${esc(cfgProvQ)}" oninput="cfgProvQ=this.value;cfgProv();setTimeout(()=>{const i=document.getElementById('pv_q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},0)" style="flex:1;min-width:180px"><button class="btn btn-gold btn-sm" onclick="editProveedor()">+ Nuevo proveedor</button></div>
+   <div style="overflow:auto"><table><thead><tr><th>Proveedor</th><th>Teléfono</th><th>Dirección</th><th>Email</th><th>Estado</th><th></th></tr></thead><tbody>${list.map(p=>`<tr style="${p.activo===false?'opacity:.5':''}"><td>${esc(p.nombre)}</td><td>${esc(p.telefono||'—')}</td><td>${esc(p.direccion||'—')}</td><td>${esc(p.email||'—')}</td><td><span class="tag ${p.activo===false?'out':'ok'}">${p.activo===false?'Inactivo':'Activo'}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="editProveedor('${p.id}')">Editar</button> <button class="btn btn-ghost btn-sm" onclick="toggleProveedor('${p.id}')">${p.activo===false?'Activar':'Baja'}</button></td></tr>`).join('')||'<tr><td colspan=6 class=empty>Sin proveedores</td></tr>'}</tbody></table></div>
+   <p class="hint" style="margin-top:8px">${S.proveedores.length} proveedor(es) · mostrando ${list.length}.</p>`;}
+function editProveedor(id){const p=id?S.proveedores.find(x=>x.id===id):{};modal(`<h3>${id?'Editar':'Nuevo'} proveedor</h3>
+   <label>Nombre</label><input id="pv_nom" value="${esc(p.nombre||'')}" placeholder="Nombre o razón social">
+   <div class="g2"><div><label>Teléfono</label><input id="pv_tel" value="${esc(p.telefono||'')}" placeholder="ej: 351 555-5555"></div><div><label>Email</label><input id="pv_email" value="${esc(p.email||'')}" placeholder="correo@ejemplo.com"></div></div>
+   <label>Dirección</label><input id="pv_dir" value="${esc(p.direccion||'')}" placeholder="Calle, número, localidad">
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveProveedor('${id||''}')">Guardar</button></div>`);}
+async function saveProveedor(id){const nom=$('pv_nom').value.trim();if(!nom)return banner('Indicá el nombre','warn');
+  const fields={nombre:nom,telefono:$('pv_tel').value.trim()||null,direccion:$('pv_dir').value.trim()||null,email:$('pv_email').value.trim()||null};
+  const run=(obj)=>id?sb.from('proveedores').update(obj).eq('id',id).eq('empresa_id',S.empresaId):sb.from('proveedores').insert(Object.assign({empresa_id:S.empresaId},obj));
+  try{let {error}=await run(fields);
+    if(error&&/telefono|direccion|email|column|schema|does not exist/i.test(error.message||'')){({error}=await run({nombre:nom}));if(error)throw error;await reloadCatalogo();closeModal();banner('Proveedor guardado (solo nombre). Corré proveedores_ficha_setup.sql para guardar teléfono, dirección y email.','warn');cfgProv();return;}
+    if(error)throw error;
+    await reloadCatalogo();closeModal();banner('Proveedor guardado','');cfgProv();
+  }catch(err){banner('Error: '+err.message,'err');}}
 async function toggleProveedor(id){const p=S.proveedores.find(x=>x.id===id);await sb.from('proveedores').update({activo:p.activo===false}).eq('id',id).eq('empresa_id',S.empresaId);await reloadCatalogo();banner('Proveedor actualizado','');cfgProv();}
 
 // ---- COMBOBOX MAESTRO BUSCABLE (msel) : solo elige de la lista, sin alta libre ----
