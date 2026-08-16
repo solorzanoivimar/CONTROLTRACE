@@ -111,6 +111,14 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
 .remito table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}.remito th,.remito td{border-bottom:1px solid #ccc;padding:3px 6px}.remito .rspacer{flex:1 1 auto}.remito .rlogo{max-height:52px;max-width:150px;object-fit:contain}
 .remito .obs{border:1px solid #000;min-height:48px;margin-top:12px;padding:6px;font-size:10px;flex-shrink:0}
 .linkrow{display:flex;align-items:center;gap:8px}
+.msel{position:relative}
+.msel .msel-f{width:100%}
+.msel-list{position:absolute;left:0;right:0;top:100%;z-index:60;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:240px;overflow:auto;margin-top:2px}
+.msel-i{padding:8px 10px;cursor:pointer;font-size:13px;border-bottom:1px solid #f1ede4}
+.msel-i:last-child{border-bottom:0}
+.msel-i:hover{background:#f4f1ea}
+.msel-m{padding:8px 10px;font-size:12px;color:var(--muted)}
+.msel-none{padding:8px 10px;font-size:12px;color:#b4453a;font-weight:600}
 </style>
 </head>
 <body>
@@ -141,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v79 · anular producción + alerta 24h</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v80 · datos maestros + antiduplicados</div>
       </div>
     </nav>
     <div class="main">
@@ -160,7 +168,7 @@ const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
 
 const $=id=>document.getElementById(id);
-const S={empresaId:null,empresa:null,rol:null,nombre:null,productos:[],clientes:[],proveedores:[],materias:[],prodMP:{},recetas:{},recepciones:[],producciones:[],despachos:[],entregas:[],preciosCliente:{},pedidos:[],operarios:[],insumos:[],prodInsumos:{},insumoMovs:[],costos:{},devoluciones:[],componentes:{},ensConsumos:[],descartes:[],novedades:[],ajustes:[]};
+const S={empresaId:null,empresa:null,rol:null,nombre:null,productos:[],clientes:[],proveedores:[],materias:[],prodMP:{},recetas:{},recepciones:[],producciones:[],despachos:[],entregas:[],preciosCliente:{},pedidos:[],operarios:[],insumos:[],prodInsumos:{},insumoMovs:[],costos:{},devoluciones:[],componentes:{},ensConsumos:[],descartes:[],novedades:[],ajustes:[],materiasPrimas:null};
 let remCart={items:[]};
 let cur='dash';
 
@@ -380,6 +388,7 @@ async function reloadCatalogo(){
   (mat||[]).forEach(m=>{const n=byId[m.producto_id];if(!n)return;(S.prodMP[n]=S.prodMP[n]||[]).push(m.materia_prima);(S.recetas[n]=S.recetas[n]||[]).push({mp:m.materia_prima,cantidad:+m.cantidad||0});});
   S.materias=[...new Set((mat||[]).map(m=>m.materia_prima))].sort();
   S.componentes={};(comp||[]).forEach(c=>{const n=byId[c.producto_id];if(!n)return;(S.componentes[n]=S.componentes[n]||[]).push({componente:c.componente,cantidad:+c.cantidad||0});});
+  await reloadMaterias();
 }
 function prodTipo(nombre){const p=S.productos.find(x=>x.nombre===nombre);return p&&p.tipo?p.tipo:'simple';}
 async function reloadProducciones(){
@@ -473,8 +482,8 @@ function viewRec(){
    <label style="display:flex;align-items:center;gap:6px;margin:2px 0 8px;cursor:pointer;font-size:13px"><input type="checkbox" id="r_reventa" onchange="recReventaToggle()" style="width:auto"> 🛒 <b>Producto terminado (reventa / compra directa)</b> — entra directo a stock, sin producción</label>
    <div class="g2"><div><label>Fecha y hora</label><div style="display:flex;gap:6px"><input type="date" id="r_fecha" value="${today()}" style="flex:1"><input type="time" id="r_hora" value="${nowHM()}" style="width:104px"></div></div>
    <div><label>Recibido por</label><input id="r_recib" list="dlRecib" placeholder="nombre de quien recibe"></div></div>
-   <div class="g2"><div><label>Proveedor</label><input id="r_prov" list="dlProv" placeholder="nombre del proveedor"></div>
-   <div id="rec_mplbl"><label>Materia prima</label><input id="r_mp" list="dlMat" placeholder="ej: ACELGA" onchange="recPrefillPrecio()"></div><div id="rec_rvlbl" style="display:none"><label>Producto (reventa)</label><select id="r_rv_prod">${S.productos.map(p=>`<option>${esc(p.nombre)}</option>`).join('')}</select></div></div>
+   <div class="g2"><div><label>Proveedor</label>${msel('r_prov','Buscar proveedor…')}</div>
+   <div id="rec_mplbl"><label>Materia prima</label>${msel('r_mp','Buscar materia prima…')}</div><div id="rec_rvlbl" style="display:none"><label>Producto (reventa)</label>${msel('r_rv_prod','Buscar producto…')}</div></div>
    <div id="rec_mp">
    <div class="g2"><div><label>Cajas / bultos</label><input type="number" id="r_cajas" min="0" placeholder="0" oninput="recCalc()"></div>
    <div><label>Kilos</label><input type="number" id="r_kilos" min="0" step="0.01" placeholder="0"></div></div>
@@ -504,7 +513,7 @@ function recRows(){return S.recepciones.filter(r=>enPeriodo(r.fecha,'rec')).slic
 function printRecepDia(){const rows=S.recepciones.filter(r=>r.estado!=='anulada'&&enPeriodo(r.fecha,'rec'));if(!rows.length)return banner('No hay recepciones en el período','warn');const e=S.empresa;let tk=0,tc=0,tt=0;rows.forEach(r=>{tk+=+r.kilos||0;tc+=+r.cajas||0;tt+=+r.total||0;});modal(`<h3>Resumen de recepciones</h3><p class="hint">Todo lo recibido en el período seleccionado. Podés imprimir o exportar a Excel/CSV.</p><div id="lblArea"><div class="remito"><div class="rh"><div style="display:flex;gap:10px;align-items:center;font-size:11px">${empLogo()?`<img class="rlogo" src="${empLogo()}">`:''}<div><b>${e.razon_social||''}</b><br>Resumen de recepciones</div></div><div class="rtitle">RECEPCIONES<br><span style="font-size:12px">${rows.length} registro(s)</span></div><div style="text-align:right;font-size:10px">Cajas: <b>${nf(tc)}</b> · Kg: <b>${nf(tk,1)}</b><br>Total: <b>${money(tt)}</b></div></div><table style="font-size:9px"><thead><tr><th>Lote</th><th>Fecha</th><th>Proveedor</th><th>MP</th><th style="text-align:right">Cajas</th><th style="text-align:right">Kg</th><th style="text-align:right">$/kg</th><th style="text-align:right">$/caja</th><th style="text-align:right">Total</th><th>Recibió</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.codigo_lote}</td><td>${fmtD(r.fecha)}</td><td>${esc(r.proveedor||'—')}</td><td>${esc(r.materia_prima||'—')}</td><td class="mono" style="text-align:right">${nf(r.cajas||0)}</td><td class="mono" style="text-align:right">${nf(r.kilos,1)}</td><td class="mono" style="text-align:right">${money(r.precio_kilo||0)}</td><td class="mono" style="text-align:right">${money((r.cajas>0)?(r.total||0)/r.cajas:0)}</td><td class="mono" style="text-align:right">${money(r.total||0)}</td><td>${esc(r.recibido_por||'—')}</td></tr>`).join('')}<tr style="font-weight:700;border-top:2px solid #000"><td colspan="4">TOTALES</td><td class="mono" style="text-align:right">${nf(tc)}</td><td class="mono" style="text-align:right">${nf(tk,1)}</td><td></td><td></td><td class="mono" style="text-align:right">${money(tt)}</td><td></td></tr></tbody></table><div class="rspacer"></div><div class="obs"><b>Observaciones:</b></div></div></div><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-ghost" onclick="exportRecep()">⬇ Exportar Excel/CSV</button><button class="btn btn-gold" onclick="printDoc('A4')">🖨️ Imprimir / PDF</button></div>`);}
 function exportRecep(){const rows=S.recepciones.filter(r=>r.estado!=='anulada'&&enPeriodo(r.fecha,'rec'));if(!rows.length)return banner('No hay recepciones en el período','warn');const out=[['Lote','Fecha','Hora','Proveedor','Materia prima','Cajas','Kilos','Precio_kilo','Precio_caja','Total','Recibio']].concat(rows.map(r=>[r.codigo_lote,r.fecha,r.hora||'',r.proveedor||'',r.materia_prima||'',+r.cajas||0,+r.kilos||0,+r.precio_kilo||0,(+r.cajas>0?(+r.total||0)/(+r.cajas):0),+r.total||0,r.recibido_por||'']));dlCSV('recepciones_'+today()+'.csv',out);}
 function recReventaToggle(){const on=$('r_reventa')&&$('r_reventa').checked;if($('rec_mp'))$('rec_mp').style.display=on?'none':'';if($('rec_rv'))$('rec_rv').style.display=on?'':'none';if($('rec_mplbl'))$('rec_mplbl').style.display=on?'none':'';if($('rec_rvlbl'))$('rec_rvlbl').style.display=on?'':'none';}
-async function saveRecepReventa(){const fecha=$('r_fecha').value,prov=$('r_prov').value.trim(),recib=$('r_recib').value.trim();const prodN=($('r_rv_prod')?$('r_rv_prod').value:'').trim();const unid=Math.round(+($('r_rv_unid')?$('r_rv_unid').value:0)||0),cajas=+($('r_rv_cajas')?$('r_rv_cajas').value:0)||0,costo=+($('r_rv_costo')?$('r_rv_costo').value:0)||0;if(!prodN||!unid)return banner('Elegí el producto y las unidades','warn');if(!recib)return banner('Indicá quién recibe la mercadería','warn');$('r_save').innerHTML='<span class="spin"></span>Guardando...';$('r_save').disabled=true;try{const {data:numL,error:e1}=await sb.rpc('siguiente_numero',{p_tipo:'lote'});if(e1)throw e1;const codigo='L-'+pad(numL);const recObj={empresa_id:S.empresaId,codigo_lote:codigo,fecha,hora:($('r_hora')?$('r_hora').value:'')||null,proveedor:prov,materia_prima:prodN,cajas,kilos:unid,precio_kilo:costo,total:+(unid*costo).toFixed(2),recibido_por:recib,estado:'activa',origen:'reventa'};let {data:recRow,error:e2}=await sb.from('recepciones').insert(recObj).select('id').single();if(e2&&/hora/i.test(e2.message||'')){delete recObj.hora;({data:recRow,error:e2}=await sb.from('recepciones').insert(recObj).select('id').single());}if(e2)throw e2;const {data:opNum,error:e3}=await sb.rpc('siguiente_numero',{p_tipo:'op'});if(e3)throw e3;const codigoOp='P-'+pad(opNum);const {data:prodRow,error:e4}=await sb.from('producciones').insert({empresa_id:S.empresaId,codigo_op:codigoOp,recepcion_id:recRow.id,fecha,mp_kg:unid,operarios:0,horas:0,estado:'validada'}).select('id').single();if(e4)throw e4;const {data:pn}=await sb.rpc('siguiente_numero',{p_tipo:'prod'});const code='PR-'+pad(pn);const {error:e5}=await sb.from('produccion_outputs').insert({empresa_id:S.empresaId,produccion_id:prodRow.id,codigo_prod:code,producto_nombre:prodN,cantidad:unid,kilos:unid});if(e5)throw e5;if(prov&&!S.proveedores.some(p=>(p.nombre||'').toUpperCase()===prov.toUpperCase())){try{await sb.from('proveedores').insert({empresa_id:S.empresaId,nombre:prov});}catch(_e){}}await reloadRecepciones();await reloadProducciones();banner('Reventa '+codigo+' · '+nf(unid)+' u. de '+prodN+' en stock de procesados','');go('rec');}catch(err){banner('Error: '+err.message,'err');$('r_save').innerHTML='✓ Registrar recepción';$('r_save').disabled=false;}}
+async function saveRecepReventa(){const fecha=$('r_fecha').value,prov=$('r_prov').value.trim(),recib=$('r_recib').value.trim();const prodN=($('r_rv_prod')?$('r_rv_prod').value:'').trim();const unid=Math.round(+($('r_rv_unid')?$('r_rv_unid').value:0)||0),cajas=+($('r_rv_cajas')?$('r_rv_cajas').value:0)||0,costo=+($('r_rv_costo')?$('r_rv_costo').value:0)||0;if(!prodN||!unid)return banner('Elegí el producto y las unidades','warn');if(!recib)return banner('Indicá quién recibe la mercadería','warn');$('r_save').innerHTML='<span class="spin"></span>Guardando...';$('r_save').disabled=true;try{const {data:numL,error:e1}=await sb.rpc('siguiente_numero',{p_tipo:'lote'});if(e1)throw e1;const codigo='L-'+pad(numL);const recObj={empresa_id:S.empresaId,codigo_lote:codigo,fecha,hora:($('r_hora')?$('r_hora').value:'')||null,proveedor:prov,materia_prima:prodN,cajas,kilos:unid,precio_kilo:costo,total:+(unid*costo).toFixed(2),recibido_por:recib,estado:'activa',origen:'reventa'};let {data:recRow,error:e2}=await sb.from('recepciones').insert(recObj).select('id').single();if(e2&&/hora/i.test(e2.message||'')){delete recObj.hora;({data:recRow,error:e2}=await sb.from('recepciones').insert(recObj).select('id').single());}if(e2)throw e2;const {data:opNum,error:e3}=await sb.rpc('siguiente_numero',{p_tipo:'op'});if(e3)throw e3;const codigoOp='P-'+pad(opNum);const {data:prodRow,error:e4}=await sb.from('producciones').insert({empresa_id:S.empresaId,codigo_op:codigoOp,recepcion_id:recRow.id,fecha,mp_kg:unid,operarios:0,horas:0,estado:'validada'}).select('id').single();if(e4)throw e4;const {data:pn}=await sb.rpc('siguiente_numero',{p_tipo:'prod'});const code='PR-'+pad(pn);const {error:e5}=await sb.from('produccion_outputs').insert({empresa_id:S.empresaId,produccion_id:prodRow.id,codigo_prod:code,producto_nombre:prodN,cantidad:unid,kilos:unid});if(e5)throw e5;await reloadRecepciones();await reloadProducciones();banner('Reventa '+codigo+' · '+nf(unid)+' u. de '+prodN+' en stock de procesados','');go('rec');}catch(err){banner('Error: '+err.message,'err');$('r_save').innerHTML='✓ Registrar recepción';$('r_save').disabled=false;}}
 async function saveRecep(){
   if($('r_reventa')&&$('r_reventa').checked)return saveRecepReventa();
   const fecha=$('r_fecha').value,prov=$('r_prov').value.trim(),mp=$('r_mp').value.trim().toUpperCase(),recib=$('r_recib').value.trim();
@@ -521,9 +530,6 @@ async function saveRecep(){
     let {error:e2}=await sb.from('recepciones').insert(recObj);
     if(e2&&/hora/i.test(e2.message||'')){delete recObj.hora;({error:e2}=await sb.from('recepciones').insert(recObj));}
     if(e2)throw e2;
-    if(prov&&!S.proveedores.some(p=>(p.nombre||'').toUpperCase()===prov.toUpperCase())){
-      await sb.from('proveedores').insert({empresa_id:S.empresaId,nombre:prov});
-    }
     await reloadCatalogo();await reloadRecepciones();
     banner('Recepción '+codigo+' registrada','');
     go('rec');
@@ -1682,7 +1688,7 @@ function repPaint(){const b=$('repBody');if(!b)return;const t=repCur;const xbtn=
     <div class="g2"><div><label>Paquetes a preparar</label><input type="number" id="cap_paq" placeholder="ej: 5000" oninput="capCalc()"></div><div><label>Operarios disponibles</label><input type="number" id="cap_op" placeholder="ej: 7" oninput="capCalc()"></div></div>
     <div class="g2"><div><label>Productividad (paquetes por hora-hombre)</label><input type="number" id="cap_prod" step="0.1" value="${avg>0?avg.toFixed(1):''}" placeholder="ej: 120" oninput="capCalc()"></div><div style="display:flex;align-items:flex-end"><button class="btn btn-gold" style="width:100%" onclick="capCalc()">Calcular</button></div></div>
     <div id="cap_res" class="scan-note" style="margin-top:10px"></div></div>`;}
-  if(t==='novedades'){const NL={anular_recepcion:'Anular recepción',editar_recepcion:'Editar recepción',anular_acondicionamiento:'Anular acondicionamiento',editar_acondicionamiento:'Editar acondicionamiento',peps_forzado:'PEPS forzado',desbloqueo_produccion:'Desbloquear producción',editar_despacho:'Editar despacho',anular_despacho:'Anular despacho',anular_remito:'Anular remito',editar_remito:'Editar remito',validar_carga_dif:'Carga con diferencias',descarte:'Descarte MP',anular_descarte:'Anular descarte',editar_descarte:'Editar descarte',anular_devolucion:'Anular devolución',editar_devolucion:'Editar devolución',anular_produccion:'Anular producción',ajuste_stock:'Ajuste de stock',anular_ajuste:'Anular ajuste de stock'};const rows=(S.novedades||[]).filter(n=>inRange(n.fecha));ex.rows=[['Fecha','Hora','Operación','Referencia','Detalle','Autorizó','Ejecutó']].concat(rows.map(n=>[n.fecha,(n.created_at||'').slice(11,16),NL[n.tipo]||n.tipo,n.referencia||'',n.detalle||'',n.autorizado_por||'',n.ejecutado_por||'']));b.innerHTML=`<div class="card"><div class="card-h"><h3>Novedades · operaciones autorizadas con PIN</h3><div style="display:flex;gap:8px;align-items:center"><span class="tag ok">${rows.length} registro(s)</span>${xbtn}</div></div><p class="hint">Auditoría de todo lo que requirió PIN de supervisor. Se registra desde que se activó esta versión (lo anterior no figura).</p><div style="overflow:auto"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Operación</th><th>Ref.</th><th>Detalle</th><th>Autorizó</th><th>Ejecutó</th></tr></thead><tbody>${rows.map(n=>`<tr><td>${fmtD(n.fecha)}</td><td class="mono">${(n.created_at||'').slice(11,16)}</td><td><span class="tag">${esc(NL[n.tipo]||n.tipo)}</span></td><td class="mono">${esc(n.referencia||'—')}</td><td>${esc(n.detalle||'')}</td><td>${esc(n.autorizado_por||'—')}</td><td>${esc(n.ejecutado_por||'—')}</td></tr>`).join('')||'<tr><td colspan=7 class=empty>Sin novedades en el período</td></tr>'}</tbody></table></div></div>`;}
+  if(t==='novedades'){const NL={anular_recepcion:'Anular recepción',editar_recepcion:'Editar recepción',anular_acondicionamiento:'Anular acondicionamiento',editar_acondicionamiento:'Editar acondicionamiento',peps_forzado:'PEPS forzado',desbloqueo_produccion:'Desbloquear producción',editar_despacho:'Editar despacho',anular_despacho:'Anular despacho',anular_remito:'Anular remito',editar_remito:'Editar remito',validar_carga_dif:'Carga con diferencias',descarte:'Descarte MP',anular_descarte:'Anular descarte',editar_descarte:'Editar descarte',anular_devolucion:'Anular devolución',editar_devolucion:'Editar devolución',anular_produccion:'Anular producción',ajuste_stock:'Ajuste de stock',anular_ajuste:'Anular ajuste de stock',unificar_dup:'Unificar duplicados'};const rows=(S.novedades||[]).filter(n=>inRange(n.fecha));ex.rows=[['Fecha','Hora','Operación','Referencia','Detalle','Autorizó','Ejecutó']].concat(rows.map(n=>[n.fecha,(n.created_at||'').slice(11,16),NL[n.tipo]||n.tipo,n.referencia||'',n.detalle||'',n.autorizado_por||'',n.ejecutado_por||'']));b.innerHTML=`<div class="card"><div class="card-h"><h3>Novedades · operaciones autorizadas con PIN</h3><div style="display:flex;gap:8px;align-items:center"><span class="tag ok">${rows.length} registro(s)</span>${xbtn}</div></div><p class="hint">Auditoría de todo lo que requirió PIN de supervisor. Se registra desde que se activó esta versión (lo anterior no figura).</p><div style="overflow:auto"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Operación</th><th>Ref.</th><th>Detalle</th><th>Autorizó</th><th>Ejecutó</th></tr></thead><tbody>${rows.map(n=>`<tr><td>${fmtD(n.fecha)}</td><td class="mono">${(n.created_at||'').slice(11,16)}</td><td><span class="tag">${esc(NL[n.tipo]||n.tipo)}</span></td><td class="mono">${esc(n.referencia||'—')}</td><td>${esc(n.detalle||'')}</td><td>${esc(n.autorizado_por||'—')}</td><td>${esc(n.ejecutado_por||'—')}</td></tr>`).join('')||'<tr><td colspan=7 class=empty>Sin novedades en el período</td></tr>'}</tbody></table></div></div>`;}
   window._repEx=ex;
 }
 
@@ -2007,15 +2013,17 @@ function etqReset(){const tpl=curDesign();if(!tpl)return;if(!confirm('¿Restaura
 
 let bdTab='prod';
 function viewBD(){
-  const tabs=[['prod','Productos'],['cli','Clientes'],['prov','Proveedores'],['etq','Etiquetas'],['insu','Insumos'],['costeo','Costeo']];
+  const tabs=[['prod','Productos'],['mat','Materias primas'],['cli','Clientes'],['prov','Proveedores'],['unif','Unificar duplicados'],['etq','Etiquetas'],['insu','Insumos'],['costeo','Costeo']];
   $('view').innerHTML=`<div class="card"><div class="card-h"><h3>Datos maestros</h3></div>
    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">${tabs.map(t=>`<button class="btn btn-ghost btn-sm" id="bdt_${t[0]}" onclick="bdGo('${t[0]}')">${t[1]}</button>`).join('')}</div>
    <div id="cfg_body"></div></div>`;
   bdGo(bdTab);
 }
-function bdGo(t){bdTab=t;['prod','cli','prov','etq','insu','costeo'].forEach(x=>{const b=$('bdt_'+x);if(b)b.classList.toggle('btn-gold',x===t);});
+function bdGo(t){bdTab=t;['prod','mat','cli','prov','unif','etq','insu','costeo'].forEach(x=>{const b=$('bdt_'+x);if(b)b.classList.toggle('btn-gold',x===t);});
   if(t==='insu')return viewInsu();
   if(t==='costeo')return viewCosteo();
+  if(t==='mat')return cfgMat();
+  if(t==='unif')return cfgUnif();
   ({prod:cfgProd,cli:cfgCli,prov:cfgProv,etq:cfgEtiquetas}[t]||cfgProd)();}
 let cfgTab='empresa';
 function viewCfg(){
@@ -2573,6 +2581,81 @@ async function addProveedor(){const nom=$('pv_nom').value.trim();if(!nom)return 
 function editProveedor(id){const p=S.proveedores.find(x=>x.id===id);modal(`<h3>Editar proveedor</h3><label>Nombre</label><input id="pv_ed" value="${esc(p.nombre)}"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveProveedor('${id}')">Guardar</button></div>`);}
 async function saveProveedor(id){const nom=$('pv_ed').value.trim();if(!nom)return banner('Indicá el nombre','warn');await sb.from('proveedores').update({nombre:nom}).eq('id',id).eq('empresa_id',S.empresaId);await reloadCatalogo();closeModal();banner('Proveedor guardado','');cfgProv();}
 async function toggleProveedor(id){const p=S.proveedores.find(x=>x.id===id);await sb.from('proveedores').update({activo:p.activo===false}).eq('id',id).eq('empresa_id',S.empresaId);await reloadCatalogo();banner('Proveedor actualizado','');cfgProv();}
+
+// ---- COMBOBOX MAESTRO BUSCABLE (msel) : solo elige de la lista, sin alta libre ----
+window._mselCur=window._mselCur||{};
+const MSEL_SRC={
+  r_prov:()=>(S.proveedores||[]).filter(p=>p.activo!==false).map(p=>({v:p.nombre,id:p.id})),
+  r_mp:()=>mpMaster(),
+  r_rv_prod:()=>(S.productos||[]).filter(p=>p.activo!==false).map(p=>({v:p.nombre,id:p.id}))
+};
+const MSEL_PICK={r_mp:()=>{if(typeof recPrefillPrecio==='function')recPrefillPrecio();}};
+function msel(key,ph,cur){cur=cur||'';return `<div class="msel"><input type="hidden" id="${key}" value="${esc(cur)}"><input class="msel-f" id="${key}__f" autocomplete="off" placeholder="${esc(ph||'Buscar…')}" value="${esc(cur)}" oninput="mselFilter('${key}')" onfocus="mselFilter('${key}')" onblur="mselBlur('${key}')"><div class="msel-list" id="${key}__l" style="display:none"></div></div>`;}
+function mselFilter(key){const src=MSEL_SRC[key]?MSEL_SRC[key]():[];const fi=$(key+'__f');const q=(fi?fi.value:'').trim().toLowerCase();const matches=q?src.filter(o=>(o.v||'').toLowerCase().includes(q)):src;window._mselCur[key]=matches;const l=$(key+'__l');if(!l)return;const cap=matches.slice(0,60);l.innerHTML=cap.map((o,i)=>`<div class="msel-i" onmousedown="mselPick('${key}',${i})">${esc(o.v)}</div>`).join('')+(matches.length>60?`<div class="msel-m">+${matches.length-60} más… seguí escribiendo para filtrar</div>`:'')+(matches.length===0?`<div class="msel-none">Sin coincidencias. Si falta, el supervisor debe crearlo en Datos maestros.</div>`:'');l.style.display='block';}
+function mselPick(key,i){const o=(window._mselCur[key]||[])[i];if(!o)return;const h=$(key);if(h){h.value=o.v;h.dataset.id=o.id||'';}const fi=$(key+'__f');if(fi)fi.value=o.v;const l=$(key+'__l');if(l)l.style.display='none';if(MSEL_PICK[key]){try{MSEL_PICK[key]();}catch(e){}}}
+function mselBlur(key){setTimeout(()=>{const l=$(key+'__l');if(l)l.style.display='none';const fi=$(key+'__f'),h=$(key);if(fi&&h){const src=MSEL_SRC[key]?MSEL_SRC[key]():[];const hit=src.find(o=>(o.v||'').toLowerCase()===fi.value.trim().toLowerCase());if(hit){h.value=hit.v;h.dataset.id=hit.id||'';fi.value=hit.v;}else{h.value='';h.dataset.id='';}}},200);}
+
+// ---- MATERIAS PRIMAS (maestro) ----
+function mpDerived(){const set=new Set();(S.materias||[]).forEach(n=>{if(n)set.add((''+n).toUpperCase());});(S.recepciones||[]).forEach(r=>{if(r.materia_prima&&r.origen!=='reventa')set.add((''+r.materia_prima).toUpperCase());});(S.descartes||[]).forEach(d=>{if(d.materia_prima)set.add((''+d.materia_prima).toUpperCase());});return [...set].sort().map(n=>({v:n,id:''}));}
+function mpMaster(){const m=S.materiasPrimas;if(m&&m.length)return m.filter(x=>x.activo!==false).map(x=>({v:(x.nombre||'').toUpperCase(),id:x.id}));return mpDerived();}
+async function reloadMaterias(){try{const {data,error}=await sb.from('materias_primas').select('*').eq('empresa_id',S.empresaId).order('nombre');if(error)throw error;S.materiasPrimas=data||[];}catch(e){S.materiasPrimas=null;}}
+let cfgMatQ='';
+function cfgMat(){const has=Array.isArray(S.materiasPrimas);const q=cfgMatQ.toLowerCase();
+  const base=has?S.materiasPrimas.slice():mpDerived().map(o=>({nombre:o.v,activo:true,_derived:true}));
+  const list=base.filter(m=>!q||(m.nombre||'').toLowerCase().includes(q));
+  $('cfg_body').innerHTML=`${has?'':`<div class="note" style="margin-bottom:12px;border-left:4px solid #e0b83a"><b>Falta migrar.</b> Todavía no existe la tabla <code>materias_primas</code>. Estás viendo la lista derivada (solo lectura). Corré <code>materias_primas_setup.sql</code> en Supabase para poder dar de alta y editar materias primas.</div>`}
+   <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><input id="mt_q" placeholder="Buscar materia prima..." value="${esc(cfgMatQ)}" oninput="cfgMatQ=this.value;cfgMat();setTimeout(()=>{const i=document.getElementById('mt_q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},0)" style="flex:1;min-width:180px">${has?`<input id="mt_nom" placeholder="Nueva materia prima (ej: ACELGA)" style="flex:1;min-width:160px" onkeydown="if(event.key==='Enter')addMateria()"><button class="btn btn-gold btn-sm" onclick="addMateria()">+ Agregar</button>`:''}</div>
+   <div style="overflow:auto"><table><thead><tr><th>Materia prima</th><th>Estado</th><th></th></tr></thead><tbody>${list.map(m=>`<tr style="${m.activo===false?'opacity:.5':''}"><td>${esc((m.nombre||'').toUpperCase())}</td><td><span class="tag ${m.activo===false?'out':'ok'}">${m.activo===false?'Inactiva':'Activa'}</span></td><td style="white-space:nowrap">${(has&&!m._derived)?`<button class="btn btn-ghost btn-sm" onclick="editMateria('${m.id}')">Editar</button> <button class="btn btn-ghost btn-sm" onclick="toggleMateria('${m.id}')">${m.activo===false?'Activar':'Baja'}</button>`:'<span class="hint">—</span>'}</td></tr>`).join('')||'<tr><td colspan=3 class=empty>Sin materias primas</td></tr>'}</tbody></table></div>
+   <p class="hint" style="margin-top:8px">${list.length} materia(s) prima(s). En Recepción la materia prima se elige desde esta lista (no se puede tipear una nueva).</p>`;}
+async function addMateria(){const nom=($('mt_nom')?$('mt_nom').value.trim().toUpperCase():'');if(!nom)return banner('Indicá el nombre','warn');if((S.materiasPrimas||[]).some(m=>(m.nombre||'').toUpperCase()===nom))return banner('Ya existe esa materia prima','warn');const {error}=await sb.from('materias_primas').insert({empresa_id:S.empresaId,nombre:nom});if(error)return banner('Error: '+error.message,'err');await reloadMaterias();banner('Materia prima agregada','');cfgMat();}
+function editMateria(id){const m=(S.materiasPrimas||[]).find(x=>x.id===id);if(!m)return;modal(`<h3>Editar materia prima</h3><p class="hint">Corrige el nombre en el maestro. Para <b>fusionar</b> dos materias que son la misma, usá la pestaña "Unificar duplicados".</p><label>Nombre</label><input id="mt_ed" value="${esc((m.nombre||'').toUpperCase())}"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" onclick="saveMateria('${id}')">Guardar</button></div>`);}
+async function saveMateria(id){const nom=$('mt_ed').value.trim().toUpperCase();if(!nom)return banner('Indicá el nombre','warn');const {error}=await sb.from('materias_primas').update({nombre:nom}).eq('id',id).eq('empresa_id',S.empresaId);if(error)return banner('Error: '+error.message,'err');await reloadMaterias();closeModal();banner('Materia prima guardada','');cfgMat();}
+async function toggleMateria(id){const m=(S.materiasPrimas||[]).find(x=>x.id===id);await sb.from('materias_primas').update({activo:m.activo===false}).eq('id',id).eq('empresa_id',S.empresaId);await reloadMaterias();banner('Materia prima actualizada','');cfgMat();}
+
+// ---- UNIFICAR DUPLICADOS (proveedores / materias primas) ----
+let unifTipo='prov';
+function unifData(tipo){
+  if(tipo==='prov'){return (S.proveedores||[]).map(p=>({v:p.nombre,id:p.id,act:p.activo!==false,uso:(S.recepciones||[]).filter(r=>(r.proveedor||'')===p.nombre).length}));}
+  const rows={};const key=n=>(''+n).toUpperCase();
+  const bump=(n,f)=>{if(!n)return;const k=key(n);rows[k]=rows[k]||{v:k,id:'',act:true,rec:0,rcp:0,dsc:0,aj:0};rows[k][f]++;};
+  (S.recepciones||[]).forEach(r=>{if(r.materia_prima&&r.origen!=='reventa')bump(r.materia_prima,'rec');});
+  (S.descartes||[]).forEach(d=>{if(d.materia_prima)bump(d.materia_prima,'dsc');});
+  (S.ajustes||[]).forEach(a=>{if(a.tipo==='mp'&&a.item)bump(a.item,'aj');});
+  Object.values(S.recetas||{}).forEach(arr=>arr.forEach(x=>{if(x.mp)bump(x.mp,'rcp');}));
+  (Array.isArray(S.materiasPrimas)?S.materiasPrimas:[]).forEach(m=>{if(m.nombre){const k=key(m.nombre);rows[k]=rows[k]||{v:k,id:'',act:true,rec:0,rcp:0,dsc:0,aj:0};rows[k].id=m.id;rows[k].act=m.activo!==false;}});
+  return Object.values(rows).map(o=>({v:o.v,id:o.id,act:o.act,uso:o.rec+o.rcp+o.dsc+o.aj}));
+}
+function cfgUnif(){const tipo=unifTipo;const data=unifData(tipo).sort((a,b)=>(a.v||'').localeCompare(b.v||''));
+  const seg=(v,l)=>`<button class="btn ${tipo===v?'btn-gold':'btn-ghost'} btn-sm" onclick="unifTipo='${v}';cfgUnif()">${l}</button>`;
+  $('cfg_body').innerHTML=`<p class="hint">Unificá registros que son <b>la misma cosa</b>. Tildá los repetidos, marcá cuál es el <b>correcto</b> (destino): todas las operaciones de los demás se reasignan al destino y esos quedan dados de baja. Requiere PIN de supervisor. La acción queda en Novedades.</p>
+   <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">${seg('prov','Proveedores')} ${seg('mp','Materias primas')}<input id="uf_q" placeholder="Buscar coincidencia (ej: 291)…" oninput="unifFilter()" style="flex:1;min-width:180px"></div>
+   <div style="overflow:auto"><table><thead><tr><th style="text-align:center">Fusionar</th><th style="text-align:center">Destino ✓</th><th>${tipo==='prov'?'Proveedor':'Materia prima'}</th><th style="text-align:right">Uso</th><th></th></tr></thead><tbody>${data.map(o=>`<tr style="${o.act?'':'opacity:.5'}"><td style="text-align:center"><input type="checkbox" class="uf_ck" data-v="${esc(o.v)}" data-id="${esc(o.id||'')}" style="width:auto"></td><td style="text-align:center"><input type="radio" name="uf_dest" value="${esc(o.v)}" data-id="${esc(o.id||'')}" style="width:auto"></td><td>${esc(o.v)}</td><td class="mono" style="text-align:right">${o.uso}</td><td>${o.act?'':'<span class="tag out">baja</span>'}</td></tr>`).join('')||'<tr><td colspan=5 class=empty>Sin registros</td></tr>'}</tbody></table></div>
+   <div class="g2" style="margin-top:12px"><div><label>PIN del supervisor</label><input type="password" id="uf_pin" autocomplete="off"></div><div style="display:flex;align-items:end"><button class="btn btn-gold" id="uf_go" onclick="doUnif()">Unificar seleccionados</button></div></div>
+   <p class="hint" style="margin-top:8px">El "Uso" indica cuántas operaciones referencian cada registro. Fusionar no borra operaciones: solo las reapunta al destino.</p>`;}
+function unifFilter(){const q=(($('uf_q')?$('uf_q').value:'')||'').toLowerCase();document.querySelectorAll('.uf_ck').forEach(c=>{const tr=c.closest('tr');if(!tr)return;const v=(c.dataset.v||'').toLowerCase();tr.style.display=(!q||v.includes(q))?'':'none';});}
+async function doUnif(){const tipo=unifTipo;const cks=[...document.querySelectorAll('.uf_ck:checked')].map(c=>({v:c.dataset.v,id:c.dataset.id}));const destEl=document.querySelector('input[name=uf_dest]:checked');
+  if(!destEl)return banner('Marcá cuál es el registro correcto (destino)','warn');
+  const dest=destEl.value;const sources=cks.filter(c=>c.v!==dest);
+  if(!sources.length)return banner('Tildá al menos un duplicado distinto del destino','warn');
+  if(!authOK($('uf_pin').value,'unificar_dup',(tipo==='prov'?'Proveedor':'MP')+' → '+dest,'Unificó '+sources.map(s=>s.v).join(', ')+' en "'+dest+'"'))return;
+  const b=$('uf_go');if(b){b.innerHTML='<span class="spin"></span>Unificando...';b.disabled=true;}
+  try{
+    for(const s of sources){
+      if(tipo==='prov'){
+        await sb.from('recepciones').update({proveedor:dest}).eq('empresa_id',S.empresaId).eq('proveedor',s.v);
+        if(s.id)await sb.from('proveedores').update({activo:false}).eq('empresa_id',S.empresaId).eq('id',s.id);
+      }else{
+        await sb.from('recepciones').update({materia_prima:dest}).eq('empresa_id',S.empresaId).eq('materia_prima',s.v);
+        await sb.from('producto_materias').update({materia_prima:dest}).eq('empresa_id',S.empresaId).eq('materia_prima',s.v);
+        try{await sb.from('descartes').update({materia_prima:dest}).eq('empresa_id',S.empresaId).eq('materia_prima',s.v);}catch(e){}
+        try{await sb.from('ajustes_stock').update({item:dest}).eq('empresa_id',S.empresaId).eq('tipo','mp').eq('item',s.v);}catch(e){}
+        if(s.id){try{await sb.from('materias_primas').update({activo:false}).eq('empresa_id',S.empresaId).eq('id',s.id);}catch(e){}}
+      }
+    }
+    await reloadCatalogo();await reloadRecepciones();if(typeof reloadDescartes==='function')await reloadDescartes();if(typeof reloadAjustes==='function')await reloadAjustes();
+    banner('Unificado: '+sources.length+' registro(s) → "'+dest+'"','');cfgUnif();
+  }catch(err){banner('Error: '+err.message,'err');const b2=$('uf_go');if(b2){b2.innerHTML='Unificar seleccionados';b2.disabled=false;}}
+}
 
 // ---- DESCARTE DE MATERIA PRIMA ----
 async function reloadDescartes(){const {data}=await sb.from('descartes').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false});S.descartes=data||[];}
