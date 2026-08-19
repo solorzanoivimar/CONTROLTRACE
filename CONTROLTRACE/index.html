@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v87 · novedades: diagnóstico + setup</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v88 · editar recepción y producción: desplegables al día</div>
       </div>
     </nav>
     <div class="main">
@@ -546,8 +546,8 @@ function openEditReventa(r){
   const unid=o?o.cantidad:(r.kilos||0);
   window._edRvPuuid=p?p.uuid:null;
   modal(`<h3>Editar reventa ${r.codigo_lote}</h3><p class="hint">Producto terminado ingresado por reventa. La cantidad se maneja en <b>unidades (paquetes)</b> y va directo al <b>stock de procesados</b>.</p>
-   <div class="g2"><div><label>Fecha</label><input type="date" id="erv_fecha" value="${r.fecha}"></div><div><label>Proveedor</label><input id="erv_prov" value="${esc(r.proveedor||'')}"></div></div>
-   <label>Producto</label><select id="erv_prod">${S.productos.map(x=>`<option ${x.nombre===r.materia_prima?'selected':''}>${esc(x.nombre)}</option>`).join('')}</select>
+   <div class="g2"><div><label>Fecha</label><input type="date" id="erv_fecha" value="${r.fecha}"></div><div><label>Proveedor</label>${msel('erv_prov','Buscar proveedor…',r.proveedor||'')}</div></div>
+   <label>Producto</label>${msel('erv_prod','Buscar producto…',r.materia_prima||'')}
    <div class="g2"><div><label>Unidades (paquetes)</label><input type="number" step="1" min="0" id="erv_unid" value="${unid}"></div><div><label>Cajas</label><input type="number" step="1" min="0" id="erv_cajas" value="${r.cajas||0}"></div></div>
    <label>Costo por unidad</label><input type="number" step="0.01" id="erv_costo" value="${r.precio_kilo||0}">
    <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="erv_save" onclick="saveEditReventa('${r.codigo_lote}')">Guardar</button></div>`);
@@ -572,8 +572,8 @@ function openEditRecep(codigo){
   modal(`<h3>Editar ${codigo}</h3>
    <div class="g2"><div><label>Fecha y hora</label><div style="display:flex;gap:6px"><input type="date" id="e_fecha" value="${r.fecha}" style="flex:1"><input type="time" id="e_hora" value="${esc(r.hora||'')}" style="width:104px"></div></div>
    <div><label>Recibido por</label><input id="e_recib" value="${esc(r.recibido_por)}"></div></div>
-   <div class="g2"><div><label>Proveedor</label><input id="e_prov" value="${esc(r.proveedor)}"></div>
-   <div><label>Materia prima</label><input id="e_mp" value="${esc(r.materia_prima)}"></div></div>
+   <div class="g2"><div><label>Proveedor</label>${msel('e_prov','Buscar proveedor…',r.proveedor||'')}</div>
+   <div><label>Materia prima</label>${msel('e_mp','Buscar materia prima…',r.materia_prima||'')}</div></div>
    <div class="g2"><div><label>Cajas</label><input type="number" id="e_cajas" value="${r.cajas||0}" oninput="ediRecCalc()"></div>
    <div><label>Kilos</label><input type="number" id="e_kilos" step="0.01" value="${r.kilos||0}" oninput="ediRecCalc()"></div></div>
    <label>Precio</label><div style="display:flex;gap:6px"><select id="e_pmode" onchange="ediRecCalc()" style="width:auto;padding:6px 8px;border:1px solid var(--line);border-radius:7px"><option value="kilo">por kilo</option><option value="caja">por caja</option></select><input type="number" id="e_precio" step="0.01" value="${r.precio_kilo||0}" oninput="ediRecCalc()" style="flex:1"></div>
@@ -860,7 +860,7 @@ function onLoteChange(){
   const r=recActiva(codigo);const st=stockLote(r);
   const ant=lotesAnteriores(r);
   const fefo=ant.length?`<div class="note" style="margin:12px 0"><b>⚠️ Atención — PEPS (primero entra, primero sale)</b><br>Hay lotes de ${r.materia_prima} con ingreso anterior y stock: ${ant.map(x=>`<b>${x.codigo_lote}</b> (${fmtD(x.fecha)}, ${nf(stockLote(x),1)}kg)`).join(', ')}. Lo recomendado es procesar primero el más antiguo. Para procesar este igual, el supervisor autoriza con PIN.</div>`:'';
-  window._eligOpts=(eligibleProds(r.materia_prima).length?eligibleProds(r.materia_prima):S.productos).map(p=>`<option>${p.nombre}</option>`).join('');window._ppKgCaja=(r.cajas>0)?r.kilos/r.cajas:0;const kgCaja=window._ppKgCaja;const cajasStock=kgCaja>0?st/kgCaja:0;const yaProcesado=((+r.kilos||0)-st)>0.01;
+  window._eligOpts=(function(){const elig=eligibleProds(r.materia_prima);const simples=S.productos.filter(p=>(p.tipo||'simple')==='simple');const eN=new Set(elig.map(p=>p.nombre));const otros=simples.filter(p=>!eN.has(p.nombre));if(!elig.length)return (simples.length?simples:S.productos).map(p=>`<option>${esc(p.nombre)}</option>`).join('');let h='<optgroup label="Usan '+esc(r.materia_prima)+'">'+elig.map(p=>`<option>${esc(p.nombre)}</option>`).join('')+'</optgroup>';if(otros.length)h+='<optgroup label="Otros productos">'+otros.map(p=>`<option>${esc(p.nombre)}</option>`).join('')+'</optgroup>';return h;})();window._ppKgCaja=(r.cajas>0)?r.kilos/r.cajas:0;const kgCaja=window._ppKgCaja;const cajasStock=kgCaja>0?st/kgCaja:0;const yaProcesado=((+r.kilos||0)-st)>0.01;
   panel.innerHTML=`${fefo}
    <div style="font-size:13px;color:var(--muted);margin:8px 0">Disponible: <b style="color:var(--steel)">${nf(st,1)} kg</b>${(r.cajas>0&&r.kilos>0)?` (≈ ${nf(st/(r.kilos/r.cajas),1)} cajas)`:''} de ${r.materia_prima}</div>
    <label>Materia prima a utilizar</label>
@@ -2630,7 +2630,11 @@ window._mselCur=window._mselCur||{};
 const MSEL_SRC={
   r_prov:()=>(S.proveedores||[]).filter(p=>p.activo!==false).map(p=>({v:p.nombre,id:p.id})),
   r_mp:()=>mpMaster(),
-  r_rv_prod:()=>(S.productos||[]).filter(p=>p.activo!==false).map(p=>({v:p.nombre,id:p.id}))
+  r_rv_prod:()=>(S.productos||[]).filter(p=>p.activo!==false).map(p=>({v:p.nombre,id:p.id})),
+  e_prov:()=>(S.proveedores||[]).filter(p=>p.activo!==false).map(p=>({v:p.nombre,id:p.id})),
+  e_mp:()=>mpMaster(),
+  erv_prov:()=>(S.proveedores||[]).filter(p=>p.activo!==false).map(p=>({v:p.nombre,id:p.id})),
+  erv_prod:()=>(S.productos||[]).filter(p=>p.activo!==false).map(p=>({v:p.nombre,id:p.id}))
 };
 const MSEL_PICK={r_mp:()=>{if(typeof recPrefillPrecio==='function')recPrefillPrecio();}};
 function msel(key,ph,cur){cur=cur||'';return `<div class="msel"><input type="hidden" id="${key}" value="${esc(cur)}"><input class="msel-f" id="${key}__f" autocomplete="off" placeholder="${esc(ph||'Buscar…')}" value="${esc(cur)}" oninput="mselFilter('${key}')" onfocus="mselFilter('${key}')" onblur="mselBlur('${key}')"><div class="msel-list" id="${key}__l" style="display:none"></div></div>`;}
