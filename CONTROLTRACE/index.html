@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v99 · etiquetas: separación vertical entre filas</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v100 · etiquetas: filas completas (1/2 alinean como 3)</div>
       </div>
     </nav>
     <div class="main">
@@ -1226,7 +1226,7 @@ function printRoll(which){const d=window._lblData;if(!d)return;const saved=saved
   if(N<=0){S.etq=prev;return banner('No hay etiquetas de '+(which==='paquete'?'paquete':'caja')+' para imprimir','warn');}
   let cells=[],barJobs=[],qrJobs=[];for(let i=0;i<N;i++){const dd=which==='paquete'?Object.assign({},data,{lote:loteAt(i),qr:loteAt(i)}):data;const r=tplLabelHTML(which,dd,mu,which[0]+'r'+i);cells.push(r.html);barJobs=barJobs.concat(r.barJobs);qrJobs=qrJobs.concat(r.qrJobs);}
   if(tpl.rot){const wpx=Math.round(tpl.w*PX),hpx=Math.round(tpl.h*PX);cells=cells.map(c=>`<div style="width:${hpx}px;height:${wpx}px;position:relative;overflow:hidden;display:inline-block;vertical-align:top"><div style="position:absolute;top:0;left:0;width:${wpx}px;height:${hpx}px;transform-origin:top left;transform:translateY(${wpx}px) rotate(-90deg)">${c}</div></div>`);}
-  let rows='';for(let i=0;i<cells.length;i+=cols){rows+=`<div style="display:flex;gap:${Math.round(gap*PX)}px;page-break-after:always;break-after:page">${cells.slice(i,i+cols).join('')}</div>`;}
+  const _cw=tpl.rot?Math.round(tpl.h*PX):Math.round(tpl.w*PX),_ch=tpl.rot?Math.round(tpl.w*PX):Math.round(tpl.h*PX),_empty='<div style="width:'+_cw+'px;height:'+_ch+'px;flex:0 0 auto"></div>';let rows='';for(let i=0;i<cells.length;i+=cols){let slice=cells.slice(i,i+cols);while(slice.length<cols)slice.push(_empty);rows+=`<div style="display:flex;gap:${Math.round(gap*PX)}px;justify-content:flex-start;page-break-after:always;break-after:page">${slice.join('')}</div>`;}
   S.etq=prev;
   const pageW=(tpl.rot?(cols*tpl.h+(cols-1)*gap):(cols*tpl.w+(cols-1)*gap)).toFixed(1),pageH=((tpl.rot?tpl.w:tpl.h)+gapy).toFixed(1);
   let st=document.getElementById('dynpage');if(!st){st=document.createElement('style');st.id='dynpage';document.head.appendChild(st);}st.textContent='@page{size:'+pageW+'mm '+pageH+'mm;margin:0}';
