@@ -104,7 +104,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
 .node .when{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .node .what{font-weight:600;color:var(--ink);font-size:14px;margin:2px 0}
 .node .det{font-size:12px;color:var(--muted);line-height:1.6}
-@media print{body *{visibility:hidden}#lblArea,#lblArea *,#repSheet,#repSheet *{visibility:visible}#lblArea,#repSheet{position:absolute;left:0;top:0}#repSheet{border:0}.modal{box-shadow:none;border:0}}
+#printRoot{display:none}@media print{body:not(.printing-labels) *{visibility:hidden}body:not(.printing-labels) #lblArea,body:not(.printing-labels) #lblArea *,body:not(.printing-labels) #repSheet,body:not(.printing-labels) #repSheet *{visibility:visible}body:not(.printing-labels) #lblArea,body:not(.printing-labels) #repSheet{position:absolute;left:0;top:0}#repSheet{border:0}.modal{box-shadow:none;border:0}body.printing-labels>*{display:none!important}body.printing-labels>#printRoot{display:block!important}body.printing-labels #printRoot>div{page-break-inside:avoid;break-inside:avoid}body.printing-labels .tlbl{margin:0!important}}
 .remito{background:#fff;color:#000;border:1px solid #000;padding:12px;font-size:10.5px;display:flex;flex-direction:column;min-height:255mm;box-sizing:border-box}
 .remito .rh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:1px solid #000;padding-bottom:8px}
 .remito .rtitle{font-size:15px;font-weight:700;text-align:center;flex:1;font-family:'Space Grotesk'}
@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v97 · remito: emitir sin lote + asignar después</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v98 · etiquetas: paginación correcta (1 por página)</div>
       </div>
     </nav>
     <div class="main">
@@ -1230,10 +1230,10 @@ function printRoll(which){const d=window._lblData;if(!d)return;const saved=saved
   S.etq=prev;
   const pageW=(tpl.rot?(cols*tpl.h+(cols-1)*gap):(cols*tpl.w+(cols-1)*gap)).toFixed(1),pageH=(tpl.rot?tpl.w:tpl.h);
   let st=document.getElementById('dynpage');if(!st){st=document.createElement('style');st.id='dynpage';document.head.appendChild(st);}st.textContent='@page{size:'+pageW+'mm '+pageH+'mm;margin:0}';
-  const area=$('lblArea');const bk=area.innerHTML,bks=area.getAttribute('style')||'';area.setAttribute('style','');area.innerHTML=rows;
+  let pr=document.getElementById('printRoot');if(!pr){pr=document.createElement('div');pr.id='printRoot';document.body.appendChild(pr);}pr.innerHTML=rows;document.body.classList.add('printing-labels');
   barJobs.forEach(j=>{const el=$(j.id);if(el)etqBar(el,j.code,j.w,j.h);});qrJobs.forEach(j=>{const el=$(j.id);if(el)etqQr(el,j.text,j.size);});
   window.print();
-  area.setAttribute('style',bks);area.innerHTML=bk;renderLabels(d,{pkgN,boxN,muestra:mu});
+  document.body.classList.remove('printing-labels');pr.innerHTML='';renderLabels(d,{pkgN,boxN,muestra:mu});
 }
 function renderLabels(d,opts){opts=opts||{};window._lblData=d;const it=d.items[0];const e=S.empresa;const fecha=d.fecha;const isEns=prodTipo(it.producto)==='comp_ensamblado';const mu=!!opts.muestra;
   let pkgs=[],boxes=[],bcJobs=[],qrJobs=[],defPkg,defBox,info,li,op,porCaja,binfo,lotesArr=[],lotSeq=[];
