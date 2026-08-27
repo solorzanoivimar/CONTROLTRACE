@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v98 · etiquetas: paginación correcta (1 por página)</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v99 · etiquetas: separación vertical entre filas</div>
       </div>
     </nav>
     <div class="main">
@@ -1202,7 +1202,7 @@ function etqUID(){return 'd'+Date.now().toString(36)+Math.random().toString(36).
 function etqNorm(cfg){if(cfg&&Array.isArray(cfg.designs)){const c=JSON.parse(JSON.stringify(cfg));c.logo=c.logo||'';c.logos=c.logos||{};c.assign=c.assign||{};(c.designs||[]).forEach(d=>{if(!d.kind)d.kind='paquete';});return c;}const logo=(cfg&&cfg.logo)||'';const pk=(cfg&&cfg.paquete)?JSON.parse(JSON.stringify(cfg.paquete)):etqDefault('paquete');const cj=(cfg&&cfg.caja)?JSON.parse(JSON.stringify(cfg.caja)):etqDefault('caja');const designs=[Object.assign({id:etqUID(),name:'Paquete',kind:'paquete',isDefault:true},pk),Object.assign({id:etqUID(),name:'Caja',kind:'caja',isDefault:true},cj)];return {logo:logo,logos:{},designs:designs,assign:{}};}
 function etqCfg(){return etqNorm(S.empresa&&S.empresa.etiqueta_config);}
 function etqOrient(tpl){const w=tpl.rot?tpl.h:tpl.w,h=tpl.rot?tpl.w:tpl.h;return (w>=h?'Horizontal (apaisada)':'Vertical');}
-function etqPageDims(tpl){const cols=Math.max(1,+tpl.cols||1);const gap=+tpl.gapx||0;const pageW=(tpl.rot?(cols*tpl.h+(cols-1)*gap):(cols*tpl.w+(cols-1)*gap));const pageH=(tpl.rot?tpl.w:tpl.h);return {pageW:+pageW.toFixed(1),pageH:+pageH.toFixed(1),cols};}
+function etqPageDims(tpl){const cols=Math.max(1,+tpl.cols||1);const gap=+tpl.gapx||0;const gapy=+tpl.gapy||0;const pageW=(tpl.rot?(cols*tpl.h+(cols-1)*gap):(cols*tpl.w+(cols-1)*gap));const pageH=(tpl.rot?tpl.w:tpl.h)+gapy;return {pageW:+pageW.toFixed(1),pageH:+pageH.toFixed(1),cols};}
 function etqPrintCard(saved){const parts=[['paquete','Paquete / envasado'],['caja','Caja / microondas']].map(function(pr){const k=pr[0],lbl=pr[1];const tpl=saved&&saved[k];if(!tpl)return '';const dm=etqPageDims(tpl);const orient=etqOrient(tpl);const printer=tpl.printer||'';return `<div style="padding:6px 0;border-bottom:1px solid #e6e0d4"><b>${lbl}</b> — etiqueta ${nf(tpl.w,1)}\u00d7${nf(tpl.h,1)} mm · ${dm.cols>1?dm.cols+' bandas':'1 banda'}${tpl.rot?' · rotada 90\u00b0':''}<br><span style="font-size:12px;color:var(--muted)">Papel en Chrome: <b>${dm.pageW}\u00d7${dm.pageH} mm</b> · ${orient}${printer?` · Cola: <b>${esc(printer)}</b>`:' · <i>(sin cola asignada — cargala en Diseño de etiquetas)</i>'}</span></div>`;}).join('');return `<div style="background:#eef4ef;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px"><div style="font-weight:600;font-size:13px;margin-bottom:4px">\ud83d\udda8\ufe0f Ajustes de impresi\u00f3n de este producto</div>${parts}<div style="font-size:11px;color:var(--muted);margin-top:6px">En el cuadro de impresi\u00f3n de Chrome: <b>Destino</b> = la cola indicada · <b>M\u00e1rgenes</b> = Ninguno · <b>Escala</b> = Predeterminada (100%) · <b>desmarc\u00e1</b> \u201cEncabezados y pies de p\u00e1gina\u201d · <b>Papel</b> = el tama\u00f1o indicado. Si dejaste una cola por etiqueta, con elegir el Destino ya sale alineado.</div></div>`;}
 function etqDefaultDesign(cfg,kind){return (cfg.designs||[]).find(d=>d.kind===kind&&d.isDefault)||(cfg.designs||[]).find(d=>d.kind===kind)||null;}
 function resolveDesign(cfg,prodId,kind){const a=cfg.assign&&cfg.assign[prodId];let d=null;if(a&&a[kind])d=(cfg.designs||[]).find(x=>x.id===a[kind]);if(!d)d=etqDefaultDesign(cfg,kind);return d;}
@@ -1221,14 +1221,14 @@ function printRoll(which){const d=window._lblData;if(!d)return;const saved=saved
   const pinfo=isEns?binfo:info;const perBox=isEns?porCaja:(it.uxc||1);
   const dataPkg={empresa:e.razon_social||'',producto:(it.producto||'').replace(' AIZU',''),contenido:(pinfo&&pinfo.kg?nf(pinfo.kg*1000)+' g':''),gtin:(pinfo&&pinfo.gtin)||'',qr:loteLbl,rnpa:(pinfo&&pinfo.rnpa)||'',rne:e.rne||'',env:fmtD(fecha),vto:it.vto?fmtD(it.vto):'—',lote:loteLbl,renspa:(e.renspa||RENSPA_DEF),cantidad:''};
   const dataBox={empresa:e.razon_social||'',producto:(it.producto||'').replace(' AIZU',''),contenido:perBox+' unidades',gtin:(pinfo&&pinfo.gtin)||'',qr:boxQR,rnpa:(pinfo&&pinfo.rnpa)||'',rne:e.rne||'',env:fmtD(fecha),vto:it.vto?fmtD(it.vto):'—',lote:loteLbl,renspa:(e.renspa||RENSPA_DEF),cantidad:perBox};
-  const prev=S.etq;S.etq=saved;const tpl=saved[which];const PX=3.78;const cols=Math.max(1,+tpl.cols||1);const gap=+tpl.gapx||0;
+  const prev=S.etq;S.etq=saved;const tpl=saved[which];const PX=3.78;const cols=Math.max(1,+tpl.cols||1);const gap=+tpl.gapx||0;const gapy=+tpl.gapy||0;
   const data=which==='paquete'?dataPkg:dataBox;const N=which==='paquete'?pkgN:boxN;
   if(N<=0){S.etq=prev;return banner('No hay etiquetas de '+(which==='paquete'?'paquete':'caja')+' para imprimir','warn');}
   let cells=[],barJobs=[],qrJobs=[];for(let i=0;i<N;i++){const dd=which==='paquete'?Object.assign({},data,{lote:loteAt(i),qr:loteAt(i)}):data;const r=tplLabelHTML(which,dd,mu,which[0]+'r'+i);cells.push(r.html);barJobs=barJobs.concat(r.barJobs);qrJobs=qrJobs.concat(r.qrJobs);}
   if(tpl.rot){const wpx=Math.round(tpl.w*PX),hpx=Math.round(tpl.h*PX);cells=cells.map(c=>`<div style="width:${hpx}px;height:${wpx}px;position:relative;overflow:hidden;display:inline-block;vertical-align:top"><div style="position:absolute;top:0;left:0;width:${wpx}px;height:${hpx}px;transform-origin:top left;transform:translateY(${wpx}px) rotate(-90deg)">${c}</div></div>`);}
   let rows='';for(let i=0;i<cells.length;i+=cols){rows+=`<div style="display:flex;gap:${Math.round(gap*PX)}px;page-break-after:always;break-after:page">${cells.slice(i,i+cols).join('')}</div>`;}
   S.etq=prev;
-  const pageW=(tpl.rot?(cols*tpl.h+(cols-1)*gap):(cols*tpl.w+(cols-1)*gap)).toFixed(1),pageH=(tpl.rot?tpl.w:tpl.h);
+  const pageW=(tpl.rot?(cols*tpl.h+(cols-1)*gap):(cols*tpl.w+(cols-1)*gap)).toFixed(1),pageH=((tpl.rot?tpl.w:tpl.h)+gapy).toFixed(1);
   let st=document.getElementById('dynpage');if(!st){st=document.createElement('style');st.id='dynpage';document.head.appendChild(st);}st.textContent='@page{size:'+pageW+'mm '+pageH+'mm;margin:0}';
   let pr=document.getElementById('printRoot');if(!pr){pr=document.createElement('div');pr.id='printRoot';document.body.appendChild(pr);}pr.innerHTML=rows;document.body.classList.add('printing-labels');
   barJobs.forEach(j=>{const el=$(j.id);if(el)etqBar(el,j.code,j.w,j.h);});qrJobs.forEach(j=>{const el=$(j.id);if(el)etqQr(el,j.text,j.size);});
@@ -2018,6 +2018,7 @@ function cfgEtiquetas(){if(!S.etq)etqLoad();if(!curDesign()){const f=(S.etq.desi
   </div>
   <div class="g2" style="margin-bottom:12px"><div><label>Ancho (mm)</label><input type="number" id="etq_w" value="${tpl.w}" min="20" max="300" oninput="etqSize()"></div><div><label>Alto (mm)</label><input type="number" id="etq_h" value="${tpl.h}" min="15" max="300" oninput="etqSize()"></div></div>
   <div class="g2" style="margin-bottom:12px"><div><label>Etiquetas por fila (rollo SATO)</label><select id="etq_cols" onchange="etqRollSet()">${[1,2,3].map(n=>`<option value="${n}" ${(tpl.cols||1)===n?'selected':''}>${n} por fila</option>`).join('')}</select></div><div><label>Separación horizontal (mm)</label><input type="number" id="etq_gapx" value="${tpl.gapx||0}" min="0" step="0.5" oninput="etqRollSet()"></div></div>
+  <div class="g2" style="margin-bottom:12px"><div><label>Separación vertical (mm) <span style="color:var(--muted);font-weight:400">(entre filas del rollo)</span></label><input type="number" id="etq_gapy" value="${tpl.gapy||0}" min="0" step="0.5" oninput="etqRollSet()"></div><div></div></div>
   <label style="display:flex;align-items:center;gap:6px;margin-bottom:12px;cursor:pointer;font-size:13px"><input type="checkbox" id="etq_rot" ${tpl.rot?'checked':''} onchange="etqRollSet()" style="width:auto"> <b>Rotar 90°</b> — para rollos donde las etiquetas van en columnas verticales (ej: ACELGA 3 columnas)</label>
   <div style="margin-bottom:12px"><label>Impresora / cola de Windows para este diseño <span style="color:var(--muted);font-weight:400">(nombre exacto de la cola)</span></label><input id="etq_printer" value="${esc(tpl.printer||'')}" placeholder="ej: Etiquetas Envasados" oninput="etqPrinterSet()"><div class="scan-note" style="margin-top:4px">Instalá la impresora una vez por cada tipo de etiqueta (con sus medidas y orientación guardadas) y poné acá el nombre de esa cola. Al imprimir, la app te recuerda cuál elegir.</div></div>
   <label>Agregar a la etiqueta</label><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${ETQ_TYPES.map(t=>`<button class="btn btn-ghost btn-sm" onclick="etqAdd('${t[0]}')">+ ${t[1]}</button>`).join('')}</div>
@@ -2059,7 +2060,7 @@ function etqDragStart(e,id){e.preventDefault();etqSelect(id);const tpl=curDesign
 function etqSelect(id){S.etqSel=id;const cv=$('etqCanvas');if(cv)cv.querySelectorAll('.etqEl').forEach(n=>n.style.outline=n.dataset.id===id?'2px solid #c9a24b':'1px dashed rgba(0,0,0,.18)');etqRenderProps();}
 function etqSwitch(w){etqCur=w;S.etqSel=null;cfgEtiquetas();}
 function etqSize(){const tpl=curDesign();if(!tpl)return;tpl.w=+$('etq_w').value||tpl.w;tpl.h=+$('etq_h').value||tpl.h;etqRenderCanvas();}
-function etqRollSet(){const tpl=curDesign();if(!tpl)return;tpl.cols=+$('etq_cols').value||1;tpl.gapx=+$('etq_gapx').value||0;tpl.rot=$('etq_rot')?$('etq_rot').checked:false;}
+function etqRollSet(){const tpl=curDesign();if(!tpl)return;tpl.cols=+$('etq_cols').value||1;tpl.gapx=+$('etq_gapx').value||0;tpl.gapy=$('etq_gapy')?(+$('etq_gapy').value||0):(+tpl.gapy||0);tpl.rot=$('etq_rot')?$('etq_rot').checked:false;}
 function etqPrinterSet(){const tpl=curDesign();if(!tpl)return;tpl.printer=$('etq_printer')?$('etq_printer').value:'';}
 function etqAdd(type){const tpl=curDesign();if(!tpl)return;const el={id:etqId(),type,x:10,y:10,fs:11,bold:false,align:'left'};if(type==='gtin'){el.w=170;el.h=48;}if(type==='qr'){el.w=80;}if(type==='logo'){el.w=70;el.h=44;el.which='aizu';}if(type==='texto'){el.text='Texto libre';el.fs=12;}tpl.elements.push(el);S.etqSel=el.id;etqRenderCanvas();etqRenderProps();banner('Elemento agregado · arrastralo a su lugar','');}
 function etqLogo(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{S.etq.logo=r.result;etqRenderCanvas();banner('Logo cargado · acordate de Guardar','');};r.readAsDataURL(f);}
@@ -2080,7 +2081,7 @@ function etqRenderProps(){const box=$('etqProps');if(!box)return;const tpl=curDe
   box.innerHTML=h;
 }
 async function etqSave(){const {error}=await sb.from('empresas').update({etiqueta_config:S.etq}).eq('id',S.empresaId);if(error)return banner('Error al guardar: '+error.message,'err');S.empresa.etiqueta_config=JSON.parse(JSON.stringify(S.etq));banner('Diseño de etiquetas guardado ✓','');}
-function etqReset(){const tpl=curDesign();if(!tpl)return;if(!confirm('¿Restaurar este diseño al de fábrica de su tipo? Se pierde lo que hayas cambiado en él.'))return;const def=etqDefault(tpl.kind);tpl.w=def.w;tpl.h=def.h;tpl.cols=def.cols;tpl.gapx=def.gapx;tpl.elements=def.elements;S.etqSel=null;etqRenderCanvas();etqRenderProps();}
+function etqReset(){const tpl=curDesign();if(!tpl)return;if(!confirm('¿Restaurar este diseño al de fábrica de su tipo? Se pierde lo que hayas cambiado en él.'))return;const def=etqDefault(tpl.kind);tpl.w=def.w;tpl.h=def.h;tpl.cols=def.cols;tpl.gapx=def.gapx;tpl.gapy=def.gapy||0;tpl.elements=def.elements;S.etqSel=null;etqRenderCanvas();etqRenderProps();}
 
 let bdTab='prod';
 function viewBD(){
