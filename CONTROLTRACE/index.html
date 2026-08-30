@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v102 · asignar lotes: autocompleta stock y faltante</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v103 · anular remito reabre el pedido vinculado</div>
       </div>
     </nav>
     <div class="main">
@@ -1292,7 +1292,7 @@ async function reloadEntregas(){
   ]);
   const cliById={};S.clientes.forEach(c=>cliById[c.id]=c.razon_social);
   const despByUuid={};S.despachos.forEach(d=>despByUuid[d.uuid]=d.id);
-  S.entregas=(ents||[]).map(e=>({id:e.id,numero_remito:e.numero_remito,orden_compra:e.orden_compra||'',descuento_tipo:e.descuento_tipo||'',descuento_valor:+e.descuento_valor||0,fecha:e.fecha,cliente_id:e.cliente_id,clienteNombre:cliById[e.cliente_id]||'',estado:e.estado,validado:e.validado||null,es_muestra:!!e.es_muestra,
+  S.entregas=(ents||[]).map(e=>({id:e.id,numero_remito:e.numero_remito,orden_compra:e.orden_compra||'',descuento_tipo:e.descuento_tipo||'',descuento_valor:+e.descuento_valor||0,fecha:e.fecha,cliente_id:e.cliente_id,clienteNombre:cliById[e.cliente_id]||'',estado:e.estado,validado:e.validado||null,es_muestra:!!e.es_muestra,pedido_codigo:e.pedido_codigo||null,
     items:(items||[]).filter(it=>it.entrega_id===e.id).map(it=>({producto:it.producto_nombre,cantidad:+it.cantidad||0,cajas:it.cajas||0,precio:+it.precio||0,id:it.id,did:despByUuid[it.despacho_id]||null,loteRef:it.lote_ref}))}));
   S.preciosCliente={};(precios||[]).forEach(p=>{S.preciosCliente[p.cliente_id+'|'+p.producto_id]=+p.precio||0;});
 }
