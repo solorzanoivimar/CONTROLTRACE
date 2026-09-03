@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v123 · Ajuste de stock con buscador y filtro de período (sin tope de 20). Nuevo reporte Movimientos de stock (kardex por artículo/lote con saldo corriendo y control contra el stock del sistema)</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v124 · fix Copiar pedido: ahora copia también el nombre/código del artículo (el par apair se rellena al crear la línea), además de cantidades y precios</div>
       </div>
     </nav>
     <div class="main">
@@ -1518,9 +1518,9 @@ function viewPlan(){
   document.getElementById('pl_basis').value=window._rindeBasis;
   renderPlan();
 }
-function pedAddLine(){const w=$('pd_lines');const d=document.createElement('div');d.className='g2';d.setAttribute('data-pl','');d.style.gridTemplateColumns='1.5fr .7fr 1.1fr auto';d.style.marginBottom='6px';
+function pedAddLine(prod){const w=$('pd_lines');const d=document.createElement('div');d.className='g2';d.setAttribute('data-pl','');d.style.gridTemplateColumns='1.5fr .7fr 1.1fr auto';d.style.marginBottom='6px';
   const _plk='plp'+(window._plk=(window._plk||0)+1);
-  d.innerHTML=`${apair(_plk,'prod','Buscar producto…','','pl_prod','pedPrefill(this);pedCalc()')}<input class="pl_cant" type="number" min="0" placeholder="unid." oninput="pedCalc()"><input class="pl_precio" type="number" min="0" step="0.01" placeholder="$/u" oninput="this.dataset.t=1;pedCalc()"><button class="btn btn-ghost btn-sm" onclick="this.parentNode.remove();pedCalc()">✕</button>`;
+  d.innerHTML=`${apair(_plk,'prod','Buscar producto…',prod||'','pl_prod','pedPrefill(this);pedCalc()')}<input class="pl_cant" type="number" min="0" placeholder="unid." oninput="pedCalc()"><input class="pl_precio" type="number" min="0" step="0.01" placeholder="$/u" oninput="this.dataset.t=1;pedCalc()"><button class="btn btn-ghost btn-sm" onclick="this.parentNode.remove();pedCalc()">✕</button>`;
   w.appendChild(d);pedPrefill(d.querySelector('.pl_prod'));pedCalc();}
 function pedPrefill(sel){const row=sel.closest('[data-pl]');const prod=row.querySelector('.pl_prod').value;const cliId=$('pd_cli')?$('pd_cli').value:'';const pr=row.querySelector('.pl_precio');if(!pr.dataset.t){const pv=ultimoPrecioProd(cliId,prod);if(pv)pr.value=pv;}}
 function pedPrefillAll(){document.querySelectorAll('#pd_lines [data-pl]').forEach(r=>{r.querySelector('.pl_precio').dataset.t='';pedPrefill(r.querySelector('.pl_prod'));});pedCalc();}
@@ -1563,7 +1563,7 @@ function detallePedido(id){const p=S.pedidos.find(x=>x.id===id);if(!p)return;con
    <div style="overflow:auto"><table><thead><tr><th>Cód.</th><th>Producto</th><th style="text-align:right">Unid.</th><th style="text-align:right">Precio</th><th style="text-align:right">Importe</th><th style="text-align:right">Stock</th></tr></thead><tbody>${filas}</tbody></table></div>
    <div style="display:flex;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><div><div style="font-size:12px;color:var(--muted)">${nf(paq)} unidades</div></div><div style="text-align:right"><div style="font-size:12px;color:var(--muted)">Total</div><div class="mono" style="font-size:18px;font-weight:700">${money(tot)}</div></div></div>
    <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-gold" onclick="closeModal();editPedido('${id}')">Editar</button></div>`);}
-function copyPedido(id){const p=S.pedidos.find(x=>x.id===id);if(!p)return;closeModal();if(!$('pd_lines')){banner('Abrí el módulo Pedidos para copiar','warn');return;}if($('pd_cli'))$('pd_cli').value=p.cliente_id;if($('pd_fecha'))$('pd_fecha').value=today();const w=$('pd_lines');w.innerHTML='';(p.items||[]).forEach(it=>{pedAddLine();const rows=w.querySelectorAll('[data-pl]');const r=rows[rows.length-1];if(!r)return;r.querySelector('.pl_prod').value=it.producto;r.querySelector('.pl_cant').value=it.paquetes;const pp=r.querySelector('.pl_precio');pp.value=it.precio;pp.dataset.t='1';});pedCalc();banner('Pedido copiado de '+id+' · ajustá fecha, cantidades y precios y registrá','');try{window.scrollTo(0,0);}catch(e){}}
+function copyPedido(id){const p=S.pedidos.find(x=>x.id===id);if(!p)return;closeModal();if(!$('pd_lines')){banner('Abrí el módulo Pedidos para copiar','warn');return;}if($('pd_cli'))$('pd_cli').value=p.cliente_id;if($('pd_fecha'))$('pd_fecha').value=today();const w=$('pd_lines');w.innerHTML='';(p.items||[]).forEach(it=>{pedAddLine(it.producto);const rows=w.querySelectorAll('[data-pl]');const r=rows[rows.length-1];if(!r)return;r.querySelector('.pl_cant').value=it.paquetes;const pp=r.querySelector('.pl_precio');pp.value=it.precio;pp.dataset.t='1';});pedCalc();banner('Pedido copiado de '+id+' · ajustá fecha, cantidades y precios y registrá','');try{window.scrollTo(0,0);}catch(e){}}
 function editPedido(id){const p=S.pedidos.find(x=>x.id===id);if(!p)return;
   const clis=[...S.clientes].sort((a,b)=>a.razon_social<b.razon_social?-1:1);
   const opts=clis.map(c=>`<option value="${c.id}" ${c.id===p.cliente_id?'selected':''}>${c.razon_social}</option>`).join('');
