@@ -148,8 +148,8 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div id="nav"></div>
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
-        <button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:10px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v127 · Pedidos: columna Importe por artículo en la carga (cantidad × precio, en vivo). Alta de cliente/proveedor: el código se autocompleta con el correlativo siguiente (prefijo detectado)</div>
+        <button class="btn btn-ghost btn-sm" id="btnPass" style="margin-top:10px;width:100%" onclick="cambiarMiClave()">🔑 Cambiar mi contraseña</button><button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:6px;width:100%">Cerrar sesión</button>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v128 · Contraseñas: cada usuario puede cambiar su propia clave (barra lateral) y el admin/supervisor puede blanquear la clave de cualquier usuario desde Usuarios (requiere acción set-password en la Edge Function manage-users)</div>
       </div>
     </nav>
     <div class="main">
@@ -359,13 +359,13 @@ async function cargarUsuarios(){
   const box=$('u_list');if(!box)return;box.innerHTML='<p class="hint">Cargando usuarios…</p>';
   const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'list'}});
   if(error||(data&&data.error)){box.innerHTML=`<div class="note" style="color:var(--danger,#b3402f)">No se pudieron cargar los usuarios: ${esc((data&&data.error)||(error&&error.message)||'error')}.<br>Verificá que la Edge Function <b>manage-users</b> esté desplegada en Supabase.</div>`;return;}
-  const users=(data&&data.users)||[];
+  const users=(data&&data.users)||[];window._usuarios=users;
   box.innerHTML=`<div style="overflow:auto"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Acceso CONTROL MAX</th><th>Rol Control Trace</th><th>Estado</th><th></th></tr></thead><tbody>${users.map(u=>userRow(u)).join('')||'<tr><td colspan=6 class=empty>Sin usuarios</td></tr>'}</tbody></table></div>`;
 }
 function userRow(u){const yo=(u.id===S._uid);const esAdminAjeno=(S.rol==='supervisor'&&u.rol==='admin');
   const accSel=`<select ${yo?'disabled':''} onchange="cambiarAcceso('${u.id}',this.value)">${accesosDisponibles().map(a=>`<option value="${a}" ${u.acceso===a?'selected':''}>${ACCESO_LABEL[a]}</option>`).join('')}${(u.acceso&&!accesosDisponibles().includes(u.acceso))?`<option value="${u.acceso}" selected>${ACCESO_LABEL[u.acceso]||u.acceso}</option>`:''}</select>`;
   const rolSel=`<select ${(yo||esAdminAjeno)?'disabled':''} onchange="cambiarRol('${u.id}',this.value)">${usuarioRoles().map(r=>`<option value="${r}" ${u.rol===r?'selected':''}>${rolLabel(r)}</option>`).join('')}${(esAdminAjeno&&!usuarioRoles().includes('admin'))?`<option value="admin" selected>${rolLabel('admin')}</option>`:''}</select>`;
-  const accion=(yo||esAdminAjeno)?'':`<button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}',${u.activo===false})">${u.activo===false?'Activar':'Dar de baja'}</button>`;
+  const accion=(yo||esAdminAjeno)?'':`<button class="btn btn-ghost btn-sm" onclick="blanquearClave('${u.id}')" title="Asignar una contraseña temporal">🔑 Blanquear clave</button> <button class="btn btn-ghost btn-sm" onclick="toggleUsuario('${u.id}',${u.activo===false})">${u.activo===false?'Activar':'Dar de baja'}</button>`;
   return `<tr style="${u.activo===false?'opacity:.55':''}"><td>${esc(u.nombre||'—')}${yo?' <span class="tag ok">vos</span>':''}</td><td class="mono">${esc(u.email||'—')}</td><td>${accSel}</td><td>${rolSel}</td><td><span class="tag ${u.activo===false?'out':'ok'}">${u.activo===false?'Inactivo':'Activo'}</span></td><td style="white-space:nowrap">${accion}</td></tr>`;
 }
 async function crearUsuario(){
@@ -395,6 +395,10 @@ async function toggleUsuario(id,activar){
   if(error||(data&&data.error)){banner('Error: '+esc((data&&data.error)||(error&&error.message)),'err');return;}
   banner('Usuario actualizado ✓','');cargarUsuarios();
 }
+function cambiarMiClave(){modal(`<h3>\ud83d\udd11 Cambiar mi contraseña</h3><p class="hint">Elegí una contraseña nueva (mínimo 6 caracteres). Seguís con la sesión abierta.</p><label>Nueva contraseña</label><input type="password" id="cp_new" autocomplete="new-password"><label>Repetir contraseña</label><input type="password" id="cp_new2" autocomplete="new-password"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="cp_save" onclick="doCambiarMiClave()">Guardar</button></div>`);}
+async function doCambiarMiClave(){const a=($('cp_new')?$('cp_new').value:'')||'',b=($('cp_new2')?$('cp_new2').value:'')||'';if(a.length<6)return banner('La contraseña debe tener al menos 6 caracteres','warn');if(a!==b)return banner('Las dos contraseñas no coinciden','warn');const btn=$('cp_save');if(btn){btn.innerHTML='<span class="spin"></span>...';btn.disabled=true;}try{const {error}=await sb.auth.updateUser({password:a});if(error)throw error;closeModal();banner('Contraseña actualizada \u2713','');}catch(err){banner('Error: '+(err.message||'no se pudo cambiar'),'err');const b2=$('cp_save');if(b2){b2.innerHTML='Guardar';b2.disabled=false;}}}
+function blanquearClave(id){const u=(window._usuarios||[]).find(x=>x.id===id);const who=u?(u.nombre||u.email||''):'';modal(`<h3>\ud83d\udd11 Blanquear contraseña</h3><p class="hint">Asigná una contraseña temporal para <b>${esc(who)}</b>. Pedile que después la cambie desde <b>Cambiar mi contraseña</b>.</p><label>Contraseña temporal (mínimo 6)</label><input type="text" id="bp_new" autocomplete="off" placeholder="ej: FMN2026"><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="bp_save" onclick="doBlanquearClave('${id}')">Blanquear</button></div>`);}
+async function doBlanquearClave(id){const pw=($('bp_new')?$('bp_new').value:'')||'';if(pw.length<6)return banner('La contraseña debe tener al menos 6 caracteres','warn');const b=$('bp_save');if(b){b.innerHTML='<span class="spin"></span>...';b.disabled=true;}const {data,error}=await sb.functions.invoke('manage-users',{body:{action:'set-password',id,password:pw}});if(error||(data&&data.error)){banner('Error: '+esc((data&&data.error)||(error&&error.message)||'no se pudo blanquear'),'err');const b2=$('bp_save');if(b2){b2.innerHTML='Blanquear';b2.disabled=false;}return;}closeModal();banner('Contraseña blanqueada \u2713 \u00b7 pasale la temporal al usuario','');}
 
 async function reloadCatalogo(){
   const [{data:prod},{data:cli},{data:prov},{data:mat},{data:comp}]=await Promise.all([
