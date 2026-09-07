@@ -2018,7 +2018,7 @@ async function initPlus() {
     .eq('id', S.empresaId)
     .single();
   S.empresa = empresa;
-  const empNombre = empresa?.razon_social || empresa?.nombre_fantasia || 'Mi empresa';
+  const empNombre = empresa?.razon_social || 'Frutihortícola FMN S.A.';
   const sbEmp = document.getElementById('sb-empresa');
   if (sbEmp) sbEmp.textContent = empNombre;
   const hdrTenant = document.getElementById('hdr-tenant');
