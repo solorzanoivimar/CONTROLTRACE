@@ -294,7 +294,7 @@ textarea.fctl{resize:vertical}
     <div class="kpi k-green"><div class="kpi-lbl">Cobrado</div><div class="kpi-val" id="kpi-cobrado">$—</div><div class="kpi-sub">Del mes actual</div></div>
     <div class="kpi k-red"><div class="kpi-lbl">A cobrar</div><div class="kpi-val" id="kpi-acobrar">$—</div><div class="kpi-sub">Pendiente cobrar</div></div>
     <div class="kpi k-navy"><div class="kpi-lbl">Compras</div><div class="kpi-val" id="kpi-compras">$—</div><div class="kpi-sub">Compras del mes</div></div>
-    <div class="kpi k-red" style="border-top-color:#dc2626"><div class="kpi-lbl">A pagar proveedores</div><div class="kpi-val" style="color:#dc2626">$280.000</div><div class="kpi-sub">1 factura pendiente</div></div>
+    <div class="kpi k-red" style="border-top-color:#dc2626"><div class="kpi-lbl">A pagar proveedores</div><div class="kpi-val" style="color:#dc2626">—</div><div class="kpi-sub">1 factura pendiente</div></div>
     <div class="kpi k-info"><div class="kpi-lbl">Utilidad bruta</div><div class="kpi-val" id="kpi-util">$—</div><div class="kpi-sub">Facturado vs compras</div></div>
   </div>
 
@@ -312,9 +312,13 @@ textarea.fctl{resize:vertical}
       <div class="tcard">
         <div class="tbar"><div class="tbar-title">Ranking clientes</div></div>
         <div style="padding:12px">
-          <div class="rank-item"><div class="rank-num">1</div><div style="flex:1"><div style="font-size:11px;font-weight:700">La Anónima S.A.</div><div class="rank-bar-wrap"><div class="rank-bar" style="width:100%"></div></div></div><div class="rank-val">$1.840K</div></div>
-          <div class="rank-item"><div class="rank-num">2</div><div style="flex:1"><div style="font-size:11px;font-weight:700">Jumbo Retail S.A.</div><div class="rank-bar-wrap"><div class="rank-bar" style="width:72%"></div></div></div><div class="rank-val">$1.320K</div></div>
-          <div class="rank-item"><div class="rank-num">3</div><div style="flex:1"><div style="font-size:11px;font-weight:700">Coto S.A.</div><div class="rank-bar-wrap"><div class="rank-bar" style="width:54%"></div></div></div><div class="rank-val">$990K</div></div>
+          <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin datos aún</div>
+    </div>
+  </div><div class="rank-val">$1.840K</div></div>
+          <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin datos aún</div>
+    </div>
+  </div><div class="rank-val">$1.320K</div></div>
+          <div class="rank-item"><div class="rank-num">3</div><div style="flex:1"></div><div class="rank-val">$990K</div></div>
           <div class="rank-item"><div class="rank-num">4</div><div style="flex:1"><div style="font-size:11px;font-weight:700">DIA S.A.</div><div class="rank-bar-wrap"><div class="rank-bar" style="width:36%"></div></div></div><div class="rank-val">$670K</div></div>
         </div>
       </div>
@@ -325,10 +329,8 @@ textarea.fctl{resize:vertical}
     <div class="tbar"><div class="tbar-title">Últimos comprobantes</div><div class="tbar-actions"><button class="btn btn-gold btn-sm" onclick="go('ventas')">Ver todos</button></div></div>
     <table><thead><tr><th>N° Comprobante</th><th>Tipo</th><th>Cliente</th><th>Fecha</th><th class="tr">Total</th><th>CAE</th><th>Estado</th></tr></thead>
     <tbody>
-      <tr><td class="fw">A-0001-00000112</td><td><span class="chip">A</span></td><td>La Anónima S.A.</td><td>24/06/2026</td><td class="tr fw">$340.000</td><td><span class="badge b-success">✓ CAE OK</span></td><td><span class="badge b-success">Emitida</span></td></tr>
-      <tr><td class="fw">A-0001-00000111</td><td><span class="chip">A</span></td><td>Coto S.A.</td><td>23/06/2026</td><td class="tr fw">$520.000</td><td><span class="badge b-success">✓ CAE OK</span></td><td><span class="badge b-success">Emitida</span></td></tr>
-      <tr><td class="fw">X-0001-00000023</td><td><span class="chip chip-x">X</span></td><td>Mercado Int.</td><td>23/06/2026</td><td class="tr fw">$45.000</td><td><span class="badge b-neutral">Sin CAE</span></td><td><span class="badge b-success">Emitida</span></td></tr>
-    </tbody></table>
+      <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
   </div>
 </div>
 
@@ -359,14 +361,14 @@ textarea.fctl{resize:vertical}
   <!-- TAB: COMPROBANTES DE VENTA -->
   <div class="tab-pane active" id="tv-cv">
     <div class="kpi-grid">
-      <div class="kpi k-navy"><div class="kpi-lbl">Mes en curso</div><div class="kpi-val">112</div><div class="kpi-sub">comprobantes</div></div>
-      <div class="kpi k-gold"><div class="kpi-lbl">Total facturado</div><div class="kpi-val">$4.820.000</div></div>
-      <div class="kpi k-green"><div class="kpi-lbl">Con CAE</div><div class="kpi-val">110</div></div>
-      <div class="kpi k-red"><div class="kpi-lbl">Pendientes ARCA</div><div class="kpi-val">2</div></div>
+      <div class="kpi k-navy"><div class="kpi-lbl">Mes en curso</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+      <div class="kpi k-gold"><div class="kpi-lbl">Total facturado</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-green"><div class="kpi-lbl">Con CAE</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-red"><div class="kpi-lbl">Pendientes ARCA</div><div class="kpi-val">—</div></div>
     </div>
     <div class="fbar">
       <div class="fg"><div class="fg-lbl">Tipo</div><select class="fs"><option>Todos</option><option>Factura A</option><option>Factura B</option><option>Factura C</option><option>Factura X</option><option>Nota de Débito</option></select></div>
-      <div class="fg"><div class="fg-lbl">Buscar por Cliente</div><select class="fs"><option value="">— Todos —</option><option>La Anónima S.A.</option><option>Coto S.A.</option><option>Jumbo Retail S.A.</option></select></div>
+      <div class="fg"><div class="fg-lbl">Buscar por Cliente</div><select class="fs"><option value="">— Todos —</option></select></div>
       <div class="fg"><div class="fg-lbl">Buscar por Artículo</div><select class="fs"><option value="">— Todos —</option><option>Espinaca</option><option>Lechuga mantecosa</option><option>Mix hortalizas</option></select></div>
       <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi" value="2026-06-01"></div>
       <div class="fg"><div class="fg-lbl">Hasta</div><input type="date" class="fi" value="2026-06-24"></div>
@@ -377,13 +379,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Comprobantes del mes</div><div class="tbar-actions"><button class="btn btn-outline btn-sm">IVA Ventas</button></div></div>
       <table><thead><tr><th>N° Comprobante</th><th>Tipo</th><th>Cliente</th><th>CUIT</th><th>Fecha</th><th class="tr">Neto</th><th class="tr">IVA</th><th class="tr">Total</th><th>CAE</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">A-0001-00000112</td><td><span class="chip">A</span></td><td>La Anónima S.A.</td><td>30-68688399-7</td><td>24/06/2026</td><td class="tr">$280.992</td><td class="tr">$59.008</td><td class="tr fw">$340.000</td><td><span class="badge b-success">✓ OK</span></td><td><span class="badge b-success">Emitida</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-verfactura')" title="Ver">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Generando PDF...','ok')" title="Imprimir">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')" title="Excel">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕ Anular</button></div></td></tr>
-        <tr><td class="fw">A-0001-00000111</td><td><span class="chip">A</span></td><td>Coto S.A.</td><td>30-51699300-4</td><td>23/06/2026</td><td class="tr">$429.752</td><td class="tr">$90.248</td><td class="tr fw">$520.000</td><td><span class="badge b-success">✓ OK</span></td><td><span class="badge b-success">Emitida</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-verfactura')">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Generando PDF...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕ Anular</button></div></td></tr>
-        <tr><td class="fw">X-0001-00000023</td><td><span class="chip chip-x">X</span></td><td>Mercado Interno</td><td>—</td><td>23/06/2026</td><td class="tr">$45.000</td><td class="tr">$0</td><td class="tr fw">$45.000</td><td><span class="badge b-neutral">Sin CAE</span></td><td><span class="badge b-success">Emitida</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-verfactura')">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Generando PDF...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕ Anular</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
       <div class="tfooter"><span>Mostrando 3 de 112 registros</span><div style="display:flex;gap:6px"><button class="btn btn-outline btn-sm">‹</button><button class="btn btn-outline btn-sm">›</button></div></div>
     </div>
   </div>
@@ -397,7 +394,7 @@ textarea.fctl{resize:vertical}
         <span class="sync-badge">🔄 CONTROL TRACE</span>
         <span id="sync-rv-status" style="font-size:11px;color:var(--text-muted)">Última sincronización: hace 3 min</span>
         <span id="sync-rv-badge" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px">
-          ⏳ 2 remitos nuevos sin importar
+          ✓ Al día con CONTROL TRACE
         </span>
       </div>
       <div style="display:flex;gap:8px">
@@ -412,14 +409,14 @@ textarea.fctl{resize:vertical}
 
     <!-- KPIs -->
     <div class="kpi-grid" style="margin-bottom:12px">
-      <div class="kpi k-navy"><div class="kpi-lbl">Remitos del mes</div><div class="kpi-val">14</div><div class="kpi-sub">12 de TRACE · 2 manuales</div></div>
-      <div class="kpi k-gold"><div class="kpi-lbl">Pendientes de facturar</div><div class="kpi-val">3</div><div class="kpi-sub" style="color:var(--warning)">Requieren acción</div></div>
-      <div class="kpi k-green"><div class="kpi-lbl">Facturados</div><div class="kpi-val">11</div><div class="kpi-sub">$4.280.000</div></div>
-      <div class="kpi k-info"><div class="kpi-lbl">Kg despachados</div><div class="kpi-val">8.420</div><div class="kpi-sub">Acumulado mes</div></div>
+      <div class="kpi k-navy"><div class="kpi-lbl">Remitos del mes</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+      <div class="kpi k-gold"><div class="kpi-lbl">Pendientes de facturar</div><div class="kpi-val">—</div><div class="kpi-sub" style="color:var(--warning)">Requieren acción</div></div>
+      <div class="kpi k-green"><div class="kpi-lbl">Facturados</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+      <div class="kpi k-info"><div class="kpi-lbl">Kg despachados</div><div class="kpi-val">—</div><div class="kpi-sub">Acumulado mes</div></div>
     </div>
 
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs" style="min-width:160px"><option>Todos</option><option>La Anónima S.A.</option><option>Coto S.A.</option><option>Jumbo Retail S.A.</option></select></div>
+      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs sel-cliente" style="min-width:160px"><option value="">Todos</option></select></div>
       <div class="fg"><div class="fg-lbl">Origen</div><select class="fs"><option>Todos</option><option>TRACE</option><option>PLUS (manual)</option></select></div>
       <div class="fg"><div class="fg-lbl">Estado</div><select class="fs"><option>Todos</option><option>Pendiente facturar</option><option>Facturado</option><option>Anulado</option></select></div>
       <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi" value="2026-06-01"></div>
@@ -441,88 +438,8 @@ textarea.fctl{resize:vertical}
           <th>Factura asociada</th><th>Estado</th><th>Acciones</th>
         </tr></thead>
         <tbody id="tbody-remitos-venta">
-          <!-- Remito de TRACE, ya facturado -->
-          <tr>
-            <td class="fw">RV-000089</td>
-            <td><span class="sync-badge" style="font-size:9px;cursor:pointer" title="Origen: CONTROL TRACE — Despacho D-000089">🔄 TRACE</span></td>
-            <td>La Anónima S.A.</td>
-            <td>24/06/2026</td>
-            <td style="font-size:11px;max-width:200px">
-              <span class="badge b-navy" style="font-size:9px">ESP02</span> Espinaca env. 200 kg<br>
-              <span class="badge b-navy" style="font-size:9px">LEC02</span> Lechuga 85 kg
-            </td>
-            <td class="tr fw">285 kg</td>
-            <td style="font-size:11px"><a style="color:var(--gold);font-weight:700">A-0001-00000112</a></td>
-            <td><span class="badge b-success">Facturado</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon" title="Ver detalle">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" title="Imprimir remito" onclick="toast('Imprimiendo remito...','ok')">🖨</button>
-              <button class="btn btn-outline btn-xs btn-icon" title="Exportar" onclick="toast('Exportando...','ok')">📥</button>
-              <button class="btn btn-outline btn-xs" onclick="toast('Ver factura A-0001-00000112','ok')" title="Ver factura">🧾 Ver factura</button>
-            </div></td>
-          </tr>
-          <!-- Remito de TRACE, pendiente de facturar -->
-          <tr style="background:#fef9ec">
-            <td class="fw">RV-000091</td>
-            <td><span class="sync-badge" style="font-size:9px">🔄 TRACE</span></td>
-            <td>Coto S.A.</td>
-            <td>24/06/2026</td>
-            <td style="font-size:11px;max-width:200px">
-              <span class="badge b-navy" style="font-size:9px">RUC02</span> Rúcula env. 120 kg<br>
-              <span class="badge b-navy" style="font-size:9px">ESP02</span> Espinaca env. 80 kg
-            </td>
-            <td class="tr fw">200 kg</td>
-            <td style="font-size:11px;color:var(--text-muted)">—</td>
-            <td><span class="badge b-warning">Pendiente</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button>
-              <button class="btn btn-gold btn-xs" onclick="generarFacturaDesdeRemito('RV-000091','Coto S.A.',200,'RUC02 Rúcula env. 120kg / ESP02 Espinaca env. 80kg')">🧾 Generar factura</button>
-              <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button>
-            </div></td>
-          </tr>
-          <!-- Remito manual PLUS, pendiente -->
-          <tr style="background:#fef9ec">
-            <td class="fw">RV-000090</td>
-            <td><span class="standalone-badge" style="font-size:9px">🔌 PLUS</span></td>
-            <td>Jumbo Retail S.A.</td>
-            <td>24/06/2026</td>
-            <td style="font-size:11px;max-width:200px">
-              <span class="badge b-navy" style="font-size:9px">MIX05</span> Mix verde AIZU 300 kg
-            </td>
-            <td class="tr fw">300 kg</td>
-            <td style="font-size:11px;color:var(--text-muted)">—</td>
-            <td><span class="badge b-warning">Pendiente</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Editando...','ok')">✏️</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button>
-              <button class="btn btn-gold btn-xs" onclick="generarFacturaDesdeRemito('RV-000090','Jumbo Retail S.A.',300,'MIX05 Mix verde AIZU 300kg')">🧾 Generar factura</button>
-              <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button>
-            </div></td>
-          </tr>
-          <!-- Remito nuevo de TRACE sin importar aún -->
-          <tr style="background:#eff6ff;border-left:3px solid var(--info)">
-            <td class="fw">RV-000092 <span style="font-size:9px;background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:8px">NUEVO</span></td>
-            <td><span class="sync-badge" style="font-size:9px">🔄 TRACE</span></td>
-            <td>La Anónima S.A.</td>
-            <td>24/06/2026 16:42</td>
-            <td style="font-size:11px;max-width:200px">
-              <span class="badge b-navy" style="font-size:9px">PER02</span> Perejil env. 95 kg<br>
-              <span class="badge b-navy" style="font-size:9px">CIB02</span> Ciboulette env. 40 kg
-            </td>
-            <td class="tr fw">135 kg</td>
-            <td style="font-size:11px;color:var(--text-muted)">—</td>
-            <td><span class="badge b-info">Sin facturar</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button>
-              <button class="btn btn-gold btn-xs" onclick="generarFacturaDesdeRemito('RV-000092','La Anónima S.A.',135,'PER02 Perejil env. 95kg / CIB02 Ciboulette env. 40kg')">🧾 Generar factura</button>
-            </div></td>
-          </tr>
-        </tbody>
+<tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+</tbody>
       </table>
       <div class="tfooter"><span>Mostrando 4 de 14 remitos del mes</span><span>Total kg: <strong>920 kg</strong></span></div>
     </div>
@@ -542,14 +459,14 @@ textarea.fctl{resize:vertical}
     <!-- SUB-TAB: LISTADO -->
     <div class="tab-pane active" id="tvc-lista">
       <div class="kpi-grid">
-        <div class="kpi k-green"><div class="kpi-lbl">Cobrado del mes</div><div class="kpi-val">$3.940.000</div><div class="kpi-sub">↑ 82% del facturado</div></div>
-        <div class="kpi k-gold"><div class="kpi-lbl">Recibos emitidos</div><div class="kpi-val">38</div><div class="kpi-sub">Junio 2026</div></div>
-        <div class="kpi k-navy"><div class="kpi-lbl">Cheques en cartera</div><div class="kpi-val">$860.000</div><div class="kpi-sub">12 cheques</div></div>
-        <div class="kpi k-red"><div class="kpi-lbl">Pendiente cobrar</div><div class="kpi-val">$880.000</div><div class="kpi-sub">3 clientes</div></div>
-        <div class="kpi k-info"><div class="kpi-lbl">Retenciones recibidas</div><div class="kpi-val">$48.200</div><div class="kpi-sub">Ganancias + IIBB</div></div>
+        <div class="kpi k-green"><div class="kpi-lbl">Cobrado del mes</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-gold"><div class="kpi-lbl">Recibos emitidos</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-navy"><div class="kpi-lbl">Cheques en cartera</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-red"><div class="kpi-lbl">Pendiente cobrar</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-info"><div class="kpi-lbl">Retenciones recibidas</div><div class="kpi-val">—</div><div class="kpi-sub">Ganancias + IIBB</div></div>
       </div>
       <div class="fbar">
-        <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs" style="min-width:180px"><option>Todos</option><option>La Anónima S.A.</option><option>Coto S.A.</option><option>Jumbo Retail S.A.</option></select></div>
+        <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs sel-cliente"><option value="">Todos</option></select></div>
         <div class="fg"><div class="fg-lbl">Forma de cobro</div><select class="fs"><option>Todas</option><option>Transferencia</option><option>Cheque de tercero</option><option>Efectivo</option><option>Tarjeta débito</option><option>Tarjeta crédito</option><option>Retención</option></select></div>
         <div class="fg"><div class="fg-lbl">Estado</div><select class="fs"><option>Todos</option><option>Activo</option><option>Anulado</option></select></div>
         <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi" value="2026-06-01"></div>
@@ -560,49 +477,8 @@ textarea.fctl{resize:vertical}
         <div class="tbar"><div class="tbar-title">Cobranzas del mes</div></div>
         <table><thead><tr><th>N° Recibo</th><th>Fecha</th><th>Cliente</th><th>Comprobantes</th><th>Formas de cobro</th><th class="tr">Total cobrado</th><th class="tr">Retenciones</th><th class="tr">Neto recibido</th><th>Estado</th><th>Acciones</th></tr></thead>
         <tbody>
-          <tr>
-            <td class="fw">REC-00458</td><td>24/06/2026</td><td>La Anónima S.A.</td>
-            <td style="font-size:11px">A-00000112 $340.000</td>
-            <td><span class="badge b-info">Transf.</span> <span class="badge b-success">Cheque</span></td>
-            <td class="tr fw cs">$340.000</td><td class="tr cd" style="font-size:11px">-$12.400</td>
-            <td class="tr fw cn">$327.600</td>
-            <td><span class="badge b-success">Activo</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ver-recibo')" title="Ver recibo">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo PDF...','ok')" title="Imprimir">🖨</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')" title="Excel">📥</button>
-              <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕ Anular</button>
-            </div></td>
-          </tr>
-          <tr>
-            <td class="fw">REC-00457</td><td>18/06/2026</td><td>Coto S.A.</td>
-            <td style="font-size:11px">A-00000099 $520.000</td>
-            <td><span class="badge b-gold">Cheque T.</span></td>
-            <td class="tr fw cs">$520.000</td><td class="tr cd" style="font-size:11px">-$35.800</td>
-            <td class="tr fw cn">$484.200</td>
-            <td><span class="badge b-success">Activo</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ver-recibo')">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo PDF...','ok')">🖨</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button>
-              <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕ Anular</button>
-            </div></td>
-          </tr>
-          <tr>
-            <td class="fw">REC-00456</td><td>10/06/2026</td><td>La Anónima S.A.</td>
-            <td style="font-size:11px">A-00000098 $420.000</td>
-            <td><span class="badge b-info">Transf.</span></td>
-            <td class="tr fw cs">$420.000</td><td class="tr">—</td>
-            <td class="tr fw cn">$420.000</td>
-            <td><span class="badge b-success">Activo</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ver-recibo')">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo PDF...','ok')">🖨</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button>
-              <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕ Anular</button>
-            </div></td>
-          </tr>
-        </tbody></table>
+          <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
         <div class="tfooter"><span>Mostrando 3 de 38 cobranzas</span><span class="fw cs">Total cobrado: $1.280.000</span></div>
       </div>
     </div>
@@ -610,9 +486,9 @@ textarea.fctl{resize:vertical}
     <!-- SUB-TAB: CAJA -->
     <div class="tab-pane" id="tvc-caja">
       <div class="kpi-grid">
-        <div class="kpi k-green"><div class="kpi-lbl">Saldo de caja</div><div class="kpi-val">$142.500</div><div class="kpi-sub">Al cierre de hoy</div></div>
-        <div class="kpi k-navy"><div class="kpi-lbl">Ingresos</div><div class="kpi-val">$185.000</div><div class="kpi-sub">Efectivo recibido</div></div>
-        <div class="kpi k-red"><div class="kpi-lbl">Egresos</div><div class="kpi-val">$42.500</div><div class="kpi-sub">Pagos en efectivo</div></div>
+        <div class="kpi k-green"><div class="kpi-lbl">Saldo de caja</div><div class="kpi-val">—</div><div class="kpi-sub">Al cierre de hoy</div></div>
+        <div class="kpi k-navy"><div class="kpi-lbl">Ingresos</div><div class="kpi-val">—</div><div class="kpi-sub">Efectivo recibido</div></div>
+        <div class="kpi k-red"><div class="kpi-lbl">Egresos</div><div class="kpi-val">—</div><div class="kpi-sub">Pagos en efectivo</div></div>
       </div>
       <div class="fbar">
         <div class="fg"><div class="fg-lbl">Fecha</div><input type="date" class="fi" value="2026-06-24"></div>
@@ -622,11 +498,8 @@ textarea.fctl{resize:vertical}
         <div class="tbar"><div class="tbar-title">Movimientos de caja — 24/06/2026</div></div>
         <table><thead><tr><th>Hora</th><th>Tipo</th><th>Concepto</th><th>Referencia</th><th class="tr">Ingreso</th><th class="tr">Egreso</th><th class="tr">Saldo</th></tr></thead>
         <tbody>
-          <tr><td>08:00</td><td><span class="badge b-navy">Apertura</span></td><td>Saldo inicial</td><td>—</td><td class="tr">—</td><td class="tr">—</td><td class="tr fw">$80.000</td></tr>
-          <tr><td>10:30</td><td><span class="badge b-success">Cobro</span></td><td>Cobro en efectivo — La Anónima</td><td>REC-00455</td><td class="tr fw cs">$45.000</td><td class="tr">—</td><td class="tr fw">$125.000</td></tr>
-          <tr><td>14:15</td><td><span class="badge b-danger">Pago</span></td><td>Pago gasto — combustible</td><td>GAS-0029</td><td class="tr">—</td><td class="tr fw cd">$12.500</td><td class="tr fw">$112.500</td></tr>
-          <tr><td>16:00</td><td><span class="badge b-success">Cobro</span></td><td>Cobro en efectivo — Mercado interno</td><td>REC-00460</td><td class="tr fw cs">$30.000</td><td class="tr">—</td><td class="tr fw">$142.500</td></tr>
-        </tbody></table>
+          <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
         <div class="tfooter"><span>4 movimientos</span><span class="fw cs">Saldo al cierre: $142.500</span></div>
       </div>
     </div>
@@ -634,13 +507,13 @@ textarea.fctl{resize:vertical}
     <!-- SUB-TAB: CARTERA CHEQUES -->
     <div class="tab-pane" id="tvc-cheques">
       <div class="kpi-grid">
-        <div class="kpi k-navy"><div class="kpi-lbl">En cartera</div><div class="kpi-val">$860.000</div><div class="kpi-sub">8 cheques</div></div>
-        <div class="kpi k-gold"><div class="kpi-lbl">A cobrar 30 días</div><div class="kpi-val">$520.000</div><div class="kpi-sub">3 cheques</div></div>
-        <div class="kpi k-green"><div class="kpi-lbl">Cobrados este mes</div><div class="kpi-val">$340.000</div><div class="kpi-sub">4 cheques</div></div>
-        <div class="kpi k-red"><div class="kpi-lbl">Rechazados</div><div class="kpi-val">$0</div><div class="kpi-sub">Este mes</div></div>
+        <div class="kpi k-navy"><div class="kpi-lbl">En cartera</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-gold"><div class="kpi-lbl">A cobrar 30 días</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-green"><div class="kpi-lbl">Cobrados este mes</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-red"><div class="kpi-lbl">Rechazados</div><div class="kpi-val">—</div><div class="kpi-sub">Este mes</div></div>
       </div>
       <div class="fbar">
-        <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs"><option>Todos</option><option>La Anónima S.A.</option><option>Coto S.A.</option></select></div>
+        <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs sel-cliente"><option value="">Todos</option></select></div>
         <div class="fg"><div class="fg-lbl">Estado</div><select class="fs"><option>Todos</option><option>En cartera</option><option>Entregado a proveedor</option><option>Depositado</option><option>Cobrado</option><option>Rechazado</option></select></div>
         <div class="fg"><div class="fg-lbl">Vencimiento desde</div><input type="date" class="fi" value="2026-06-01"></div>
         <div class="fg"><div class="fg-lbl">Vencimiento hasta</div><input type="date" class="fi" value="2026-07-31"></div>
@@ -650,25 +523,8 @@ textarea.fctl{resize:vertical}
         <div class="tbar"><div class="tbar-title">Cheques de tercero en cartera</div><div class="tbar-actions"><span style="font-size:11px;color:var(--text-muted)">Disponibles para usar en Pagos a Proveedores</span></div></div>
         <table><thead><tr><th>N° Cheque</th><th>Tipo</th><th>Banco</th><th>Cliente (librador)</th><th>F. Emisión</th><th>F. Cobro</th><th class="tr">Importe</th><th>Recibo origen</th><th>Estado</th><th>Acciones</th></tr></thead>
         <tbody>
-          <tr>
-            <td class="fw">000123456</td><td><span class="badge b-navy">Diferido</span></td><td>Banco Nación</td><td>La Anónima S.A.</td>
-            <td>24/06/2026</td><td class="fw">10/07/2026</td><td class="tr fw">$340.000</td><td>REC-00458</td>
-            <td><span class="badge b-info">En cartera</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs" onclick="toast('Cheque marcado como depositado','ok')">🏦 Depositar</button>
-              <button class="btn btn-gold btn-xs" onclick="toast('Disponible para usar en pagos','ok')">→ Usar en pago</button>
-              <button class="btn btn-danger btn-xs" onclick="toast('Marcado como rechazado','warn')">✕ Rechazar</button>
-            </div></td>
-          </tr>
-          <tr>
-            <td class="fw">000098741</td><td><span class="badge b-info">Electrónico</span></td><td>Santander</td><td>Coto S.A.</td>
-            <td>18/06/2026</td><td class="fw">05/07/2026</td><td class="tr fw">$520.000</td><td>REC-00457</td>
-            <td><span class="badge b-gold">Entregado a prov.</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon">👁</button>
-            </div></td>
-          </tr>
-        </tbody></table>
+          <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
         <div class="tfooter"><span>Mostrando 2 de 8 cheques en cartera</span></div>
       </div>
     </div>
@@ -685,7 +541,7 @@ textarea.fctl{resize:vertical}
       <button class="btn btn-gold" onclick="toast('Nuevo pedido de venta creado','ok')">＋ Nuevo Pedido</button>
     </div>
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs"><option>Todos</option><option>La Anónima S.A.</option><option>Coto S.A.</option></select></div>
+      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs sel-cliente"><option value="">Todos</option></select></div>
       <div class="fg"><div class="fg-lbl">Estado</div><select class="fs"><option>Todos</option><option>Pendiente</option><option>Despachado</option><option>Facturado</option><option>Anulado</option></select></div>
       <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi" value="2026-06-01"></div>
       <div class="fg"><div class="fg-lbl">Hasta</div><input type="date" class="fi" value="2026-06-24"></div>
@@ -695,11 +551,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Pedidos de Venta</div></div>
       <table><thead><tr><th>N° Pedido</th><th>Cliente</th><th>Fecha</th><th>Origen</th><th class="tr">Importe est.</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">PV-000089</td><td>La Anónima S.A.</td><td>24/06/2026</td><td><span class="sync-badge" style="font-size:9px">TRACE</span></td><td class="tr fw">$340.000</td><td><span class="badge b-success">Facturado</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-gold btn-xs" onclick="toast('Generando factura desde pedido...','ok')">🧾 Facturar</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">PV-000090</td><td>Jumbo Retail S.A.</td><td>24/06/2026</td><td><span class="standalone-badge" style="font-size:9px">PLUS</span></td><td class="tr fw">$890.000</td><td><span class="badge b-warning">Pendiente</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-gold btn-xs" onclick="toast('Generando factura desde pedido...','ok')">🧾 Facturar</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -710,13 +563,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Listas de precios vigentes</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="toast('Exportando listas...','ok')">📥 Exportar</button></div></div>
       <table><thead><tr><th>Código</th><th>Nombre</th><th>Vencimiento</th><th>Redondeo</th><th>Forma de cobro</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">LP-001</td><td>Lista General</td><td>31/12/2026</td><td><span class="badge b-success">✓ Activo</span></td><td>Efectivo / Transferencia</td><td><span class="badge b-success">Vigente</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">LP-002</td><td>Lista Supermercados</td><td>30/06/2026</td><td><span class="badge b-neutral">Sin redondeo</span></td><td>Transferencia / Cheque</td><td><span class="badge b-warning">Por vencer</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">LP-003</td><td>Lista Distribuidores</td><td>31/12/2026</td><td><span class="badge b-success">✓ Activo</span></td><td>Efectivo / Tarjeta débito</td><td><span class="badge b-success">Vigente</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -724,7 +572,7 @@ textarea.fctl{resize:vertical}
   <div class="tab-pane" id="tv-nc">
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-gold" onclick="toast('Nueva NC de venta','ok')">＋ Nueva Nota de Crédito</button></div>
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs"><option>Todos</option><option>La Anónima S.A.</option><option>Coto S.A.</option></select></div>
+      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs sel-cliente"><option value="">Todos</option></select></div>
       <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi" value="2026-06-01"></div>
       <div class="fg"><div class="fg-lbl">Hasta</div><input type="date" class="fi" value="2026-06-24"></div>
       <div class="fbar-actions"><button class="btn btn-primary btn-sm">🔍 Filtrar</button></div>
@@ -733,9 +581,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Notas de Crédito — Venta</div></div>
       <table><thead><tr><th>N° NC</th><th>Tipo</th><th>Cliente</th><th>Comprobante origen</th><th>Fecha</th><th class="tr">Importe</th><th>CAE</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">NC-A-0001-00000008</td><td><span class="chip">A</span></td><td>Coto S.A.</td><td>A-0001-00000098</td><td>12/06/2026</td><td class="tr fw cd">-$85.000</td><td><span class="badge b-success">✓ OK</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -745,43 +592,39 @@ textarea.fctl{resize:vertical}
     <div class="tcard">
       <div class="tbar"><div class="tbar-title">Notas de Débito — Venta</div></div>
       <table><thead><tr><th>N° ND</th><th>Tipo</th><th>Cliente</th><th>Comprobante origen</th><th>Fecha</th><th class="tr">Importe</th><th>CAE</th><th>Acciones</th></tr></thead>
-      <tbody><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted)">Sin notas de débito en el período</td></tr></tbody></table>
+      <tbody><tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
   <!-- TAB: C/C CLIENTES -->
   <div class="tab-pane" id="tv-cc">
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs" style="min-width:200px"><option>La Anónima S.A.</option><option>Coto S.A.</option><option>Jumbo Retail S.A.</option></select></div>
+      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs" style="min-width:200px"></select></div>
       <div class="fg"><div class="fg-lbl">Período</div><select class="fs"><option>Mes actual</option><option>Mes anterior</option><option>Año en curso</option><option>Período definido</option></select></div>
       <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi" value="2026-06-01"></div>
       <div class="fg"><div class="fg-lbl">Hasta</div><input type="date" class="fi" value="2026-06-24"></div>
       <div class="fbar-actions"><button class="btn btn-primary btn-sm">🔍 Ver extracto</button><button class="btn btn-outline btn-sm">📥 Excel</button><button class="btn btn-outline btn-sm">🖨️</button></div>
     </div>
     <div class="cc-sum">
-      <div class="cc-box"><div class="cc-lbl">Total Facturado</div><div class="cc-val">$4.820.000</div></div>
-      <div class="cc-box"><div class="cc-lbl">Total Cobrado</div><div class="cc-val">$3.940.000</div></div>
+      <div class="cc-box"><div class="cc-lbl">Total Facturado</div><div class="cc-val">$—</div></div>
+      <div class="cc-box"><div class="cc-lbl">Total Cobrado</div><div class="cc-val">$—</div></div>
       <div class="cc-box neg"><div class="cc-lbl">Saldo a Cobrar</div><div class="cc-val">$880.000</div></div>
     </div>
     <div class="tcard">
-      <div class="tbar"><div class="tbar-title">Extracto — La Anónima S.A.</div><div class="tbar-actions"><span class="badge b-danger">Saldo deudor: $340.000</span></div></div>
+      <div class="tbar"><div class="tbar-title">Cuenta corriente</div></div>
       <table><thead><tr><th>Fecha</th><th>Tipo</th><th>N° Documento</th><th>Concepto</th><th class="tr">Débito</th><th class="tr">Crédito</th><th class="tr">Saldo</th></tr></thead>
       <tbody>
-        <tr><td>01/06/2026</td><td><span class="badge b-neutral">Saldo anterior</span></td><td>—</td><td>Inicio del período</td><td class="tr">—</td><td class="tr">—</td><td class="tr fw">$0</td></tr>
-        <tr><td>05/06/2026</td><td><span class="badge b-info">Factura A</span></td><td>A-0001-00000098</td><td>Venta hortalizas</td><td class="tr fw cd">$420.000</td><td class="tr">—</td><td class="tr fw cd">-$420.000</td></tr>
-        <tr><td>10/06/2026</td><td><span class="badge b-success">Pago</span></td><td>REC-00456</td><td>Transferencia</td><td class="tr">—</td><td class="tr fw cs">$420.000</td><td class="tr fw cs">$0</td></tr>
-        <tr><td>24/06/2026</td><td><span class="badge b-info">Factura A</span></td><td>A-0001-00000112</td><td>Mix hortalizas</td><td class="tr fw cd">$340.000</td><td class="tr">—</td><td class="tr fw cd">-$340.000</td></tr>
-      </tbody></table>
-      <div class="tfooter"><span>4 movimientos</span><span class="fw cd">Saldo: -$340.000</span></div>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
+      <div class="tfooter"><span>4 movimientos</span><span class="fw cd">Saldo: -$—</span></div>
     </div>
     <div class="tcard">
       <div class="tbar"><div class="tbar-title">Antigüedad de deuda — Todos los clientes</div></div>
       <table><thead><tr><th>Cliente</th><th class="tr">Corriente</th><th class="tr">30 días</th><th class="tr">60 días</th><th class="tr">+90 días</th><th class="tr">Total</th></tr></thead>
       <tbody>
-        <tr><td class="fw">La Anónima S.A.</td><td class="tr">$340.000</td><td class="tr">—</td><td class="tr">—</td><td class="tr">—</td><td class="tr fw cd">$340.000</td></tr>
-        <tr><td class="fw">Coto S.A.</td><td class="tr">$520.000</td><td class="tr">—</td><td class="tr">—</td><td class="tr">—</td><td class="tr fw cd">$520.000</td></tr>
-        <tr><td class="fw">Jumbo Retail S.A.</td><td class="tr">—</td><td class="tr">$890.000</td><td class="tr">—</td><td class="tr">—</td><td class="tr fw cd">$890.000</td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 </div>
@@ -818,7 +661,7 @@ textarea.fctl{resize:vertical}
         <span class="sync-badge">🔄 Recepciones CONTROL TRACE</span>
         <span style="font-size:11px;color:var(--text-muted)">Última sincronización: hace 5 min</span>
         <span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700">
-          ⏳ 1 recepción pendiente de registrar
+          ✓ Al día con CONTROL TRACE
         </span>
       </div>
       <button class="btn btn-outline btn-sm" onclick="syncRecepcionesTrace()">🔄 Sincronizar recepciones</button>
@@ -840,30 +683,16 @@ textarea.fctl{resize:vertical}
           <th style="padding:6px 8px;text-align:center">Acción</th>
         </tr></thead>
         <tbody>
-          <tr style="border-bottom:1px solid #bfdbfe">
-            <td style="padding:7px 8px;font-weight:700">REC-TRACE-000241</td>
-            <td style="padding:7px 8px">AgroQuímica Cuyo S.A.</td>
-            <td style="padding:7px 8px">24/06/2026 09:15</td>
-            <td style="padding:7px 8px">
-              <span style="background:#1e3a5f;color:white;border-radius:4px;padding:1px 5px;font-size:9px">MP-001</span> Espinaca 450 kg<br>
-              <span style="background:#1e3a5f;color:white;border-radius:4px;padding:1px 5px;font-size:9px">MP-015</span> Rúcula 180 kg
-            </td>
-            <td style="padding:7px 8px;text-align:right;font-weight:700">630 kg</td>
-            <td style="padding:7px 8px;text-align:center">
-              <button class="btn btn-gold btn-xs" onclick="registrarCompraDesdeRecepcion('REC-TRACE-000241','AgroQuímica Cuyo S.A.','2026-06-24','Espinaca 450kg / Rúcula 180kg',630)">
-                📋 Registrar compra
-              </button>
-            </td>
-          </tr>
-        </tbody>
+          <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody>
       </table>
     </div>
 
     <div class="kpi-grid">
-      <div class="kpi k-navy"><div class="kpi-lbl">Compras del mes</div><div class="kpi-val">$1.250.000</div></div>
-      <div class="kpi k-gold"><div class="kpi-lbl">Comprobantes</div><div class="kpi-val">47</div></div>
-      <div class="kpi k-green"><div class="kpi-lbl">Pagados</div><div class="kpi-val">$970.000</div></div>
-      <div class="kpi k-red"><div class="kpi-lbl">A pagar</div><div class="kpi-val">$280.000</div></div>
+      <div class="kpi k-navy"><div class="kpi-lbl">Compras del mes</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-gold"><div class="kpi-lbl">Comprobantes</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-green"><div class="kpi-lbl">Pagados</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-red"><div class="kpi-lbl">A pagar</div><div class="kpi-val">—</div></div>
     </div>
     <div class="fbar">
       <div class="fg"><div class="fg-lbl">Buscar por Proveedor</div><select class="fs"><option value="">— Todos —</option><option>AgroQuímica Cuyo S.A.</option><option>LogiMendoza S.R.L.</option></select></div>
@@ -878,11 +707,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Comprobantes del mes</div><div class="tbar-actions"><button class="btn btn-outline btn-sm">IVA Compras</button></div></div>
       <table><thead><tr><th>N° Interno</th><th>Tipo</th><th>Proveedor</th><th>N° Fact. Prov.</th><th>Fecha</th><th class="tr">Neto</th><th class="tr">IVA</th><th class="tr">Total</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">OC-0046</td><td><span class="chip">A</span></td><td>AgroQuímica Cuyo S.A.</td><td>A-0002-00001234</td><td>18/06/2026</td><td class="tr">$231.405</td><td class="tr">$48.595</td><td class="tr fw">$280.000</td><td><span class="badge b-warning">Pendiente pago</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Editando...','ok')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-gold btn-xs" onclick="toast('Registrando pago...','ok')">💳 Pagar</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">OC-0045</td><td><span class="chip">A</span></td><td>LogiMendoza S.R.L.</td><td>A-0001-00000567</td><td>15/06/2026</td><td class="tr">$123.967</td><td class="tr">$26.033</td><td class="tr fw">$150.000</td><td><span class="badge b-success">Pagada</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Editando...','ok')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
       <div class="tfooter"><span>Mostrando 2 de 47 registros</span></div>
     </div>
   </div>
@@ -900,11 +726,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Remitos de Compra y Gastos</div></div>
       <table><thead><tr><th>N° Remito</th><th>Tipo</th><th>Proveedor / Concepto</th><th>Fecha recepción</th><th>N° Fact. Asociada</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">RC-0031</td><td><span class="badge b-navy">Compra</span></td><td>AgroQuímica Cuyo S.A.</td><td>18/06/2026</td><td>OC-0046</td><td><span class="badge b-success">Recibido</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">RG-0012</td><td><span class="badge b-gold">Gasto</span></td><td>Mantenimiento equipos</td><td>20/06/2026</td><td>—</td><td><span class="badge b-warning">Sin factura</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -924,11 +747,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Notas de Crédito — Compras y Gastos</div></div>
       <table><thead><tr><th>N° NC</th><th>Subtipo</th><th>Proveedor / Concepto</th><th>Comprobante origen</th><th>Fecha</th><th class="tr">Importe</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">NCC-0003</td><td><span class="badge b-navy">NC Compra</span></td><td>AgroQuímica Cuyo S.A.</td><td>OC-0040</td><td>05/06/2026</td><td class="tr fw cs">+$32.000</td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">NCG-0001</td><td><span class="badge b-gold">NC Gasto</span></td><td>Servicio eléctrico — ajuste</td><td>RG-0009</td><td>10/06/2026</td><td class="tr fw cs">+$8.500</td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -946,14 +766,15 @@ textarea.fctl{resize:vertical}
     <div class="tcard">
       <div class="tbar"><div class="tbar-title">Notas de Débito — Compras y Gastos</div></div>
       <table><thead><tr><th>N° ND</th><th>Subtipo</th><th>Proveedor / Concepto</th><th>Comprobante origen</th><th>Fecha</th><th class="tr">Importe</th><th>Acciones</th></tr></thead>
-      <tbody><tr><td colspan="7" class="tc" style="padding:24px;color:var(--text-muted)">Sin notas de débito en el período</td></tr></tbody></table>
+      <tbody><tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
   <!-- TAB: ARTICULOS POR PROVEEDOR -->
   <div class="tab-pane" id="tc-ap">
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Proveedor</div><select class="fs"><option>Todos</option><option>AgroQuímica Cuyo S.A.</option><option>LogiMendoza S.R.L.</option></select></div>
+      <div class="fg"><div class="fg-lbl">Proveedor</div><select class="fs sel-proveedor"><option value="">Todos</option></select></div>
       <div class="fg"><div class="fg-lbl">Artículo</div><select class="fs"><option>Todos</option><option>Fertilizante NPK</option><option>Cajas cartón</option></select></div>
       <div class="fg"><div class="fg-lbl">Período</div><select class="fs"><option>Mes actual</option><option>Mes anterior</option><option>Año en curso</option><option>Período definido</option></select></div>
       <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi" value="2026-06-01"></div>
@@ -964,11 +785,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Compra de artículos por proveedor — Junio 2026</div></div>
       <table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Artículo</th><th class="tr">Cantidad</th><th>Unidad</th><th class="tr">Precio unit.</th><th class="tr">Subtotal</th></tr></thead>
       <tbody>
-        <tr><td>18/06/2026</td><td>AgroQuímica Cuyo S.A.</td><td>Fertilizante NPK 15-15-15</td><td class="tr">500</td><td>kg</td><td class="tr">$420</td><td class="tr fw">$210.000</td></tr>
-        <tr><td>18/06/2026</td><td>AgroQuímica Cuyo S.A.</td><td>Fungicida Captan</td><td class="tr">20</td><td>lt</td><td class="tr">$3.500</td><td class="tr fw">$70.000</td></tr>
-        <tr><td>15/06/2026</td><td>LogiMendoza S.R.L.</td><td>Cajas cartón 40x30x15</td><td class="tr">200</td><td>u</td><td class="tr">$750</td><td class="tr fw">$150.000</td></tr>
-        <tr style="background:var(--ice);font-weight:700"><td colspan="6" class="tr">TOTAL DEL PERÍODO</td><td class="tr fw" style="color:var(--navy)">$430.000</td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -979,10 +797,10 @@ textarea.fctl{resize:vertical}
       <button class="btn btn-gold" onclick="openM('m-ngasto')">＋ Registrar Gasto</button>
     </div>
     <div class="kpi-grid">
-      <div class="kpi k-navy"><div class="kpi-lbl">Gastos del mes</div><div class="kpi-val">$320.000</div></div>
-      <div class="kpi k-gold"><div class="kpi-lbl">Comprobantes</div><div class="kpi-val">18</div></div>
-      <div class="kpi k-green"><div class="kpi-lbl">Pagados</div><div class="kpi-val">$235.000</div></div>
-      <div class="kpi k-red"><div class="kpi-lbl">Pendientes</div><div class="kpi-val">$85.000</div></div>
+      <div class="kpi k-navy"><div class="kpi-lbl">Gastos del mes</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-gold"><div class="kpi-lbl">Comprobantes</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-green"><div class="kpi-lbl">Pagados</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-red"><div class="kpi-lbl">Pendientes</div><div class="kpi-val">—</div></div>
     </div>
     <div class="fbar">
       <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" placeholder="Concepto, proveedor..." style="min-width:180px"></div>
@@ -996,14 +814,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Gastos del mes</div></div>
       <table><thead><tr><th>N° Interno</th><th>Fecha</th><th>Categoría</th><th>Concepto</th><th>N° Comprobante</th><th class="tr">Importe</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">GAS-0031</td><td>20/06/2026</td><td><span class="badge b-navy">Mantenimiento</span></td><td>Reparación cámara frigorífica</td><td>—</td><td class="tr fw">$85.000</td><td><span class="badge b-warning">Pendiente</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Editando...','ok')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-gold btn-xs" onclick="toast('Registrando pago...','ok')">💳 Pagar</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">GAS-0030</td><td>15/06/2026</td><td><span class="badge b-info">Servicios</span></td><td>Energía eléctrica — EDEMSA Junio</td><td>F-B-0001-00002341</td><td class="tr fw">$42.000</td><td><span class="badge b-success">Pagado</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Editando...','ok')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">GAS-0029</td><td>10/06/2026</td><td><span class="badge b-gold">Combustible</span></td><td>Gasoil flota — YPF</td><td>T-B-0001-00000892</td><td class="tr fw">$38.500</td><td><span class="badge b-success">Pagado</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Editando...','ok')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr style="background:var(--ice);font-weight:700"><td colspan="5" class="tr">TOTAL MES</td><td class="tr fw cd">$320.000</td><td colspan="2"></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -1021,13 +833,13 @@ textarea.fctl{resize:vertical}
     <!-- SUB-TAB: PAGOS REALIZADOS -->
     <div class="tab-pane active" id="tcp-lista">
       <div class="kpi-grid">
-        <div class="kpi k-red"><div class="kpi-lbl">Pagado del mes</div><div class="kpi-val">$970.000</div><div class="kpi-sub">Junio 2026</div></div>
-        <div class="kpi k-gold"><div class="kpi-lbl">Órdenes de pago</div><div class="kpi-val">14</div></div>
-        <div class="kpi k-navy"><div class="kpi-lbl">Cheques propios emitidos</div><div class="kpi-val">$320.000</div><div class="kpi-sub">4 cheques</div></div>
-        <div class="kpi k-info"><div class="kpi-lbl">Cheques tercero usados</div><div class="kpi-val">$520.000</div><div class="kpi-sub">1 cheque</div></div>
+        <div class="kpi k-red"><div class="kpi-lbl">Pagado del mes</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-gold"><div class="kpi-lbl">Órdenes de pago</div><div class="kpi-val">—</div></div>
+        <div class="kpi k-navy"><div class="kpi-lbl">Cheques propios emitidos</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-info"><div class="kpi-lbl">Cheques tercero usados</div><div class="kpi-val">—</div><div class="kpi-sub">1 cheque</div></div>
       </div>
       <div class="fbar">
-        <div class="fg"><div class="fg-lbl">Proveedor</div><select class="fs" style="min-width:180px"><option>Todos</option><option>AgroQuímica Cuyo S.A.</option><option>LogiMendoza S.R.L.</option></select></div>
+        <div class="fg"><div class="fg-lbl">Proveedor</div><select class="fs sel-proveedor" style="min-width:180px"><option value="">Todos</option></select></div>
         <div class="fg"><div class="fg-lbl">Forma de pago</div><select class="fs"><option>Todas</option><option>Transferencia</option><option>Cheque propio</option><option>Cheque de tercero</option><option>Efectivo</option></select></div>
         <div class="fg"><div class="fg-lbl">Estado</div><select class="fs"><option>Todos</option><option>Acreditado</option><option>Pendiente</option><option>Anulado</option></select></div>
         <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi" value="2026-06-01"></div>
@@ -1038,33 +850,8 @@ textarea.fctl{resize:vertical}
         <div class="tbar"><div class="tbar-title">Pagos del mes</div></div>
         <table><thead><tr><th>N° Orden</th><th>Fecha</th><th>Proveedor</th><th>Comprobantes</th><th>Formas de pago</th><th class="tr">Total pagado</th><th>Estado</th><th>Acciones</th></tr></thead>
         <tbody>
-          <tr>
-            <td class="fw">PAG-0091</td><td>24/06/2026</td><td>AgroQuímica Cuyo S.A.</td>
-            <td style="font-size:11px">OC-0046 $280.000</td>
-            <td><span class="badge b-info">Transf.</span> <span class="badge b-navy">Ch. propio</span></td>
-            <td class="tr fw cd">$280.000</td>
-            <td><span class="badge b-success">Acreditado</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ver-pago')" title="Ver">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button>
-              <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕ Anular</button>
-            </div></td>
-          </tr>
-          <tr>
-            <td class="fw">PAG-0090</td><td>20/06/2026</td><td>LogiMendoza S.R.L.</td>
-            <td style="font-size:11px">OC-0045 $150.000</td>
-            <td><span class="badge b-gold">Ch. tercero</span></td>
-            <td class="tr fw cd">$150.000</td>
-            <td><span class="badge b-success">Acreditado</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ver-pago')">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button>
-              <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕ Anular</button>
-            </div></td>
-          </tr>
-        </tbody></table>
+          <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
         <div class="tfooter"><span>Mostrando 2 de 14 pagos del mes</span><span class="fw cd">Total pagado: $970.000</span></div>
       </div>
     </div>
@@ -1076,9 +863,9 @@ textarea.fctl{resize:vertical}
         <button class="btn btn-gold" onclick="openM('m-nchequera')">＋ Registrar cheque emitido</button>
       </div>
       <div class="kpi-grid">
-        <div class="kpi k-navy"><div class="kpi-lbl">Emitidos</div><div class="kpi-val">4</div><div class="kpi-sub">$320.000</div></div>
-        <div class="kpi k-gold"><div class="kpi-lbl">Pendientes débito</div><div class="kpi-val">2</div><div class="kpi-sub">$180.000</div></div>
-        <div class="kpi k-green"><div class="kpi-lbl">Debitados</div><div class="kpi-val">2</div><div class="kpi-sub">$140.000</div></div>
+        <div class="kpi k-navy"><div class="kpi-lbl">Emitidos</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-gold"><div class="kpi-lbl">Pendientes débito</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
+        <div class="kpi k-green"><div class="kpi-lbl">Debitados</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
         <div class="kpi k-red"><div class="kpi-lbl">Rechazados</div><div class="kpi-val">0</div></div>
       </div>
       <div class="fbar">
@@ -1092,27 +879,8 @@ textarea.fctl{resize:vertical}
         <div class="tbar"><div class="tbar-title">Cheques propios emitidos</div></div>
         <table><thead><tr><th>N° Cheque</th><th>Tipo</th><th>Banco / Cuenta</th><th>Proveedor</th><th>F. Emisión</th><th>F. Cobro</th><th class="tr">Importe</th><th>Orden de pago</th><th>Estado</th><th>Acciones</th></tr></thead>
         <tbody>
-          <tr>
-            <td class="fw">000456789</td><td><span class="badge b-navy">Diferido</span></td>
-            <td>Banco Nación / cta 0001</td><td>AgroQuímica Cuyo S.A.</td>
-            <td>24/06/2026</td><td class="fw">24/07/2026</td><td class="tr fw">$180.000</td>
-            <td>PAG-0091</td>
-            <td><span class="badge b-warning">Entregado</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon">👁</button>
-              <button class="btn btn-success btn-xs" onclick="toast('Marcado como debitado','ok')">✓ Debitado</button>
-              <button class="btn btn-danger btn-xs" onclick="toast('Marcado como rechazado','warn')">✕ Rechazar</button>
-            </div></td>
-          </tr>
-          <tr>
-            <td class="fw">000456788</td><td><span class="badge b-info">Electrónico</span></td>
-            <td>Banco Nación / cta 0001</td><td>AgroQuímica Cuyo S.A.</td>
-            <td>15/06/2026</td><td class="fw">30/06/2026</td><td class="tr fw">$100.000</td>
-            <td>PAG-0089</td>
-            <td><span class="badge b-success">Debitado</span></td>
-            <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button></div></td>
-          </tr>
-        </tbody></table>
+          <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
       </div>
     </div>
 
@@ -1125,17 +893,8 @@ textarea.fctl{resize:vertical}
         <div class="tbar"><div class="tbar-title">Comisiones pendientes de pago</div></div>
         <table><thead><tr><th>Vendedor</th><th>Período</th><th class="tr">Ventas</th><th>Comisión %</th><th class="tr">Comisión generada</th><th class="tr">Pagado</th><th class="tr">Pendiente</th><th>Acciones</th></tr></thead>
         <tbody>
-          <tr>
-            <td class="fw">Juan Pérez</td><td>Junio 2026</td><td class="tr">$1.840.000</td><td class="tc">3%</td>
-            <td class="tr fw cs">$55.200</td><td class="tr cs">$0</td><td class="tr fw cd">$55.200</td>
-            <td><button class="btn btn-gold btn-xs" onclick="openM('m-npago-comision')">💳 Liquidar</button></td>
-          </tr>
-          <tr>
-            <td class="fw">María García</td><td>Junio 2026</td><td class="tr">$990.000</td><td class="tc">2,5%</td>
-            <td class="tr fw cs">$24.750</td><td class="tr cs">$8.000</td><td class="tr fw cd">$16.750</td>
-            <td><button class="btn btn-gold btn-xs" onclick="openM('m-npago-comision')">💳 Liquidar</button></td>
-          </tr>
-        </tbody></table>
+          <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
         <div class="tfooter"><span>Total pendiente:</span><span class="fw cd">$71.950</span></div>
       </div>
     </div>
@@ -1151,7 +910,7 @@ textarea.fctl{resize:vertical}
       <div class="fbar-actions"><button class="btn btn-primary btn-sm">🔍 Ver extracto</button><button class="btn btn-outline btn-sm">📥 Excel</button><button class="btn btn-outline btn-sm">🖨️</button></div>
     </div>
     <div class="cc-sum">
-      <div class="cc-box"><div class="cc-lbl">Total Compras</div><div class="cc-val">$1.250.000</div></div>
+      <div class="cc-box"><div class="cc-lbl">Total Compras</div><div class="cc-val">$—</div></div>
       <div class="cc-box"><div class="cc-lbl">Total Pagado</div><div class="cc-val">$970.000</div></div>
       <div class="cc-box neg"><div class="cc-lbl">A Pagar</div><div class="cc-val">$280.000</div></div>
     </div>
@@ -1159,8 +918,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Extracto — AgroQuímica Cuyo S.A.</div></div>
       <table><thead><tr><th>Fecha</th><th>Tipo</th><th>N° Documento</th><th>Concepto</th><th class="tr">Débito</th><th class="tr">Crédito</th><th class="tr">Saldo</th></tr></thead>
       <tbody>
-        <tr><td>18/06/2026</td><td><span class="badge b-info">Factura A</span></td><td>OC-0046</td><td>Fertilizante NPK</td><td class="tr fw cd">$280.000</td><td class="tr">—</td><td class="tr fw cd">-$280.000</td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
       <div class="tfooter"><span>1 movimiento</span><span class="fw cd">Saldo: -$280.000</span></div>
     </div>
   </div>
@@ -1197,13 +956,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Clientes — 38 activos</div></div>
       <table><thead><tr><th>Razón Social</th><th>CUIT</th><th>Cond. IVA</th><th>Localidad</th><th>Vendedor</th><th>Lista precios</th><th class="tr">Saldo C/C</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">La Anónima S.A.</td><td>30-68688399-7</td><td><span class="badge b-info">RI</span></td><td>Buenos Aires</td><td>—</td><td>Supermercados</td><td class="tr fw cs">$340.000</td><td><span class="badge b-success">Activo</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-vercliente')">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ncliente')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">Coto S.A.</td><td>30-51699300-4</td><td><span class="badge b-info">RI</span></td><td>Mendoza</td><td>—</td><td>Supermercados</td><td class="tr fw cd">-$520.000</td><td><span class="badge b-success">Activo</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-vercliente')">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ncliente')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">Jumbo Retail S.A.</td><td>30-61539771-3</td><td><span class="badge b-info">RI</span></td><td>Mendoza</td><td>—</td><td>Supermercados</td><td class="tr fw cd">-$890.000</td><td><span class="badge b-success">Activo</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-vercliente')">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ncliente')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
       <div class="tfooter"><span>Mostrando 3 de 38 clientes</span></div>
     </div>
   </div>
@@ -1220,11 +974,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Proveedores — 14 activos</div></div>
       <table><thead><tr><th>Razón Social</th><th>CUIT</th><th>Cond. IVA</th><th>Rubro</th><th>Contacto</th><th class="tr">Saldo C/C</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">AgroQuímica Cuyo S.A.</td><td>30-71234567-8</td><td><span class="badge b-info">RI</span></td><td>Insumos agrícolas</td><td>0261-445-1234</td><td class="tr fw cd">-$280.000</td><td><span class="badge b-success">Activo</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-nproveedor')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">LogiMendoza S.R.L.</td><td>30-65432198-0</td><td><span class="badge b-info">RI</span></td><td>Logística</td><td>0261-432-8765</td><td class="tr fw cs">$0</td><td><span class="badge b-success">Activo</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-nproveedor')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -1234,11 +985,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Vendedores activos</div></div>
       <table><thead><tr><th>Código</th><th>Nombre y Apellido</th><th>Zona asignada</th><th>Listas autorizadas</th><th>Comisión %</th><th>Ventas mes</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">VEN-001</td><td>Juan Pérez</td><td>Gran Mendoza</td><td><span class="badge b-info">General</span> <span class="badge b-info">Supermercados</span></td><td class="tc fw">3%</td><td class="tr fw">$1.840.000</td><td><span class="badge b-success">Activo</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-nvendedor')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">VEN-002</td><td>María García</td><td>Valle de Uco</td><td><span class="badge b-info">Distribuidores</span></td><td class="tc fw">2,5%</td><td class="tr fw">$990.000</td><td><span class="badge b-success">Activo</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-nvendedor')">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 </div>
@@ -1275,11 +1023,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Artículos registrados</div></div>
       <table><thead><tr><th>Código</th><th>Nombre</th><th>Rubro</th><th>Unidad</th><th class="tr">Stock actual</th><th class="tr">Stock mín.</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">VEG-001</td><td>Espinaca</td><td>Hortalizas</td><td>kg</td><td class="tr fw">842 kg</td><td class="tr">100 kg</td><td><span class="badge b-success">OK</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">VEG-004</td><td>Lechuga mantecosa</td><td>Hortalizas</td><td>kg</td><td class="tr fw cd">42 kg</td><td class="tr">80 kg</td><td><span class="badge b-danger">Stock bajo</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -1289,10 +1034,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Rubros de artículos</div></div>
       <table><thead><tr><th>Código</th><th>Nombre</th><th>Artículos</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">RUB-01</td><td>Hortalizas</td><td>18</td><td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">RUB-02</td><td>Frutas</td><td>7</td><td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">RUB-03</td><td>Insumos packaging</td><td>12</td><td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -1307,10 +1050,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Stock al 24/06/2026</div></div>
       <table><thead><tr><th>Código</th><th>Artículo</th><th>Rubro</th><th class="tr">Stock</th><th>Unidad</th><th class="tr">Stock mín.</th><th>Estado</th></tr></thead>
       <tbody>
-        <tr><td class="fw">VEG-001</td><td>Espinaca</td><td>Hortalizas</td><td class="tr fw">842</td><td>kg</td><td class="tr">100</td><td><span class="badge b-success">Normal</span></td></tr>
-        <tr><td class="fw">VEG-004</td><td>Lechuga mantecosa</td><td>Hortalizas</td><td class="tr fw cd">42</td><td>kg</td><td class="tr">80</td><td><span class="badge b-danger">Stock bajo</span></td></tr>
-        <tr><td class="fw">FRU-002</td><td>Durazno</td><td>Frutas</td><td class="tr fw">0</td><td>kg</td><td class="tr">50</td><td><span class="badge b-danger">Sin stock</span></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -1320,11 +1061,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Ajustes de stock registrados</div></div>
       <table><thead><tr><th>N° Ajuste</th><th>Artículo</th><th>Fecha</th><th>Tipo</th><th class="tr">Cantidad</th><th>Motivo</th><th>Usuario</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">AJ-0021</td><td>Espinaca</td><td>22/06/2026</td><td><span class="badge b-success">Entrada</span></td><td class="tr fw cs">+50 kg</td><td>Corrección conteo</td><td>IS</td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">AJ-0020</td><td>Lechuga mantecosa</td><td>20/06/2026</td><td><span class="badge b-danger">Salida</span></td><td class="tr fw cd">-15 kg</td><td>Descarte por daño</td><td>IS</td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -1340,10 +1078,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Movimientos de stock</div></div>
       <table><thead><tr><th>Fecha</th><th>Artículo</th><th>Tipo</th><th>Origen/Destino</th><th class="tr">Cantidad</th><th class="tr">Stock resultante</th></tr></thead>
       <tbody>
-        <tr><td>24/06/2026</td><td>Espinaca</td><td><span class="badge b-danger">Salida</span></td><td>Factura A-00000112</td><td class="tr fw cd">-200 kg</td><td class="tr">842 kg</td></tr>
-        <tr><td>22/06/2026</td><td>Espinaca</td><td><span class="badge b-success">Entrada</span></td><td>Ajuste AJ-0021</td><td class="tr fw cs">+50 kg</td><td class="tr">1042 kg</td></tr>
-        <tr><td>20/06/2026</td><td>Lechuga mantecosa</td><td><span class="badge b-danger">Salida</span></td><td>Ajuste AJ-0020</td><td class="tr fw cd">-15 kg</td><td class="tr">42 kg</td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -1356,9 +1092,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Salidas de mercadería</div></div>
       <table><thead><tr><th>N° Salida</th><th>Fecha</th><th>Destino</th><th>Artículos</th><th>Documento asociado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">SAL-0089</td><td>24/06/2026</td><td>La Anónima S.A.</td><td>Espinaca 200 kg</td><td>A-0001-00000112</td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo remito...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 </div>
@@ -1383,12 +1118,12 @@ textarea.fctl{resize:vertical}
   <!-- DASHBOARD REPORTES -->
   <div class="tab-pane active" id="tr-dash">
     <div class="kpi-grid">
-      <div class="kpi k-navy"><div class="kpi-lbl">Facturación anual</div><div class="kpi-val">$28.920.000</div><div class="kpi-sub">Ene–Jun 2026</div></div>
-      <div class="kpi k-gold"><div class="kpi-lbl">Egresos totales</div><div class="kpi-val">$7.500.000</div></div>
-      <div class="kpi k-green"><div class="kpi-lbl">Utilidad bruta</div><div class="kpi-val">$21.420.000</div></div>
-      <div class="kpi k-info"><div class="kpi-lbl">Margen</div><div class="kpi-val">74%</div></div>
-      <div class="kpi k-red"><div class="kpi-lbl">Deuda total clientes</div><div class="kpi-val">$880.000</div></div>
-      <div class="kpi k-gold"><div class="kpi-lbl">Deuda a proveedores</div><div class="kpi-val">$280.000</div></div>
+      <div class="kpi k-navy"><div class="kpi-lbl">Facturación anual</div><div class="kpi-val">—</div><div class="kpi-sub">Ene–Jun 2026</div></div>
+      <div class="kpi k-gold"><div class="kpi-lbl">Egresos totales</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-green"><div class="kpi-lbl">Utilidad bruta</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-info"><div class="kpi-lbl">Margen</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-red"><div class="kpi-lbl">Deuda total clientes</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-gold"><div class="kpi-lbl">Deuda a proveedores</div><div class="kpi-val">—</div></div>
     </div>
     <div class="row">
       <div class="col">
@@ -1418,7 +1153,7 @@ textarea.fctl{resize:vertical}
   <!-- TAB: PROVEEDORES ACREEDORES -->
   <div class="tab-pane" id="tr-prov">
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Proveedor</div><select class="fs"><option>Todos</option><option>AgroQuímica Cuyo S.A.</option><option>LogiMendoza S.R.L.</option></select></div>
+      <div class="fg"><div class="fg-lbl">Proveedor</div><select class="fs sel-proveedor"><option value="">Todos</option></select></div>
       <div class="fg"><div class="fg-lbl">Estado</div><select class="fs"><option>Todos</option><option>Pendiente</option><option>Vencida</option><option>Pagada</option></select></div>
       <div class="fg"><div class="fg-lbl">Vencimiento</div><select class="fs"><option>Todos</option><option>Vence hoy</option><option>Próximos 7 días</option><option>Próximos 30 días</option><option>Vencidas</option></select></div>
       <div class="fbar-actions"><button class="btn btn-primary btn-sm">🔍 Filtrar</button><button class="btn btn-outline btn-sm">📥 Excel</button><button class="btn btn-outline btn-sm">🖨️</button></div>
@@ -1432,15 +1167,13 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Cuentas por pagar — Reporte completo</div></div>
       <table><thead><tr><th>Proveedor</th><th>N° Comprobante</th><th>Fecha</th><th>Vencimiento</th><th class="tr">Importe</th><th class="tr">Pagado</th><th class="tr">Saldo</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">AgroQuímica Cuyo S.A.</td><td>OC-0046</td><td>18/06/2026</td><td>18/07/2026</td><td class="tr">$280.000</td><td class="tr cs">$0</td><td class="tr fw cd">$280.000</td><td><span class="badge b-warning">Pendiente</span></td>
-        <td><div class="act-btns"><button class="btn btn-gold btn-xs" onclick="toast('Registrando pago...','ok')">💳 Pagar</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button></div></td></tr>
-        <tr style="background:var(--ice);font-weight:700"><td colspan="6" class="tr fw">TOTAL A PAGAR</td><td class="tr fw cd">$280.000</td><td colspan="2"></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
   <div class="tab-pane" id="tr-cheques">
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Cliente que entregó</div><select class="fs"><option>Todos</option><option>La Anónima S.A.</option><option>Coto S.A.</option></select></div>
+      <div class="fg"><div class="fg-lbl">Cliente que entregó</div><select class="fs sel-cliente"><option value="">Todos</option></select></div>
       <div class="fg"><div class="fg-lbl">Banco</div><select class="fs"><option>Todos</option><option>Banco Nación</option><option>Santander</option></select></div>
       <div class="fg"><div class="fg-lbl">Estado</div><select class="fs"><option>Todos</option><option>En cartera</option><option>Depositado</option><option>Entregado a proveedor</option><option>Rechazado</option></select></div>
       <div class="fg"><div class="fg-lbl">F. cobro desde</div><input type="date" class="fi" value="2026-06-01"></div>
@@ -1451,18 +1184,15 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Cheques de Tercero</div></div>
       <table><thead><tr><th>N° Cheque</th><th>Banco</th><th>Cliente que entregó</th><th>F. Emisión</th><th>F. Cobro</th><th class="tr">Importe</th><th>Entregado a</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">000123456</td><td>Banco Nación</td><td>La Anónima S.A.</td><td>10/06/2026</td><td>10/07/2026</td><td class="tr fw">$340.000</td><td>—</td><td><span class="badge b-info">En cartera</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-        <tr><td class="fw">000098741</td><td>Santander</td><td>Coto S.A.</td><td>05/06/2026</td><td>05/07/2026</td><td class="tr fw">$520.000</td><td>AgroQuímica Cuyo</td><td><span class="badge b-gold">Entregado</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon">✏️</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button></div></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
   <!-- DEUDAS CLIENTES -->
   <div class="tab-pane" id="tr-deudas">
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs"><option>Todos</option><option>La Anónima S.A.</option><option>Coto S.A.</option></select></div>
+      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs sel-cliente"><option value="">Todos</option></select></div>
       <div class="fg"><div class="fg-lbl">Antigüedad</div><select class="fs"><option>Todos</option><option>Corriente</option><option>30 días</option><option>60 días</option><option>+90 días</option></select></div>
       <div class="fbar-actions"><button class="btn btn-primary btn-sm">🔍 Filtrar</button><button class="btn btn-outline btn-sm">📥 Excel</button><button class="btn btn-outline btn-sm">🖨️</button></div>
     </div>
@@ -1470,21 +1200,15 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Cuentas por cobrar a la fecha</div></div>
       <table><thead><tr><th>Cliente</th><th>N° Factura</th><th>Fecha</th><th>Vencimiento</th><th class="tr">Importe</th><th>Antigüedad</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr><td class="fw">La Anónima S.A.</td><td>A-0001-00000112</td><td>24/06/2026</td><td>24/07/2026</td><td class="tr fw cd">$340.000</td><td><span class="badge b-info">Corriente</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button></div></td></tr>
-        <tr><td class="fw">Coto S.A.</td><td>A-0001-00000111</td><td>23/06/2026</td><td>23/07/2026</td><td class="tr fw cd">$520.000</td><td><span class="badge b-info">Corriente</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button></div></td></tr>
-        <tr><td class="fw">Jumbo Retail S.A.</td><td>A-0001-00000110</td><td>22/05/2026</td><td>21/06/2026</td><td class="tr fw cd">$890.000</td><td><span class="badge b-danger">Vencida</span></td>
-        <td><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon">👁</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button><button class="btn btn-outline btn-xs btn-icon" onclick="toast('Imprimiendo...','ok')">🖨</button></div></td></tr>
-        <tr style="background:var(--ice);font-weight:700"><td colspan="4" class="tr">TOTAL A COBRAR</td><td class="tr fw cd">$1.750.000</td><td colspan="2"></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
   <!-- FACTURACION CLIENTES -->
   <div class="tab-pane" id="tr-fact">
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs"><option>Todos</option><option>La Anónima S.A.</option><option>Coto S.A.</option></select></div>
+      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs sel-cliente"><option value="">Todos</option></select></div>
       <div class="fg"><div class="fg-lbl">Período</div><select class="fs"><option>Mes actual</option><option>Mes anterior</option><option>Año en curso</option><option>Período definido</option></select></div>
       <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi" value="2026-06-01"></div>
       <div class="fg"><div class="fg-lbl">Hasta</div><input type="date" class="fi" value="2026-06-24"></div>
@@ -1495,12 +1219,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Facturación por cliente — Junio 2026</div></div>
       <table><thead><tr><th>Cliente</th><th>N° Factura</th><th>Fecha</th><th>Artículo</th><th class="tr">Cant.</th><th class="tr">Precio unit.</th><th class="tr">Total</th></tr></thead>
       <tbody>
-        <tr><td class="fw">La Anónima S.A.</td><td>A-00000112</td><td>24/06</td><td>Mix hortalizas</td><td class="tr">200 kg</td><td class="tr">$1.200</td><td class="tr fw">$240.000</td></tr>
-        <tr><td></td><td></td><td></td><td>Lechuga mantecosa</td><td class="tr">85 kg</td><td class="tr">$476</td><td class="tr fw">$40.460</td></tr>
-        <tr style="background:#f7f9fc"><td class="fw">La Anónima — Subtotal</td><td></td><td></td><td></td><td></td><td></td><td class="tr fw cn">$340.000</td></tr>
-        <tr><td class="fw">Coto S.A.</td><td>A-00000111</td><td>23/06</td><td>Espinaca</td><td class="tr">400 kg</td><td class="tr">$1.300</td><td class="tr fw">$520.000</td></tr>
-        <tr style="background:var(--ice);font-weight:700"><td colspan="6" class="tr">TOTAL PERÍODO</td><td class="tr fw cn">$4.820.000</td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -1515,10 +1235,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Volumen de Compra/Venta por artículo</div></div>
       <table><thead><tr><th>Artículo</th><th class="tr">Comprado (kg)</th><th class="tr">$ Compra</th><th class="tr">Vendido (kg)</th><th class="tr">$ Venta</th><th class="tr">Dif. stock</th><th class="tr">Margen</th></tr></thead>
       <tbody>
-        <tr><td class="fw">Espinaca</td><td class="tr">1.200</td><td class="tr">$504.000</td><td class="tr">1.042</td><td class="tr fw">$1.354.600</td><td class="tr cs">+158 kg</td><td class="tr fw cs">63%</td></tr>
-        <tr><td class="fw">Lechuga mantecosa</td><td class="tr">200</td><td class="tr">$72.000</td><td class="tr">143</td><td class="tr fw">$68.068</td><td class="tr cs">+57 kg</td><td class="tr fw cs">-5%</td></tr>
-        <tr style="background:var(--ice);font-weight:700"><td>TOTALES</td><td class="tr">1.400</td><td class="tr">$576.000</td><td class="tr">1.185</td><td class="tr cn">$1.422.668</td><td></td><td class="tr cs">59%</td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -1530,19 +1248,16 @@ textarea.fctl{resize:vertical}
       <div class="fbar-actions"><button class="btn btn-primary btn-sm">🔍 Generar</button><button class="btn btn-outline btn-sm">📥 Excel</button><button class="btn btn-outline btn-sm">🖨️</button></div>
     </div>
     <div class="kpi-grid">
-      <div class="kpi k-navy"><div class="kpi-lbl">Compras</div><div class="kpi-val">$1.250.000</div></div>
-      <div class="kpi k-gold"><div class="kpi-lbl">Gastos</div><div class="kpi-val">$320.000</div></div>
-      <div class="kpi k-red"><div class="kpi-lbl">Egresos totales</div><div class="kpi-val">$1.570.000</div></div>
+      <div class="kpi k-navy"><div class="kpi-lbl">Compras</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-gold"><div class="kpi-lbl">Gastos</div><div class="kpi-val">—</div></div>
+      <div class="kpi k-red"><div class="kpi-lbl">Egresos totales</div><div class="kpi-val">—</div></div>
     </div>
     <div class="tcard">
       <div class="tbar"><div class="tbar-title">Detalle de egresos — Junio 2026</div></div>
       <table><thead><tr><th>Fecha</th><th>Categoría</th><th>Proveedor / Concepto</th><th>N° Documento</th><th class="tr">Importe</th></tr></thead>
       <tbody>
-        <tr><td>18/06/2026</td><td><span class="badge b-navy">Compra</span></td><td>AgroQuímica Cuyo S.A.</td><td>OC-0046</td><td class="tr fw">$280.000</td></tr>
-        <tr><td>15/06/2026</td><td><span class="badge b-navy">Compra</span></td><td>LogiMendoza S.R.L.</td><td>OC-0045</td><td class="tr fw">$150.000</td></tr>
-        <tr><td>20/06/2026</td><td><span class="badge b-gold">Gasto</span></td><td>Servicio eléctrico</td><td>RG-0012</td><td class="tr fw">$85.000</td></tr>
-        <tr style="background:var(--ice);font-weight:700"><td colspan="4" class="tr">TOTAL EGRESOS</td><td class="tr fw cd">$1.570.000</td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -1555,8 +1270,8 @@ textarea.fctl{resize:vertical}
     <div class="tcard" style="padding:20px">
       <div class="fsec-title">Resultado del período — Junio 2026</div>
       <div style="max-width:400px">
-        <div class="drow"><span class="dkey">Facturación total</span><span class="dval cs">$4.820.000</span></div>
-        <div class="drow"><span class="dkey">— Compras</span><span class="dval cd">-$1.250.000</span></div>
+        <div class="drow"><span class="dkey">Facturación total</span><span class="dval cs">$—</span></div>
+        <div class="drow"><span class="dkey">— Compras</span><span class="dval cd">-$—</span></div>
         <div class="drow"><span class="dkey">— Gastos operativos</span><span class="dval cd">-$320.000</span></div>
         <div class="divider"></div>
         <div class="drow"><span class="dkey fw" style="font-size:14px">UTILIDAD BRUTA</span><span class="dval cs fw" style="font-size:18px">$3.250.000</span></div>
@@ -1567,10 +1282,8 @@ textarea.fctl{resize:vertical}
         <div class="tbar"><div class="tbar-title">Utilidad por mes — 2026</div></div>
         <table><thead><tr><th>Mes</th><th class="tr">Facturación</th><th class="tr">Egresos</th><th class="tr">Utilidad</th><th class="tr">Margen</th></tr></thead>
         <tbody>
-          <tr><td>Enero</td><td class="tr">$3.800.000</td><td class="tr">$1.100.000</td><td class="tr fw cs">$2.700.000</td><td class="tr">71%</td></tr>
-          <tr><td>Febrero</td><td class="tr">$4.100.000</td><td class="tr">$1.200.000</td><td class="tr fw cs">$2.900.000</td><td class="tr">71%</td></tr>
-          <tr><td>Junio</td><td class="tr">$4.820.000</td><td class="tr">$1.570.000</td><td class="tr fw cs">$3.250.000</td><td class="tr">67%</td></tr>
-        </tbody></table>
+          <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
       </div>
     </div>
   </div>
@@ -1593,10 +1306,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Detalle de comisiones</div></div>
       <table><thead><tr><th>Vendedor</th><th>N° Factura</th><th>Cliente</th><th>Fecha</th><th class="tr">Venta</th><th>Comisión %</th><th class="tr">Comisión $</th><th>Estado</th></tr></thead>
       <tbody>
-        <tr><td class="fw">Juan Pérez</td><td>A-0001-00000112</td><td>La Anónima S.A.</td><td>24/06/2026</td><td class="tr">$340.000</td><td class="tc">3%</td><td class="tr fw cs">$10.200</td><td><span class="badge b-warning">Pendiente</span></td></tr>
-        <tr><td class="fw">Juan Pérez</td><td>A-0001-00000111</td><td>Coto S.A.</td><td>23/06/2026</td><td class="tr">$520.000</td><td class="tc">3%</td><td class="tr fw cs">$15.600</td><td><span class="badge b-warning">Pendiente</span></td></tr>
-        <tr><td class="fw">María García</td><td>A-0001-00000108</td><td>DIA S.A.</td><td>20/06/2026</td><td class="tr">$320.000</td><td class="tc">2,5%</td><td class="tr fw cs">$8.000</td><td><span class="badge b-success">Pagada</span></td></tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
     <div class="tcard">
       <div class="tbar"><div class="tbar-title">Ranking de ventas — Período</div></div>
@@ -1630,7 +1341,7 @@ textarea.fctl{resize:vertical}
     <div class="kpi k-navy"><div class="kpi-lbl">Saldo contable</div><div class="kpi-val" id="bco-saldo-contable">$1.284.500</div><div class="kpi-sub">Según sistema</div></div>
     <div class="kpi k-green"><div class="kpi-lbl">Saldo extracto</div><div class="kpi-val" id="bco-saldo-extracto">$1.241.200</div><div class="kpi-sub">Último extracto cargado</div></div>
     <div class="kpi k-gold"><div class="kpi-lbl">Diferencia</div><div class="kpi-val" id="bco-diferencia">$43.300</div><div class="kpi-sub">Pendiente conciliar</div></div>
-    <div class="kpi k-info"><div class="kpi-lbl">Cheques propios pendientes</div><div class="kpi-val">$180.000</div><div class="kpi-sub">2 cheques</div></div>
+    <div class="kpi k-info"><div class="kpi-lbl">Cheques propios pendientes</div><div class="kpi-val">—</div><div class="kpi-sub"> </div></div>
   </div>
 
   <div class="tabs">
@@ -1670,59 +1381,8 @@ textarea.fctl{resize:vertical}
           <th>Concil.</th><th>Acciones</th>
         </tr></thead>
         <tbody>
-          <tr>
-            <td>24/06/2026</td>
-            <td><span class="badge b-success">Crédito</span></td>
-            <td>Transferencia recibida</td>
-            <td style="font-size:11px">REC-00456 · La Anónima</td>
-            <td class="tr fw cs">$87.600</td><td class="tr">—</td>
-            <td class="tr fw">$1.284.500</td>
-            <td><span class="badge b-success" style="font-size:9px">✓</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button>
-            </div></td>
-          </tr>
-          <tr>
-            <td>24/06/2026</td>
-            <td><span class="badge b-danger">Débito</span></td>
-            <td>Transferencia emitida</td>
-            <td style="font-size:11px">PAG-0091 · AgroQuímica</td>
-            <td class="tr">—</td><td class="tr fw cd">$100.000</td>
-            <td class="tr fw">$1.196.900</td>
-            <td><span class="badge b-success" style="font-size:9px">✓</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button>
-            </div></td>
-          </tr>
-          <tr>
-            <td>22/06/2026</td>
-            <td><span class="badge b-success">Crédito</span></td>
-            <td>Depósito cheque tercero</td>
-            <td style="font-size:11px">Cheque N°000123456 · La Anónima</td>
-            <td class="tr fw cs">$340.000</td><td class="tr">—</td>
-            <td class="tr fw">$1.296.900</td>
-            <td><span class="badge b-warning" style="font-size:9px;cursor:pointer" onclick="toast('Movimiento conciliado','ok')">⏳ Conciliar</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon">👁</button>
-              <button class="btn btn-outline btn-xs btn-icon" onclick="toast('Exportando...','ok')">📥</button>
-            </div></td>
-          </tr>
-          <tr>
-            <td>20/06/2026</td>
-            <td><span class="badge b-danger">Débito</span></td>
-            <td>Déb. impuesto / comisión bancaria</td>
-            <td style="font-size:11px">Mantenimiento cuenta junio</td>
-            <td class="tr">—</td><td class="tr fw cd">$850</td>
-            <td class="tr fw">$956.900</td>
-            <td><span class="badge b-neutral" style="font-size:9px">Sin doc.</span></td>
-            <td><div class="act-btns">
-              <button class="btn btn-outline btn-xs btn-icon">👁</button>
-              <button class="btn btn-gold btn-xs" onclick="openM('m-nbanco-movimiento')">+ Imputar</button>
-            </div></td>
-          </tr>
-        </tbody>
+          <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody>
       </table>
       <div class="tfooter">
         <span>Mostrando 4 movimientos del período</span>
@@ -1805,10 +1465,7 @@ textarea.fctl{resize:vertical}
         <div class="tcard">
           <table><thead><tr><th>Fecha</th><th>Concepto (banco)</th><th class="tr">Crédito</th><th class="tr">Débito</th><th>Mov. sistema</th><th>Estado</th></tr></thead>
           <tbody>
-            <tr><td>20/06/2026</td><td>COMISION MANT CTA</td><td class="tr">—</td><td class="tr cd fw">$850</td>
-              <td style="font-size:11px;color:var(--text-muted)">Sin imputar</td>
-              <td><button class="btn btn-gold btn-xs" onclick="toast('Imputando movimiento...','ok')">Imputar</button></td>
-            </tr>
+            <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
           </tbody></table>
         </div>
       </div>
@@ -1824,17 +1481,8 @@ textarea.fctl{resize:vertical}
         <div class="tbar"><div class="tbar-title">Movimientos sin conciliar</div><div class="tbar-actions"><button class="btn btn-outline btn-sm">📥 Exportar</button><button class="btn btn-outline btn-sm">🖨️</button></div></div>
         <table><thead><tr><th>Fecha</th><th>Origen</th><th>Concepto</th><th class="tr">Importe</th><th>Acción</th></tr></thead>
         <tbody>
-          <tr style="background:#fef9ec">
-            <td>22/06/2026</td>
-            <td><span class="badge b-info">Sistema</span></td>
-            <td>Depósito cheque Nación N°000123456 — pendiente de acreditación</td>
-            <td class="tr fw">$43.300</td>
-            <td><div class="act-btns">
-              <button class="btn btn-success btn-xs" onclick="toast('Movimiento conciliado','ok')">✓ Conciliar</button>
-              <button class="btn btn-outline btn-xs" onclick="toast('Marcado como en tránsito','ok')">⏳ En tránsito</button>
-            </div></td>
-          </tr>
-        </tbody></table>
+          <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
         <div class="tfooter"><span>1 movimiento sin conciliar</span></div>
       </div>
     </div>
@@ -1849,33 +1497,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Cuentas bancarias configuradas</div></div>
       <table><thead><tr><th>Banco</th><th>Tipo</th><th>N° Cuenta</th><th>CBU</th><th>Alias</th><th class="tr">Saldo actual</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr>
-          <td class="fw">Banco Nación Argentina</td>
-          <td><span class="badge b-navy">Cta. Corriente</span></td>
-          <td class="fw" style="font-family:monospace">0001234/5</td>
-          <td style="font-family:monospace;font-size:11px">0070199300000012345678</td>
-          <td>fmn.nacion.cc</td>
-          <td class="tr fw cs">$1.284.500</td>
-          <td><span class="badge b-success">Activa</span></td>
-          <td><div class="act-btns">
-            <button class="btn btn-outline btn-xs btn-icon">✏️</button>
-            <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button>
-          </div></td>
-        </tr>
-        <tr>
-          <td class="fw">Santander Argentina</td>
-          <td><span class="badge b-navy">Cta. Corriente</span></td>
-          <td class="fw" style="font-family:monospace">0009876/3</td>
-          <td style="font-family:monospace;font-size:11px">0072401900000098763456</td>
-          <td>fmn.santander.cc</td>
-          <td class="tr fw cs">$342.800</td>
-          <td><span class="badge b-success">Activa</span></td>
-          <td><div class="act-btns">
-            <button class="btn btn-outline btn-xs btn-icon">✏️</button>
-            <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button>
-          </div></td>
-        </tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 </div>
@@ -1917,10 +1540,10 @@ textarea.fctl{resize:vertical}
   <!-- TAB: MOVIMIENTOS DEL DÍA -->
   <div class="tab-pane active" id="tcj-hoy">
     <div class="kpi-grid">
-      <div class="kpi k-navy"><div class="kpi-lbl">Saldo apertura</div><div class="kpi-val">$80.000</div><div class="kpi-sub">Hoy 24/06/2026</div></div>
-      <div class="kpi k-green"><div class="kpi-lbl">Ingresos del día</div><div class="kpi-val">$75.000</div><div class="kpi-sub">3 movimientos</div></div>
-      <div class="kpi k-red"><div class="kpi-lbl">Egresos del día</div><div class="kpi-val">$12.500</div><div class="kpi-sub">2 movimientos</div></div>
-      <div class="kpi k-gold"><div class="kpi-lbl">Saldo actual</div><div class="kpi-val">$142.500</div><div class="kpi-sub">Sin cerrar</div></div>
+      <div class="kpi k-navy"><div class="kpi-lbl">Saldo apertura</div><div class="kpi-val">—</div><div class="kpi-sub">Hoy 24/06/2026</div></div>
+      <div class="kpi k-green"><div class="kpi-lbl">Ingresos del día</div><div class="kpi-val">—</div><div class="kpi-sub">3 movimientos</div></div>
+      <div class="kpi k-red"><div class="kpi-lbl">Egresos del día</div><div class="kpi-val">—</div><div class="kpi-sub">2 movimientos</div></div>
+      <div class="kpi k-gold"><div class="kpi-lbl">Saldo actual</div><div class="kpi-val">—</div><div class="kpi-sub">Sin cerrar</div></div>
     </div>
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
@@ -1942,42 +1565,8 @@ textarea.fctl{resize:vertical}
         <th class="tr">Ingreso</th><th class="tr">Egreso</th><th class="tr">Saldo</th><th>Acciones</th>
       </tr></thead>
       <tbody>
-        <tr style="background:var(--ice)">
-          <td>08:00</td><td><span class="badge b-navy">Apertura</span></td><td>—</td><td>Apertura de caja</td><td>—</td>
-          <td class="tr cs fw">$80.000</td><td class="tr">—</td><td class="tr fw">$80.000</td>
-          <td><button class="btn btn-outline btn-xs btn-icon">👁</button></td>
-        </tr>
-        <tr>
-          <td>10:30</td><td><span class="badge b-success">Ingreso</span></td>
-          <td><span class="badge b-info" style="font-size:9px">Cobranza</span></td>
-          <td>Cobro en efectivo — Mercado interno</td><td>REC-00460</td>
-          <td class="tr cs fw">$30.000</td><td class="tr">—</td><td class="tr fw">$110.000</td>
-          <td><div class="act-btns">
-            <button class="btn btn-outline btn-xs btn-icon">👁</button>
-            <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button>
-          </div></td>
-        </tr>
-        <tr>
-          <td>12:00</td><td><span class="badge b-success">Ingreso</span></td>
-          <td><span class="badge b-info" style="font-size:9px">Cobranza</span></td>
-          <td>Cobro en efectivo — La Anónima S.A.</td><td>REC-00461</td>
-          <td class="tr cs fw">$45.000</td><td class="tr">—</td><td class="tr fw">$155.000</td>
-          <td><div class="act-btns">
-            <button class="btn btn-outline btn-xs btn-icon">👁</button>
-            <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button>
-          </div></td>
-        </tr>
-        <tr>
-          <td>14:15</td><td><span class="badge b-danger">Egreso</span></td>
-          <td><span class="badge b-gold" style="font-size:9px">Gasto</span></td>
-          <td>Pago combustible flota</td><td>GAS-0029</td>
-          <td class="tr">—</td><td class="tr cd fw">$12.500</td><td class="tr fw">$142.500</td>
-          <td><div class="act-btns">
-            <button class="btn btn-outline btn-xs btn-icon">👁</button>
-            <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button>
-          </div></td>
-        </tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
       <div class="tfooter">
         <span>4 movimientos del día</span>
         <div style="display:flex;gap:16px;font-size:12px">
@@ -2011,28 +1600,8 @@ textarea.fctl{resize:vertical}
         <th class="tr">Saldo cierre</th><th>Diferencia</th><th>Acciones</th>
       </tr></thead>
       <tbody>
-        <tr>
-          <td>23/06/2026</td><td>Adm.</td><td>08:00</td><td>18:30</td>
-          <td class="tr">$65.000</td><td class="tr cs">$85.000</td><td class="tr cd">$70.000</td>
-          <td class="tr fw">$80.000</td>
-          <td><span class="badge b-success" style="font-size:10px">✓ Cuadra</span></td>
-          <td><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ver-cierre')">👁</button></td>
-        </tr>
-        <tr>
-          <td>22/06/2026</td><td>Adm.</td><td>08:00</td><td>18:15</td>
-          <td class="tr">$50.000</td><td class="tr cs">$95.000</td><td class="tr cd">$80.000</td>
-          <td class="tr fw">$65.000</td>
-          <td><span class="badge b-success" style="font-size:10px">✓ Cuadra</span></td>
-          <td><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ver-cierre')">👁</button></td>
-        </tr>
-        <tr>
-          <td>21/06/2026</td><td>Adm.</td><td>08:00</td><td>18:00</td>
-          <td class="tr">$48.000</td><td class="tr cs">$62.000</td><td class="tr cd">$60.000</td>
-          <td class="tr fw">$50.000</td>
-          <td><span class="badge b-danger" style="font-size:10px">⚠ Dif: -$200</span></td>
-          <td><button class="btn btn-outline btn-xs btn-icon" onclick="openM('m-ver-cierre')">👁</button></td>
-        </tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 
@@ -2045,31 +1614,8 @@ textarea.fctl{resize:vertical}
       <div class="tbar"><div class="tbar-title">Cajas configuradas</div></div>
       <table><thead><tr><th>Nombre</th><th>Descripción</th><th>Responsable</th><th>Moneda</th><th class="tr">Saldo actual</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody>
-        <tr>
-          <td class="fw">Caja Administración</td>
-          <td>Cobros y pagos de oficina</td>
-          <td>Ivimar Solórzano</td>
-          <td>ARS</td>
-          <td class="tr fw cs">$142.500</td>
-          <td><span class="badge b-success">Abierta</span></td>
-          <td><div class="act-btns">
-            <button class="btn btn-outline btn-xs btn-icon">✏️</button>
-            <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button>
-          </div></td>
-        </tr>
-        <tr>
-          <td class="fw">Caja Galpón</td>
-          <td>Cobros menores en planta</td>
-          <td>Sin asignar</td>
-          <td>ARS</td>
-          <td class="tr fw">$0</td>
-          <td><span class="badge b-danger">Cerrada</span></td>
-          <td><div class="act-btns">
-            <button class="btn btn-outline btn-xs btn-icon">✏️</button>
-            <button class="btn btn-danger btn-xs" onclick="toast('Ingresá PIN de supervisor','warn')">✕</button>
-          </div></td>
-        </tr>
-      </tbody></table>
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
     </div>
   </div>
 </div>
@@ -2141,7 +1687,7 @@ textarea.fctl{resize:vertical}
       <div class="fsec">
         <div class="fsec-title">Cliente</div>
         <div class="fgrid fgrid-3">
-          <div class="fgroup" style="grid-column:1/3"><label class="flabel">Razón Social <span class="req">*</span></label><select class="fctl" onchange="fillCliente(this)"><option value="">— Seleccionar —</option><option value="la" data-cuit="30-68688399-7" data-iva="Responsable Inscripto">La Anónima S.A.</option><option value="coto" data-cuit="30-51699300-4" data-iva="Responsable Inscripto">Coto S.A.</option><option value="cf" data-cuit="" data-iva="Consumidor Final">Consumidor Final</option></select></div>
+          <div class="fgroup" style="grid-column:1/3"><label class="flabel">Razón Social <span class="req">*</span></label><select class="fctl" onchange="fillCliente(this)"><option value="">— Seleccionar —</option></select></div>
           <div class="fgroup"><label class="flabel">CUIT</label><input class="fctl" id="cli-cuit" readonly placeholder="Auto"></div>
           <div class="fgroup"><label class="flabel">Condición IVA</label><input class="fctl" id="cli-iva" readonly placeholder="Auto"></div>
         </div>
@@ -2151,7 +1697,7 @@ textarea.fctl{resize:vertical}
         <div class="items-wrap">
           <table id="tItems"><thead><tr><th>Código</th><th>Descripción</th><th>Cant.</th><th>Unidad</th><th class="tr">Precio</th><th class="tr">Desc%</th><th class="tr">Subtotal</th><th></th></tr></thead>
           <tbody id="bItems">
-            <tr id="ir-1"><td><input class="fctl" style="width:75px" placeholder="COD"></td><td><input class="fctl" style="min-width:160px" placeholder="Artículo"></td><td><input class="fctl" style="width:65px" type="number" value="100" oninput="cr(1)"></td><td><select class="fctl" style="width:65px"><option>kg</option><option>u</option><option>caja</option></select></td><td><input class="fctl" style="width:90px" type="number" value="1200" oninput="cr(1)"></td><td><input class="fctl" style="width:55px" type="number" value="0" oninput="cr(1)"></td><td class="tr fw" id="s-1">$120.000</td><td><button class="btn btn-danger btn-xs btn-icon" onclick="removeRow(1)">✕</button></td></tr>
+            <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
           </tbody></table>
         </div>
         <button class="btn btn-outline btn-sm" onclick="addRow()">＋ Agregar ítem</button>
@@ -2187,14 +1733,15 @@ textarea.fctl{resize:vertical}
         </div>
         <div class="divider"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:10px;margin-bottom:10px">
-          <div><span style="color:var(--text-muted)">Cliente:</span> <strong>La Anónima S.A.</strong></div>
-          <div><span style="color:var(--text-muted)">CUIT:</span> 30-68688399-7</div>
+          <div><span style="color:var(--text-muted)">Cliente:</span> <strong id="recibo-cliente">—</strong></div>
+          <div><span style="color:var(--text-muted)">CUIT:</span> —</div>
           <div><span style="color:var(--text-muted)">Cond. IVA:</span> Responsable Inscripto</div>
           <div><span style="color:var(--text-muted)">Cond. pago:</span> 30 días</div>
         </div>
         <table class="fv-items" style="width:100%;border-collapse:collapse"><thead><tr><th>Código</th><th>Descripción</th><th class="tr">Cant.</th><th>U.</th><th class="tr">P.Unit.</th><th class="tr">Subtotal</th></tr></thead>
-        <tbody><tr><td>VEG-001</td><td>Mix hortalizas Espinaca/Acelga</td><td class="tr">200</td><td>kg</td><td class="tr">$1.200</td><td class="tr">$240.000</td></tr><tr><td>VEG-004</td><td>Lechuga mantecosa</td><td class="tr">85</td><td>kg</td><td class="tr">$476</td><td class="tr">$40.460</td></tr></tbody></table>
-        <div class="fv-totales"><div class="drow"><span class="dkey">Neto gravado:</span><span class="dval">$280.992</span></div><div class="drow"><span class="dkey">IVA 21%:</span><span class="dval">$59.008</span></div><div class="divider"></div><div class="drow"><span class="dkey fw">TOTAL:</span><span class="dval fw" style="font-size:14px">$340.000</span></div></div>
+        <tbody><tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody></table>
+        <div class="fv-totales"><div class="drow"><span class="dkey">Neto gravado:</span><span class="dval">$280.992</span></div><div class="drow"><span class="dkey">IVA 21%:</span><span class="dval">$59.008</span></div><div class="divider"></div><div class="drow"><span class="dkey fw">TOTAL:</span><span class="dval fw" style="font-size:14px">$—</span></div></div>
       </div>
     </div>
     <div class="mfooter">
@@ -2262,12 +1809,12 @@ textarea.fctl{resize:vertical}
 <!-- Ver Cliente -->
 <div class="moverlay" id="m-vercliente">
   <div class="modal">
-    <div class="mhdr"><div><div class="mhdr-title">La Anónima S.A.</div><div class="mhdr-sub">CUIT: 30-68688399-7 — Responsable Inscripto</div></div><button class="mclose" onclick="closeM('m-vercliente')">✕</button></div>
+    <div class="mhdr"><div><div class="mhdr-title" id="ent-modal-title">Cliente</div><div class="mhdr-sub" id="ent-modal-sub">—</div></div><button class="mclose" onclick="closeM('m-vercliente')">✕</button></div>
     <div class="mbody">
       <div class="cc-sum">
         <div class="cc-box"><div class="cc-lbl">Facturado 2026</div><div class="cc-val">$1.840.000</div></div>
         <div class="cc-box"><div class="cc-lbl">Cobrado 2026</div><div class="cc-val">$1.500.000</div></div>
-        <div class="cc-box neg"><div class="cc-lbl">Saldo</div><div class="cc-val">-$340.000</div></div>
+        <div class="cc-box neg"><div class="cc-lbl">Saldo</div><div class="cc-val">-$—</div></div>
       </div>
       <div class="drow"><span class="dkey">Lista de precios</span><span class="dval">Lista Supermercados</span></div>
       <div class="drow"><span class="dkey">Condición pago</span><span class="dval">30 días</span></div>
@@ -3206,9 +2753,7 @@ function setEntidad(tipo){
           <div class="fgroup" style="grid-column:1/3"><label class="flabel">Cliente <span class="req">*</span></label>
             <select class="fctl" id="cob-cliente" onchange="cobCargarComprobantes()">
               <option value="">— Seleccionar cliente —</option>
-              <option value="lanonima">La Anónima S.A.</option>
-              <option value="coto">Coto S.A.</option>
-              <option value="jumbo">Jumbo Retail S.A.</option>
+              <option value="">— Seleccionar cliente —</option>
             </select>
           </div>
           <div class="fgroup"><label class="flabel">Saldo pendiente</label><input class="fctl" id="cob-saldo" readonly value="$0" style="font-weight:800;color:var(--danger)"></div>
@@ -3233,8 +2778,8 @@ function setEntidad(tipo){
               <th style="padding:7px 10px;text-align:right;font-size:10px;font-weight:700">A cancelar</th>
             </tr></thead>
             <tbody id="cob-comp-body">
-              <tr><td colspan="7" style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px">Seleccioná un cliente para ver sus comprobantes pendientes</td></tr>
-            </tbody>
+              <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody>
           </table>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:16px;margin-top:8px;font-size:12px">
@@ -3336,7 +2881,7 @@ function setEntidad(tipo){
 <!-- ═══════════════════ MODAL: VER RECIBO ═══════════════════ -->
 <div class="moverlay" id="m-ver-recibo">
   <div class="modal modal-lg">
-    <div class="mhdr"><div><div class="mhdr-title">Recibo N° REC-00458</div><div class="mhdr-sub">La Anónima S.A. — 24/06/2026</div></div><button class="mclose" onclick="closeM('m-ver-recibo')">✕</button></div>
+    <div class="mhdr"><div><div class="mhdr-title">Recibo N° REC-00000</div><div class="mhdr-sub">— </div></div><button class="mclose" onclick="closeM('m-ver-recibo')">✕</button></div>
     <div class="mbody">
       <!-- Preview del recibo en formato imprimible -->
       <div style="border:2px solid var(--navy);border-radius:8px;padding:20px;background:white;font-size:12px">
@@ -3347,20 +2892,20 @@ function setEntidad(tipo){
             <div style="font-weight:800;font-size:14px;margin-top:6px;color:var(--navy)">RECIBO DE PAGO</div>
           </div>
           <div style="text-align:right;background:var(--ice);padding:10px 14px;border-radius:6px">
-            <div style="font-weight:800;font-size:15px">REC-00458</div>
+            <div style="font-weight:800;font-size:15px">REC-00000</div>
             <div style="color:var(--text-muted);font-size:10px">Fecha: 24/06/2026</div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;font-size:11px">
-          <div><span style="color:var(--text-muted)">Cliente:</span> <strong>La Anónima S.A.</strong></div>
-          <div><span style="color:var(--text-muted)">CUIT:</span> 30-68688399-7</div>
+          <div><span style="color:var(--text-muted)">Cliente:</span> <strong id="recibo-cliente">—</strong></div>
+          <div><span style="color:var(--text-muted)">CUIT:</span> —</div>
         </div>
         <div class="divider"></div>
         <div style="font-size:11px;font-weight:700;margin-bottom:6px">COMPROBANTES CANCELADOS</div>
         <table style="width:100%;border-collapse:collapse;font-size:11px">
           <thead><tr style="background:var(--ice)"><th style="padding:5px 8px;text-align:left">N° Comprobante</th><th style="padding:5px 8px;text-align:left">Fecha</th><th style="padding:5px 8px;text-align:right">Importe</th><th style="padding:5px 8px;text-align:right">Cancelado</th></tr></thead>
           <tbody>
-            <tr><td style="padding:4px 8px">A-0001-00000112</td><td style="padding:4px 8px">24/06/2026</td><td style="padding:4px 8px;text-align:right">$340.000</td><td style="padding:4px 8px;text-align:right;font-weight:700">$340.000</td></tr>
+            <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
           </tbody>
         </table>
         <div class="divider"></div>
@@ -3368,8 +2913,7 @@ function setEntidad(tipo){
         <table style="width:100%;border-collapse:collapse;font-size:11px">
           <thead><tr style="background:var(--ice)"><th style="padding:5px 8px;text-align:left">Forma</th><th style="padding:5px 8px;text-align:left">Detalle</th><th style="padding:5px 8px;text-align:right">Importe</th></tr></thead>
           <tbody>
-            <tr><td style="padding:4px 8px">Cheque de tercero</td><td style="padding:4px 8px">Bco. Nación N°000123456 — Dif. cobro 10/07/2026</td><td style="padding:4px 8px;text-align:right">$240.000</td></tr>
-            <tr><td style="padding:4px 8px">Transferencia</td><td style="padding:4px 8px">CBU confirmado</td><td style="padding:4px 8px;text-align:right">$87.600</td></tr>
+            <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
           </tbody>
         </table>
         <div class="divider"></div>
@@ -3377,8 +2921,7 @@ function setEntidad(tipo){
         <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px">
           <thead><tr style="background:var(--ice)"><th style="padding:5px 8px;text-align:left">Tipo</th><th style="padding:5px 8px;text-align:left">N° Certificado</th><th style="padding:5px 8px;text-align:right">Importe</th></tr></thead>
           <tbody>
-            <tr><td style="padding:4px 8px">Ganancias</td><td style="padding:4px 8px">CERT-2026-0891</td><td style="padding:4px 8px;text-align:right;color:var(--danger)">-$9.200</td></tr>
-            <tr><td style="padding:4px 8px">IIBB Mendoza</td><td style="padding:4px 8px">CERT-2026-0892</td><td style="padding:4px 8px;text-align:right;color:var(--danger)">-$3.200</td></tr>
+            <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
           </tbody>
         </table>
         <div style="display:flex;justify-content:flex-end">
@@ -3453,8 +2996,8 @@ function setEntidad(tipo){
               <th style="padding:7px 10px;font-size:10px;font-weight:700;text-align:right">Pendiente</th>
             </tr></thead>
             <tbody>
-              <tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px">Seleccioná un proveedor</td></tr>
-            </tbody>
+              <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody>
           </table>
         </div>
       </div>
@@ -3498,15 +3041,8 @@ function setEntidad(tipo){
               <th style="padding:7px 10px;font-size:10px;font-weight:700;text-align:right">Importe</th>
             </tr></thead>
             <tbody>
-              <tr>
-                <td style="padding:7px 10px;text-align:center"><input type="radio" name="pag-ch3"></td>
-                <td style="padding:7px 10px" class="fw">000123456</td>
-                <td style="padding:7px 10px">Banco Nación</td>
-                <td style="padding:7px 10px">La Anónima S.A.</td>
-                <td style="padding:7px 10px">10/07/2026</td>
-                <td style="padding:7px 10px;text-align:right" class="fw">$340.000</td>
-              </tr>
-            </tbody>
+              <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody>
           </table>
         </div>
       </div>
@@ -3581,14 +3117,14 @@ function setEntidad(tipo){
         <div style="font-size:11px;font-weight:700;margin-bottom:6px">COMPROBANTES CANCELADOS</div>
         <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px">
           <thead><tr style="background:var(--ice)"><th style="padding:5px 8px;text-align:left">N° Factura</th><th style="padding:5px 8px;text-align:right">Importe</th></tr></thead>
-          <tbody><tr><td style="padding:4px 8px">OC-0046 (A-0002-00001234)</td><td style="padding:4px 8px;text-align:right;font-weight:700">$280.000</td></tr></tbody>
+          <tbody><tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+          </tbody>
         </table>
         <div style="font-size:11px;font-weight:700;margin-bottom:6px">FORMAS DE PAGO</div>
         <table style="width:100%;border-collapse:collapse;font-size:11px">
           <thead><tr style="background:var(--ice)"><th style="padding:5px 8px;text-align:left">Forma</th><th style="padding:5px 8px;text-align:left">Detalle</th><th style="padding:5px 8px;text-align:right">Importe</th></tr></thead>
           <tbody>
-            <tr><td style="padding:4px 8px">Transferencia</td><td style="padding:4px 8px">CBU 00703003-00003265687</td><td style="padding:4px 8px;text-align:right">$100.000</td></tr>
-            <tr><td style="padding:4px 8px">Cheque propio</td><td style="padding:4px 8px">Bco. Nación N°000456789 — cobro 24/07/2026</td><td style="padding:4px 8px;text-align:right">$180.000</td></tr>
+            <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
           </tbody>
         </table>
         <div style="display:flex;justify-content:flex-end;margin-top:10px">
@@ -4035,7 +3571,7 @@ function cjCalcArqueo(){
     <div class="mhdr">
       <div>
         <div class="mhdr-title">Generar Comprobante de Venta</div>
-        <div class="mhdr-sub" id="fdr-sub">Desde remito RV-000091 — datos precargados desde CONTROL TRACE</div>
+        <div class="mhdr-sub" id="fdr-sub">Datos precargados desde CONTROL TRACE</div>
       </div>
       <button class="mclose" onclick="closeM('m-factura-desde-remito')">✕</button>
     </div>
@@ -4130,7 +3666,7 @@ function cjCalcArqueo(){
       <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start">
         <div>
           <div class="fgroup"><label class="flabel">Observaciones / leyenda en factura</label>
-            <textarea class="fctl" rows="3" id="fdr-obs" placeholder="Ej: Según remito RV-000091 — Entrega en depósito central"></textarea>
+            <textarea class="fctl" rows="3" id="fdr-obs" placeholder="Ej: Según remito RV-00001 — Entrega en depósito central"></textarea>
           </div>
         </div>
         <div style="background:var(--ice);border-radius:8px;padding:14px">
@@ -4243,11 +3779,7 @@ function cjCalcArqueo(){
 </div>
 <script>
 // SINCRONIZACIÓN TRACE ↔ PLUS
-const _CLIENTES_PLUS = {
-  'La Anónima S.A.': {cuit:'30-68688399-7', iva:'Responsable Inscripto'},
-  'Coto S.A.':       {cuit:'30-51699300-4', iva:'Responsable Inscripto'},
-  'Jumbo Retail S.A.':{cuit:'30-61539771-3', iva:'Responsable Inscripto'},
-};
+const _CLIENTES_PLUS = {}; // Se llena dinámicamente desde S.clientes
 
 setInterval(()=>{ console.log('[PLUS] Chequeando remitos nuevos en TRACE...'); }, 5*60*1000);
 
