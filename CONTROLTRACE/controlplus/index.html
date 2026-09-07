@@ -418,7 +418,7 @@ textarea.fctl{resize:vertical}
         </button>
         <button class="btn btn-outline btn-sm">📥 Excel</button>
         <button class="btn btn-outline btn-sm">🖨️</button>
-        <button class="btn btn-gold" onclick="toast('Nuevo remito manual creado','ok')">＋ Nuevo Remito</button>
+        <button class="btn btn-gold" onclick="toast('Para crear un remito manual usá el botón ＋ Nuevo Remito','ok')">＋ Nuevo Remito</button>
       </div>
     </div>
 
@@ -549,11 +549,15 @@ textarea.fctl{resize:vertical}
   <!-- TAB: PEDIDOS DE VENTA -->
   <div class="tab-pane" id="tv-pv">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="sync-badge">🔄 Sincronizado con CONTROL TRACE</span>
-        <span class="standalone-badge">🔌 También operable en modo independiente</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="sync-badge">🔄 CONTROL TRACE</span>
+        <span id="sync-ped-status" style="font-size:11px;color:var(--text-muted)">Última sincronización: hace 5 min</span>
+        <span id="sync-ped-badge" style="background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700">✓ Al día con CONTROL TRACE</span>
       </div>
-      <button class="btn btn-gold" onclick="toast('Nuevo pedido de venta creado','ok')">＋ Nuevo Pedido</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="syncPedidosTrace()" id="btn-sync-ped">🔄 Sincronizar ahora</button>
+        <button class="btn btn-gold" onclick="toast('Módulo de nuevo pedido próximamente','ok')">＋ Nuevo Pedido</button>
+      </div>
     </div>
     <div class="fbar">
       <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs sel-cliente"><option value="">Todos</option></select></div>
@@ -1014,7 +1018,7 @@ textarea.fctl{resize:vertical}
     <div><div class="ph-title">Inventario</div><div class="ph-sub">Maestro compartido con CONTROL TRACE — operable en modo independiente</div></div>
     <div class="ph-actions">
       <span class="sync-badge">🔄 CONTROL TRACE</span>
-      <span class="standalone-badge">🔌 Modo independiente</span>
+      
       <button class="btn btn-outline btn-sm">📥 Exportar Excel</button>
     </div>
   </div>
@@ -1100,7 +1104,7 @@ textarea.fctl{resize:vertical}
 
   <div class="tab-pane" id="ti-sal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-      <div style="display:flex;gap:8px"><span class="sync-badge">🔄 Sincronizado con CONTROL TRACE</span><span class="standalone-badge">🔌 Modo independiente disponible</span></div>
+      <div style="display:flex;gap:8px"><span class="sync-badge">🔄 Sincronizado con CONTROL TRACE</span></div>
       <button class="btn btn-gold" onclick="toast('Nueva salida registrada','ok')">＋ Registrar Salida</button>
     </div>
     <div class="tcard">
@@ -1666,7 +1670,7 @@ textarea.fctl{resize:vertical}
         <span class="sync-badge">✅ CONTROL TRACE</span>
         <span class="sync-badge">✅ CONTROLAGRO</span>
         <span class="sync-badge">✅ CONTROL PLUS</span>
-        <span class="standalone-badge">🔜 CONTROL RH (próximamente)</span>
+        
       </div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
@@ -2056,17 +2060,17 @@ async function initPlus() {
 
 async function cargarClientes() {
   const { data } = await sb.from('clientes')
-    .select('id, codigo, nombre, cuit, condicion_iva, email, telefono, activo')
+    .select('id, codigo, razon_social, cuit, iva, domicilio, localidad, telefono, activo')
     .eq('empresa_id', S.empresaId)
     .eq('activo', true)
-    .order('nombre');
+    .order('razon_social');
   S.clientes = data || [];
   renderSelectClientes();
 }
 
 async function cargarProveedores() {
   const { data } = await sb.from('proveedores')
-    .select('id, codigo, nombre, cuit, condicion_iva, activo')
+    .select('id, codigo, nombre, cuit, activo')
     .eq('empresa_id', S.empresaId)
     .eq('activo', true)
     .order('nombre');
@@ -2078,7 +2082,7 @@ async function cargarProductos() {
   const { data } = await sb.from('productos')
     .select('id, codigo, nombre, familia, tipo, unidades_por_caja, activo')
     .eq('empresa_id', S.empresaId)
-    .eq('activo', true)
+    .neq('activo', false)
     .order('nombre');
   S.productos = data || [];
 }
@@ -2123,7 +2127,7 @@ async function cargarCajas() {
 
 function renderSelectClientes() {
   const opts = S.clientes.map(c =>
-    `<option value="${c.id}" data-cuit="${c.cuit||''}" data-iva="${c.condicion_iva||''}">${c.codigo ? '['+c.codigo+'] ' : ''}${c.nombre}</option>`
+    `<option value="${c.id}" data-cuit="${c.cuit||''}" data-iva="${c.iva||''}">${c.codigo ? '['+c.codigo+'] ' : ''}${c.razon_social||''}</option>`
   ).join('');
   // Actualizar todos los selects de clientes en la página
   document.querySelectorAll('select.sel-cliente, #cob-cliente, #fdr-cliente-sel').forEach(el => {
@@ -2134,7 +2138,7 @@ function renderSelectClientes() {
 
 function renderSelectProveedores() {
   const opts = S.proveedores.map(p =>
-    `<option value="${p.id}">${p.codigo ? '['+p.codigo+'] ' : ''}${p.nombre}</option>`
+    `<option value="${p.id}">${p.codigo ? '['+p.codigo+'] ' : ''}${p.nombre||''}</option>`
   ).join('');
   document.querySelectorAll('select.sel-proveedor, #pag-prov').forEach(el => {
     const blank = '<option value="">— Seleccionar proveedor —</option>';
@@ -2344,11 +2348,11 @@ async function syncRemitosVenta() {
 
   // Leer remitos de TRACE que aún no tienen comprobante en PLUS
   // Los remitos de TRACE están en la tabla 'remitos' con empresa_id
-  const { data: remitos, error } = await sb.from('remitos')
-    .select('id, codigo_remito, cliente_id, fecha, detalle, estado, sincronizado_plus')
+  // Despachos de TRACE = remitos de venta en PLUS
+  const { data: remitos, error } = await sb.from('despachos')
+    .select('id, codigo, fecha, cliente_formato, estado')
     .eq('empresa_id', S.empresaId)
-    .eq('estado', 'enviado')                // solo los despachados
-    .is('sincronizado_plus', null)           // que aún no se importaron a PLUS
+    .eq('estado', 'despachado')
     .order('fecha', { ascending: false })
     .limit(50);
 
@@ -2375,10 +2379,11 @@ async function syncRemitosVenta() {
 async function syncRecepcionesTrace() {
   toast('Sincronizando recepciones con CONTROL TRACE...', 'ok');
   // Leer recepciones sin comprobante de compra en PLUS
+  // Recepciones de TRACE sin comprobante de compra en PLUS
   const { data: recs, error } = await sb.from('recepciones')
-    .select('id, lote, proveedor, materia_prima, kilos, fecha, sincronizado_plus')
+    .select('id, codigo_lote, proveedor, materia_prima, kilos, fecha, estado')
     .eq('empresa_id', S.empresaId)
-    .is('sincronizado_plus', null)
+    .eq('estado', 'activa')
     .order('fecha', { ascending: false })
     .limit(30);
 
@@ -3821,6 +3826,32 @@ function syncRemitosVenta(){
     if(badge){badge.style.background='#d1fae5';badge.style.color='#065f46';badge.style.borderColor='#6ee7b7';badge.textContent='✓ Al día con TRACE';}
     toast('Sincronización completa — 0 remitos nuevos','ok');
   },1800);
+}
+
+function syncPedidosTrace(){
+  const btn=document.getElementById('btn-sync-ped');
+  const status=document.getElementById('sync-ped-status');
+  if(btn){btn.textContent='⏳ Sincronizando...';btn.disabled=true;}
+  sb.from('pedidos')
+    .select('id, codigo, cliente_id, fecha, estado')
+    .eq('empresa_id', S.empresaId)
+    .in('estado', ['pendiente','confirmado','parcial'])
+    .order('fecha',{ascending:false})
+    .limit(50)
+    .then(({data:peds,error})=>{
+      if(btn){btn.textContent='🔄 Sincronizar ahora';btn.disabled=false;}
+      if(error){toast('Error: '+error.message,'err');return;}
+      const n=(peds||[]).length;
+      if(status) status.textContent='Última sincronización: ahora mismo';
+      const badge=document.getElementById('sync-ped-badge');
+      if(badge){
+        badge.style.background=n>0?'#fef3c7':'#d1fae5';
+        badge.style.color=n>0?'#92400e':'#065f46';
+        badge.style.borderColor=n>0?'#fcd34d':'#6ee7b7';
+        badge.textContent=n>0?'⏳ '+n+' pedido'+(n>1?'s':'')+' activos':'✓ Al día con CONTROL TRACE';
+      }
+      toast(n>0?n+' pedido'+(n>1?'s':'')+' activo'+(n>1?'s':'')+' en TRACE':'Sin pedidos nuevos','ok');
+    });
 }
 
 function syncRecepcionesTrace(){
