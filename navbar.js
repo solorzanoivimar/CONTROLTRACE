@@ -11,7 +11,7 @@
   const TODOS = [
     { id:'trace', label:'CONTROL TRACE', ico:'🏭', url:'/CONTROLTRACE/index.html' },
     { id:'agro',  label:'CONTROLAGRO',   ico:'🌿', url:'/CONTROLTRACE/controlagro/index.html' },
-    { id:'plus',  label:'CONTROL PLUS',  ico:'🧾', url:null, prox:true },
+    { id:'plus', label:'CONTROL PLUS', ico:'🧾', url:'/CONTROLTRACE/plus/index.html' },
   ];
 
   // ── Permisos por rol ──
