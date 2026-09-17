@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnPass" style="margin-top:10px;width:100%" onclick="cambiarMiClave()">🔑 Cambiar mi contraseña</button><button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:6px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v142 · Plan de producción por FECHA DE ENTREGA con selección de pedidos (tildar). Planificación proyectada encadenada: stock de PT y MP proyectado desde los planes guardados de días anteriores; botón Confirmar con stock real (proyectado vs confirmado); consolidado de MP del horizonte para adelantar compras. SQL: plan_proyeccion_setup.sql</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v143 · Devolución más ágil: colocás el LOTE y el sistema trae las entregas de ese lote (fecha, remito, cliente, cantidad); elegís de cuál devolver, ajustás la cantidad (no puede superar lo entregado), destino, motivo y confirmás. Sin SQL nuevo.</div>
       </div>
     </nav>
     <div class="main">
@@ -2628,23 +2628,26 @@ async function saveCosteo(pid){if(!pid)return banner('Producto inválido','warn'
 // ---- DEVOLUCIONES / LOGÍSTICA INVERSA ----
 async function reloadDevoluciones(){const {data}=await sbAll('devoluciones',{order:'created_at',asc:false});S.devoluciones=data||[];}
 function despForDev(){return S.despachos.filter(d=>d.estado!=='anulada').map(d=>{const it=d.items[0]||{};const lts=it.consumido?lotesDeItem(it):[];const loteStr=lts.map(x=>x.lote).filter(Boolean).join(' + ');const outs=(it.consumido||[]).map(c=>c.code).filter(Boolean);return {code:d.id,fecha:d.fecha,producto:it.producto,outputCode:outs[0]||'',outputs:outs,lote:loteStr||'—',lotesAll:lts.map(x=>x.lote).filter(Boolean),cant:it.cantidad};});}
-function viewDev(){const desps=despForDev();
+function viewDev(){
   $('view').innerHTML=`<div class="card" style="margin-bottom:16px"><div class="card-h"><h3>Registrar devolución</h3></div>
    <p class="hint">Cargá lo que devuelve el cliente y decidí el destino: vuelve a producto terminado, se reingresa como materia prima (desempaque), o se descarta.</p>
-   <label>Despacho de origen</label>
-   <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><input id="dv_scan" autocomplete="off" placeholder="📷 Escaneá o tipeá el lote (L-…/PR-…) o el despacho (D-…) y Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();devScan();}" style="flex:1"><button class="btn btn-ghost btn-sm" onclick="devScan()">Buscar</button></div>
-   <select id="dv_desp" onchange="devPickDesp()"><option value="">— elegir despacho —</option>${desps.map((d,i)=>`<option value="${i}">${d.code} · ${fmtD(d.fecha)} · ${(d.producto||'').slice(0,22)} · lote ${d.lote}</option>`).join('')}</select>
-   <div class="g2"><div><label>Cliente</label>${apair('dv_cli','cli','Buscar cliente por código o nombre…','','','')}</div><div><label>Fecha</label><input type="date" id="dv_fecha" value="${today()}"></div></div>
-   <div class="g2"><div><label>Producto</label><input id="dv_prod" placeholder="producto devuelto"></div><div><label>Cantidad devuelta (unidades)</label><input type="number" id="dv_cant" step="1" min="0" oninput="devKg()"></div></div>
-   <label>¿Qué se hace con la devolución?</label>
-   <select id="dv_tipo" onchange="devTipo()">
-     <option value="reingreso_pt">Reingreso a producto terminado (mismo lote, vuelve al stock)</option>
-     <option value="reingreso_mp">Reingreso como materia prima (desempaque · pierde insumos)</option>
-     <option value="descarte">Descarte total (con motivo)</option>
-   </select>
-   <div id="dv_extra"></div>
-   <label>Motivo / observaciones</label><input id="dv_motivo" placeholder="ej: rotura de cadena de frío, error de pedido...">
-   <button class="btn btn-gold" id="dv_save" style="margin-top:14px" onclick="saveDev()">Registrar devolución</button></div>
+   <label>Lote devuelto</label>
+   <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input id="dv_lote" autocomplete="off" placeholder="📷 Escaneá o tipeá el lote del producto devuelto y Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();devBuscarLote();}" style="flex:1"><button class="btn btn-gold btn-sm" onclick="devBuscarLote()">🔎 Buscar entregas</button></div>
+   <div id="dv_entregas"><div class="scan-note">Colocá el lote y traé las entregas (remitos) hechas de ese lote. Después elegís de cuál se hace la devolución.</div></div>
+   <div id="dv_sel" style="display:none;margin-top:12px;border-top:1px solid var(--line);padding-top:12px">
+     <div class="g2"><div><label>Cliente</label><input id="dv_cli_n" readonly style="background:#f7f5f0"></div><div><label>Fecha de la devolución</label><input type="date" id="dv_fecha" value="${today()}"></div></div>
+     <div class="g2"><div><label>Producto</label><input id="dv_prod" readonly style="background:#f7f5f0"></div><div><label>Cantidad devuelta (unidades)</label><input type="number" id="dv_cant" step="1" min="0" oninput="devKg();devCantChk()"></div></div>
+     <div id="dv_cantnote" class="scan-note" style="margin:2px 0 8px"></div>
+     <label>¿Qué se hace con la devolución?</label>
+     <select id="dv_tipo" onchange="devTipo()">
+       <option value="reingreso_pt">Reingreso a producto terminado (mismo lote, vuelve al stock)</option>
+       <option value="reingreso_mp">Reingreso como materia prima (desempaque · pierde insumos)</option>
+       <option value="descarte">Descarte total (con motivo)</option>
+     </select>
+     <div id="dv_extra"></div>
+     <label>Motivo / observaciones</label><input id="dv_motivo" placeholder="ej: rotura de cadena de frío, error de pedido...">
+     <button class="btn btn-gold" id="dv_save" style="margin-top:14px" onclick="saveDev()">✓ Confirmar devolución</button>
+   </div></div>
    <div class="card"><div class="card-h"><h3>Devoluciones recientes</h3></div><div style="overflow:auto"><table><thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th>Destino</th><th></th></tr></thead><tbody>${S.devoluciones.slice(0,15).map(d=>`<tr style="${d.estado==='anulada'?'opacity:.5':''}"><td class="mono">${d.codigo}</td><td>${fmtD(d.fecha)}</td><td>${(d.cliente_nombre||'').slice(0,18)}</td><td>${(d.producto_nombre||'').slice(0,18)}</td><td class="mono">${nf(d.cantidad)}</td><td>${devTipoLabel(d.tipo)}${d.reingreso_lote?' ('+d.reingreso_lote+')':''}</td><td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="detalleDev('${d.codigo}')" title="Ver">🔍</button>${d.estado!=='anulada'?` <button class="btn btn-ghost btn-sm" onclick="editDev('${d.codigo}')" title="Editar">✎</button> <button class="btn btn-danger btn-sm" onclick="anularDev('${d.codigo}')" title="Anular">✕</button>`:' <span class="tag out">Anulada</span>'}</td></tr>`).join('')||'<tr><td colspan=7 class=empty>Sin devoluciones registradas</td></tr>'}</tbody></table></div></div>`;
   devTipo();
 }
@@ -2697,9 +2700,14 @@ function devTipo(){const t=$('dv_tipo').value;const ex=$('dv_extra');
   else if(t==='descarte'){ex.innerHTML=`<div class="note" style="margin:8px 0">Se registra como descarte. No vuelve al stock. Queda en la trazabilidad para respaldo y nota de crédito.</div><label>Kilos descartados (opcional)</label><input type="number" id="dv_kg" step="0.01" oninput="this.dataset.touch=1">`;devKg();}
   else{ex.innerHTML=`<div class="note" style="margin:8px 0">Las unidades vuelven al stock de producto terminado bajo el mismo lote y quedan disponibles para re-despachar.</div>`;}
 }
+function devEntregasDeLote(lote){const nv=normCode(lote);const m={};(S.entregas||[]).forEach(e=>{if(e.estado==='anulada')return;(e.items||[]).forEach(it=>{if(+it.cantidad>0&&it.loteRef&&normCode(it.loteRef)===nv){const k=e.id+'||'+it.producto;if(!m[k])m[k]={entregaId:e.id,remito:e.numero_remito||'',fecha:e.fecha,cliente_id:e.cliente_id,cliente_nombre:e.clienteNombre||'',producto:it.producto,cantidad:0,lote:it.loteRef};m[k].cantidad+=+it.cantidad||0;}});});return Object.values(m).sort((a,b)=>((a.fecha||'')<(b.fecha||'')?1:-1));}
+function outputCodeDe(prod,lote){let code='';(S.producciones||[]).forEach(p=>{if(p.estado!=='validada')return;if(loteDeProd(p)!==lote)return;(p.outputs||[]).forEach(o=>{if(o.producto===prod&&!code)code=o.code;});});return code;}
+function devBuscarLote(){const i=$('dv_lote');if(!i)return;let v=(i.value||'').trim();if(!v)return banner('Colocá el lote devuelto','warn');try{const o=JSON.parse(v);v=o.lote||o.op||o.code||v;}catch(e){}v=fixCode(v);window._devLoteBuscado=v;window._devLotes=devEntregasDeLote(v);const c=$('dv_entregas');const sd=$('dv_sel');if(sd)sd.style.display='none';window._devSel=null;if(!window._devLotes.length){c.innerHTML='<div class="note" style="border-left:4px solid var(--clay)">No encontré entregas para el lote <b>'+esc(v)+'</b>. Verificá el código o que el remito no esté anulado.</div>';return;}c.innerHTML='<div class="scan-note" style="margin-bottom:6px">Entregas del lote <b>'+esc(v)+'</b> — elegí de cuál se devuelve:</div><div style="overflow:auto"><table><thead><tr><th>Fecha</th><th>Remito</th><th>Cliente</th><th>Producto</th><th style="text-align:right">Entregado</th><th></th></tr></thead><tbody>'+window._devLotes.map((r,idx)=>`<tr><td>${fmtD(r.fecha)}</td><td class="mono">${esc(r.remito)}</td><td>${esc((r.cliente_nombre||'—').slice(0,20))}</td><td>${esc((r.producto||'').slice(0,20))}</td><td class="mono" style="text-align:right">${nf(r.cantidad)}</td><td><button class="btn btn-gold btn-sm" onclick="devPickEntrega(${idx})">Elegir</button></td></tr>`).join('')+'</tbody></table></div>';}
+function devPickEntrega(idx){const r=(window._devLotes||[])[idx];if(!r)return;window._devSel=r;const p=$('dv_prod');if(p){p.value=r.producto||'';p.dataset.lote=r.lote||'';p.dataset.out=outputCodeDe(r.producto,r.lote)||'';p.dataset.dcode='';}const cn=$('dv_cli_n');if(cn)cn.value=r.cliente_nombre||'—';const ct=$('dv_cant');if(ct){ct.value=r.cantidad;ct.max=r.cantidad;}const s=$('dv_sel');if(s)s.style.display='';devCantChk();devKg();devTipo();banner('Entrega '+(r.remito||'')+' · '+nf(r.cantidad)+'u seleccionada','');}
+function devCantChk(){const r=window._devSel;const el=$('dv_cantnote');if(!el)return;if(!r){el.textContent='';return;}const c=+($('dv_cant')?$('dv_cant').value:0)||0;const over=c>r.cantidad;el.innerHTML='Lote <b>'+esc(r.lote)+'</b> · Remito <b>'+esc(r.remito||'—')+'</b> · entregado <b>'+nf(r.cantidad)+'u</b>. '+(over?'<b style="color:var(--clay)">⚠ La devolución no puede superar lo entregado.</b>':'La devolución puede ser igual o menor a lo entregado.');const sv=$('dv_save');if(sv)sv.disabled=over;}
 async function saveDev(){const cant=Math.round(+$('dv_cant').value||0);const prod=$('dv_prod').value.trim();const tipo=$('dv_tipo').value;
   if(!prod)return banner('Indicá el producto','warn');if(cant<=0)return banner('Indicá la cantidad','warn');
-  const cli=S.clientes.find(c=>c.id===$('dv_cli').value)||{};
+  const sel=window._devSel;if(!sel)return banner('Elegí el lote y la entrega de la que se devuelve','warn');if(cant>sel.cantidad)return banner('La devolución no puede superar lo entregado ('+nf(sel.cantidad)+'u)','warn');const cli={id:sel.cliente_id,razon_social:sel.cliente_nombre};
   $('dv_save').innerHTML='<span class="spin"></span>Registrando...';$('dv_save').disabled=true;
   try{
     const {data:num,error:e1}=await sb.rpc('siguiente_numero',{p_tipo:'dev'});if(e1)throw e1;
@@ -2716,7 +2724,7 @@ async function saveDev(){const cant=Math.round(+$('dv_cant').value||0);const pro
     await reloadDevoluciones();
     await reloadEnsamblados();
     await reloadDescartes();if(tipo==='reingreso_mp')await reloadRecepciones();
-    banner('Devolución '+codigo+' registrada','');render();
+    window._devSel=null;banner('Devolución '+codigo+' registrada','');render();
   }catch(err){banner('Error: '+err.message,'err');$('dv_save').innerHTML='Registrar devolución';$('dv_save').disabled=false;}
 }
 
