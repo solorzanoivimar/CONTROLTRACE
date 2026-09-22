@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnPass" style="margin-top:10px;width:100%" onclick="cambiarMiClave()">🔑 Cambiar mi contraseña</button><button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:6px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v146 · Reportes → Rinde: nueva pestaña 📊 Gráfico. Barras del rinde por lote con semáforo (verde/amarillo/rojo) + KPIs (rinde promedio, mejor y menor lote) + barras del costo de MP por paquete por producto. Respeta período y filtros; imprime/exporta a PDF para dirección (Fernando). Sin SQL nuevo.</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v147 · Gráfico de rinde ampliado: además del rinde por lote (semáforo) y el costo por paquete promedio por producto, ahora muestra PRECIO DE MP ($/kg) y COSTO POR PAQUETE POR LOTE (barras), y tiene FILTRO DE LOTE (rinde_scan) para ver solo un lote. Sin SQL nuevo.</div>
       </div>
     </nav>
     <div class="main">
@@ -1777,21 +1777,24 @@ function chainRoots(){const roots={};
   return Object.values(roots).map(R=>{let best='',bc=-1;Object.entries(R.prodPaq).forEach(([n,c])=>{if(c>bc){bc=c;best=n;}});R.primaryProd=best;return R;}).filter(R=>{if(!repF.prod)return true;return R.mp===repF.prod||R.prods.has(repF.prod);});
 }
 function repRindeGrafHTML(segbar){
-  const roots=chainRoots();const e=S.empresa||{};
-  let L=roots.filter(R=>R.kgComp>0).map(R=>({lote:R.root,mp:R.mp,frec:R.frec,rend:R.kgObt/R.kgComp*100})).sort((a,b)=>b.rend-a.rend).slice(0,50);
+  const roots0=chainRoots();const lf=window._rindeLote||'';const roots=lf?roots0.filter(R=>normCode(R.root)===lf):roots0;const e=S.empresa||{};
+  let LL=roots.filter(R=>R.kgComp>0).map(R=>({lote:R.root,mp:R.mp,frec:R.frec,rend:R.kgObt/R.kgComp*100,precioKg:R.kgComp>0?R.tot/R.kgComp:0,cPaq:R.paq>0?R.tot/R.paq:0})).slice(0,50);let L=LL.slice().sort((a,b)=>b.rend-a.rend);
   let T={comp:0,obt:0};roots.forEach(R=>{T.comp+=R.kgComp;T.obt+=R.kgObt;});
   const rProm=T.comp>0?T.obt/T.comp*100:0;const mejor=L[0],peor=L.length?L[L.length-1]:null;
   const prodSet=new Set();roots.forEach(R=>R.prods.forEach(n=>prodSet.add(n)));
   let P=[...prodSet].map(n=>({prod:n,costo:+(mpCostoUnit(n).perUnit||0)})).filter(x=>x.costo>0).sort((a,b)=>b.costo-a.costo).slice(0,50);
-  const maxC=P.reduce((m,x)=>Math.max(m,x.costo),0)||1;
+  const maxC=P.reduce((m,x)=>Math.max(m,x.costo),0)||1;const maxPk=LL.reduce((m,x)=>Math.max(m,x.precioKg),0)||1;const maxCp=LL.reduce((m,x)=>Math.max(m,x.cPaq),0)||1;
   const semColor=r=>r>=85?'#4a7a34':(r>=70?'#c58a1a':'#b4453a');
   const CE=';-webkit-print-color-adjust:exact;print-color-adjust:exact';
   const barRinde=L.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px"><div style="width:150px;text-align:right;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><b class="mono">${esc(x.lote)}</b> <span style="color:var(--muted);font-size:10px">${esc((x.mp||'').slice(0,14))}</span></div><div style="flex:1;background:#efeae0;border-radius:6px;height:20px;overflow:hidden${CE}"><div style="width:${Math.max(1,Math.min(100,x.rend)).toFixed(0)}%;height:100%;border-radius:6px;background:${semColor(x.rend)}${CE}"></div></div><div style="width:52px;text-align:right;font-weight:700;color:${semColor(x.rend)}">${nf(x.rend,0)}%</div></div>`).join('')||'<div class="empty" style="padding:8px">Sin lotes con rinde en el período</div>';
   const barCosto=P.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px"><div style="width:170px;text-align:right;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(x.prod)}</div><div style="flex:1;background:#efeae0;border-radius:6px;height:20px;overflow:hidden${CE}"><div style="width:${(x.costo/maxC*100).toFixed(0)}%;height:100%;border-radius:6px;background:var(--steel,#3f5b78)${CE}"></div></div><div style="width:76px;text-align:right;font-weight:700" class="mono">${money(x.costo)}</div></div>`).join('')||'<div class="empty" style="padding:8px">Sin productos producidos en el período</div>';
+  const barPrecioKg=LL.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px"><div style="width:150px;text-align:right;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><b class="mono">${esc(x.lote)}</b> <span style="color:var(--muted);font-size:10px">${esc((x.mp||'').slice(0,14))}</span></div><div style="flex:1;background:#efeae0;border-radius:6px;height:20px;overflow:hidden${CE}"><div style="width:${(x.precioKg/maxPk*100).toFixed(0)}%;height:100%;border-radius:6px;background:#8a6d3b${CE}"></div></div><div style="width:78px;text-align:right;font-weight:700" class="mono">${money(x.precioKg)}</div></div>`).join('')||'<div class="empty" style="padding:8px">Sin datos</div>';
+  const barCpaqLote=LL.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px"><div style="width:150px;text-align:right;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><b class="mono">${esc(x.lote)}</b> <span style="color:var(--muted);font-size:10px">${esc((x.mp||'').slice(0,14))}</span></div><div style="flex:1;background:#efeae0;border-radius:6px;height:20px;overflow:hidden${CE}"><div style="width:${(x.cPaq/maxCp*100).toFixed(0)}%;height:100%;border-radius:6px;background:#3f5b78${CE}"></div></div><div style="width:78px;text-align:right;font-weight:700" class="mono">${money(x.cPaq)}</div></div>`).join('')||'<div class="empty" style="padding:8px">Sin datos</div>';
   return `<div class="card"><div class="card-h"><h3>Rinde y costo — gráfico</h3><button class="btn btn-gold btn-sm" onclick="printDoc('A4')">🖨️ Imprimir / PDF</button></div>${segbar}
-   <p class="hint">Vista rápida para dirección: el <b>rinde de cada lote</b> con semáforo y el <b>costo de MP por paquete</b> de cada producto. Respeta el período y filtros de arriba. Imprimí o guardá como PDF para enviarle a Fernando.</p>
+   <p class="hint">Vista rápida para dirección: <b>rinde por lote</b> (semáforo), <b>precio de MP ($/kg)</b> y <b>costo por paquete</b> por lote, más el <b>costo por paquete promedio</b> por producto. Filtrá un lote para ver solo ese. Imprimí o guardá como PDF para Fernando.</p>
+   <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap"><input id="rinde_scan" autocomplete="off" placeholder="📷 Escaneá o tipeá un lote (L-…) y Enter para ver solo ese" onkeydown="if(event.key==='Enter'){event.preventDefault();rindeScan();}" style="flex:1;min-width:200px" value="${lf?esc(window._rindeLote):''}"><button class="btn btn-ghost btn-sm" onclick="rindeScan()">Filtrar lote</button>${lf?`<span class="tag ok">Lote: ${esc(window._rindeLote)}</span> <button class="btn btn-ghost btn-sm" onclick="rindeClearLote()">✕ quitar</button>`:''}</div>
    <div id="lblArea"><div style="padding:6px 4px">
-     <div style="display:flex;gap:10px;align-items:center;border-bottom:2px solid var(--navy,#16243f);padding-bottom:8px;margin-bottom:12px">${empLogo()?`<img src="${empLogo()}" style="height:38px">`:''}<div><div style="font-weight:700;font-size:15px">${esc(e.razon_social||'')}</div><div style="font-size:12px;color:var(--muted)">Rinde y costo por paquete · generado ${fmtD(today())}</div></div></div>
+     <div style="display:flex;gap:10px;align-items:center;border-bottom:2px solid var(--navy,#16243f);padding-bottom:8px;margin-bottom:12px">${empLogo()?`<img src="${empLogo()}" style="height:38px">`:''}<div><div style="font-weight:700;font-size:15px">${esc(e.razon_social||'')}</div><div style="font-size:12px;color:var(--muted)">Rinde y costo${lf?' · Lote '+esc(window._rindeLote):' por paquete'} · generado ${fmtD(today())}</div></div></div>
      <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
        <div class="kpi steel"><div class="lab">Rinde promedio</div><div class="val">${nf(rProm,0)}%</div><div class="un">${L.length} lote(s)</div></div>
        <div class="kpi navy"><div class="lab">Mejor lote</div><div class="val" style="font-size:18px">${mejor?nf(mejor.rend,0)+'%':'—'}</div><div class="un">${mejor?esc(mejor.lote):''}</div></div>
@@ -1799,9 +1802,12 @@ function repRindeGrafHTML(segbar){
      </div>
      <div style="font-weight:700;font-size:13px;margin:6px 0 6px">Rinde por lote <span style="font-weight:400;font-size:11px;color:var(--muted)">(verde ≥85% · amarillo 70–84% · rojo &lt;70%)</span></div>
      ${barRinde}
-     <div style="font-weight:700;font-size:13px;margin:18px 0 6px">Costo de MP por paquete — por producto</div>
-     ${barCosto}
-     <div style="font-size:10px;color:var(--muted);margin-top:12px">El rinde es kilos obtenidos ÷ kilos comprados por lote. El costo por paquete es la materia prima que lleva cada paquete según su receta/rinde.</div>
+     <div style="font-weight:700;font-size:13px;margin:18px 0 6px">Precio de MP ($/kg) — por lote</div>
+     ${barPrecioKg}
+     <div style="font-weight:700;font-size:13px;margin:18px 0 6px">Costo por paquete ($) — por lote</div>
+     ${barCpaqLote}
+     ${lf?'':`<div style="font-weight:700;font-size:13px;margin:18px 0 6px">Costo de MP por paquete — por producto (promedio)</div>${barCosto}`}
+     <div style="font-size:10px;color:var(--muted);margin-top:12px">El rinde es kilos obtenidos ÷ kilos comprados por lote. El precio de MP ($/kg) y el costo por paquete por lote = total de compra del lote ÷ kilos comprados y ÷ paquetes obtenidos. El costo por paquete por producto (promedio) usa la receta/rinde de cada producto.</div>
    </div></div></div>`;
 }
 function costoUnitTotal(producto){const p=S.productos.find(x=>x.nombre===producto);const pid=p?p.id:null;const mp=mpCostoUnit(producto).perUnit;const ins=insumoCostoUnit(producto).tot;const sv=(pid&&S.costos[pid])||{gastos_op:0,mano_obra:0,flete:0,otros:0};return mp+ins+(+sv.gastos_op||0)+(+sv.mano_obra||0)+(+sv.flete||0)+(+sv.otros||0);}
