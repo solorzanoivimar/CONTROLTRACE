@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnPass" style="margin-top:10px;width:100%" onclick="cambiarMiClave()">🔑 Cambiar mi contraseña</button><button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:6px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v147 · Gráfico de rinde ampliado: además del rinde por lote (semáforo) y el costo por paquete promedio por producto, ahora muestra PRECIO DE MP ($/kg) y COSTO POR PAQUETE POR LOTE (barras), y tiene FILTRO DE LOTE (rinde_scan) para ver solo un lote. Sin SQL nuevo.</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v148 · Rinde → Gráfico ahora es un TABLERO INTERACTIVO: rinde por producto (consolidado) → click abre los lotes → click abre la ficha del lote (recepción, productos terminados, paquetes y costos). Los lotes recibidos SIN PROCESAR quedan excluidos del rinde (con opción para incluirlos). Cualquier vista se imprime a PDF. Sin SQL nuevo.</div>
       </div>
     </nav>
     <div class="main">
@@ -1777,39 +1777,126 @@ function chainRoots(){const roots={};
   return Object.values(roots).map(R=>{let best='',bc=-1;Object.entries(R.prodPaq).forEach(([n,c])=>{if(c>bc){bc=c;best=n;}});R.primaryProd=best;return R;}).filter(R=>{if(!repF.prod)return true;return R.mp===repF.prod||R.prods.has(repF.prod);});
 }
 function repRindeGrafHTML(segbar){
-  const roots0=chainRoots();const lf=window._rindeLote||'';const roots=lf?roots0.filter(R=>normCode(R.root)===lf):roots0;const e=S.empresa||{};
-  let LL=roots.filter(R=>R.kgComp>0).map(R=>({lote:R.root,mp:R.mp,frec:R.frec,rend:R.kgObt/R.kgComp*100,precioKg:R.kgComp>0?R.tot/R.kgComp:0,cPaq:R.paq>0?R.tot/R.paq:0})).slice(0,50);let L=LL.slice().sort((a,b)=>b.rend-a.rend);
-  let T={comp:0,obt:0};roots.forEach(R=>{T.comp+=R.kgComp;T.obt+=R.kgObt;});
-  const rProm=T.comp>0?T.obt/T.comp*100:0;const mejor=L[0],peor=L.length?L[L.length-1]:null;
-  const prodSet=new Set();roots.forEach(R=>R.prods.forEach(n=>prodSet.add(n)));
-  let P=[...prodSet].map(n=>({prod:n,costo:+(mpCostoUnit(n).perUnit||0)})).filter(x=>x.costo>0).sort((a,b)=>b.costo-a.costo).slice(0,50);
-  const maxC=P.reduce((m,x)=>Math.max(m,x.costo),0)||1;const maxPk=LL.reduce((m,x)=>Math.max(m,x.precioKg),0)||1;const maxCp=LL.reduce((m,x)=>Math.max(m,x.cPaq),0)||1;
-  const semColor=r=>r>=85?'#4a7a34':(r>=70?'#c58a1a':'#b4453a');
+  const e=S.empresa||{};
+  const roots=chainRoots();
+  const incSin=!!window._rindeIncSin;
+  const isProc=R=>(R.kgObt>0||R.paq>0);
   const CE=';-webkit-print-color-adjust:exact;print-color-adjust:exact';
-  const barRinde=L.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px"><div style="width:150px;text-align:right;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><b class="mono">${esc(x.lote)}</b> <span style="color:var(--muted);font-size:10px">${esc((x.mp||'').slice(0,14))}</span></div><div style="flex:1;background:#efeae0;border-radius:6px;height:20px;overflow:hidden${CE}"><div style="width:${Math.max(1,Math.min(100,x.rend)).toFixed(0)}%;height:100%;border-radius:6px;background:${semColor(x.rend)}${CE}"></div></div><div style="width:52px;text-align:right;font-weight:700;color:${semColor(x.rend)}">${nf(x.rend,0)}%</div></div>`).join('')||'<div class="empty" style="padding:8px">Sin lotes con rinde en el período</div>';
-  const barCosto=P.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px"><div style="width:170px;text-align:right;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(x.prod)}</div><div style="flex:1;background:#efeae0;border-radius:6px;height:20px;overflow:hidden${CE}"><div style="width:${(x.costo/maxC*100).toFixed(0)}%;height:100%;border-radius:6px;background:var(--steel,#3f5b78)${CE}"></div></div><div style="width:76px;text-align:right;font-weight:700" class="mono">${money(x.costo)}</div></div>`).join('')||'<div class="empty" style="padding:8px">Sin productos producidos en el período</div>';
-  const barPrecioKg=LL.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px"><div style="width:150px;text-align:right;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><b class="mono">${esc(x.lote)}</b> <span style="color:var(--muted);font-size:10px">${esc((x.mp||'').slice(0,14))}</span></div><div style="flex:1;background:#efeae0;border-radius:6px;height:20px;overflow:hidden${CE}"><div style="width:${(x.precioKg/maxPk*100).toFixed(0)}%;height:100%;border-radius:6px;background:#8a6d3b${CE}"></div></div><div style="width:78px;text-align:right;font-weight:700" class="mono">${money(x.precioKg)}</div></div>`).join('')||'<div class="empty" style="padding:8px">Sin datos</div>';
-  const barCpaqLote=LL.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px"><div style="width:150px;text-align:right;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><b class="mono">${esc(x.lote)}</b> <span style="color:var(--muted);font-size:10px">${esc((x.mp||'').slice(0,14))}</span></div><div style="flex:1;background:#efeae0;border-radius:6px;height:20px;overflow:hidden${CE}"><div style="width:${(x.cPaq/maxCp*100).toFixed(0)}%;height:100%;border-radius:6px;background:#3f5b78${CE}"></div></div><div style="width:78px;text-align:right;font-weight:700" class="mono">${money(x.cPaq)}</div></div>`).join('')||'<div class="empty" style="padding:8px">Sin datos</div>';
-  return `<div class="card"><div class="card-h"><h3>Rinde y costo — gráfico</h3><button class="btn btn-gold btn-sm" onclick="printDoc('A4')">🖨️ Imprimir / PDF</button></div>${segbar}
-   <p class="hint">Vista rápida para dirección: <b>rinde por lote</b> (semáforo), <b>precio de MP ($/kg)</b> y <b>costo por paquete</b> por lote, más el <b>costo por paquete promedio</b> por producto. Filtrá un lote para ver solo ese. Imprimí o guardá como PDF para Fernando.</p>
-   <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap"><input id="rinde_scan" autocomplete="off" placeholder="📷 Escaneá o tipeá un lote (L-…) y Enter para ver solo ese" onkeydown="if(event.key==='Enter'){event.preventDefault();rindeScan();}" style="flex:1;min-width:200px" value="${lf?esc(window._rindeLote):''}"><button class="btn btn-ghost btn-sm" onclick="rindeScan()">Filtrar lote</button>${lf?`<span class="tag ok">Lote: ${esc(window._rindeLote)}</span> <button class="btn btn-ghost btn-sm" onclick="rindeClearLote()">✕ quitar</button>`:''}</div>
+  const sem=r=>r>=85?'#4a7a34':(r>=70?'#c58a1a':'#b4453a');
+  const procRoots=roots.filter(R=>R.kgComp>0&&(incSin||isProc(R)));
+  const nSin=roots.filter(R=>R.kgComp>0&&!isProc(R)).length;
+  const G={};procRoots.forEach(R=>{const k=R.mp||'—';const g=G[k]||(G[k]={mp:k,comp:0,obt:0,paq:0,tot:0,prods:new Set(),lotes:[]});g.comp+=R.kgComp;g.obt+=R.kgObt;g.paq+=R.paq;g.tot+=R.tot;R.prods.forEach(n=>g.prods.add(n));g.lotes.push(R);});
+  const groups=Object.values(G);groups.forEach(g=>{g.rend=g.comp>0?g.obt/g.comp*100:0;g.cPaq=g.paq>0?g.tot/g.paq:0;g.precioKg=g.comp>0?g.tot/g.comp:0;});groups.sort((a,b)=>b.rend-a.rend);
+  window._rgGroups=groups;
+  let dr=window._rindeDrill||null;
+  const scan=window._rindeLote||'';
+  if(scan){const R=procRoots.find(x=>normCode(x.root)===scan)||roots.find(x=>normCode(x.root)===scan);dr=R?{prod:R.mp||'—',lote:R.root}:dr;}
+  const curG=dr?groups.find(g=>g.mp===dr.prod):null;
+  const curGIdx=curG?groups.indexOf(curG):-1;
+  let curR=null;if(dr&&dr.lote){curR=procRoots.find(x=>x.root===dr.lote)||roots.find(x=>x.root===dr.lote)||null;}
+  let T={comp:0,obt:0};procRoots.forEach(R=>{T.comp+=R.kgComp;T.obt+=R.kgObt;});
+  const rProm=T.comp>0?T.obt/T.comp*100:0;
+  const Lp=procRoots.map(R=>({lote:R.root,rend:R.kgComp>0?R.kgObt/R.kgComp*100:0})).sort((a,b)=>b.rend-a.rend);
+  const mejor=Lp[0],peor=Lp.length>1?Lp[Lp.length-1]:null;
+  const crumb=`<div style="font-size:12px;margin:0 0 12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+     <span onclick="rindeDrillHome()" style="cursor:pointer;color:var(--steel,#3f5b78);font-weight:700">🏠 Todos los productos</span>
+     ${dr&&curG?`<span style="color:var(--muted)">›</span><span onclick="rindeDrillProd(${curGIdx})" style="cursor:pointer;color:var(--steel,#3f5b78);font-weight:700">${esc(curG.mp)}</span>`:''}
+     ${curR?`<span style="color:var(--muted)">›</span><span style="font-weight:700" class="mono">${esc(curR.root)}</span>`:''}
+   </div>`;
+  let inner='';
+  if(curR){
+    const R=curR,rec=R.rec||{};const cajas=+rec.cajas||0,kilos=R.kgComp,total=R.tot;
+    const pKilo=kilos>0?total/kilos:0,pCaja=cajas>0?total/cajas:0,pres=rec.presentacion||'';
+    const rend=kilos>0?R.kgObt/kilos*100:0,cPaq=R.paq>0?total/R.paq:0,kgProc=R.kgObt>0?total/R.kgObt:0;
+    const outs=Object.entries(R.prodPaq||{}).sort((a,b)=>b[1]-a[1]);
+    inner=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px">
+      <div style="border:1px solid #e6ded0;border-radius:10px;padding:12px;background:#fff">
+        <div style="font-weight:800;font-size:13px;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:8px">📦 Recepción del lote</div>
+        <table style="width:100%;font-size:12px"><tbody>
+          <tr><td style="color:var(--muted);padding:2px 0">Lote</td><td style="text-align:right;font-weight:700" class="mono">${esc(R.root)}</td></tr>
+          <tr><td style="color:var(--muted);padding:2px 0">Fecha</td><td style="text-align:right">${fmtD(rec.fecha||R.frec)}</td></tr>
+          <tr><td style="color:var(--muted);padding:2px 0">Proveedor</td><td style="text-align:right">${esc(R.prov)}</td></tr>
+          <tr><td style="color:var(--muted);padding:2px 0">Materia prima</td><td style="text-align:right">${esc(R.mp)}</td></tr>
+          ${pres?`<tr><td style="color:var(--muted);padding:2px 0">Presentación</td><td style="text-align:right">${esc(pres)}</td></tr>`:''}
+          <tr><td style="color:var(--muted);padding:2px 0">Cantidad</td><td style="text-align:right" class="mono">${nf(cajas)} caja(s) · ${nf(kilos,1)} kg</td></tr>
+          <tr><td style="color:var(--muted);padding:2px 0">Precio</td><td style="text-align:right" class="mono">${money(pCaja)}/caja · ${money(pKilo)}/kg</td></tr>
+          <tr style="border-top:1px solid #eee"><td style="padding:6px 0;font-weight:700">Total compra</td><td style="text-align:right;font-weight:800" class="mono">${money(total)}</td></tr>
+        </tbody></table>
+      </div>
+      <div style="border:1px solid #e6ded0;border-radius:10px;padding:12px;background:#fff">
+        <div style="font-weight:800;font-size:13px;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:8px">📊 Rinde y costo</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="flex:1;background:#efeae0;border-radius:6px;height:22px;overflow:hidden${CE}"><div style="width:${Math.max(2,Math.min(100,rend)).toFixed(0)}%;height:100%;border-radius:6px;background:${sem(rend)}${CE}"></div></div><div style="font-weight:800;font-size:16px;color:${sem(rend)}">${nf(rend,0)}%</div></div>
+        <table style="width:100%;font-size:12px"><tbody>
+          <tr><td style="color:var(--muted);padding:2px 0">Kg comprados</td><td style="text-align:right" class="mono">${nf(kilos,1)} kg</td></tr>
+          <tr><td style="color:var(--muted);padding:2px 0">Kg obtenidos</td><td style="text-align:right" class="mono">${nf(R.kgObt,1)} kg</td></tr>
+          <tr><td style="color:var(--muted);padding:2px 0">Merma</td><td style="text-align:right" class="mono">${nf(Math.max(0,kilos-R.kgObt),1)} kg</td></tr>
+          <tr><td style="color:var(--muted);padding:2px 0">Paquetes</td><td style="text-align:right" class="mono">${nf(R.paq)}</td></tr>
+          <tr><td style="color:var(--muted);padding:2px 0">Costo por paquete</td><td style="text-align:right;font-weight:700" class="mono">${money(cPaq)}</td></tr>
+          <tr><td style="color:var(--muted);padding:2px 0">$/kg MP comprada</td><td style="text-align:right" class="mono">${money(pKilo)}</td></tr>
+          <tr><td style="color:var(--muted);padding:2px 0">$/kg procesado</td><td style="text-align:right" class="mono">${money(kgProc)}</td></tr>
+        </tbody></table>
+      </div>
+      <div style="border:1px solid #e6ded0;border-radius:10px;padding:12px;background:#fff">
+        <div style="font-weight:800;font-size:13px;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:8px">🏷️ Productos terminados</div>
+        ${outs.length?`<table style="width:100%;font-size:12px"><thead><tr><th style="text-align:left;color:var(--muted);font-weight:600">Producto</th><th style="text-align:right;color:var(--muted);font-weight:600">Paquetes</th></tr></thead><tbody>${outs.map(([n,c])=>`<tr><td style="padding:3px 0">${esc(n)}</td><td style="text-align:right" class="mono">${nf(c)}</td></tr>`).join('')}</tbody><tfoot><tr style="border-top:1px solid #eee;font-weight:700"><td style="padding:5px 0">Total</td><td style="text-align:right" class="mono">${nf(R.paq)}</td></tr></tfoot></table>`:'<div class="empty" style="padding:6px">Este lote aún no tiene producción registrada.</div>'}
+      </div>
+    </div>`;
+  } else if(dr&&curG){
+    let sorted=curG.lotes.slice().map(R=>({R,rend:R.kgComp>0?R.kgObt/R.kgComp*100:0})).sort((a,b)=>b.rend-a.rend);
+    window._rgLotes=sorted.map(o=>o.R.root);
+    const bars=sorted.map((o,j)=>{const R=o.R,rend=o.rend,cPaq=R.paq>0?R.tot/R.paq:0;return `<div onclick="rindeDrillLote(${j})" style="cursor:pointer;display:flex;align-items:center;gap:8px;margin:6px 0;padding:6px 8px;border-radius:8px;border:1px solid #efe9dd;background:#fff" onmouseover="this.style.background='#faf7f0'" onmouseout="this.style.background='#fff'">
+        <div style="width:150px;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><b class="mono">${esc(R.root)}</b> <span style="font-size:10px;color:var(--muted)">${fmtD(R.frec)}</span></div>
+        <div style="flex:1;background:#efeae0;border-radius:6px;height:20px;overflow:hidden${CE}"><div style="width:${Math.max(2,Math.min(100,rend)).toFixed(0)}%;height:100%;border-radius:6px;background:${sem(rend)}${CE}"></div></div>
+        <div style="width:46px;text-align:right;font-weight:700;color:${sem(rend)}">${nf(rend,0)}%</div>
+        <div style="width:82px;text-align:right;font-size:11px" class="mono">${money(cPaq)}/paq</div>
+        <div style="width:14px;text-align:center;color:var(--muted)">›</div>
+      </div>`;}).join('')||'<div class="empty" style="padding:8px">Sin lotes procesados</div>';
+    inner=`<div class="kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">
+        <div class="kpi steel"><div class="lab">Rinde consolidado</div><div class="val">${nf(curG.rend,0)}%</div><div class="un">${curG.lotes.length} lote(s)</div></div>
+        <div class="kpi navy"><div class="lab">Paquetes</div><div class="val" style="font-size:20px">${nf(curG.paq)}</div><div class="un">${esc([...curG.prods].join(', ').slice(0,26))||'—'}</div></div>
+        <div class="kpi gold"><div class="lab">Costo/paquete</div><div class="val" style="font-size:18px">${money(curG.cPaq)}</div><div class="un">promedio</div></div>
+        <div class="kpi steel"><div class="lab">MP $/kg</div><div class="val" style="font-size:18px">${money(curG.precioKg)}</div><div class="un">${nf(curG.comp,0)} kg comp.</div></div>
+      </div>
+      <div style="font-weight:700;font-size:13px;margin:4px 0 6px">Lotes de ${esc(curG.mp)} <span style="font-weight:400;font-size:11px;color:var(--muted)">— tocá un lote para ver la ficha completa</span></div>
+      ${bars}`;
+  } else {
+    const bars=groups.map((g,i)=>{const prodList=[...g.prods].join(', ')||'—';return `<div onclick="rindeDrillProd(${i})" style="cursor:pointer;border:1px solid #e6ded0;border-radius:10px;padding:10px 12px;margin:8px 0;background:#fff" onmouseover="this.style.background='#faf7f0'" onmouseout="this.style.background='#fff'">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px">${esc(g.mp)} <span style="font-weight:400;font-size:11px;color:var(--muted)">· ${g.lotes.length} lote(s) · ${nf(g.paq)} paq.</span></div><div style="font-size:11px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(prodList)}</div></div>
+          <div style="width:32%;min-width:110px"><div style="background:#efeae0;border-radius:6px;height:22px;overflow:hidden${CE}"><div style="width:${Math.max(2,Math.min(100,g.rend)).toFixed(0)}%;height:100%;border-radius:6px;background:${sem(g.rend)}${CE}"></div></div></div>
+          <div style="width:52px;text-align:right;font-weight:800;font-size:15px;color:${sem(g.rend)}">${nf(g.rend,0)}%</div>
+          <div style="width:14px;text-align:center;color:var(--muted)">›</div>
+        </div>
+        <div style="display:flex;gap:14px;margin-top:8px;font-size:11px;flex-wrap:wrap"><span style="color:var(--muted)">Costo/paq <b class="mono" style="color:var(--ink)">${money(g.cPaq)}</b></span><span style="color:var(--muted)">MP $/kg <b class="mono" style="color:var(--ink)">${money(g.precioKg)}</b></span><span style="color:var(--muted)">Kg comp <b class="mono" style="color:var(--ink)">${nf(g.comp,0)}</b></span><span style="color:var(--muted)">Kg obt <b class="mono" style="color:var(--ink)">${nf(g.obt,0)}</b></span></div>
+      </div>`;}).join('')||'<div class="empty" style="padding:8px">Sin productos procesados en el período</div>';
+    inner=`<div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+        <div class="kpi steel"><div class="lab">Rinde promedio</div><div class="val">${nf(rProm,0)}%</div><div class="un">${Lp.length} lote(s) procesado(s)</div></div>
+        <div class="kpi navy"><div class="lab">Mejor lote</div><div class="val" style="font-size:18px">${mejor?nf(mejor.rend,0)+'%':'—'}</div><div class="un mono">${mejor?esc(mejor.lote):''}</div></div>
+        <div class="kpi gold"><div class="lab">Menor rinde</div><div class="val" style="font-size:18px">${peor?nf(peor.rend,0)+'%':'—'}</div><div class="un mono">${peor?esc(peor.lote):''}</div></div>
+      </div>
+      <div style="font-weight:700;font-size:13px;margin:4px 0 6px">Rinde por producto <span style="font-weight:400;font-size:11px;color:var(--muted)">(verde ≥85% · amarillo 70–84% · rojo &lt;70%) — tocá un producto para ver sus lotes</span></div>
+      ${bars}
+      ${nSin>0&&!incSin?`<div style="margin-top:10px;font-size:11px;color:var(--muted);background:#fbf7ef;border:1px dashed #e0d6c2;border-radius:8px;padding:8px">ℹ️ ${nSin} lote(s) recibido(s) aún sin procesar — no se cuentan en el rinde (se tomarían como merma total). Marcá "Incluir lotes sin procesar" si querés verlos.</div>`:''}`;
+  }
+  return `<div class="card"><div class="card-h"><h3>Rinde y costo — tablero</h3><button class="btn btn-gold btn-sm" onclick="printDoc('A4')">🖨️ Imprimir / PDF</button></div>${segbar}
+   <p class="hint">Tablero interactivo: entrá y ves el <b>rinde por producto</b> (consolidado, todos los lotes). Tocá un producto para ver <b>sus lotes</b>, y tocá un lote para abrir su <b>ficha</b> (recepción, productos terminados, paquetes y costos). Imprimí cualquier vista para Fernando.</p>
+   <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+     <input id="rinde_scan" autocomplete="off" placeholder="📷 Escaneá o tipeá un lote (L-…) y Enter para abrir su ficha" onkeydown="if(event.key==='Enter'){event.preventDefault();rindeScan();}" style="flex:1;min-width:200px" value="${scan?esc(window._rindeLote):''}">
+     <button class="btn btn-ghost btn-sm" onclick="rindeScan()">Ver ficha</button>
+     ${dr?`<button class="btn btn-ghost btn-sm" onclick="rindeDrillHome()">⤺ Volver al inicio</button>`:''}
+     <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap"><input type="checkbox" ${incSin?'checked':''} onclick="rindeToggleSin()"> Incluir lotes sin procesar</label>
+   </div>
    <div id="lblArea"><div style="padding:6px 4px">
-     <div style="display:flex;gap:10px;align-items:center;border-bottom:2px solid var(--navy,#16243f);padding-bottom:8px;margin-bottom:12px">${empLogo()?`<img src="${empLogo()}" style="height:38px">`:''}<div><div style="font-weight:700;font-size:15px">${esc(e.razon_social||'')}</div><div style="font-size:12px;color:var(--muted)">Rinde y costo${lf?' · Lote '+esc(window._rindeLote):' por paquete'} · generado ${fmtD(today())}</div></div></div>
-     <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
-       <div class="kpi steel"><div class="lab">Rinde promedio</div><div class="val">${nf(rProm,0)}%</div><div class="un">${L.length} lote(s)</div></div>
-       <div class="kpi navy"><div class="lab">Mejor lote</div><div class="val" style="font-size:18px">${mejor?nf(mejor.rend,0)+'%':'—'}</div><div class="un">${mejor?esc(mejor.lote):''}</div></div>
-       <div class="kpi gold"><div class="lab">Menor rinde</div><div class="val" style="font-size:18px">${peor?nf(peor.rend,0)+'%':'—'}</div><div class="un">${peor?esc(peor.lote):''}</div></div>
-     </div>
-     <div style="font-weight:700;font-size:13px;margin:6px 0 6px">Rinde por lote <span style="font-weight:400;font-size:11px;color:var(--muted)">(verde ≥85% · amarillo 70–84% · rojo &lt;70%)</span></div>
-     ${barRinde}
-     <div style="font-weight:700;font-size:13px;margin:18px 0 6px">Precio de MP ($/kg) — por lote</div>
-     ${barPrecioKg}
-     <div style="font-weight:700;font-size:13px;margin:18px 0 6px">Costo por paquete ($) — por lote</div>
-     ${barCpaqLote}
-     ${lf?'':`<div style="font-weight:700;font-size:13px;margin:18px 0 6px">Costo de MP por paquete — por producto (promedio)</div>${barCosto}`}
-     <div style="font-size:10px;color:var(--muted);margin-top:12px">El rinde es kilos obtenidos ÷ kilos comprados por lote. El precio de MP ($/kg) y el costo por paquete por lote = total de compra del lote ÷ kilos comprados y ÷ paquetes obtenidos. El costo por paquete por producto (promedio) usa la receta/rinde de cada producto.</div>
+     <div style="display:flex;gap:10px;align-items:center;border-bottom:2px solid var(--navy,#16243f);padding-bottom:8px;margin-bottom:12px">${empLogo()?`<img src="${empLogo()}" style="height:38px">`:''}<div><div style="font-weight:700;font-size:15px">${esc(e.razon_social||'')}</div><div style="font-size:12px;color:var(--muted)">Rinde y costo${curR?' · Lote '+esc(curR.root):(dr&&curG?' · '+esc(curG.mp):'')} · generado ${fmtD(today())}</div></div></div>
+     ${crumb}
+     ${inner}
+     <div style="font-size:10px;color:var(--muted);margin-top:12px">El rinde es kilos obtenidos ÷ kilos comprados. El costo por paquete = total de la compra del lote ÷ paquetes obtenidos. $/kg MP = total ÷ kilos comprados; $/kg procesado = total ÷ kilos obtenidos. Los lotes recibidos sin procesar se excluyen del rinde salvo que actives la opción.</div>
    </div></div></div>`;
 }
+function rindeDrillHome(){window._rindeDrill=null;window._rindeLote='';repPaint();}
+function rindeDrillProd(i){const g=(window._rgGroups||[])[i];if(!g)return;window._rindeDrill={prod:g.mp};window._rindeLote='';repPaint();}
+function rindeDrillLote(j){const c=(window._rgLotes||[])[j];if(!c)return;const d=window._rindeDrill||{};window._rindeDrill={prod:d.prod,lote:c};window._rindeLote='';repPaint();}
+function rindeToggleSin(){window._rindeIncSin=!window._rindeIncSin;repPaint();}
 function costoUnitTotal(producto){const p=S.productos.find(x=>x.nombre===producto);const pid=p?p.id:null;const mp=mpCostoUnit(producto).perUnit;const ins=insumoCostoUnit(producto).tot;const sv=(pid&&S.costos[pid])||{gastos_op:0,mano_obra:0,flete:0,otros:0};return mp+ins+(+sv.gastos_op||0)+(+sv.mano_obra||0)+(+sv.flete||0)+(+sv.otros||0);}
 function pedFilt(){return (S.pedidos||[]).filter(p=>inRange(p.fecha)&&(!repF.cli||p.clienteNombre===repF.cli));}
 function ventasData(){const out=[];S.entregas.filter(e=>e.estado!=='anulada'&&!e.es_muestra&&inRange(e.fecha)&&(!repF.cli||e.clienteNombre===repF.cli)).forEach(e=>{const gross=e.items.reduce((a,it)=>a+((+it.precio||0)*(+it.cantidad||0)),0);const dAmt=e.descuento_tipo==='pct'?gross*((+e.descuento_valor||0)/100):(e.descuento_tipo==='monto'?Math.min(+e.descuento_valor||0,gross):0);const factor=gross>0?(gross-dAmt)/gross:1;e.items.forEach(it=>{if(repF.prod&&it.producto!==repF.prod)return;const pv=+it.precio||0,cu=costoUnitTotal(it.producto),u=+it.cantidad||0;const venta=pv*u*factor;out.push({cliente:e.clienteNombre,producto:it.producto,fecha:e.fecha,nro:e.numero_remito,u,pv,venta,cu,costo:cu*u,util:venta-cu*u});});});return out.sort((a,b)=>b.venta-a.venta);}
