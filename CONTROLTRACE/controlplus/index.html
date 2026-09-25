@@ -1967,7 +1967,7 @@ const SUPABASE_URL  = 'https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { storageKey: 'controlmax-auth', persistSession: true, autoRefreshToken: true },
-  global: { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+ global: { headers: { 'apikey': SUPABASE_KEY } }
 });
 
 // ── Estado global de la aplicación ──
