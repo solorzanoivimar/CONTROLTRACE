@@ -11,7 +11,7 @@
   const TODOS = [
     { id:'trace', label:'CONTROL TRACE', ico:'🏭', url:'/CONTROLTRACE/index.html' },
     { id:'agro',  label:'CONTROLAGRO',   ico:'🌿', url:'/CONTROLTRACE/controlagro/index.html' },
-    { id:'plus', label:'CONTROL PLUS', ico:'🧾', url:'/CONTROLTRACE/controlplus/index.html' },
+    { id:'plus',  label:'CONTROL PLUS',  ico:'🧾', url:'/CONTROLTRACE/controlplus/index.html' },
   ];
 
   // ── Permisos por rol ──
@@ -30,6 +30,7 @@
   const path = window.location.pathname;
   let actual = 'trace';
   if(path.includes('controlagro')) actual = 'agro';
+  if(path.includes('controlplus')) actual = 'plus';
 
   // ── Estilos ──
   const style = document.createElement('style');
@@ -66,7 +67,6 @@
       color: #C9A84C;
       border-color: rgba(201,168,76,0.35);
     }
-    #cm-navbar .cm-tab.prox { opacity: 0.38; cursor: default; pointer-events: none; }
     #cm-navbar .cm-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
     #cm-navbar .cm-usuario {
       font-size: 11px; color: rgba(255,255,255,0.5);
@@ -106,10 +106,9 @@
   tabs.className = 'cm-tabs';
   modulos.forEach(m => {
     const a = document.createElement('a');
-    a.className = 'cm-tab' + (m.id === actual ? ' active' : '') + (m.prox ? ' prox' : '');
+    a.className = 'cm-tab' + (m.id === actual ? ' active' : '');
     a.href = m.url || '#';
     a.innerHTML = m.ico + ' ' + m.label;
-    if(m.prox) a.title = 'Próximamente';
     tabs.appendChild(a);
   });
 
