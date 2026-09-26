@@ -1965,10 +1965,12 @@ textarea.fctl{resize:vertical}
 // ══════════════════════════════════════════════════════════════
 const SUPABASE_URL  = 'https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { storageKey: 'controlmax-auth', persistSession: true, autoRefreshToken: true },
- global: { headers: { 'apikey': SUPABASE_KEY } }
-});
+const sb = (typeof window._sbClient !== 'undefined')
+  ? window._sbClient
+  : (window._sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { storageKey: 'controlmax-auth', persistSession: true, autoRefreshToken: true },
+      global: { headers: { 'apikey': SUPABASE_KEY } }
+    }));
 
 // ── Estado global de la aplicación ──
 const S = {
