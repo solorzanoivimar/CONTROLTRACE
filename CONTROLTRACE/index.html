@@ -148,8 +148,8 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div id="nav"></div>
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
-        <button class="btn btn-ghost btn-sm" id="btnPass" style="margin-top:10px;width:100%" onclick="cambiarMiClave()">🔑 Cambiar mi contraseña</button><button class="btn btn-ghost btn-sm" style="margin-top:6px;width:100%" onclick="location.href='/'">🏠 Inicio (CONTROL MAX)</button><button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:6px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v153 · CONTROL MAX: Trace ya no tiene login propio ni cintillo superior — el inicio de sesión vive en el portal. Si llegás sin sesión, te lleva al portal; nuevo botón 🏠 Inicio (CONTROL MAX) para volver sin cerrar sesión. Sin SQL nuevo.</div>
+        <button class="btn btn-ghost btn-sm" id="btnPass" style="margin-top:10px;width:100%" onclick="cambiarMiClave()">🔑 Cambiar mi contraseña</button><button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:6px;width:100%">Cerrar sesión</button>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v154 · CONTROL MAX: botón flotante 🏠 CONTROL MAX arriba a la derecha (vía cmax-top.js) para volver al portal desde cualquier módulo, rápido y sin cerrar sesión. Trace sin login propio ni cintillo. Sin SQL nuevo.</div>
       </div>
     </nav>
     <div class="main">
@@ -3324,5 +3324,6 @@ async function saveDescarte(){const cl=$('ds_lote').value;const kg=+$('ds_kg').v
 // ---- ARRANQUE: sesión persistente ----
 (async()=>{ await boot(); })();
 </script>
+<script src="/cmax-top.js"></script>
 </body>
 </html>
