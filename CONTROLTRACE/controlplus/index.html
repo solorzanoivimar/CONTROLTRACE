@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CONTROL PLUS — Sistema Administrativo</title>
+<!-- build v6 · CONTROL MAX / PLUS — Módulo ENTIDADES con CRUD real (Clientes/Proveedores/Vendedores) sobre Supabase -->
 <!-- Supabase JS (mismo que TRACE y AGRO) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Navbar compartido de CONTROL MAX -->
@@ -966,45 +967,46 @@ textarea.fctl{resize:vertical}
   <!-- TAB CLIENTES -->
   <div class="tab-pane active" id="te-cli">
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" placeholder="Razón social, CUIT..." style="min-width:200px"></div>
-      <div class="fg"><div class="fg-lbl">Condición IVA</div><select class="fs"><option>Todas</option><option>Responsable Inscripto</option><option>Monotributista</option><option>Consumidor Final</option><option>Exento</option></select></div>
-      <div class="fg"><div class="fg-lbl">Estado</div><select class="fs"><option>Todos</option><option>Activo</option><option>Inactivo</option></select></div>
-      <div class="fbar-actions"><button class="btn btn-primary btn-sm">🔍 Filtrar</button></div>
+      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="ent-cli-q" oninput="filtrarEntidad('cliente')" placeholder="Razón social, CUIT..." style="min-width:200px"></div>
+      <div class="fg"><div class="fg-lbl">Condición IVA</div><select class="fs" id="ent-cli-iva" onchange="filtrarEntidad('cliente')"><option value="">Todas</option><option>Responsable Inscripto</option><option>Monotributista</option><option>Consumidor Final</option><option>Exento</option></select></div>
+      <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="ent-cli-estado" onchange="filtrarEntidad('cliente')"><option value="activos">Activos</option><option value="todos">Todos</option><option value="inactivos">Inactivos</option></select></div>
     </div>
     <div class="tcard">
-      <div class="tbar"><div class="tbar-title">Clientes — 38 activos</div></div>
-      <table><thead><tr><th>Razón Social</th><th>CUIT</th><th>Cond. IVA</th><th>Localidad</th><th>Vendedor</th><th>Lista precios</th><th class="tr">Saldo C/C</th><th>Estado</th><th>Acciones</th></tr></thead>
-      <tbody>
-        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+      <div class="tbar"><div class="tbar-title" id="ent-cli-count">Clientes</div></div>
+      <table><thead><tr><th>Código</th><th>Razón Social</th><th>CUIT</th><th>Cond. IVA</th><th>Localidad</th><th>Vendedor</th><th>Lista precios</th><th class="tr">Saldo C/C</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody id="tbody-ent-cli">
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Cargando…</td></tr>
           </tbody></table>
-      <div class="tfooter"><span>Mostrando 3 de 38 clientes</span></div>
     </div>
   </div>
 
   <!-- TAB PROVEEDORES -->
   <div class="tab-pane" id="te-prov">
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" placeholder="Razón social, CUIT, rubro..." style="min-width:200px"></div>
-      <div class="fg"><div class="fg-lbl">Rubro</div><select class="fs"><option>Todos</option><option>Insumos agrícolas</option><option>Logística</option><option>Servicios</option><option>Packaging</option></select></div>
-      <div class="fg"><div class="fg-lbl">Estado</div><select class="fs"><option>Todos</option><option>Activo</option><option>Inactivo</option></select></div>
-      <div class="fbar-actions"><button class="btn btn-primary btn-sm">🔍 Filtrar</button></div>
+      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="ent-prov-q" oninput="filtrarEntidad('proveedor')" placeholder="Razón social, CUIT, rubro..." style="min-width:200px"></div>
+      <div class="fg"><div class="fg-lbl">Rubro</div><select class="fs" id="ent-prov-rubro" onchange="filtrarEntidad('proveedor')"><option value="">Todos</option><option>Insumos agrícolas</option><option>Logística</option><option>Servicios</option><option>Packaging</option></select></div>
+      <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="ent-prov-estado" onchange="filtrarEntidad('proveedor')"><option value="activos">Activos</option><option value="todos">Todos</option><option value="inactivos">Inactivos</option></select></div>
     </div>
     <div class="tcard">
-      <div class="tbar"><div class="tbar-title">Proveedores — 14 activos</div></div>
-      <table><thead><tr><th>Razón Social</th><th>CUIT</th><th>Cond. IVA</th><th>Rubro</th><th>Contacto</th><th class="tr">Saldo C/C</th><th>Estado</th><th>Acciones</th></tr></thead>
-      <tbody>
-        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+      <div class="tbar"><div class="tbar-title" id="ent-prov-count">Proveedores</div></div>
+      <table><thead><tr><th>Código</th><th>Razón Social</th><th>CUIT</th><th>Cond. IVA</th><th>Rubro</th><th>Contacto</th><th class="tr">Saldo C/C</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody id="tbody-ent-prov">
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Cargando…</td></tr>
           </tbody></table>
     </div>
   </div>
 
   <!-- TAB VENDEDORES -->
   <div class="tab-pane" id="te-vend">
+    <div class="fbar">
+      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="ent-vend-q" oninput="filtrarEntidad('vendedor')" placeholder="Nombre, zona, código..." style="min-width:200px"></div>
+      <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="ent-vend-estado" onchange="filtrarEntidad('vendedor')"><option value="activos">Activos</option><option value="todos">Todos</option><option value="inactivos">Inactivos</option></select></div>
+    </div>
     <div class="tcard">
-      <div class="tbar"><div class="tbar-title">Vendedores activos</div></div>
-      <table><thead><tr><th>Código</th><th>Nombre y Apellido</th><th>Zona asignada</th><th>Listas autorizadas</th><th>Comisión %</th><th>Ventas mes</th><th>Estado</th><th>Acciones</th></tr></thead>
-      <tbody>
-        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Sin registros</td></tr>
+      <div class="tbar"><div class="tbar-title" id="ent-vend-count">Vendedores</div></div>
+      <table><thead><tr><th>Código</th><th>Nombre y Apellido</th><th>Zona asignada</th><th class="tr">Comisión %</th><th>Teléfono</th><th>Email</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody id="tbody-ent-vend">
+        <tr><td colspan="20" class="empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Cargando…</td></tr>
           </tbody></table>
     </div>
   </div>
@@ -1792,36 +1794,37 @@ textarea.fctl{resize:vertical}
 <!-- Nuevo Cliente -->
 <div class="moverlay" id="m-ncliente">
   <div class="modal">
-    <div class="mhdr"><div><div class="mhdr-title">Nuevo Cliente</div></div><button class="mclose" onclick="closeM('m-ncliente')">✕</button></div>
+    <div class="mhdr"><div><div class="mhdr-title" id="clm-title">Nuevo Cliente</div></div><button class="mclose" onclick="closeM('m-ncliente')">✕</button></div>
     <div class="mbody">
       <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'tc-gen')">Datos generales</button><button class="tab-btn" onclick="switchTab(this,'tc-fisc')">Fiscal</button><button class="tab-btn" onclick="switchTab(this,'tc-com')">Comercial</button></div>
       <div class="tab-pane active" id="tc-gen">
         <div class="fgrid">
-          <div class="fgroup fcol-full"><label class="flabel">Razón Social <span class="req">*</span></label><input class="fctl"></div>
-          <div class="fgroup"><label class="flabel">CUIT <span class="req">*</span></label><input class="fctl" placeholder="30-00000000-0"></div>
-          <div class="fgroup"><label class="flabel">Condición IVA</label><select class="fctl"><option>Responsable Inscripto</option><option>Monotributista</option><option>Consumidor Final</option><option>Exento</option></select></div>
-          <div class="fgroup"><label class="flabel">Teléfono</label><input class="fctl"></div>
-          <div class="fgroup"><label class="flabel">Email</label><input class="fctl" type="email"></div>
-          <div class="fgroup fcol-full"><label class="flabel">Domicilio</label><input class="fctl"></div>
+          <div class="fgroup fcol-full"><label class="flabel">Razón Social <span class="req">*</span></label><input class="fctl" id="clm-razon"></div>
+          <div class="fgroup"><label class="flabel">CUIT</label><input class="fctl" id="clm-cuit-in" placeholder="30-00000000-0"></div>
+          <div class="fgroup"><label class="flabel">Condición IVA</label><select class="fctl" id="clm-iva"><option>Responsable Inscripto</option><option>Monotributista</option><option>Consumidor Final</option><option>Exento</option></select></div>
+          <div class="fgroup"><label class="flabel">Teléfono</label><input class="fctl" id="clm-tel"></div>
+          <div class="fgroup"><label class="flabel">Email</label><input class="fctl" id="clm-email" type="email"></div>
+          <div class="fgroup"><label class="flabel">Localidad</label><input class="fctl" id="clm-localidad"></div>
+          <div class="fgroup fcol-full"><label class="flabel">Domicilio</label><input class="fctl" id="clm-domicilio"></div>
         </div>
       </div>
       <div class="tab-pane" id="tc-fisc">
         <div class="fgrid">
-          <div class="fgroup"><label class="flabel">N° IIBB</label><input class="fctl"></div>
-          <div class="fgroup"><label class="flabel">Inicio actividades</label><input type="date" class="fctl"></div>
-          <div class="fgroup"><label class="flabel">Tipo comprobante</label><select class="fctl"><option>Factura A</option><option>Factura B</option><option>Factura C</option><option>Factura X</option></select></div>
+          <div class="fgroup"><label class="flabel">N° IIBB</label><input class="fctl" id="clm-iibb"></div>
+          <div class="fgroup"><label class="flabel">Inicio actividades</label><input type="date" class="fctl" id="clm-inicio"></div>
+          <div class="fgroup"><label class="flabel">Tipo comprobante</label><select class="fctl" id="clm-tipocomp"><option>Factura A</option><option>Factura B</option><option>Factura C</option><option>Factura X</option></select></div>
         </div>
       </div>
       <div class="tab-pane" id="tc-com">
         <div class="fgrid">
-          <div class="fgroup"><label class="flabel">Lista de precios</label><select class="fctl"><option>Lista General</option><option>Lista Supermercados</option><option>Lista Distribuidores</option></select></div>
-          <div class="fgroup"><label class="flabel">Condición pago</label><select class="fctl"><option>Contado</option><option>30 días</option><option>60 días</option></select></div>
-          <div class="fgroup"><label class="flabel">Vendedor asignado</label><select class="fctl"><option>— Sin asignar —</option><option>Juan Pérez</option><option>María García</option></select></div>
-          <div class="fgroup"><label class="flabel">Límite crédito</label><input class="fctl" type="number" placeholder="0 = sin límite"></div>
+          <div class="fgroup"><label class="flabel">Lista de precios</label><select class="fctl" id="clm-lista"><option>Lista General</option><option>Lista Supermercados</option><option>Lista Distribuidores</option></select></div>
+          <div class="fgroup"><label class="flabel">Condición pago</label><select class="fctl" id="clm-cpago"><option>Contado</option><option>30 días</option><option>60 días</option><option>90 días</option></select></div>
+          <div class="fgroup"><label class="flabel">Vendedor asignado</label><select class="fctl" id="clm-vendedor"><option value="">— Sin asignar —</option></select></div>
+          <div class="fgroup"><label class="flabel">Límite crédito</label><input class="fctl" id="clm-limite" type="number" placeholder="0 = sin límite"></div>
         </div>
       </div>
     </div>
-    <div class="mfooter"><button class="btn btn-outline" onclick="closeM('m-ncliente')">Cancelar</button><button class="btn btn-gold" onclick="toast('Cliente guardado','ok');closeM('m-ncliente')">Guardar</button></div>
+    <div class="mfooter"><button class="btn btn-outline" onclick="closeM('m-ncliente')">Cancelar</button><button class="btn btn-gold" id="clm-save" onclick="guardarCliente()">💾 Guardar</button></div>
   </div>
 </div>
 
@@ -1847,55 +1850,55 @@ textarea.fctl{resize:vertical}
 <!-- Nuevo Proveedor -->
 <div class="moverlay" id="m-nproveedor">
   <div class="modal">
-    <div class="mhdr"><div><div class="mhdr-title">Nuevo Proveedor</div></div><button class="mclose" onclick="closeM('m-nproveedor')">✕</button></div>
+    <div class="mhdr"><div><div class="mhdr-title" id="prv-title">Nuevo Proveedor</div></div><button class="mclose" onclick="closeM('m-nproveedor')">✕</button></div>
     <div class="mbody">
       <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'tp-gen')">Datos generales</button><button class="tab-btn" onclick="switchTab(this,'tp-banco')">Bancarios</button><button class="tab-btn" onclick="switchTab(this,'tp-cond')">Condiciones</button></div>
       <div class="tab-pane active" id="tp-gen">
         <div class="fgrid">
-          <div class="fgroup fcol-full"><label class="flabel">Razón Social <span class="req">*</span></label><input class="fctl"></div>
-          <div class="fgroup"><label class="flabel">CUIT <span class="req">*</span></label><input class="fctl" placeholder="30-00000000-0"></div>
-          <div class="fgroup"><label class="flabel">Condición IVA</label><select class="fctl"><option>Responsable Inscripto</option><option>Monotributista</option><option>Exento</option></select></div>
-          <div class="fgroup"><label class="flabel">Rubro</label><select class="fctl"><option>Insumos agrícolas</option><option>Logística</option><option>Servicios</option><option>Packaging</option></select></div>
-          <div class="fgroup"><label class="flabel">Teléfono</label><input class="fctl"></div>
-          <div class="fgroup"><label class="flabel">Email</label><input class="fctl" type="email"></div>
+          <div class="fgroup fcol-full"><label class="flabel">Razón Social <span class="req">*</span></label><input class="fctl" id="prv-razon"></div>
+          <div class="fgroup"><label class="flabel">CUIT</label><input class="fctl" id="prv-cuit" placeholder="30-00000000-0"></div>
+          <div class="fgroup"><label class="flabel">Condición IVA</label><select class="fctl" id="prv-iva"><option>Responsable Inscripto</option><option>Monotributista</option><option>Exento</option></select></div>
+          <div class="fgroup"><label class="flabel">Rubro</label><select class="fctl" id="prv-rubro"><option>Insumos agrícolas</option><option>Logística</option><option>Servicios</option><option>Packaging</option><option>Otros</option></select></div>
+          <div class="fgroup"><label class="flabel">Teléfono</label><input class="fctl" id="prv-tel"></div>
+          <div class="fgroup"><label class="flabel">Email</label><input class="fctl" id="prv-email" type="email"></div>
         </div>
       </div>
       <div class="tab-pane" id="tp-banco">
         <div class="fgrid">
-          <div class="fgroup"><label class="flabel">Banco</label><input class="fctl"></div>
-          <div class="fgroup"><label class="flabel">CBU (22 dígitos)</label><input class="fctl"></div>
-          <div class="fgroup"><label class="flabel">Alias</label><input class="fctl"></div>
-          <div class="fgroup"><label class="flabel">Tipo de cuenta</label><select class="fctl"><option>Cuenta corriente</option><option>Caja de ahorro</option></select></div>
+          <div class="fgroup"><label class="flabel">Banco</label><input class="fctl" id="prv-banco"></div>
+          <div class="fgroup"><label class="flabel">CBU (22 dígitos)</label><input class="fctl" id="prv-cbu"></div>
+          <div class="fgroup"><label class="flabel">Alias</label><input class="fctl" id="prv-alias"></div>
+          <div class="fgroup"><label class="flabel">Tipo de cuenta</label><select class="fctl" id="prv-tipocuenta"><option>Cuenta corriente</option><option>Caja de ahorro</option></select></div>
         </div>
       </div>
       <div class="tab-pane" id="tp-cond">
         <div class="fgrid">
-          <div class="fgroup"><label class="flabel">Condición pago</label><select class="fctl"><option>Contado</option><option>30 días</option><option>60 días</option></select></div>
-          <div class="fgroup"><label class="flabel">Moneda habitual</label><select class="fctl"><option>ARS</option><option>USD</option></select></div>
-          <div class="fgroup fcol-full"><label class="flabel">Observaciones</label><textarea class="fctl" rows="2"></textarea></div>
+          <div class="fgroup"><label class="flabel">Condición pago</label><select class="fctl" id="prv-cpago"><option>Contado</option><option>30 días</option><option>60 días</option></select></div>
+          <div class="fgroup"><label class="flabel">Moneda habitual</label><select class="fctl" id="prv-moneda"><option>ARS</option><option>USD</option></select></div>
+          <div class="fgroup fcol-full"><label class="flabel">Observaciones</label><textarea class="fctl" id="prv-obs" rows="2"></textarea></div>
         </div>
       </div>
     </div>
-    <div class="mfooter"><button class="btn btn-outline" onclick="closeM('m-nproveedor')">Cancelar</button><button class="btn btn-gold" onclick="toast('Proveedor guardado','ok');closeM('m-nproveedor')">Guardar</button></div>
+    <div class="mfooter"><button class="btn btn-outline" onclick="closeM('m-nproveedor')">Cancelar</button><button class="btn btn-gold" id="prv-save" onclick="guardarProveedor()">💾 Guardar</button></div>
   </div>
 </div>
 
 <!-- Nuevo Vendedor -->
 <div class="moverlay" id="m-nvendedor">
   <div class="modal">
-    <div class="mhdr"><div><div class="mhdr-title">Nuevo Vendedor</div></div><button class="mclose" onclick="closeM('m-nvendedor')">✕</button></div>
+    <div class="mhdr"><div><div class="mhdr-title" id="ven-title">Nuevo Vendedor</div></div><button class="mclose" onclick="closeM('m-nvendedor')">✕</button></div>
     <div class="mbody">
       <div class="fgrid fgrid-2">
-        <div class="fgroup"><label class="flabel">Código <span class="req">*</span></label><input class="fctl" placeholder="VEN-003"></div>
-        <div class="fgroup"><label class="flabel">Nombre y Apellido <span class="req">*</span></label><input class="fctl"></div>
-        <div class="fgroup"><label class="flabel">Zona asignada</label><input class="fctl" placeholder="Ej: Gran Mendoza"></div>
-        <div class="fgroup"><label class="flabel">Comisión % <span class="req">*</span></label><input class="fctl" type="number" placeholder="3"></div>
+        <div class="fgroup"><label class="flabel">Código</label><input class="fctl" id="ven-codigo" placeholder="Auto"></div>
+        <div class="fgroup"><label class="flabel">Nombre y Apellido <span class="req">*</span></label><input class="fctl" id="ven-nombre"></div>
+        <div class="fgroup"><label class="flabel">Zona asignada</label><input class="fctl" id="ven-zona" placeholder="Ej: Gran Mendoza"></div>
+        <div class="fgroup"><label class="flabel">Comisión %</label><input class="fctl" id="ven-comision" type="number" placeholder="3"></div>
         <div class="fgroup fcol-full"><label class="flabel">Listas de precios autorizadas</label><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px"><label style="display:flex;align-items:center;gap:5px;font-size:12px"><input type="checkbox" checked> Lista General</label><label style="display:flex;align-items:center;gap:5px;font-size:12px"><input type="checkbox"> Lista Supermercados</label><label style="display:flex;align-items:center;gap:5px;font-size:12px"><input type="checkbox"> Lista Distribuidores</label></div></div>
-        <div class="fgroup"><label class="flabel">Teléfono</label><input class="fctl"></div>
-        <div class="fgroup"><label class="flabel">Email</label><input class="fctl" type="email"></div>
+        <div class="fgroup"><label class="flabel">Teléfono</label><input class="fctl" id="ven-tel"></div>
+        <div class="fgroup"><label class="flabel">Email</label><input class="fctl" id="ven-email" type="email"></div>
       </div>
     </div>
-    <div class="mfooter"><button class="btn btn-outline" onclick="closeM('m-nvendedor')">Cancelar</button><button class="btn btn-gold" onclick="toast('Vendedor guardado','ok');closeM('m-nvendedor')">Guardar</button></div>
+    <div class="mfooter"><button class="btn btn-outline" onclick="closeM('m-nvendedor')">Cancelar</button><button class="btn btn-gold" id="ven-save" onclick="guardarVendedor()">💾 Guardar</button></div>
   </div>
 </div>
 
@@ -2057,28 +2060,31 @@ async function initPlus() {
   if (splash) splash.style.display = 'none';
   const app = document.getElementById('app-root');
   if (app) app.style.display = 'flex';
+
+  // 7. Estado inicial del módulo Entidades
+  if (typeof setEntidad === 'function') setEntidad('cliente');
 }
 
 // ── CARGA DE CATÁLOGOS ─────────────────────────────────────────
 
 async function cargarClientes() {
   const { data } = await sb.from('clientes')
-    .select('id, codigo, razon_social, cuit, iva, domicilio, localidad, telefono, activo')
+    .select('id, codigo, razon_social, cuit, iva, email, domicilio, localidad, telefono, iibb, inicio_actividades, tipo_comprobante, lista_precio, condicion_pago, vendedor_id, limite_credito, activo')
     .eq('empresa_id', S.empresaId)
-    .eq('activo', true)
     .order('razon_social');
   S.clientes = data || [];
   renderSelectClientes();
+  renderTablaClientes();
 }
 
 async function cargarProveedores() {
   const { data } = await sb.from('proveedores')
-    .select('id, codigo, nombre, cuit, activo')
+    .select('id, codigo, nombre, cuit, iva, rubro, email, telefono, banco, cbu, alias, tipo_cuenta, condicion_pago, moneda, observaciones, activo')
     .eq('empresa_id', S.empresaId)
-    .eq('activo', true)
     .order('nombre');
   S.proveedores = data || [];
   renderSelectProveedores();
+  renderTablaProveedores();
 }
 
 async function cargarProductos() {
@@ -2101,11 +2107,13 @@ async function cargarMaterias() {
 
 async function cargarVendedores() {
   const { data } = await sb.from('vendedores')
-    .select('id, codigo, nombre, comision_pct, zona, activo')
+    .select('id, codigo, nombre, comision_pct, zona, telefono, email, activo')
     .eq('empresa_id', S.empresaId)
-    .eq('activo', true)
     .order('nombre');
   S.vendedores = data || [];
+  renderSelectVendedores();
+  renderTablaVendedores();
+  renderTablaClientes();
 }
 
 async function cargarCuentasBancarias() {
@@ -2129,7 +2137,7 @@ async function cargarCajas() {
 // ── RENDER DE SELECTORES con datos reales ─────────────────────
 
 function renderSelectClientes() {
-  const opts = S.clientes.map(c =>
+  const opts = S.clientes.filter(c => c.activo !== false).map(c =>
     `<option value="${c.id}" data-cuit="${c.cuit||''}" data-iva="${c.iva||''}">${c.codigo ? '['+c.codigo+'] ' : ''}${c.razon_social||''}</option>`
   ).join('');
   // Actualizar todos los selects de clientes en la página
@@ -2140,7 +2148,7 @@ function renderSelectClientes() {
 }
 
 function renderSelectProveedores() {
-  const opts = S.proveedores.map(p =>
+  const opts = S.proveedores.filter(p => p.activo !== false).map(p =>
     `<option value="${p.id}">${p.codigo ? '['+p.codigo+'] ' : ''}${p.nombre||''}</option>`
   ).join('');
   document.querySelectorAll('select.sel-proveedor, #pag-prov').forEach(el => {
@@ -2754,10 +2762,10 @@ function pagMedioChange(sel){
 }
 
 function setEntidad(tipo){
+  S.entidadTab=tipo;
   const labels={cliente:'＋ Nuevo Cliente',proveedor:'＋ Nuevo Proveedor',vendedor:'＋ Nuevo Vendedor'};
-  const modals={cliente:'m-ncliente',proveedor:'m-nproveedor',vendedor:'m-nvendedor'};
   const btn=document.getElementById('btn-nueva-entidad');
-  if(btn){btn.textContent=labels[tipo];btn.onclick=()=>openM(modals[tipo]);}
+  if(btn) btn.textContent=labels[tipo]||'＋ Nuevo';
 }
 
 </script>
@@ -3891,7 +3899,7 @@ function generarFacturaDesdeRemito(nroRemito, cliente, kgTotal, detalle){
         +'<td style="padding:7px 8px"><input type="number" step="0.01" placeholder="$ / kg" class="fctl fdr-precio" data-qty="'+qty+'" style="width:110px;font-size:12px" oninput="fdrCalcTotales()"></td>'
         +'<td style="padding:7px 8px;text-align:center"><select class="fctl fdr-ivasel" style="font-size:11px;padding:4px 6px" onchange="fdrCalcTotales()"><option value="10.5">10,5%</option><option value="21">21%</option><option value="0">Exento</option></select></td>'
         +'<td style="padding:7px 8px;text-align:right;font-weight:700" class="fdr-sub-row">—</td>'
-        '<td style="padding:7px 8px;text-align:center"><button class="btn btn-ghost btn-xs" onclick="this.parentNode.parentNode.remove();fdrCalcTotales()">✕</button></td>'
+        +'<td style="padding:7px 8px;text-align:center"><button class="btn btn-ghost btn-xs" onclick="this.parentNode.parentNode.remove();fdrCalcTotales()">✕</button></td>'
         +'</tr>';
     }).join('');
   }
@@ -3988,6 +3996,304 @@ function cdrCalcTotales(){
   <div style="font-size:12px;color:rgba(255,255,255,0.4)">Conectando con Supabase...</div>
   <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 </div>
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONTROL PLUS · Módulo ENTIDADES (Clientes / Proveedores / Vendedores)
+// CRUD real contra Supabase — maestros compartidos por todos los módulos.
+// ══════════════════════════════════════════════════════════════
+
+// Estado del módulo
+S.entidadTab = S.entidadTab || 'cliente';
+S._entEdit   = { cliente:null, proveedor:null, vendedor:null };
+
+const _esc = v => (v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const _val = id => { const e=document.getElementById(id); return e ? e.value.trim() : ''; };
+const _setv = (id,v) => { const e=document.getElementById(id); if(e) e.value = (v==null?'':v); };
+const _badgeEstado = a => a===false
+  ? '<span class="badge b-neutral">Inactivo</span>'
+  : '<span class="badge b-success">Activo</span>';
+
+// Sugerir próximo código correlativo (CLI-0001, PRV-0001, VEN-001)
+function _nextCodigo(arr, prefix, pad){
+  let max=0;
+  (arr||[]).forEach(x=>{
+    const m=(x.codigo||'').match(/(\d+)\s*$/);
+    if(m){ const n=parseInt(m[1],10); if(n>max) max=n; }
+  });
+  return prefix + String(max+1).padStart(pad,'0');
+}
+
+// ── Selectores dependientes de vendedores (usado en modal Cliente) ──
+function renderSelectVendedores(){
+  const opts = (S.vendedores||[]).filter(v=>v.activo!==false).map(v =>
+    `<option value="${v.id}">${v.nombre||''}${v.zona?(' — '+v.zona):''}</option>`
+  ).join('');
+  document.querySelectorAll('#clm-vendedor').forEach(el=>{
+    const keep = el.value;
+    el.innerHTML = '<option value="">— Sin asignar —</option>' + opts;
+    el.value = keep;
+  });
+}
+
+// ── Filtro común según los controles de cada pestaña ──
+function _filtroEstado(arr, estadoVal){
+  if(estadoVal==='inactivos') return arr.filter(x=>x.activo===false);
+  if(estadoVal==='todos')     return arr;
+  return arr.filter(x=>x.activo!==false); // activos (por defecto)
+}
+function filtrarEntidad(tipo){
+  if(tipo==='cliente')   renderTablaClientes();
+  if(tipo==='proveedor') renderTablaProveedores();
+  if(tipo==='vendedor')  renderTablaVendedores();
+}
+
+// ─────────────────────── TABLA CLIENTES ───────────────────────
+function renderTablaClientes(){
+  const tb=document.getElementById('tbody-ent-cli'); if(!tb) return;
+  const q=(_val('ent-cli-q')||'').toLowerCase();
+  const iva=(document.getElementById('ent-cli-iva')||{}).value||'';
+  const est=(document.getElementById('ent-cli-estado')||{}).value||'activos';
+  let rows=_filtroEstado(S.clientes||[], est);
+  if(iva) rows=rows.filter(c=>(c.iva||'')===iva);
+  if(q) rows=rows.filter(c=>((c.razon_social||'')+' '+(c.cuit||'')+' '+(c.codigo||'')+' '+(c.localidad||'')).toLowerCase().includes(q));
+  const cnt=document.getElementById('ent-cli-count');
+  if(cnt) cnt.textContent='Clientes — '+rows.length+(est==='activos'?' activos':'');
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="10" class="empty" style="text-align:center;padding:24px;color:var(--text-muted);font-size:12px">Sin clientes. Usá <b>＋ Nuevo</b> para cargar el primero.</td></tr>'; return; }
+  const vend={}; (S.vendedores||[]).forEach(v=>vend[v.id]=v.nombre);
+  tb.innerHTML=rows.map(c=>`<tr>
+    <td>${c.codigo?('<span class="chip chip-x">'+_esc(c.codigo)+'</span>'):'—'}</td>
+    <td class="fw">${_esc(c.razon_social)||'—'}</td>
+    <td class="nowrap">${_esc(c.cuit)||'—'}</td>
+    <td>${_esc(c.iva)||'—'}</td>
+    <td>${_esc(c.localidad)||'—'}</td>
+    <td>${_esc(vend[c.vendedor_id])||'—'}</td>
+    <td>${_esc(c.lista_precio)||'—'}</td>
+    <td class="tr">—</td>
+    <td>${_badgeEstado(c.activo)}</td>
+    <td><div class="act-btns">
+      <button class="btn btn-outline btn-xs" onclick="abrirEntidad('cliente','${c.id}')">✏️ Editar</button>
+      <button class="btn btn-${c.activo===false?'success':'danger'} btn-xs" onclick="toggleActivoEntidad('cliente','${c.id}',${c.activo===false})">${c.activo===false?'Reactivar':'Desactivar'}</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+// ─────────────────────── TABLA PROVEEDORES ───────────────────────
+function renderTablaProveedores(){
+  const tb=document.getElementById('tbody-ent-prov'); if(!tb) return;
+  const q=(_val('ent-prov-q')||'').toLowerCase();
+  const rubro=(document.getElementById('ent-prov-rubro')||{}).value||'';
+  const est=(document.getElementById('ent-prov-estado')||{}).value||'activos';
+  let rows=_filtroEstado(S.proveedores||[], est);
+  if(rubro) rows=rows.filter(p=>(p.rubro||'')===rubro);
+  if(q) rows=rows.filter(p=>((p.nombre||'')+' '+(p.cuit||'')+' '+(p.codigo||'')+' '+(p.rubro||'')).toLowerCase().includes(q));
+  const cnt=document.getElementById('ent-prov-count');
+  if(cnt) cnt.textContent='Proveedores — '+rows.length+(est==='activos'?' activos':'');
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="9" class="empty" style="text-align:center;padding:24px;color:var(--text-muted);font-size:12px">Sin proveedores. Usá <b>＋ Nuevo</b> para cargar el primero.</td></tr>'; return; }
+  tb.innerHTML=rows.map(p=>{
+    const contacto=[p.telefono,p.email].filter(Boolean).map(_esc).join(' · ');
+    return `<tr>
+    <td>${p.codigo?('<span class="chip chip-x">'+_esc(p.codigo)+'</span>'):'—'}</td>
+    <td class="fw">${_esc(p.nombre)||'—'}</td>
+    <td class="nowrap">${_esc(p.cuit)||'—'}</td>
+    <td>${_esc(p.iva)||'—'}</td>
+    <td>${_esc(p.rubro)||'—'}</td>
+    <td>${contacto||'—'}</td>
+    <td class="tr">—</td>
+    <td>${_badgeEstado(p.activo)}</td>
+    <td><div class="act-btns">
+      <button class="btn btn-outline btn-xs" onclick="abrirEntidad('proveedor','${p.id}')">✏️ Editar</button>
+      <button class="btn btn-${p.activo===false?'success':'danger'} btn-xs" onclick="toggleActivoEntidad('proveedor','${p.id}',${p.activo===false})">${p.activo===false?'Reactivar':'Desactivar'}</button>
+    </div></td>
+  </tr>`;}).join('');
+}
+
+// ─────────────────────── TABLA VENDEDORES ───────────────────────
+function renderTablaVendedores(){
+  const tb=document.getElementById('tbody-ent-vend'); if(!tb) return;
+  const q=(_val('ent-vend-q')||'').toLowerCase();
+  const est=(document.getElementById('ent-vend-estado')||{}).value||'activos';
+  let rows=_filtroEstado(S.vendedores||[], est);
+  if(q) rows=rows.filter(v=>((v.nombre||'')+' '+(v.zona||'')+' '+(v.codigo||'')).toLowerCase().includes(q));
+  const cnt=document.getElementById('ent-vend-count');
+  if(cnt) cnt.textContent='Vendedores — '+rows.length+(est==='activos'?' activos':'');
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="8" class="empty" style="text-align:center;padding:24px;color:var(--text-muted);font-size:12px">Sin vendedores. Usá <b>＋ Nuevo</b> para cargar el primero.</td></tr>'; return; }
+  tb.innerHTML=rows.map(v=>`<tr>
+    <td>${v.codigo?('<span class="chip chip-x">'+_esc(v.codigo)+'</span>'):'—'}</td>
+    <td class="fw">${_esc(v.nombre)||'—'}</td>
+    <td>${_esc(v.zona)||'—'}</td>
+    <td class="tr">${v.comision_pct!=null?(_esc(v.comision_pct)+'%'):'—'}</td>
+    <td class="nowrap">${_esc(v.telefono)||'—'}</td>
+    <td>${_esc(v.email)||'—'}</td>
+    <td>${_badgeEstado(v.activo)}</td>
+    <td><div class="act-btns">
+      <button class="btn btn-outline btn-xs" onclick="abrirEntidad('vendedor','${v.id}')">✏️ Editar</button>
+      <button class="btn btn-${v.activo===false?'success':'danger'} btn-xs" onclick="toggleActivoEntidad('vendedor','${v.id}',${v.activo===false})">${v.activo===false?'Reactivar':'Desactivar'}</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+// ─────────────────────── ABRIR MODAL (nuevo / editar) ───────────────────────
+function nuevaEntidad(){
+  const tipo=S.entidadTab||'cliente';
+  abrirEntidad(tipo, null);
+}
+
+function abrirEntidad(tipo, id){
+  S._entEdit[tipo]=id||null;
+  if(tipo==='cliente'){
+    renderSelectVendedores();
+    const c = id ? (S.clientes||[]).find(x=>x.id===id) : null;
+    const t=document.getElementById('clm-title'); if(t) t.textContent = c?'Editar Cliente':'Nuevo Cliente';
+    _setv('clm-razon', c?c.razon_social:''); _setv('clm-cuit-in', c?c.cuit:'');
+    _setv('clm-iva', c?(c.iva||'Responsable Inscripto'):'Responsable Inscripto');
+    _setv('clm-tel', c?c.telefono:''); _setv('clm-email', c?c.email:'');
+    _setv('clm-localidad', c?c.localidad:''); _setv('clm-domicilio', c?c.domicilio:'');
+    _setv('clm-iibb', c?c.iibb:''); _setv('clm-inicio', c?c.inicio_actividades:'');
+    _setv('clm-tipocomp', c?(c.tipo_comprobante||'Factura A'):'Factura A');
+    _setv('clm-lista', c?(c.lista_precio||'Lista General'):'Lista General');
+    _setv('clm-cpago', c?(c.condicion_pago||'Contado'):'Contado');
+    _setv('clm-vendedor', c?(c.vendedor_id||''):''); _setv('clm-limite', c?c.limite_credito:'');
+    openM('m-ncliente');
+  } else if(tipo==='proveedor'){
+    const p = id ? (S.proveedores||[]).find(x=>x.id===id) : null;
+    const t=document.getElementById('prv-title'); if(t) t.textContent = p?'Editar Proveedor':'Nuevo Proveedor';
+    _setv('prv-razon', p?p.nombre:''); _setv('prv-cuit', p?p.cuit:'');
+    _setv('prv-iva', p?(p.iva||'Responsable Inscripto'):'Responsable Inscripto');
+    _setv('prv-rubro', p?(p.rubro||'Insumos agrícolas'):'Insumos agrícolas');
+    _setv('prv-tel', p?p.telefono:''); _setv('prv-email', p?p.email:'');
+    _setv('prv-banco', p?p.banco:''); _setv('prv-cbu', p?p.cbu:''); _setv('prv-alias', p?p.alias:'');
+    _setv('prv-tipocuenta', p?(p.tipo_cuenta||'Cuenta corriente'):'Cuenta corriente');
+    _setv('prv-cpago', p?(p.condicion_pago||'Contado'):'Contado');
+    _setv('prv-moneda', p?(p.moneda||'ARS'):'ARS'); _setv('prv-obs', p?p.observaciones:'');
+    openM('m-nproveedor');
+  } else if(tipo==='vendedor'){
+    const v = id ? (S.vendedores||[]).find(x=>x.id===id) : null;
+    const t=document.getElementById('ven-title'); if(t) t.textContent = v?'Editar Vendedor':'Nuevo Vendedor';
+    _setv('ven-codigo', v?v.codigo:_nextCodigo(S.vendedores,'VEN-',3));
+    _setv('ven-nombre', v?v.nombre:''); _setv('ven-zona', v?v.zona:'');
+    _setv('ven-comision', v?v.comision_pct:''); _setv('ven-tel', v?v.telefono:''); _setv('ven-email', v?v.email:'');
+    openM('m-nvendedor');
+  }
+}
+
+// ─────────────────────── GUARDAR ───────────────────────
+async function _lockBtn(btnId, on){
+  const b=document.getElementById(btnId); if(!b) return;
+  if(on){ b._t=b.textContent; b.textContent='⏳ Guardando…'; b.disabled=true; }
+  else { b.textContent=b._t||'💾 Guardar'; b.disabled=false; }
+}
+
+async function guardarCliente(){
+  const razon=_val('clm-razon');
+  if(!razon){ toast('La razón social es obligatoria','warn'); return; }
+  const id=S._entEdit.cliente;
+  const payload={
+    razon_social: razon,
+    cuit: _val('clm-cuit-in')||null,
+    iva: _val('clm-iva')||null,
+    telefono: _val('clm-tel')||null,
+    email: _val('clm-email')||null,
+    localidad: _val('clm-localidad')||null,
+    domicilio: _val('clm-domicilio')||null,
+    iibb: _val('clm-iibb')||null,
+    inicio_actividades: _val('clm-inicio')||null,
+    tipo_comprobante: _val('clm-tipocomp')||null,
+    lista_precio: _val('clm-lista')||null,
+    condicion_pago: _val('clm-cpago')||null,
+    vendedor_id: _val('clm-vendedor')||null,
+    limite_credito: _val('clm-limite')? parseFloat(_val('clm-limite')) : null,
+  };
+  await _lockBtn('clm-save',true);
+  let error;
+  if(id){
+    ({ error } = await sb.from('clientes').update(payload).eq('id',id).eq('empresa_id',S.empresaId));
+  } else {
+    payload.empresa_id=S.empresaId; payload.activo=true;
+    payload.codigo=_nextCodigo(S.clientes,'CLI-',4);
+    ({ error } = await sb.from('clientes').insert(payload));
+  }
+  await _lockBtn('clm-save',false);
+  if(error){ toast('Error al guardar: '+error.message,'err'); return; }
+  await cargarClientes();
+  toast(id?'Cliente actualizado':'Cliente guardado','ok');
+  closeM('m-ncliente');
+}
+
+async function guardarProveedor(){
+  const razon=_val('prv-razon');
+  if(!razon){ toast('La razón social es obligatoria','warn'); return; }
+  const id=S._entEdit.proveedor;
+  const payload={
+    nombre: razon,
+    cuit: _val('prv-cuit')||null,
+    iva: _val('prv-iva')||null,
+    rubro: _val('prv-rubro')||null,
+    telefono: _val('prv-tel')||null,
+    email: _val('prv-email')||null,
+    banco: _val('prv-banco')||null,
+    cbu: _val('prv-cbu')||null,
+    alias: _val('prv-alias')||null,
+    tipo_cuenta: _val('prv-tipocuenta')||null,
+    condicion_pago: _val('prv-cpago')||null,
+    moneda: _val('prv-moneda')||null,
+    observaciones: _val('prv-obs')||null,
+  };
+  await _lockBtn('prv-save',true);
+  let error;
+  if(id){
+    ({ error } = await sb.from('proveedores').update(payload).eq('id',id).eq('empresa_id',S.empresaId));
+  } else {
+    payload.empresa_id=S.empresaId; payload.activo=true;
+    payload.codigo=_nextCodigo(S.proveedores,'PRV-',4);
+    ({ error } = await sb.from('proveedores').insert(payload));
+  }
+  await _lockBtn('prv-save',false);
+  if(error){ toast('Error al guardar: '+error.message,'err'); return; }
+  await cargarProveedores();
+  toast(id?'Proveedor actualizado':'Proveedor guardado','ok');
+  closeM('m-nproveedor');
+}
+
+async function guardarVendedor(){
+  const nombre=_val('ven-nombre');
+  if(!nombre){ toast('El nombre es obligatorio','warn'); return; }
+  const id=S._entEdit.vendedor;
+  const payload={
+    nombre: nombre,
+    codigo: _val('ven-codigo')||null,
+    zona: _val('ven-zona')||null,
+    comision_pct: _val('ven-comision')? parseFloat(_val('ven-comision')) : null,
+    telefono: _val('ven-tel')||null,
+    email: _val('ven-email')||null,
+  };
+  await _lockBtn('ven-save',true);
+  let error;
+  if(id){
+    ({ error } = await sb.from('vendedores').update(payload).eq('id',id).eq('empresa_id',S.empresaId));
+  } else {
+    payload.empresa_id=S.empresaId; payload.activo=true;
+    if(!payload.codigo) payload.codigo=_nextCodigo(S.vendedores,'VEN-',3);
+    ({ error } = await sb.from('vendedores').insert(payload));
+  }
+  await _lockBtn('ven-save',false);
+  if(error){ toast('Error al guardar: '+error.message,'err'); return; }
+  await cargarVendedores();
+  toast(id?'Vendedor actualizado':'Vendedor guardado','ok');
+  closeM('m-nvendedor');
+}
+
+// ─────────────────────── ACTIVAR / DESACTIVAR ───────────────────────
+async function toggleActivoEntidad(tipo, id, reactivar){
+  const tabla={cliente:'clientes',proveedor:'proveedores',vendedor:'vendedores'}[tipo];
+  if(!reactivar && !confirm('¿Desactivar esta entidad? No se borra: podés reactivarla cuando quieras.')) return;
+  const { error } = await sb.from(tabla).update({ activo: !!reactivar }).eq('id',id).eq('empresa_id',S.empresaId);
+  if(error){ toast('Error: '+error.message,'err'); return; }
+  if(tipo==='cliente')   await cargarClientes();
+  if(tipo==='proveedor') await cargarProveedores();
+  if(tipo==='vendedor')  await cargarVendedores();
+  toast(reactivar?'Entidad reactivada':'Entidad desactivada','ok');
+}
+</script>
 <script src="/cmax-top.js"></script>
 </body>
 </html>
