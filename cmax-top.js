@@ -6,7 +6,7 @@
   try{
     var css=document.createElement('style');
     css.textContent=
-      '#cmax-home{position:fixed;top:9px;right:12px;z-index:2147483000;display:flex;align-items:center;gap:6px;'+
+      '#cmax-home{position:fixed;top:9px;left:50%;transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:6px;'+
       'background:#233246;color:#fff;border:1px solid #2e4159;border-radius:22px;padding:7px 14px;'+
       "font:700 12px/1 Inter,'Segoe UI',system-ui,sans-serif;letter-spacing:.3px;cursor:pointer;"+
       'box-shadow:0 4px 14px rgba(0,0,0,.28);text-decoration:none}'+
