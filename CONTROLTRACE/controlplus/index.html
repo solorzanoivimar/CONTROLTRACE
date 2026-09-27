@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CONTROL PLUS — Sistema Administrativo</title>
-<!-- build v6 · CONTROL MAX / PLUS — Módulo ENTIDADES con CRUD real (Clientes/Proveedores/Vendedores) sobre Supabase -->
+<!-- build v6.1 · PLUS — Entidades: días de vencimiento por cliente, rubro Materia Prima en proveedores, y control de crédito (límite/vencidas) con PIN de supervisor al facturar -->
 <!-- Supabase JS (mismo que TRACE y AGRO) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Navbar compartido de CONTROL MAX -->
@@ -984,7 +984,7 @@ textarea.fctl{resize:vertical}
   <div class="tab-pane" id="te-prov">
     <div class="fbar">
       <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="ent-prov-q" oninput="filtrarEntidad('proveedor')" placeholder="Razón social, CUIT, rubro..." style="min-width:200px"></div>
-      <div class="fg"><div class="fg-lbl">Rubro</div><select class="fs" id="ent-prov-rubro" onchange="filtrarEntidad('proveedor')"><option value="">Todos</option><option>Insumos agrícolas</option><option>Logística</option><option>Servicios</option><option>Packaging</option></select></div>
+      <div class="fg"><div class="fg-lbl">Rubro</div><select class="fs" id="ent-prov-rubro" onchange="filtrarEntidad('proveedor')"><option value="">Todos</option><option>Materia Prima</option><option>Insumos agrícolas</option><option>Logística</option><option>Servicios</option><option>Packaging</option></select></div>
       <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="ent-prov-estado" onchange="filtrarEntidad('proveedor')"><option value="activos">Activos</option><option value="todos">Todos</option><option value="inactivos">Inactivos</option></select></div>
     </div>
     <div class="tcard">
@@ -1675,6 +1675,13 @@ textarea.fctl{resize:vertical}
         
       </div>
     </div>
+    <div class="fsec">
+      <div class="fsec-title">Seguridad — Autorizaciones</div>
+      <div class="fgrid fgrid-2">
+        <div class="fgroup"><label class="flabel">PIN de supervisor</label><input class="fctl" id="cfg-pin" type="password" placeholder="Ej: 4 dígitos" autocomplete="off"><div style="font-size:10px;color:var(--text-muted);margin-top:3px">Se pide para autorizar una factura cuando el cliente supera su límite de crédito o tiene facturas vencidas.</div></div>
+        <div class="fgroup" style="align-self:end"><button class="btn btn-gold" onclick="guardarPinSupervisor()">🔐 Guardar PIN</button></div>
+      </div>
+    </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
       <button class="btn btn-outline">Cancelar</button>
       <button class="btn btn-gold" onclick="toast('Configuración guardada','ok')">Guardar cambios</button>
@@ -1708,7 +1715,7 @@ textarea.fctl{resize:vertical}
       <div class="fsec">
         <div class="fsec-title">Cliente</div>
         <div class="fgrid fgrid-3">
-          <div class="fgroup" style="grid-column:1/3"><label class="flabel">Razón Social <span class="req">*</span></label><select class="fctl" onchange="fillCliente(this)"><option value="">— Seleccionar —</option></select></div>
+          <div class="fgroup" style="grid-column:1/3"><label class="flabel">Razón Social <span class="req">*</span></label><select class="fctl sel-cliente" id="fac-cliente" onchange="fillCliente(this)"><option value="">— Seleccionar —</option></select></div>
           <div class="fgroup"><label class="flabel">CUIT</label><input class="fctl" id="cli-cuit" readonly placeholder="Auto"></div>
           <div class="fgroup"><label class="flabel">Condición IVA</label><input class="fctl" id="cli-iva" readonly placeholder="Auto"></div>
         </div>
@@ -1819,8 +1826,9 @@ textarea.fctl{resize:vertical}
         <div class="fgrid">
           <div class="fgroup"><label class="flabel">Lista de precios</label><select class="fctl" id="clm-lista"><option>Lista General</option><option>Lista Supermercados</option><option>Lista Distribuidores</option></select></div>
           <div class="fgroup"><label class="flabel">Condición pago</label><select class="fctl" id="clm-cpago"><option>Contado</option><option>30 días</option><option>60 días</option><option>90 días</option></select></div>
+          <div class="fgroup"><label class="flabel">Días de vencimiento</label><input class="fctl" id="clm-diasvto" type="number" placeholder="Ej: 30"><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Vto por defecto de sus facturas</div></div>
           <div class="fgroup"><label class="flabel">Vendedor asignado</label><select class="fctl" id="clm-vendedor"><option value="">— Sin asignar —</option></select></div>
-          <div class="fgroup"><label class="flabel">Límite crédito</label><input class="fctl" id="clm-limite" type="number" placeholder="0 = sin límite"></div>
+          <div class="fgroup"><label class="flabel">Límite de crédito ($)</label><input class="fctl" id="clm-limite" type="number" placeholder="0 = sin límite"></div>
         </div>
       </div>
     </div>
@@ -1858,7 +1866,7 @@ textarea.fctl{resize:vertical}
           <div class="fgroup fcol-full"><label class="flabel">Razón Social <span class="req">*</span></label><input class="fctl" id="prv-razon"></div>
           <div class="fgroup"><label class="flabel">CUIT</label><input class="fctl" id="prv-cuit" placeholder="30-00000000-0"></div>
           <div class="fgroup"><label class="flabel">Condición IVA</label><select class="fctl" id="prv-iva"><option>Responsable Inscripto</option><option>Monotributista</option><option>Exento</option></select></div>
-          <div class="fgroup"><label class="flabel">Rubro</label><select class="fctl" id="prv-rubro"><option>Insumos agrícolas</option><option>Logística</option><option>Servicios</option><option>Packaging</option><option>Otros</option></select></div>
+          <div class="fgroup"><label class="flabel">Rubro</label><select class="fctl" id="prv-rubro"><option>Materia Prima</option><option>Insumos agrícolas</option><option>Logística</option><option>Servicios</option><option>Packaging</option><option>Otros</option></select></div>
           <div class="fgroup"><label class="flabel">Teléfono</label><input class="fctl" id="prv-tel"></div>
           <div class="fgroup"><label class="flabel">Email</label><input class="fctl" id="prv-email" type="email"></div>
         </div>
@@ -2023,10 +2031,11 @@ async function initPlus() {
 
   // Cargar datos de la empresa para mostrar nombre real
   const { data: empresa } = await sb.from('empresas')
-    .select('razon_social, nombre_fantasia')
+    .select('razon_social, nombre_fantasia, pin_supervisor')
     .eq('id', S.empresaId)
     .single();
   S.empresa = empresa;
+  const _cfgPin = document.getElementById('cfg-pin'); if (_cfgPin) _cfgPin.value = (empresa && empresa.pin_supervisor) || '';
   const empNombre = empresa?.razon_social || 'Frutihortícola FMN S.A.';
   const sbEmp = document.getElementById('sb-empresa');
   if (sbEmp) sbEmp.textContent = empNombre;
@@ -2069,7 +2078,7 @@ async function initPlus() {
 
 async function cargarClientes() {
   const { data } = await sb.from('clientes')
-    .select('id, codigo, razon_social, cuit, iva, email, domicilio, localidad, telefono, iibb, inicio_actividades, tipo_comprobante, lista_precio, condicion_pago, vendedor_id, limite_credito, activo')
+    .select('id, codigo, razon_social, cuit, iva, email, domicilio, localidad, telefono, iibb, inicio_actividades, tipo_comprobante, lista_precio, condicion_pago, dias_vencimiento, vendedor_id, limite_credito, activo')
     .eq('empresa_id', S.empresaId)
     .order('razon_social');
   S.clientes = data || [];
@@ -2523,7 +2532,22 @@ function addRow(){
   document.getElementById('bItems').appendChild(tr);
 }
 function removeRow(n){const r=document.getElementById('ir-'+n);if(r){r.remove();calcTotals();}}
-function emitir(){closeM('m-nfactura');toast('Enviando a ARCA vía TusFacturasAPP...','ok');setTimeout(()=>toast('CAE 12345678901235 obtenido — Factura emitida','ok'),2000);document.getElementById('badge-v').textContent='6';}
+function _emitirFactura(){
+  closeM('m-nfactura');
+  toast('Enviando a ARCA vía TusFacturasAPP...','ok');
+  setTimeout(()=>toast('CAE 12345678901235 obtenido — Factura emitida','ok'),2000);
+  const bv=document.getElementById('badge-v'); if(bv) bv.textContent='6';
+}
+async function emitir(){
+  const sel=document.getElementById('fac-cliente');
+  const cliId=sel?sel.value:'';
+  const monto=_montoDesde('t-total');
+  if(!cliId){ _emitirFactura(); return; }           // sin cliente elegido no se chequea
+  let chk;
+  try{ chk=await verificarCreditoCliente(cliId, monto); }catch(e){ chk={bloquear:false,motivos:[]}; }
+  if(!chk || !chk.bloquear){ _emitirFactura(); return; }
+  pedirPinSupervisor(chk.motivos, ()=>_emitirFactura());   // hay bloqueo → pedir autorización
+}
 
 // ── CHARTS ──
 function buildChart(barsId,labelsId){
@@ -4152,6 +4176,7 @@ function abrirEntidad(tipo, id){
     _setv('clm-tipocomp', c?(c.tipo_comprobante||'Factura A'):'Factura A');
     _setv('clm-lista', c?(c.lista_precio||'Lista General'):'Lista General');
     _setv('clm-cpago', c?(c.condicion_pago||'Contado'):'Contado');
+    _setv('clm-diasvto', c?c.dias_vencimiento:'');
     _setv('clm-vendedor', c?(c.vendedor_id||''):''); _setv('clm-limite', c?c.limite_credito:'');
     openM('m-ncliente');
   } else if(tipo==='proveedor'){
@@ -4200,6 +4225,7 @@ async function guardarCliente(){
     tipo_comprobante: _val('clm-tipocomp')||null,
     lista_precio: _val('clm-lista')||null,
     condicion_pago: _val('clm-cpago')||null,
+    dias_vencimiento: _val('clm-diasvto')? parseInt(_val('clm-diasvto'),10): null,
     vendedor_id: _val('clm-vendedor')||null,
     limite_credito: _val('clm-limite')? parseFloat(_val('clm-limite')) : null,
   };
@@ -4292,6 +4318,118 @@ async function toggleActivoEntidad(tipo, id, reactivar){
   if(tipo==='proveedor') await cargarProveedores();
   if(tipo==='vendedor')  await cargarVendedores();
   toast(reactivar?'Entidad reactivada':'Entidad desactivada','ok');
+}
+</script>
+<!-- ═══════════════════ MODAL: PIN DE SUPERVISOR ═══════════════════ -->
+<div class="moverlay" id="m-pin">
+  <div class="modal" style="max-width:460px">
+    <div class="mhdr" style="background:var(--danger)"><div><div class="mhdr-title">🔒 Autorización de supervisor</div><div class="mhdr-sub">Facturación bloqueada por control de crédito</div></div><button class="mclose" onclick="closeM('m-pin')">✕</button></div>
+    <div class="mbody">
+      <div style="background:var(--danger-bg);border:1.5px solid #fca5a5;border-radius:8px;padding:12px 14px;margin-bottom:14px">
+        <div style="font-weight:700;color:var(--danger);margin-bottom:6px">No se puede facturar automáticamente:</div>
+        <ul id="pin-motivos" style="margin:0 0 0 18px;font-size:12px;color:var(--text-main);line-height:1.7"></ul>
+      </div>
+      <div id="pin-input-wrap">
+        <div class="fgroup"><label class="flabel">PIN de supervisor <span class="req">*</span></label>
+          <input class="fctl" id="pin-input" type="password" inputmode="numeric" autocomplete="off" placeholder="••••" style="font-size:18px;letter-spacing:4px;text-align:center" onkeydown="if(event.key==='Enter')confirmarPin()">
+        </div>
+      </div>
+      <div id="pin-nopin-note" style="display:none;background:var(--warning-bg);border:1px solid #fcd34d;border-radius:6px;padding:10px;font-size:12px;color:var(--warning)">
+        No hay un PIN de supervisor configurado. Podés emitir igual, pero para <b>exigir autorización</b> cargá un PIN en <b>Configuración → Seguridad</b>.
+      </div>
+    </div>
+    <div class="mfooter">
+      <button class="btn btn-outline" onclick="closeM('m-pin')">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmarPin()">✅ Autorizar y facturar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONTROL PLUS · Control de crédito de clientes + PIN de supervisor
+// (se dispara al emitir una factura de venta)
+// ══════════════════════════════════════════════════════════════
+
+// "$145.200" -> 145200
+function _montoDesde(id){
+  const el=document.getElementById(id);
+  if(!el) return 0;
+  const t=(el.textContent||el.value||'').replace(/[^\d,-]/g,'').replace(/\./g,'').replace(',', '.');
+  return parseFloat(t)||0;
+}
+
+// Devuelve {bloquear:bool, motivos:[texto], saldo, limite, vencidas}
+async function verificarCreditoCliente(cliId, montoNuevo){
+  const cli=(S.clientes||[]).find(c=>c.id===cliId) || {};
+  const limite=parseFloat(cli.limite_credito||0)||0;
+  let saldo=0, vencidas=0;
+  // Saldo y vencidas se leen de las facturas de venta impagas (si el módulo ya tiene datos).
+  try{
+    const { data, error } = await sb.from('comprobantes_venta')
+      .select('total, saldo, estado, fecha_vto, cliente_id')
+      .eq('empresa_id', S.empresaId)
+      .eq('cliente_id', cliId);
+    if(!error && Array.isArray(data)){
+      const hoy=new Date().toISOString().slice(0,10);
+      data.forEach(f=>{
+        const est=(f.estado||'').toLowerCase();
+        if(est==='anulada') return;
+        const pend = (f.saldo!=null) ? (parseFloat(f.saldo)||0)
+                   : (['cobrada','pagada'].includes(est) ? 0 : (parseFloat(f.total)||0));
+        if(pend>0){
+          saldo += pend;
+          if(f.fecha_vto && String(f.fecha_vto) < hoy) vencidas++;
+        }
+      });
+    }
+  }catch(e){ /* módulo de ventas aún sin datos → saldo 0 */ }
+
+  const motivos=[];
+  const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
+  if(vencidas>0){
+    motivos.push('Tiene <b>'+vencidas+' factura'+(vencidas>1?'s':'')+' vencida'+(vencidas>1?'s':'')+'</b> sin cobrar.');
+  }
+  if(limite>0 && (saldo+montoNuevo) > limite){
+    motivos.push('Supera su <b>límite de crédito</b> ('+fmt(limite)+'). '
+      +'Saldo actual '+fmt(saldo)+' + esta factura '+fmt(montoNuevo)+' = '+fmt(saldo+montoNuevo)+'.');
+  }
+  return { bloquear: motivos.length>0, motivos, saldo, limite, vencidas };
+}
+
+function pedirPinSupervisor(motivos, onOK){
+  const cont=document.getElementById('pin-motivos');
+  if(cont) cont.innerHTML=(motivos||[]).map(m=>'<li>'+m+'</li>').join('');
+  const hasPin=!!(S.empresa && S.empresa.pin_supervisor);
+  const wrap=document.getElementById('pin-input-wrap');
+  const note=document.getElementById('pin-nopin-note');
+  const inp=document.getElementById('pin-input');
+  if(inp) inp.value='';
+  if(wrap) wrap.style.display=hasPin?'block':'none';
+  if(note) note.style.display=hasPin?'none':'block';
+  window._pinOK=onOK; window._pinHas=hasPin;
+  openM('m-pin');
+  setTimeout(()=>{ const i=document.getElementById('pin-input'); if(i&&hasPin) i.focus(); },60);
+}
+
+function confirmarPin(){
+  if(window._pinHas){
+    const val=((document.getElementById('pin-input')||{}).value||'').trim();
+    if(!val){ toast('Ingresá el PIN','warn'); return; }
+    if(val!==String(S.empresa.pin_supervisor)){ toast('PIN incorrecto','err'); return; }
+    toast('Autorizado por supervisor','ok');
+  }
+  closeM('m-pin');
+  const cb=window._pinOK; window._pinOK=null;
+  if(typeof cb==='function') cb();
+}
+
+async function guardarPinSupervisor(){
+  const pin=((document.getElementById('cfg-pin')||{}).value||'').trim();
+  const { error } = await sb.from('empresas').update({ pin_supervisor: pin||null }).eq('id', S.empresaId);
+  if(error){ toast('No se pudo guardar el PIN: '+error.message,'err'); return; }
+  if(S.empresa) S.empresa.pin_supervisor = pin||null; else S.empresa={ pin_supervisor: pin||null };
+  toast(pin?'PIN de supervisor guardado':'PIN de supervisor eliminado','ok');
 }
 </script>
 <script src="/cmax-top.js"></script>
