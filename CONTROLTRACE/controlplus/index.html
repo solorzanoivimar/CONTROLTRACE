@@ -323,7 +323,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v7.6</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v7.7</div>
 </nav>
 
 <!-- MAIN -->
@@ -964,7 +964,7 @@ textarea.fctl{resize:vertical}
   </div>
   <div class="tab-pane" id="ti-prod">
     <div class="fbar"><div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="prod-q" oninput="rPROD()" placeholder="Código o nombre"></div>
-      <div class="fg"><div class="fg-lbl">Rubro / familia</div><select class="fs" id="prod-fam" onchange="rPROD()"></select></div>
+      <div class="fg"><div class="fg-lbl">Rubro</div><select class="fs" id="prod-fam" onchange="rPROD()"></select></div>
       <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-prod','Productos')">📥 Excel</button><button class="btn btn-gold btn-sm" onclick="editProducto()">＋ Nuevo producto</button></div></div>
     <div class="tcard"><div class="tbar"><div class="tbar-title">Productos</div><div class="tbar-actions"><span class="small muted">Ficha completa: producción, rotulado, facturación y receta</span></div></div>
       <div class="tscroll"><table id="tbl-prod"><thead><tr><th>Código</th><th>Producto</th><th>Rubro</th><th>Tipo</th><th class="tr">Unid./caja</th><th>Unidad fact.</th><th class="tr">Precio venta</th><th class="tr">IVA</th><th>Receta</th><th>Estado</th><th class="noprint"></th></tr></thead><tbody id="prod-body"></tbody></table></div></div>
@@ -985,9 +985,10 @@ textarea.fctl{resize:vertical}
       <div class="tscroll"><table id="tbl-cost"><thead><tr><th>Producto</th><th class="tr">MP / u</th><th class="tr">Insumos / u</th><th class="tr">Gastos op.</th><th class="tr">Mano de obra</th><th class="tr">Flete</th><th class="tr">Otros</th><th class="tr">Costo total</th><th class="tr">Precio venta</th><th class="tr">Margen</th><th class="noprint"></th></tr></thead><tbody id="costprod-body"></tbody></table></div></div>
   </div>
   <div class="tab-pane" id="ti-rub">
+    <div class="alert alert-warn" id="rub-warn" style="display:none">⚠️ <div>Falta un paso en Supabase: corré <b>plus_v7_6_setup.sql</b> en el SQL Editor para poder asignar rubros a productos, materias primas e insumos.</div></div>
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-gold btn-sm" onclick="editRubro()">＋ Nuevo rubro</button></div>
-    <div class="tcard"><div class="tbar"><div class="tbar-title">Rubros de artículos</div><div class="tbar-actions"><span class="small muted">Incluye las familias que ya usa CONTROL TRACE</span></div></div>
-      <div class="tscroll"><table><thead><tr><th>Código</th><th>Rubro</th><th>Descripción</th><th class="tr">Productos</th><th>Origen</th><th>Acciones</th></tr></thead><tbody id="rub-body"></tbody></table></div></div>
+    <div class="tcard"><div class="tbar"><div class="tbar-title">Rubros de artículos</div><div class="tbar-actions"><span class="small muted">Campo propio de PLUS: no cambia la familia (etiquetas) de TRACE</span></div></div>
+      <div class="tscroll"><table><thead><tr><th>Código</th><th>Rubro</th><th>Descripción</th><th class="tr">Productos</th><th class="tr">Mat. primas</th><th class="tr">Insumos</th><th>Estado</th><th class="noprint"></th></tr></thead><tbody id="rub-body"></tbody></table></div></div>
   </div>
   <div class="tab-pane" id="ti-stock">
     <div class="fbar"><div class="fg"><div class="fg-lbl">Ver</div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-gold" id="stkb-mp" onclick="stkMode('mp')">Materia prima</button><button class="btn btn-sm btn-outline" id="stkb-pt" onclick="stkMode('pt')">Productos</button><button class="btn btn-sm btn-outline" id="stkb-ins" onclick="stkMode('ins')">Insumos</button></div></div>
@@ -3177,9 +3178,17 @@ function rSRV(){
   const q=V('srv-q').toLowerCase(); const rows=(D.srv||[]).filter(s=>!q||((s.codigo||'')+' '+(s.nombre||'')).toLowerCase().includes(q)).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
   document.querySelectorAll('.srv-body').forEach(tb=>tb.innerHTML=rows.length?rows.map(s=>`<tr style="${s.activo===false?'opacity:.5':''}"><td><span class="chip chip-x">${esc(s.codigo||'—')}</span></td><td class="fw">${esc(s.nombre)}</td><td class="small">${esc(s.descripcion||'')}</td><td>${esc(s.unidad||'')}</td>${tdM(s.precio)}<td class="tr">${num(s.alicuota_iva)>0?num(s.alicuota_iva)+'%':'Exento'}</td><td>${s.activo===false?badge('Inactivo','b-neutral'):badge('Activo','b-success')}</td><td><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="editServicio('${s.id}')">✏️ Editar</button><button class="btn btn-${s.activo===false?'success':'danger'} btn-xs" onclick="toggleServicio('${s.id}')">${s.activo===false?'Reactivar':'Desactivar'}</button></div></td></tr>`).join(''):emptyRow(8,'Sin servicios. Cargá los que factura la empresa (fletes, maquila, alquileres, asesoramiento…).'));
 }
-function editServicio(id){ const s=id?(D.srv||[]).find(x=>x.id===id):null;
-  formModal({title:s?'Editar servicio':'Nuevo servicio', fields:[{id:'codigo',label:'Código',value:s?s.codigo:'SRV-'+pad((D.srv||[]).length+1,3)},{id:'nombre',label:'Nombre',req:true},{id:'descripcion',label:'Descripción',full:true},{id:'unidad',label:'Unidad',value:'servicio'},{id:'precio',label:'Precio neto',type:'number',step:'0.01'},{id:'alicuota_iva',label:'IVA',type:'select',options:[['21','21%'],['10.5','10,5%'],['27','27%'],['0','Exento']],value:'21'}],
-    values:s?{...s,alicuota_iva:String(num(s.alicuota_iva))}:{}, onSave:async v=>{ const o={...v,precio:num(v.precio),alicuota_iva:num(v.alicuota_iva)}; if(s) await dbUpd(TBL.srv,s.id,o); else await dbIns(TBL.srv,{...o,activo:true}); await reload(['srv']); refresh(); rSRV(); toast('Servicio guardado','ok'); }}); }
+function srvSigCodigo(){ let n=0; (D.srv||[]).forEach(r=>{ const m=/(\d+)\s*$/.exec(r.codigo||''); if(m) n=Math.max(n,+m[1]); }); return 'SRV-'+pad(n+1,3); }
+function editServicio(id){ const s=id?(D.srv||[]).find(x=>x.id===id):null; const enUso=s&&(D.cvi||[]).some(i=>!i.producto_id&&i.descripcion===s.nombre);
+  formModal({title:s?'Editar servicio':'Nuevo servicio', sub:'Lo que la empresa factura y no es mercadería (fletes, comisiones, alquileres, servicios de proceso…)',
+    pre:enUso?'<div class="alert alert-info">ℹ️ <div>Este servicio ya se usó en facturas: el cambio de precio o IVA solo vale para las nuevas.</div></div>':'',
+    fields:[{id:'codigo',label:'Código',req:true,value:s?s.codigo:srvSigCodigo()},{id:'nombre',label:'Nombre',req:true},{id:'descripcion',label:'Descripción',full:true},{id:'unidad',label:'Unidad',type:'select',options:['servicio','hora','kg','viaje','mes','u'],value:'servicio'},{id:'precio',label:'Precio neto',type:'number',step:'0.01'},{id:'alicuota_iva',label:'IVA',type:'select',options:[['21','21%'],['10.5','10,5%'],['27','27%'],['0','Exento']],value:'21'}],
+    values:s?{...s,unidad:s.unidad||'servicio',alicuota_iva:String(num(s.alicuota_iva))}:{}, onSave:async v=>{
+      const nom=v.nombre.trim(), cod=v.codigo.trim().toUpperCase();
+      if((D.srv||[]).some(x=>x.id!==(s&&s.id)&&String(x.codigo||'').toUpperCase()===cod)){ toast('Ese código ya lo usa otro servicio','warn'); return false; }
+      if((D.srv||[]).some(x=>x.id!==(s&&s.id)&&String(x.nombre||'').trim().toUpperCase()===nom.toUpperCase())){ toast('Ya existe un servicio con ese nombre','warn'); return false; }
+      if(s&&enUso&&nom.toUpperCase()!==String(s.nombre||'').trim().toUpperCase()){ toast('No se puede cambiar el nombre: ya está en facturas emitidas','warn'); return false; }
+      const o={...v,codigo:cod,nombre:nom,precio:num(v.precio),alicuota_iva:num(v.alicuota_iva)}; if(s) await dbUpd(TBL.srv,s.id,o); else await dbIns(TBL.srv,{...o,activo:true}); await reload(['srv']); refresh(); rSRV(); toast('Servicio guardado','ok'); }}); }
 async function toggleServicio(id){ const s=(D.srv||[]).find(x=>x.id===id); await dbUpd(TBL.srv,id,{activo:s.activo===false}); await reload(['srv']); rSRV(); }
 
 // ══════════════ LISTAS DE PRECIOS ══════════════
@@ -3934,27 +3943,38 @@ function rMP(){ const tb=el('mp-body'); if(!tb) return; const q=V('mp-q').toLowe
   const rows=(S.materias||[]).filter(m=>(!e||m.activo!==false)&&(!q||((m.codigo||'')+' '+m.nombre).toLowerCase().includes(q)));
   tb.innerHTML=rows.length?rows.map(m=>{ const rc=(D.rec||[]).filter(r=>String(r.materia_prima||'').toUpperCase()===String(m.nombre||'').toUpperCase()&&r.estado!=='anulada').sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')); const u=rc[0];
     return `<tr style="${m.activo===false?'opacity:.5':''}"><td><span class="chip chip-x">${esc(m.codigo||'—')}</span></td><td class="fw">${esc(m.nombre)}</td><td>${esc(m.unidad||'kg')}</td><td class="tr">${Math.round(sumBy(rc,'kilos')).toLocaleString('es-AR')}</td>${u?tdM(u.precio_kilo):'<td></td>'}<td>${u?fD(u.fecha):'—'}</td><td class="small">${[...new Set(rc.map(r=>r.proveedor))].slice(0,3).map(esc).join(', ')}</td><td>${m.activo===false?badge('Inactiva','b-neutral'):badge('Activa','b-success')}</td><td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="editMP('${m.id}')">✏️</button><button class="btn btn-outline btn-xs" onclick="toggleMP('${m.id}')">${m.activo===false?'Activar':'Baja'}</button></div></td></tr>`; }).join(''):emptyRow(9); }
-function rubrosList(){ const m={}; (D.rub||[]).forEach(r=>m[(r.nombre||'').toUpperCase()]={...r,origen:'PLUS'}); (S.productos||[]).forEach(p=>{ const f=(p.familia||'').trim(); if(f&&!m[f.toUpperCase()]) m[f.toUpperCase()]={nombre:f,origen:'TRACE'}; }); return Object.values(m).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'')); }
+function rubrosList(){ return [...(D.rub||[])].sort((a,b)=>(a.codigo||a.nombre||'').localeCompare(b.codigo||b.nombre||'')); }
 function rPROD(){ const tb=el('prod-body'); if(!tb) return; const q=V('prod-q').toLowerCase(), f=V('prod-fam');
-  const rows=(S.productos||[]).filter(p=>(!f||(p.familia||'')===f)&&(!q||((p.codigo||'')+' '+p.nombre).toLowerCase().includes(q)));
-  tb.innerHTML=rows.length?rows.map(p=>{ const rec=INV.receta.filter(r=>r.producto_id===p.id), rmp=(INV.recmp||[]).filter(r=>r.producto_id===p.id); const rcp=(INV.comp||[]).filter(r=>r.producto_id===p.id); return `<tr style="${p.activo===false?'opacity:.5':''}"><td><span class="chip chip-x">${esc(p.codigo||'—')}</span></td><td class="fw">${esc(p.nombre)}</td><td>${esc(p.familia||'—')}</td><td class="small">${esc({simple:'Simple',comp_produccion:'Compuesto',comp_ensamblado:'Ensamblado'}[p.tipo]||p.tipo||'')}</td><td class="tr">${num(p.unidades_por_caja)||'—'}</td><td>${esc(p.unidad||'u')}</td>${p.precio_venta!=null?tdM(p.precio_venta):'<td class="tr muted">—</td>'}<td class="tr">${p.alicuota_iva!=null?num(p.alicuota_iva)+'%':'<span class="muted">def.</span>'}</td>
+  const rows=(S.productos||[]).filter(p=>(!f||(p.rubro||'')===f)&&(!q||((p.codigo||'')+' '+p.nombre).toLowerCase().includes(q)));
+  tb.innerHTML=rows.length?rows.map(p=>{ const rec=INV.receta.filter(r=>r.producto_id===p.id), rmp=(INV.recmp||[]).filter(r=>r.producto_id===p.id); const rcp=(INV.comp||[]).filter(r=>r.producto_id===p.id); return `<tr style="${p.activo===false?'opacity:.5':''}"><td><span class="chip chip-x">${esc(p.codigo||'—')}</span></td><td class="fw">${esc(p.nombre)}</td><td>${esc(p.rubro||'—')}${p.familia?` <span class="small muted">· ${esc(p.familia)}</span>`:''}</td><td class="small">${esc({simple:'Simple',comp_produccion:'Compuesto',comp_ensamblado:'Ensamblado'}[p.tipo]||p.tipo||'')}</td><td class="tr">${num(p.unidades_por_caja)||'—'}</td><td>${esc(p.unidad||'u')}</td>${p.precio_venta!=null?tdM(p.precio_venta):'<td class="tr muted">—</td>'}<td class="tr">${p.alicuota_iva!=null?num(p.alicuota_iva)+'%':'<span class="muted">def.</span>'}</td>
     <td>${(rec.length||rmp.length||rcp.length)?`<span class="link" onclick="verRecetaCompleta('${p.id}')">${[rmp.length?rmp.length+' MP':'',rec.length?rec.length+' insumo'+(rec.length>1?'s':''):'',rcp.length?rcp.length+' comp.':''].filter(Boolean).join(' · ')}</span>`:'<span class="muted">—</span>'}</td><td>${p.activo===false?badge('Inactivo','b-neutral'):badge('Activo','b-success')}</td><td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="editProducto('${p.id}')">✏️</button><button class="btn btn-outline btn-xs" onclick="toggleProducto('${p.id}')">${p.activo===false?'Activar':'Baja'}</button></div></td></tr>`; }).join(''):emptyRow(11,'Sin productos'); }
 function verReceta(pid){ const p=(S.productos||[]).find(x=>x.id===pid); const rec=INV.receta.filter(r=>r.producto_id===pid);
   viewModal('Receta de insumos — '+p.nombre,'Definida en CONTROL TRACE',`<table><thead><tr><th>Insumo</th><th class="tr">Cantidad</th><th>Se consume en</th><th>Base</th></tr></thead><tbody>${rec.map(r=>{ const i=(D.ins||[]).find(x=>x.id===r.insumo_id)||{}; return `<tr><td>${esc(i.nombre||'—')}</td><td class="tr">${num(r.cantidad)}</td><td>${esc(r.momento||'')}</td><td>${esc(r.base||'')}</td></tr>`; }).join('')}</tbody></table>`); }
 function editProductoPlus(id){ const p=(S.productos||[]).find(x=>x.id===id);
   formModal({title:'Datos de facturación — '+p.nombre, sub:'Solo cambia campos de administración; la ficha de producción sigue en TRACE', fields:[{id:'unidad',label:'Unidad de facturación',type:'select',options:['u','kg','caja','bolsa','bandeja','atado','litro'],value:p.unidad||'u'},{id:'precio_venta',label:'Precio de venta base (neto)',type:'number',step:'0.01',value:p.precio_venta},{id:'alicuota_iva',label:'Alícuota IVA',type:'select',options:[['','Por defecto de la empresa'],['10.5','10,5%'],['21','21%'],['27','27%'],['0','Exento']],value:p.alicuota_iva!=null?String(num(p.alicuota_iva)):''},{id:'stock_minimo',label:'Stock mínimo',type:'number',value:p.stock_minimo}],
     onSave:async v=>{ const { error } = await sb.from('productos').update({unidad:v.unidad,precio_venta:v.precio_venta,alicuota_iva:v.alicuota_iva===''?null:num(v.alicuota_iva),stock_minimo:v.stock_minimo}).eq('id',id).eq('empresa_id',S.empresaId); if(error) throw error; await cargarProductos(); rPROD(); toast('Producto actualizado','ok'); }}); }
-function rRUB(){ const tb=el('rub-body'); if(!tb) return; const l=rubrosList();
-  tb.innerHTML=l.length?l.map(r=>`<tr><td><span class="chip chip-x">${esc(r.codigo||'—')}</span></td><td class="fw">${esc(r.nombre)}</td><td class="small">${esc(r.descripcion||'')}</td><td class="tr">${(S.productos||[]).filter(p=>(p.familia||'').toUpperCase()===(r.nombre||'').toUpperCase()).length}</td><td>${r.origen==='TRACE'?'<span class="sync-badge">TRACE</span>':badge('PLUS','b-navy')}</td><td>${r.id?`<button class="btn btn-outline btn-xs" onclick="editRubro('${r.id}')">✏️</button>`:''}</td></tr>`).join(''):emptyRow(6); }
+function rubroUsos(nom){ const k=String(nom||'').toUpperCase(); const c=rows=>(rows||[]).filter(x=>String(x.rubro||'').toUpperCase()===k).length; return {prod:c(S.productos),mp:c(S.materias),ins:c(D.ins)}; }
+function rRUB(){ const tb=el('rub-body'); if(!tb) return; const l=rubrosList(); const w=el('rub-warn'); if(w) w.style.display=(S.productos&&S.productos.length&&!hayRubroCol(S.productos))?'':'none';
+  tb.innerHTML=l.length?l.map(r=>{ const u=rubroUsos(r.nombre), tot=u.prod+u.mp+u.ins;
+    return `<tr style="${r.activo===false?'opacity:.5':''}"><td><span class="chip chip-x">${esc(r.codigo||'—')}</span></td><td class="fw">${esc(r.nombre)}</td><td class="small">${esc(r.descripcion||'')}</td><td class="tr">${u.prod}</td><td class="tr">${u.mp}</td><td class="tr">${u.ins}</td><td>${r.activo===false?badge('Inactivo','b-neutral'):badge('Activo','b-success')}</td><td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="editRubro('${r.id}')">✏️</button><button class="btn btn-outline btn-xs" onclick="toggleRubro('${r.id}')">${r.activo===false?'Activar':'Baja'}</button>${tot?`<button class="btn btn-outline btn-xs" onclick="verRubro('${r.id}')">Ver</button>`:''}</div></td></tr>`; }).join(''):emptyRow(8,'Todavía no hay rubros. Creá el primero con “＋ Nuevo rubro”.'); }
+function rubroSigCodigo(){ let n=0; (D.rub||[]).forEach(r=>{ const m=/(\d+)\s*$/.exec(r.codigo||''); if(m) n=Math.max(n,+m[1]); }); return 'RUB-'+pad(n+1,2); }
 function editRubro(id){ const r=id?(D.rub||[]).find(x=>x.id===id):null;
-  formModal({title:r?'Editar rubro':'Nuevo rubro', fields:[{id:'codigo',label:'Código',value:'RUB-'+pad((D.rub||[]).length+1,2)},{id:'nombre',label:'Nombre',req:true},{id:'descripcion',label:'Descripción',full:true}], values:r||{},
-    onSave:async v=>{ if(r) await dbUpd(TBL.rub,r.id,v); else await dbIns(TBL.rub,{...v,activo:true}); await reload(['rub']); rRUB(); toast('Rubro guardado','ok'); }}); }
-
-
-// ══════════════════════════════════════════════════════════════
-// CONFIGURACIÓN
-// ══════════════════════════════════════════════════════════════
-MOD_R.config=rCFG;
+  formModal({title:r?'Editar rubro':'Nuevo rubro', sub:'Agrupa productos, materias primas e insumos para reportes y listas de precios', fields:[{id:'codigo',label:'Código',value:rubroSigCodigo(),req:true},{id:'nombre',label:'Nombre',req:true},{id:'descripcion',label:'Descripción',full:true}], values:r||{},
+    onSave:async v=>{ const nom=v.nombre.trim().toUpperCase(), cod=v.codigo.trim().toUpperCase();
+      if((D.rub||[]).some(x=>x.id!==(r&&r.id)&&String(x.nombre||'').toUpperCase()===nom)){ toast('Ya existe un rubro con ese nombre','warn'); return false; }
+      if((D.rub||[]).some(x=>x.id!==(r&&r.id)&&String(x.codigo||'').toUpperCase()===cod)){ toast('Ese código ya lo usa otro rubro','warn'); return false; }
+      const o={codigo:cod,nombre:nom,descripcion:v.descripcion||''};
+      if(r){ await dbUpd(TBL.rub,r.id,o);
+        if(String(r.nombre||'').toUpperCase()!==nom){ // renombrar en todos los artículos que lo usan
+          for(const [t,rows] of [['productos',S.productos],['materias_primas',S.materias],['insumos',D.ins]]){ if(!hayRubroCol(rows)) continue; const { error } = await sb.from(t).update({rubro:nom}).eq('empresa_id',S.empresaId).ilike('rubro',r.nombre); if(error) throw error; }
+          await Promise.all([cargarProductos(),cargarMaterias()]); D.ins=await fetchAll('insumos'); } }
+      else await dbIns(TBL.rub,{...o,activo:true});
+      await reload(['rub']); rRUB(); rPROD(); toast('Rubro guardado','ok'); }}); }
+async function toggleRubro(id){ const r=(D.rub||[]).find(x=>x.id===id); if(!r) return; const u=rubroUsos(r.nombre), tot=u.prod+u.mp+u.ins;
+  if(r.activo!==false&&tot&&!confirm('El rubro "'+r.nombre+'" tiene '+tot+' artículo(s). Al darlo de baja deja de ofrecerse para nuevos, pero los artículos lo conservan. ¿Continuar?')) return;
+  await dbUpd(TBL.rub,id,{activo:r.activo===false}); await reload(['rub']); rRUB(); }
+function verRubro(id){ const r=(D.rub||[]).find(x=>x.id===id); if(!r) return; const k=String(r.nombre).toUpperCase(); const f=rows=>(rows||[]).filter(x=>String(x.rubro||'').toUpperCase()===k);
+  viewModal('Rubro '+r.nombre,'Artículos que lo usan',`<table><thead><tr><th>Tipo</th><th>Código</th><th>Nombre</th></tr></thead><tbody>${[['Producto',f(S.productos)],['Materia prima',f(S.materias)],['Insumo',f(D.ins)]].flatMap(([t,a])=>a.map(x=>`<tr><td>${t}</td><td class="mono small">${esc(x.codigo||'')}</td><td class="fw">${esc(x.nombre)}</td></tr>`)).join('')}</tbody></table>`); }
 function aplicarConfig(){ /* hook para futuros ajustes visuales según la configuración */ }
 function rCFG(){
   const c=CFG(), e=S.empresa||{};
@@ -4027,13 +4047,13 @@ function editMP(id){ const m=id?(S.materias||[]).find(x=>x.id===id):null; const 
   formModal({title:m?'Editar materia prima':'Nueva materia prima', sub:'Es la lista que usa CONTROL TRACE en Recepción y en las recetas',
     pre:enUso?'<div class="alert alert-info">ℹ️ <div>Esta materia prima ya tiene recepciones o está en recetas: el <b>nombre y el código no se pueden cambiar</b> desde acá para no romper la trazabilidad. Si hay duplicados, usá TRACE → Datos maestros → Unificar duplicados.</div></div>':'',
     fields:[{id:'codigo',label:'Código',req:true,ph:'ej: ESP01',help:'Único entre productos y materias primas. Es la clave que comparten TRACE y PLUS.'},{id:'nombre',label:'Nombre',req:true,ph:'ej: ACELGA'},
-      {id:'unidad',label:'Unidad',type:'select',options:['kg','u','atado','caja','bolsa']},{id:'stock_minimo',label:'Stock mínimo (kg)',type:'number'}],
-    values:m?{codigo:m.codigo,nombre:m.nombre,unidad:m.unidad||'kg',stock_minimo:m.stock_minimo}:{codigo:sugerirCodigo(S.materias,'MP'),unidad:'kg'},
+      {id:'unidad',label:'Unidad',type:'select',options:['kg','u','atado','caja','bolsa']},{id:'stock_minimo',label:'Stock mínimo (kg)',type:'number'},{id:'rubro',label:'Rubro',type:'select',options:rubroOpts()}],
+    values:m?{codigo:m.codigo,nombre:m.nombre,unidad:m.unidad||'kg',stock_minimo:m.stock_minimo,rubro:m.rubro||''}:{codigo:sugerirCodigo(S.materias,'MP'),unidad:'kg'},
     onSave:async v=>{ const cod=v.codigo.toUpperCase(), nom=v.nombre.toUpperCase();
       if(enUso&&(nom!==String(m.nombre||'').toUpperCase()||cod!==String(m.codigo||'').toUpperCase())){ toast('No se puede cambiar el nombre ni el código de una materia prima en uso','warn'); return false; }
       if(codigoArtUsado(cod,m&&m.id)){ toast('Ese código ya lo usa otro producto o materia prima','warn'); return false; }
       if((S.materias||[]).some(x=>String(x.nombre||'').toUpperCase()===nom&&x.id!==(m&&m.id))){ toast('Ya existe una materia prima con ese nombre','warn'); return false; }
-      const r=await guardarSafe('materias_primas',{codigo:cod,nombre:nom,unidad:v.unidad,stock_minimo:v.stock_minimo},m&&m.id);
+      const r=await guardarSafe('materias_primas',{codigo:cod,nombre:nom,unidad:v.unidad,stock_minimo:v.stock_minimo,...(hayRubroCol(S.materias)?{rubro:v.rubro||null}:{})},m&&m.id);
       await cargarMaterias(); rMP(); toast('Materia prima guardada'+(r.miss.length?' (faltan columnas: '+r.miss.join(', ')+')':''),'ok'); }}); }
 async function toggleMP(id){ const m=(S.materias||[]).find(x=>x.id===id); if(!m) return;
   if(m.activo!==false&&!confirm('¿Dar de baja "'+m.nombre+'"? No se borra: deja de ofrecerse en Recepción.')) return;
@@ -4067,7 +4087,7 @@ function editProducto(id){ if(!INV.loaded){ loadInventario().then(()=>editProduc
     fields:[
       sec('Identificación'),
       {id:'codigo',label:'Código',req:true,ph:'ej: ESP02'},{id:'nombre',label:'Nombre',req:true},
-      {id:'presentacion',label:'Presentación',ph:'CAJA X 10 UNIDADES'},{id:'familia',label:'Familia / rubro',type:'select',options:familiasOpts()},
+      {id:'presentacion',label:'Presentación',ph:'CAJA X 10 UNIDADES'},{id:'familia',label:'Familia (define el tipo de etiqueta en TRACE)',type:'select',options:familiasOpts()},{id:'rubro',label:'Rubro',type:'select',options:rubroOpts()},
       {id:'tipo',label:'Tipo',type:'select',options:[['simple','Simple'],['comp_produccion','Compuesto (producción)'],['comp_ensamblado','Ensamblado (pack de productos)']],onchange:'pfRender()'},{id:'gtin',label:'GTIN (EAN-13)'},
       sec('Producción y rotulado (CONTROL TRACE)'),
       {id:'contenido_kg',label:'Contenido (kg por unidad)',type:'number',step:'0.001'},{id:'unidades_por_caja',label:'Unidades por caja',type:'number'},
@@ -4092,7 +4112,7 @@ function editProducto(id){ if(!INV.loaded){ loadInventario().then(()=>editProduc
       if(new Set(mp.map(r=>r.mp)).size!==mp.length){ toast('Hay una materia prima repetida en la receta','warn'); return false; }
       if(new Set(ins.map(r=>r.insumo_id)).size!==ins.length){ toast('Hay un insumo repetido en la receta','warn'); return false; }
       if(v.tipo==='comp_produccion'&&!mp.length&&!confirm('Es un producto compuesto y no tiene receta de materia prima. ¿Guardar igual?')) return false;
-      const rec={codigo:cod,nombre:nom,presentacion:v.presentacion||null,familia:v.familia,tipo:v.tipo,gtin:v.gtin||null,
+      const rec={codigo:cod,nombre:nom,presentacion:v.presentacion||null,familia:v.familia,...(hayRubroCol(S.productos)?{rubro:v.rubro||null}:{}),tipo:v.tipo,gtin:v.gtin||null,
         contenido_kg:v.venta_por_unidad?null:(v.contenido_kg||null),unidades_por_caja:v.unidades_por_caja||null,rinde:v.rinde||null,vida_util_dias:v.vida_util_dias||null,prod_default:v.prod_default,rnpa:v.rnpa||null,rne:v.rne||null,
         venta_por_unidad:!!v.venta_por_unidad,microondas:!!v.microondas,muestra_caja:!!v.muestra_caja,
         unidad:v.unidad,precio_venta:v.precio_venta,alicuota_iva:v.alicuota_iva===''?null:num(v.alicuota_iva),stock_minimo:v.stock_minimo};
@@ -4121,6 +4141,10 @@ function verRecetaCompleta(pid){ const p=(S.productos||[]).find(x=>x.id===pid)||
     (ins.length?`<div class="fsec-title" style="margin-top:12px">Insumos</div><table><thead><tr><th>Insumo</th><th class="tr">Cantidad</th><th>Se descuenta</th><th>Base</th></tr></thead><tbody>${ins.map(r=>{ const i=(D.ins||[]).find(x=>x.id===r.insumo_id)||{}; return `<tr><td>${esc(i.nombre||'—')}</td><td class="tr">${num(r.cantidad)}</td><td>${r.momento==='despacho'?'Al despachar':'Al producir'}</td><td>${r.base==='caja'?'Por caja':'Por unidad'}</td></tr>`; }).join('')}</tbody></table>`:'')+
     (cp.length?`<div class="fsec-title" style="margin-top:12px">Componentes del pack</div><table><thead><tr><th>Producto</th><th class="tr">Unidades</th></tr></thead><tbody>${cp.map(r=>`<tr><td>${esc(r.componente)}</td><td class="tr">${num(r.cantidad)}</td></tr>`).join('')}</tbody></table>`:'')||'<div class="muted">Sin receta cargada.</div>',
     [{label:'✏️ Editar',cls:'btn-gold',fn:()=>{ closeM('m-view'); editProducto(pid); }}]); }
+
+// ── Rubros (campo propio de PLUS; la "familia" de TRACE define etiquetas y no se toca) ──
+function hayRubroCol(rows){ return (rows||[]).some(r=>Object.prototype.hasOwnProperty.call(r,'rubro')); }
+function rubroOpts(){ return [['','— Sin rubro —'],...(D.rub||[]).filter(r=>r.activo!==false).map(r=>r.nombre).sort().map(n=>[n,n])]; }
 
 // ══════════════════════════════════════════════════════════════
 // CONTROL PLUS · INSUMOS (v7.4) — mismas tablas que CONTROL TRACE
@@ -4152,13 +4176,13 @@ function rINS(){ const tb=el('ins-body'); if(!tb) return; const q=V('ins-q').toL
     +`<tr style="background:var(--ice)"><td colspan="5" class="fw">Total valorizado (${rows.length} insumo${rows.length!==1?'s':''})</td>${tdM(val,'fw')}<td colspan="3"></td></tr>`:emptyRow(9,'Sin insumos'); }
 function editInsumo(id){ const i=id?(D.ins||[]).find(x=>x.id===id):null;
   formModal({title:i?'Editar insumo — '+i.nombre:'Nuevo insumo', sub:'Envases, etiquetas, films, cajas, pallets… TRACE los descuenta según la receta de cada producto',
-    fields:[{id:'nombre',label:'Nombre',req:true,ph:'ej: Bandeja PET 500g'},{id:'unidad',label:'Unidad',type:'select',options:['u','rollo','kg','m','caja','paquete','litro']},
+    fields:[{id:'nombre',label:'Nombre',req:true,ph:'ej: Bandeja PET 500g'},{id:'unidad',label:'Unidad',type:'select',options:['u','rollo','kg','m','caja','paquete','litro']},{id:'rubro',label:'Rubro',type:'select',options:rubroOpts()},
       ...(i?[]:[{id:'stock',label:'Stock inicial',type:'number',help:'Queda registrado como ingreso "stock inicial".'}]),
       {id:'minimo',label:'Stock mínimo (alerta)',type:'number'},{id:'costo',label:'Costo por unidad (sin IVA)',type:'number',step:'0.01',help:'Se actualiza solo al cargar una factura de compra con este insumo.'}],
-    values:i?{nombre:i.nombre,unidad:i.unidad||'u',minimo:insMin(i),costo:i.costo}:{unidad:'u',stock:0,minimo:0,costo:0},
+    values:i?{nombre:i.nombre,unidad:i.unidad||'u',minimo:insMin(i),costo:i.costo,rubro:i.rubro||''}:{unidad:'u',stock:0,minimo:0,costo:0},
     onSave:async v=>{ const nom=v.nombre.trim();
       if((D.ins||[]).some(x=>String(x.nombre||'').trim().toUpperCase()===nom.toUpperCase()&&x.id!==(i&&i.id))){ toast('Ya existe un insumo con ese nombre','warn'); return false; }
-      const o={nombre:nom,unidad:v.unidad||'u',minimo:num(v.minimo),costo:num(v.costo)};
+      const o={nombre:nom,unidad:v.unidad||'u',minimo:num(v.minimo),costo:num(v.costo),...(hayRubroCol(D.ins)?{rubro:v.rubro||null}:{})};
       if(!i){ o.stock=0; o.activo=true; }
       const r=await guardarSafe('insumos',o,i&&i.id);
       if(!i&&num(v.stock)>0) await moverInsumo(r.id,num(v.stock),{tipo:'ingreso',cantidad:num(v.stock),referencia:'alta',nota:'stock inicial'});
