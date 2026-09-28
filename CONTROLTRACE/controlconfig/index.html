@@ -316,7 +316,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('seguridad')" id="n-seguridad"><span class="nav-icon">🔐</span>PIN y autorizadores</div>
   <div class="nav-sec">Suscripción</div>
   <div class="nav-item" onclick="go('plan')" id="n-plan"><span class="nav-icon">🧩</span>Plan y módulos</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build cfg 1.0</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build cfg 1.1</div>
 </nav>
 
 <main class="main">
@@ -341,7 +341,7 @@ textarea.fctl{resize:vertical}
 </div>
 <script>
 // ══════════════════════════════════════════════════════════════
-// CONTROL MAX · Configuración unificada — build cfg 1.0
+// CONTROL MAX · Configuración unificada — build cfg 1.1
 // Misma base (Supabase) que TRACE / PLUS / AGRO. Escribe en las MISMAS
 // columnas que usa CONTROL TRACE (empresas.*, operarios, permisos) y en
 // plus_config / puntos_venta de CONTROL PLUS: no hay nada que sincronizar.
@@ -366,6 +366,8 @@ function openM(id){const e=el(id);if(e)e.classList.add('open');}
 function closeM(id){const e=el(id);if(e)e.classList.remove('open');}
 async function lockBtn(id,on,txt){const b=el(id);if(!b)return;if(on){b._t=b.innerHTML;b.innerHTML='⏳ '+(txt||'Guardando…');b.disabled=true;}else{b.innerHTML=b._t||b.innerHTML;b.disabled=false;}}
 function esAdmin(){return ['admin','administrador','dueno','dueño'].includes(S.rol||'');}
+function esSupervisor(){return S.rol==='supervisor';}   // el supervisor solo entra a Usuarios (como hacía en TRACE)
+function secOk(id){return esAdmin()||(esSupervisor()&&id==='usuarios');}
 
 // UPDATE tolerante: si a la tabla le falta una columna (SQL no corrido), la saca y reintenta
 async function updSafe(table,match,obj){
@@ -454,7 +456,7 @@ const DEF_PLUS={supervisor:PLUS_SECS.map(s=>s.id),comercial:PLUS_SECS.map(s=>s.i
 // ══════════════ navegación ══════════════
 const NAMES={empresa:'Datos de la empresa',facturacion:'Facturación y FCE',operarios:'Operarios',usuarios:'Usuarios',permisos:'Roles y permisos',seguridad:'PIN y autorizadores',plan:'Plan y módulos'};
 const R={};let CUR='empresa';
-function go(id){CUR=id;document.body.classList.remove('nav-open');
+function go(id){if(!secOk(id)){toast('Esa sección es solo para administradores','warn');id='usuarios';}CUR=id;document.body.classList.remove('nav-open');
   Object.keys(NAMES).forEach(k=>{const n=el('n-'+k);if(n)n.classList.toggle('active',k===id);});
   el('hdrMod').textContent=NAMES[id]||'Configuración';window.scrollTo(0,0);
   try{R[id]();}catch(e){console.error(e);el('view').innerHTML='<div class="alert alert-err">Error: '+esc(e.message)+'</div>';}
@@ -494,9 +496,9 @@ R.empresa=function(){const e=S.empresa,c=S.cfg||{};
     ${fg('Domicilio fiscal',inp('e-domf',e.dom_fiscal||c.domicilio_fiscal),{span:2,help:'Sale en remitos (TRACE) y facturas (PLUS).'})}
     ${fg('Localidad',inp('e-loc',c.localidad))}
     ${fg('Provincia',inp('e-prov',c.provincia,{ph:'Mendoza'}))}
-    ${fg('Domicilio de planta',inp('e-domp',e.dom_planta),{span:2,help:'Sale en las etiquetas.'})}
     ${fg('Teléfono',inp('e-tel',e.tel||c.telefono))}
     ${fg('Email',inp('e-email',e.email||c.email))}
+    ${fg('Domicilio de planta',inp('e-domp',e.dom_planta),{full:1,help:'Sale en las etiquetas.'})}
    </div></div>
    <div class="fsec"><div class="fsec-title">Habilitaciones y numeración de remitos</div><div class="fgrid fgrid-3">
     ${fg('RENSPA',inp('e-renspa',e.renspa))}
@@ -607,17 +609,17 @@ async function toggleOp(id){const o=S.ops.find(x=>x.id===id);const {error}=await
 // ══════════════ 4 · USUARIOS (Edge Function manage-users, la misma de TRACE) ══════════════
 let USERS=null,USERS_ERR=null;
 async function mu(body){const {data,error}=await sb.functions.invoke('manage-users',{body});const err=(data&&data.error)||(error&&(error.message||String(error)));if(err)throw new Error(err);return data||{};}
-function rolOpts(sel_){const l=['admin'].concat(ROLES);if(sel_&&!l.includes(sel_))l.push(sel_);return l.map(r=>`<option value="${r}"${r===sel_?' selected':''}>${esc(ROL_LABEL[r]||r)}</option>`).join('');}
-function accOpts(sel_){const l=['admin','galpon','finca'];if(sel_&&!l.includes(sel_))l.push(sel_);return (sel_?'':'<option value="">—</option>')+l.map(a=>`<option value="${a}"${a===sel_?' selected':''}>${esc(ACCESO_LABEL[a]||a)}</option>`).join('');}
+function rolOpts(sel_){const l=(esAdmin()?['admin']:[]).concat(ROLES);if(sel_&&!l.includes(sel_))l.push(sel_);return l.map(r=>`<option value="${r}"${r===sel_?' selected':''}>${esc(ROL_LABEL[r]||r)}</option>`).join('');}
+function accOpts(sel_){const l=(esAdmin()?['admin']:[]).concat(['galpon','finca']);if(sel_&&!l.includes(sel_))l.push(sel_);return (sel_?'':'<option value="">—</option>')+l.map(a=>`<option value="${a}"${a===sel_?' selected':''}>${esc(ACCESO_LABEL[a]||a)}</option>`).join('');}
 R.usuarios=function(){
-  el('view').innerHTML=ph('Usuarios','Quién entra al sistema. El <b>rol</b> define qué puede hacer (ver <a class="link" onclick="go(\'permisos\')">Roles y permisos</a>); el <b>acceso</b> es el que ya usa CONTROL TRACE (Galpón / Finca / Administrador).','<button class="btn btn-gold" onclick="nuevoUsuario()">＋ Nuevo usuario</button>')+
+  el('view').innerHTML=ph('Usuarios','Quién entra al sistema. El <b>rol</b> define qué puede hacer (ver <a class="link" onclick="go(\'permisos\')">Roles y permisos</a>); el <b>acceso</b> es el que ya usa CONTROL TRACE (Galpón / Finca / Administrador).','<button class="btn btn-gold" onclick="nuevoUsuario()">＋ Nuevo usuario</button>')+(esAdmin()?'':'<div class="alert alert-info">ℹ️ <div>Como supervisor podés crear y editar usuarios, pero no administradores.</div></div>')+
   `<div class="tcard"><div class="tbar"><div class="tbar-title">Usuarios de la empresa</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="cargarUsuarios(true)">↻ Actualizar</button></div></div><div id="u-list" style="padding:0"><div style="padding:18px" class="muted">Cargando usuarios…</div></div></div>`;
   cargarUsuarios(USERS==null);};
 async function cargarUsuarios(force){
   if(force||USERS==null){try{const d=await mu({action:'list'});USERS=d.users||[];USERS_ERR=null;}catch(e){USERS=[];USERS_ERR=e.message;}}
   const box=el('u-list');if(!box)return;
   if(USERS_ERR){box.innerHTML=`<div class="alert alert-err" style="margin:14px">❌ <div>No se pudieron cargar los usuarios: ${esc(USERS_ERR)}.<br>Verificá que la Edge Function <b>manage-users</b> esté desplegada en Supabase (es la misma que usa CONTROL TRACE).</div></div>`;return;}
-  box.innerHTML=`<div class="tscroll"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acceso</th><th>Estado</th><th></th></tr></thead><tbody>${USERS.map(u=>{const yo=u.id===S.uid;
+  box.innerHTML=`<div class="tscroll"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acceso</th><th>Estado</th><th></th></tr></thead><tbody>${USERS.map(u=>{const yo=u.id===S.uid||(!esAdmin()&&['admin','dueno','dueño'].includes(u.rol));
     return `<tr style="${u.activo===false?'opacity:.55':''}"><td>${esc(u.nombre||'—')}${yo?' <span class="badge b-gold">vos</span>':''}</td><td class="mono">${esc(u.email||'—')}</td>
     <td><select class="fctl" style="padding:4px 6px;font-size:12px;min-width:130px" ${yo?'disabled':''} onchange="cambiarRol('${u.id}',this.value)">${rolOpts(u.rol)}</select></td>
     <td><select class="fctl" style="padding:4px 6px;font-size:12px;min-width:170px" ${yo?'disabled':''} onchange="cambiarAcceso('${u.id}',this.value)">${accOpts(u.acceso)}</select></td>
@@ -627,8 +629,8 @@ async function cargarUsuarios(force){
 function nuevoUsuario(){formModal({title:'Nuevo usuario',sub:'Podrá ingresar con este correo y contraseña desde el portal CONTROL MAX',fields:[
   {id:'nombre',label:'Nombre y apellido',req:true},{id:'email',label:'Correo (para ingresar)',type:'email',req:true},
   {id:'password',label:'Contraseña inicial (mín. 6)',req:true,help:'Pedile que la cambie después desde su usuario.'},
-  {id:'rol',label:'Rol',type:'select',options:['admin'].concat(ROLES).map(r=>[r,ROL_LABEL[r]])},
-  {id:'acceso',label:'Acceso',type:'select',options:[['galpon',ACCESO_LABEL.galpon],['finca',ACCESO_LABEL.finca],['admin',ACCESO_LABEL.admin]]}],values:{rol:'preparador',acceso:'galpon'},
+  {id:'rol',label:'Rol',type:'select',options:(esAdmin()?['admin']:[]).concat(ROLES).map(r=>[r,ROL_LABEL[r]])},
+  {id:'acceso',label:'Acceso',type:'select',options:[['galpon',ACCESO_LABEL.galpon],['finca',ACCESO_LABEL.finca]].concat(esAdmin()?[['admin',ACCESO_LABEL.admin]]:[])}],values:{rol:'preparador',acceso:'galpon'},
   onSave:async v=>{if(v.password.length<6){toast('La contraseña debe tener al menos 6 caracteres','warn');return false;}
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)){toast('El correo no es válido','warn');return false;}
     const d=await mu({action:'create',nombre:v.nombre,email:v.email,password:v.password,rol:v.rol,acceso:v.acceso});
@@ -677,7 +679,7 @@ async function guardarPermisos(){
     if(!S.colsMissing.length)upd.permisos_max=Object.assign({},pmax(),{modulos:leer('mod'),plus:leer('plus')});
     const r=await updSafe('empresas',{id:S.empresaId},upd);if(r.error)throw r.error;
     await cargarEmpresa();R.permisos();
-    toast(r.missing.length?'Permisos de TRACE guardados · falta correr config_max_setup.sql para el resto':'Permisos guardados · se aplican al volver a entrar a cada módulo',r.missing.length?'warn':'ok');
+    toast((r.missing.length||S.colsMissing.length)?'Permisos de TRACE guardados · falta correr config_max_setup.sql para el resto':'Permisos guardados · se aplican al volver a entrar a cada módulo',(r.missing.length||S.colsMissing.length)?'warn':'ok');
   }catch(e){toast('No se pudo guardar: '+e.message,'err');}
   await lockBtn('bt-perm',false);
 }
@@ -740,11 +742,13 @@ async function init(){
   const {data:perfil,error:perr}=await sb.from('perfiles').select('nombre,rol,empresa_id,activo').eq('id',session.user.id).single();
   if(perr||!perfil||perfil.activo===false){location.href='/portal.html';return;}
   S.uid=session.user.id;S.empresaId=perfil.empresa_id;S.rol=(perfil.rol||'').toLowerCase();S.nombre=perfil.nombre||session.user.email;S.email=session.user.email;
-  if(!esAdmin()){el('splash').innerHTML='<div style="color:#fff;text-align:center;padding:24px;max-width:420px"><div style="font-size:30px">🔒</div><div style="font-size:16px;font-weight:800;margin:8px 0">Solo administradores</div><div style="font-size:13px;color:rgba(255,255,255,.7)">La configuración de CONTROL MAX la maneja un administrador de tu empresa.</div><a href="/portal.html" style="display:inline-block;margin-top:16px;color:#C9A84C">← Volver al portal</a></div>';return;}
+  if(!esAdmin()&&!esSupervisor()){el('splash').innerHTML='<div style="color:#fff;text-align:center;padding:24px;max-width:420px"><div style="font-size:30px">🔒</div><div style="font-size:16px;font-weight:800;margin:8px 0">Solo administradores</div><div style="font-size:13px;color:rgba(255,255,255,.7)">La configuración de CONTROL MAX la maneja un administrador de tu empresa.</div><a href="/portal.html" style="display:inline-block;margin-top:16px;color:#C9A84C">← Volver al portal</a></div>';return;}
   el('hdr-user').textContent=S.nombre;el('hdr-avatar').textContent=(S.nombre||'··').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  await cargarEmpresa();await Promise.all([cargarCfg(),cargarOps()]);banner();
+  Object.keys(NAMES).forEach(k=>{if(!secOk(k)){const n=el('n-'+k);if(n)n.style.display='none';}});
+  if(!esAdmin())document.querySelectorAll('.nav-sec').forEach(x=>{if(!/Accesos/i.test(x.textContent))x.style.display='none';});
+  await cargarEmpresa();await Promise.all([cargarCfg(),cargarOps()]);if(esAdmin())banner();
   el('splash').style.display='none';
-  const h=(location.hash||'').slice(1);go(NAMES[h]?h:'empresa');
+  const h=(location.hash||'').slice(1);go(NAMES[h]&&secOk(h)?h:(esAdmin()?'empresa':'usuarios'));
 }
 document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.moverlay').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)o.classList.remove('open');}));

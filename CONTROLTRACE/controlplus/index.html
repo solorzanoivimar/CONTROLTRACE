@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CONTROL PLUS — Sistema Administrativo</title>
-<!-- build v7.1 · PLUS — (v7.1: pedidos editar/copiar/cumplido, precios por cliente como fuente única compartida con TRACE, permisos por rol) · v7.0: Todos los módulos con datos reales: Ventas (A/B/C/X + FCE MiPyME, NC/ND, presupuestos, pedidos, remitos TRACE, cobranzas, cheques, C/C), Compras (recepciones TRACE, gastos, pagos, chequera, comisiones), Caja, Banco (conciliación), Inventario (lectura TRACE), Configuración fiscal. Requiere plus_v7_setup.sql -->
+<!-- build v7.2 · PLUS — (v7.2: permisos por rol y plan desde Configuración CONTROL MAX; v7.1: pedidos editar/copiar/cumplido, precios por cliente como fuente única compartida con TRACE, permisos por rol) · v7.0: Todos los módulos con datos reales: Ventas (A/B/C/X + FCE MiPyME, NC/ND, presupuestos, pedidos, remitos TRACE, cobranzas, cheques, C/C), Compras (recepciones TRACE, gastos, pagos, chequera, comisiones), Caja, Banco (conciliación), Inventario (lectura TRACE), Configuración fiscal. Requiere plus_v7_setup.sql -->
 <!-- Supabase JS (mismo que TRACE y AGRO) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Navbar compartido de CONTROL MAX -->
@@ -323,7 +323,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v7.1</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v7.2</div>
 </nav>
 
 <!-- MAIN -->
@@ -1142,6 +1142,7 @@ textarea.fctl{resize:vertical}
 <div id="m-config" style="display:none">
   <div class="ph"><div><div class="ph-title">Configuración</div><div class="ph-sub">Datos fiscales del emisor, puntos de venta, Factura de Crédito MiPyME, ARCA y seguridad · (pasa al módulo CONFIGURACIÓN de CONTROL MAX)</div></div>
     <div class="ph-actions"><button class="btn btn-gold" onclick="guardarConfig()">💾 Guardar configuración</button></div></div>
+  <div class="alert alert-info">⚙️ <div>Usuarios, roles y permisos, PIN, operarios y plan se manejan ahora desde <a class="link" href="/CONTROLTRACE/controlconfig/index.html"><b>Configuración CONTROL MAX</b></a>. Los datos de esta pantalla son los mismos que ves allá.</div></div>
   <div class="tcard" style="padding:20px">
     <div class="fsec">
       <div class="fsec-title">Datos del emisor</div>
@@ -1792,6 +1793,10 @@ function prvByName(n){ const u=String(n||'').trim().toUpperCase(); return (S.pro
 // Roles reales de perfiles: admin · supervisor · comercial · preparador · chofer (+ dueno). PLUS = administración y finanzas.
 const ROLES_PLUS=['admin','administrador','administracion','administración','dueno','dueño','supervisor','comercial'];
 function esAdmin(){ return ['admin','administrador','dueno','dueño'].includes(S.rol||''); }
+function pMax(){ return (S.empresa&&S.empresa.permisos_max)||{}; }
+function modPlan(id){ const m=S.empresa&&S.empresa.modulos; return (m&&typeof m==='object'&&id in m)? !!m[id] : true; }
+function puedePlus(){ if(!modPlan('plus')) return false; if(esAdmin()) return true; const m=pMax().modulos; return (m&&Array.isArray(m[S.rol]))? m[S.rol].includes('plus') : ROLES_PLUS.includes(S.rol); }
+function secPermitida(id){ if(id==='config') return esAdmin(); if(esAdmin()) return true; const p=pMax().plus; return (p&&Array.isArray(p[S.rol]))? p[S.rol].includes(id) : true; }
 
 // ── Navegación ──
 const MODS=['dashboard','ventas','compras','clientes','inventario','caja','banco','config'];
@@ -1801,6 +1806,7 @@ const MOD_R={}; // modId -> render()
 let CUR='dashboard';
 function go(id){
   if(id==='config'&&!esAdmin()){ toast('Solo un administrador puede cambiar la configuración','warn'); return; }
+  if(!secPermitida(id)){ toast('Tu rol no tiene acceso a '+(NAMES[id]||id),'warn'); return; }
   CUR=id; document.body.classList.remove('nav-open');
   MODS.forEach(m=>{ const e=el('m-'+m); if(e) e.style.display=(m===id)?'block':'none'; const n=el('n-'+m); if(n) n.classList.toggle('active',m===id); });
   const h=el('hdrMod'); if(h) h.textContent=NAMES[id]||id;
@@ -1872,7 +1878,7 @@ function viewModal(title, sub, html, buttons){
 }
 // Confirmación con PIN (si hay PIN configurado); si no, confirm() simple
 function autorizar(motivo, cb){
-  if(S.empresa && S.empresa.pin_supervisor){ pedirPinSupervisor([motivo], cb, {titulo:'Autorización requerida', sub:'Operación protegida con PIN de supervisor', head:'Para continuar se necesita autorización:', btn:'✅ Autorizar'}); }
+  if(pinConfigurado()){ pedirPinSupervisor([motivo], cb, {titulo:'Autorización requerida', sub:'Operación protegida con PIN de supervisor', head:'Para continuar se necesita autorización:', btn:'✅ Autorizar'}); }
   else if(confirm(motivo.replace(/<[^>]+>/g,'')+'\n\n¿Confirmás?')) cb();
 }
 
@@ -1933,11 +1939,11 @@ async function initPlus(){
   const { data:perfil, error:perr } = await sb.from('perfiles').select('nombre, rol, empresa_id, activo').eq('id',session.user.id).single();
   if(perr||!perfil||perfil.activo===false){ window.location.href='/portal.html'; return; }
   S.empresaId=perfil.empresa_id; S.rol=(perfil.rol||'').toLowerCase(); S.nombre=perfil.nombre||session.user.email; S.email=session.user.email;
-  // Permisos: solo roles de administración / comerciales entran a PLUS
-  if(!ROLES_PLUS.includes(S.rol)){ const sp=el('splash'); if(sp) sp.innerHTML='<div style="color:#fff;text-align:center;padding:24px;max-width:420px"><div style="font-size:30px">🔒</div><div style="font-size:16px;font-weight:800;margin:8px 0">Sin acceso a CONTROL PLUS</div><div style="font-size:13px;color:rgba(255,255,255,.7)">Tu usuario ('+esc(S.rol)+') no tiene permiso para administración y finanzas. Si lo necesitás, pedíselo a un administrador.</div><a href="/portal.html" style="display:inline-block;margin-top:16px;color:#C9A84C">← Volver</a></div>'; return; }
-  if(!esAdmin()){ const n=el('n-config'); if(n) n.style.display='none'; }
   const { data:empresa } = await sb.from('empresas').select('*').eq('id',S.empresaId).single();
   S.empresa=empresa||{};
+  // Permisos (Configuración CONTROL MAX): módulos por rol y secciones de PLUS por rol; si no se configuró, valen los roles por defecto
+  if(!puedePlus()){ const sp=el('splash'); if(sp) sp.innerHTML='<div style="color:#fff;text-align:center;padding:24px;max-width:420px"><div style="font-size:30px">🔒</div><div style="font-size:16px;font-weight:800;margin:8px 0">Sin acceso a CONTROL PLUS</div><div style="font-size:13px;color:rgba(255,255,255,.7)">'+(modPlan('plus')?'Tu usuario ('+esc(S.rol)+') no tiene permiso para administración y finanzas. Si lo necesitás, pedíselo a un administrador.':'CONTROL PLUS no está habilitado en el plan de tu empresa.')+'</div><a href="/portal.html" style="display:inline-block;margin-top:16px;color:#C9A84C">← Volver</a></div>'; return; }
+  MODS.forEach(m=>{ if(!secPermitida(m)){ const n=el('n-'+m); if(n) n.style.display='none'; } });
   const empNombre=S.empresa.razon_social||'Mi empresa';
   el('sb-empresa').textContent=empNombre; el('hdr-tenant').textContent='🏢 '+empNombre;
   el('hdr-user').textContent=S.nombre; el('hdr-avatar').textContent=(S.nombre||'··').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -1946,7 +1952,7 @@ async function initPlus(){
   await reloadAll();
   const sp=el('splash'); if(sp) sp.style.display='none';
   if(typeof setEntidad==='function') setEntidad('cliente');
-  go('dashboard');
+  go(MODS.find(secPermitida)||'dashboard');
 }
 document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelectorAll('.moverlay').forEach(o=>o.addEventListener('mousedown',e=>{ if(e.target===o && o.id!=='m-cbte' && o.id!=='m-cob' && o.id!=='m-cpa' && o.id!=='m-pag') o.classList.remove('open'); }));
@@ -3964,6 +3970,9 @@ async function guardarConfig(){
     arca_proveedor:V('cfg-arcaprov'), arca_modo:V('cfg-arcamodo'), arca_api_token:V('cfg-apitoken')||null, arca_api_key:V('cfg-apikey')||null, arca_user_token:V('cfg-usertoken')||null, updated_at:new Date().toISOString()};
   const { error } = await sb.from(TBL.cfg).upsert(o,{onConflict:'empresa_id'});
   if(error){ toast('No se pudo guardar: '+error.message,'err'); return; }
+  // mismos datos en la ficha de empresa que usa CONTROL TRACE (remitos / etiquetas)
+  const emp={}; if(o.razon_social) emp.razon_social=o.razon_social; if(o.cuit) emp.cuit=o.cuit; if(o.domicilio_fiscal) emp.dom_fiscal=o.domicilio_fiscal; if(o.telefono) emp.tel=o.telefono; if(o.email) emp.email=o.email;
+  if(Object.keys(emp).length){ const r=await sb.from('empresas').update(emp).eq('id',S.empresaId); if(!r.error) Object.assign(S.empresa,emp); }
   await reload(['cfg']); rCFG(); toast('Configuración guardada','ok');
 }
 function editPV(id){ const p=id?(D.pv||[]).find(x=>x.id===id):null;
