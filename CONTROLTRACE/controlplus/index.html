@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CONTROL PLUS — Sistema Administrativo</title>
-<!-- build v7.0 · PLUS — Todos los módulos con datos reales: Ventas (A/B/C/X + FCE MiPyME, NC/ND, presupuestos, pedidos, remitos TRACE, cobranzas, cheques, C/C), Compras (recepciones TRACE, gastos, pagos, chequera, comisiones), Caja, Banco (conciliación), Inventario (lectura TRACE), Configuración fiscal. Requiere plus_v7_setup.sql -->
+<!-- build v7.1 · PLUS — (v7.1: pedidos editar/copiar/cumplido, precios por cliente como fuente única compartida con TRACE, permisos por rol) · v7.0: Todos los módulos con datos reales: Ventas (A/B/C/X + FCE MiPyME, NC/ND, presupuestos, pedidos, remitos TRACE, cobranzas, cheques, C/C), Compras (recepciones TRACE, gastos, pagos, chequera, comisiones), Caja, Banco (conciliación), Inventario (lectura TRACE), Configuración fiscal. Requiere plus_v7_setup.sql -->
 <!-- Supabase JS (mismo que TRACE y AGRO) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Navbar compartido de CONTROL MAX -->
@@ -323,7 +323,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v7.0</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v7.1</div>
 </nav>
 
 <!-- MAIN -->
@@ -397,6 +397,7 @@ textarea.fctl{resize:vertical}
     <button class="tab-btn" onclick="switchTab(this,'tv-cxc')">Cuentas por cobrar</button>
     <button class="tab-btn" onclick="switchTab(this,'tv-cc')">C/C clientes</button>
     <button class="tab-btn" onclick="switchTab(this,'tv-srv')">Servicios</button>
+    <button class="tab-btn" onclick="switchTab(this,'tv-pc')">Precios por cliente</button>
     <button class="tab-btn" onclick="switchTab(this,'tv-lp')">Listas de precios</button>
   </div>
 
@@ -618,11 +619,27 @@ textarea.fctl{resize:vertical}
     </div>
   </div>
 
+  <!-- PRECIOS POR CLIENTE (tabla compartida con TRACE) -->
+  <div class="tab-pane" id="tv-pc">
+    <div class="alert alert-info">💲 <div><b>Fuente única de precios.</b> Estos precios los usa la factura de PLUS y también el <b>remito de CONTROL TRACE</b> (misma tabla). Si un cliente no tiene precio para un producto, se toma su lista de precios y, si no, el precio base del producto.</div></div>
+    <div class="fbar">
+      <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs sel-cliente-pc" id="pc-cli" style="min-width:240px" onchange="rPC()"></select></div>
+      <div class="fg"><div class="fg-lbl">Buscar producto</div><input class="fi" id="pc-q" oninput="rPC()" placeholder="Código o nombre"></div>
+      <div class="fg"><div class="fg-lbl">Mostrar</div><select class="fs" id="pc-ver" onchange="rPC()"><option value="">Todos los productos</option><option value="con">Solo con precio del cliente</option></select></div>
+      <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="pcDesdeLista()">⤵ Traer de su lista</button><button class="btn btn-outline btn-sm" onclick="pcAjuste()">％ Ajustar todos</button><button class="btn btn-gold btn-sm" onclick="guardarPreciosCliente()">💾 Guardar precios</button></div>
+    </div>
+    <div class="tcard">
+      <div class="tbar"><div class="tbar-title" id="pc-title">Precios por cliente</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-pc','Precios_cliente')">📥 Excel</button><button class="btn btn-outline btn-sm" onclick="printTbl('tbl-pc','Lista de precios — '+selText('pc-cli'))">🖨️</button></div></div>
+      <div class="tscroll"><table id="tbl-pc"><thead><tr><th>Código</th><th>Producto</th><th class="tr">Precio base</th><th class="tr">Precio lista</th><th class="tr" style="width:170px">Precio del cliente</th><th class="tr">Con IVA</th></tr></thead><tbody id="pc-body"></tbody></table></div>
+      <div class="tfooter"><span id="pc-foot"></span></div>
+    </div>
+  </div>
+
   <!-- LISTAS DE PRECIOS -->
   <div class="tab-pane" id="tv-lp">
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-gold" onclick="editLista()">＋ Nueva lista</button></div>
     <div class="tcard">
-      <div class="tbar"><div class="tbar-title">Listas de precios</div><div class="tbar-actions"><span class="small muted">Si el cliente tiene lista asignada, la factura toma el precio de ahí; si no, el último precio de CONTROL TRACE.</span></div></div>
+      <div class="tbar"><div class="tbar-title">Listas de precios</div><div class="tbar-actions"><span class="small muted">Orden de precios: 1) precio del cliente · 2) lista asignada al cliente · 3) precio base del producto.</span></div></div>
       <div class="tscroll"><table><thead><tr><th>Código</th><th>Nombre</th><th>Vencimiento</th><th>Redondeo</th><th>Formas de cobro</th><th class="tr">Artículos</th><th class="tr">Clientes</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="lp-body"></tbody></table></div>
     </div>
   </div>
@@ -1771,6 +1788,10 @@ function cliById(id){ return (S.clientes||[]).find(c=>c.id===id)||null; }
 function prvById(id){ return (S.proveedores||[]).find(p=>p.id===id)||null; }
 function prvByName(n){ const u=String(n||'').trim().toUpperCase(); return (S.proveedores||[]).find(p=>(p.nombre||'').trim().toUpperCase()===u)||null; }
 
+// ── Permisos ──
+const ROLES_SIN_PLUS=['galpon','galpón','finca','operario','produccion','producción'];
+function esAdmin(){ return ['admin','administrador','dueno','dueño','supervisor'].includes(S.rol||''); }
+
 // ── Navegación ──
 const MODS=['dashboard','ventas','compras','clientes','inventario','caja','banco','config'];
 const NAMES={dashboard:'Dashboard',ventas:'Ventas',compras:'Compras',clientes:'Entidades',inventario:'Inventario',caja:'Caja',banco:'Banco',config:'Configuración'};
@@ -1778,6 +1799,7 @@ const TAB_R={}; // paneId -> render()
 const MOD_R={}; // modId -> render()
 let CUR='dashboard';
 function go(id){
+  if(id==='config'&&!esAdmin()){ toast('Solo un administrador puede cambiar la configuración','warn'); return; }
   CUR=id; document.body.classList.remove('nav-open');
   MODS.forEach(m=>{ const e=el('m-'+m); if(e) e.style.display=(m===id)?'block':'none'; const n=el('n-'+m); if(n) n.classList.toggle('active',m===id); });
   const h=el('hdrMod'); if(h) h.textContent=NAMES[id]||id;
@@ -1910,6 +1932,9 @@ async function initPlus(){
   const { data:perfil, error:perr } = await sb.from('perfiles').select('nombre, rol, empresa_id, activo').eq('id',session.user.id).single();
   if(perr||!perfil||perfil.activo===false){ window.location.href='/'; return; }
   S.empresaId=perfil.empresa_id; S.rol=(perfil.rol||'').toLowerCase(); S.nombre=perfil.nombre||session.user.email; S.email=session.user.email;
+  // Permisos: galpón y finca no entran a PLUS (administración y finanzas)
+  if(ROLES_SIN_PLUS.includes(S.rol)){ const sp=el('splash'); if(sp) sp.innerHTML='<div style="color:#fff;text-align:center;padding:24px;max-width:420px"><div style="font-size:30px">🔒</div><div style="font-size:16px;font-weight:800;margin:8px 0">Sin acceso a CONTROL PLUS</div><div style="font-size:13px;color:rgba(255,255,255,.7)">Tu usuario ('+esc(S.rol)+') no tiene permiso para administración y finanzas. Si lo necesitás, pedíselo a un administrador.</div><a href="/" style="display:inline-block;margin-top:16px;color:#C9A84C">← Volver</a></div>'; return; }
+  if(!esAdmin()){ const n=el('n-config'); if(n) n.style.display='none'; }
   const { data:empresa } = await sb.from('empresas').select('*').eq('id',S.empresaId).single();
   S.empresa=empresa||{};
   const empNombre=S.empresa.razon_social||'Mi empresa';
@@ -2498,12 +2523,13 @@ function buildItemsDatalist(){
   (D.srv||[]).filter(s=>s.activo!==false).forEach(s=>{ const k='SERV '+(s.codigo?s.codigo+' · ':'')+s.nombre; ITEMS_MAP[k]={tipo:'servicio',id:s.id,codigo:s.codigo,nombre:s.nombre,unidad:s.unidad||'servicio',alic:s.alicuota_iva,precio:s.precio}; opts.push(k); });
   el('dl-items').innerHTML=opts.map(o=>`<option value="${esc(o)}">`).join('');
 }
+function precioLista(cli, pid){ const lista=(D.lp||[]).find(l=>l.activo!==false&&l.nombre&&l.nombre===(cli||{}).lista_precio); if(!lista) return 0; const li=(D.lpi||[]).find(x=>x.lista_id===lista.id&&x.producto_id===pid); return li?num(li.precio):0; }
+// Orden: 1) precio del cliente (tabla compartida con TRACE) · 2) lista del cliente · 3) precio base
 function precioPara(cliId, it){
   const cli=cliById(cliId)||{};
   if(it.tipo==='producto'){
-    const lista=(D.lp||[]).find(l=>l.activo!==false&&l.nombre&&l.nombre===cli.lista_precio);
-    if(lista){ const li=(D.lpi||[]).find(x=>x.lista_id===lista.id&&x.producto_id===it.id); if(li&&num(li.precio)>0) return num(li.precio); }
     const pc=(D.pcli||[]).find(x=>x.cliente_id===cliId&&x.producto_id===it.id); if(pc&&num(pc.precio)>0) return num(pc.precio);
+    const pl=precioLista(cli,it.id); if(pl>0) return pl;
   }
   return num(it.precio);
 }
@@ -2848,7 +2874,7 @@ function rPED(){
   tb.innerHTML=rows.length?rows.map(p=>{ const it=pedItems(p.id); const cli=cliById(p.cliente_id); return `<tr><td class="fw mono">${esc(p.codigo)}</td><td class="wr">${esc(cli?cli.razon_social:'—')}</td><td>${fD(p.fecha)}</td><td class="small">${esc(p.dia||'')}</td>
     <td class="small">${it.slice(0,3).map(i=>esc(i.producto_nombre)+' ×'+num(i.paquetes)).join(' · ')}${it.length>3?' …':''}</td><td class="tr">${sumBy(it,'paquetes').toLocaleString('es-AR')}</td>${tdM(sumBy(it,i=>num(i.importe)||num(i.precio)*num(i.paquetes)))}
     <td class="mono">${esc(p.numero_remito||'—')}</td><td>${p.estado==='cumplido'?badge('Cumplido','b-success'):badge('Pendiente','b-warning')}</td>
-    <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="verPedido('${p.id}')">👁</button>${p.estado!=='cumplido'?`<button class="btn btn-danger btn-xs" onclick="eliminarPedido('${p.id}')">✕</button>`:''}</div></td></tr>`; }).join(''):emptyRow(10,'Sin pedidos en el período');
+    <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="verPedido('${p.id}')" title="Ver">👁</button><button class="btn btn-outline btn-xs" onclick="copiarPedido('${p.id}')" title="Copiar como pedido nuevo">⧉</button>${p.estado!=='cumplido'?`<button class="btn btn-outline btn-xs" onclick="editarPedido('${p.id}')" title="Editar">✏️</button><button class="btn btn-success btn-xs" onclick="estadoPedido('${p.id}','cumplido')" title="Marcar cumplido">✓</button><button class="btn btn-danger btn-xs" onclick="eliminarPedido('${p.id}')" title="Eliminar">✕</button>`:(p.numero_remito?'':`<button class="btn btn-outline btn-xs" onclick="estadoPedido('${p.id}','pendiente')" title="Volver a pendiente">↺</button>`)}</div></td></tr>`; }).join(''):emptyRow(10,'Sin pedidos en el período');
   el('ped-foot').textContent=rows.length+' pedidos · '+rows.filter(p=>p.estado!=='cumplido').length+' pendientes';
 }
 function verPedido(id){ const p=(D.ped||[]).find(x=>x.id===id); const it=pedItems(id); const cli=cliById(p.cliente_id)||{};
@@ -2856,9 +2882,10 @@ function verPedido(id){ const p=(D.ped||[]).find(x=>x.id===id); const it=pedItem
    <div style="text-align:right;margin-top:8px" class="fw">Total: ${m$(sumBy(it,i=>num(i.importe)||num(i.precio)*num(i.paquetes)))}</div><div class="small muted" style="margin-top:6px">Estado: ${esc(p.estado)}${p.numero_remito?' · Remito '+esc(p.numero_remito):''}</div>`); }
 let PD={};
 function abrirPedido(o={}){
-  PD={presupuesto_id:o.presupuesto_id||null}; renderSelects();
+  PD={presupuesto_id:o.presupuesto_id||null, editId:o.editId||null}; renderSelects();
   el('dl-prod').innerHTML=(S.productos||[]).filter(p=>p.activo!==false).map(p=>`<option value="${esc((p.codigo?p.codigo+' · ':'')+p.nombre)}">`).join('');
-  setV('pd-cli',o.cliente_id||''); setV('pd-fecha',addDays(hoy(),1)); el('pd-items').innerHTML='';
+  const t=document.querySelector('#m-ped .mhdr-title'); if(t) t.textContent=o.editId?'Editar pedido '+(o.codigo||''):(o.copiaDe?'Nuevo pedido (copia de '+o.copiaDe+')':'Nuevo pedido');
+  setV('pd-cli',o.cliente_id||''); setV('pd-fecha',o.fecha||addDays(hoy(),1)); el('pd-items').innerHTML='';
   (o.items||[]).forEach(i=>pdAddItem(i)); if(!(o.items||[]).length) pdAddItem();
   openM('m-ped');
 }
@@ -2878,15 +2905,23 @@ async function guardarPedido(){
   if(bad){ toast('Hay productos que no están en el maestro (elegilos de la lista)','warn'); return; } if(!items.length){ toast('Agregá al menos un producto con cantidad','warn'); return; }
   await lockBtn('pd-save',true);
   try{
-    const { data:nro, error:e1 } = await sb.rpc('siguiente_numero',{p_tipo:'pedido'}); if(e1) throw e1;
-    const codigo='PED-'+pad(nro,5); const dias=['DOMINGO','LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO'];
-    const row=await dbIns('pedidos',{codigo, cliente_id:cli.id, fecha, dia:dias[new Date(fecha+'T12:00:00').getDay()], estado:'pendiente'});
+    const dias=['DOMINGO','LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO']; const dia=dias[new Date(fecha+'T12:00:00').getDay()];
+    let row, codigo;
+    if(PD.editId){ const ped=(D.ped||[]).find(x=>x.id===PD.editId); if(!ped||ped.estado==='cumplido') throw new Error('El pedido ya fue cumplido (tiene remito): no se puede editar');
+      codigo=ped.codigo; await dbUpd('pedidos',PD.editId,{cliente_id:cli.id, fecha, dia}); row={id:PD.editId};
+      const { error:ed } = await sb.from('pedido_items').delete().eq('pedido_id',PD.editId).eq('empresa_id',S.empresaId); if(ed) throw ed; }
+    else { const { data:nro, error:e1 } = await sb.rpc('siguiente_numero',{p_tipo:'pedido'}); if(e1) throw e1;
+      codigo='PED-'+pad(nro,5); row=await dbIns('pedidos',{codigo, cliente_id:cli.id, fecha, dia, estado:'pendiente'}); }
     await dbIns('pedido_items', items.map(({p,c,pr})=>({pedido_id:row.id, producto_nombre:p.nombre, producto_id:p.id, cajas:0, unidades_por_caja:num(p.unidades_por_caja)||1, paquetes:c, precio:pr, importe:r2(c*pr), mp_requerida:0})));
     if(PD.presupuesto_id){ await dbUpd(TBL.cv,PD.presupuesto_id,{estado:'pedido'}); await reload(['cv']); }
-    await reloadTrace(); refresh(); closeM('m-ped'); toast('Pedido '+codigo+' registrado · ya lo ve CONTROL TRACE','ok');
+    await reloadTrace(); refresh(); closeM('m-ped'); toast('Pedido '+codigo+(PD.editId?' actualizado':' registrado')+' · ya lo ve CONTROL TRACE','ok');
   }catch(e){ toast('No se pudo guardar el pedido: '+e.message,'err'); }
   await lockBtn('pd-save',false);
 }
+function pedAItems(id){ return pedItems(id).map(i=>({producto_id:i.producto_id||((S.productos||[]).find(p=>(p.nombre||'').toUpperCase()===(i.producto_nombre||'').toUpperCase())||{}).id, cantidad:num(i.paquetes), precio:num(i.precio)})); }
+function editarPedido(id){ const p=(D.ped||[]).find(x=>x.id===id); abrirPedido({editId:id, codigo:p.codigo, cliente_id:p.cliente_id, fecha:p.fecha, items:pedAItems(id)}); }
+function copiarPedido(id){ const p=(D.ped||[]).find(x=>x.id===id); abrirPedido({copiaDe:p.codigo, cliente_id:p.cliente_id, fecha:addDays(hoy(),1), items:pedAItems(id)}); }
+async function estadoPedido(id,est){ try{ await dbUpd('pedidos',id,{estado:est}); await reloadTrace(); rPED(); toast(est==='cumplido'?'Pedido marcado como cumplido':'Pedido vuelto a pendiente','ok'); }catch(e){ toast(e.message,'err'); } }
 function eliminarPedido(id){ const p=(D.ped||[]).find(x=>x.id===id);
   autorizar('Eliminar el pedido <b>'+esc(p.codigo)+'</b> (también desaparece de CONTROL TRACE)', async()=>{ try{ await sb.from('pedido_items').delete().eq('pedido_id',id).eq('empresa_id',S.empresaId); await dbDel('pedidos',id); await reloadTrace(); refresh(); toast('Pedido eliminado','ok'); }catch(e){ toast(e.message,'err'); } }); }
 
@@ -3183,6 +3218,39 @@ function rDash(){
   if(chv.length) p+=it('🏦',`<b>${chv.length}</b> cheques en cartera para depositar`,"openTab('ventas','tv-cob');setTimeout(()=>{const b=document.querySelector('[onclick*=tvc-cheques]');if(b)switchTab(b,'tvc-cheques')},50)");
   if(cajaA.length&&(D.caj||[]).length) p+=it('💵',`Caja sin abrir: ${cajaA.map(c=>esc(c.nombre)).join(', ')}`,"go('caja')");
   el('dash-pend').innerHTML=p||'<div class="small muted" style="text-align:center;padding:16px">Todo al día ✨</div>';
+}
+
+// ══════════════ PRECIOS POR CLIENTE (precios_cliente, compartida con TRACE) ══════════════
+TAB_R['tv-pc']=rPC;
+function rPC(){
+  const sel=el('pc-cli'); if(sel&&sel.options.length<=1){ sel.innerHTML='<option value="">— Elegí un cliente —</option>'+(S.clientes||[]).filter(c=>c.activo!==false).map(c=>`<option value="${c.id}">${c.codigo?'['+esc(c.codigo)+'] ':''}${esc(c.razon_social||'')}</option>`).join(''); }
+  const tb=el('pc-body'); if(!tb) return; const id=V('pc-cli'), q=V('pc-q').toLowerCase(), ver=V('pc-ver');
+  if(!id){ tb.innerHTML=emptyRow(6,'Elegí un cliente para ver y editar sus precios'); el('pc-foot').textContent=''; el('pc-title').textContent='Precios por cliente'; return; }
+  const cli=cliById(id)||{}; const alicDef=num(CFG().alicuota_default!=null?CFG().alicuota_default:10.5);
+  let rows=(S.productos||[]).filter(p=>p.activo!==false&&(!q||((p.codigo||'')+' '+p.nombre).toLowerCase().includes(q)));
+  const pcMap={}; (D.pcli||[]).filter(x=>x.cliente_id===id).forEach(x=>pcMap[x.producto_id]=num(x.precio));
+  if(ver==='con') rows=rows.filter(p=>pcMap[p.id]>0);
+  el('pc-title').textContent='Precios — '+(cli.razon_social||'')+(cli.lista_precio?' · lista '+cli.lista_precio:'');
+  tb.innerHTML=rows.length?rows.map(p=>{ const pl=precioLista(cli,p.id); const pc=pcMap[p.id]; const alic=p.alicuota_iva!=null?num(p.alicuota_iva):alicDef; const ef=pc>0?pc:(pl>0?pl:num(p.precio_venta));
+    return `<tr><td><span class="chip chip-x">${esc(p.codigo||'—')}</span></td><td class="fw wr">${esc(p.nombre)}</td>${p.precio_venta!=null?tdM(p.precio_venta):'<td class="tr muted">—</td>'}${pl>0?tdM(pl):'<td class="tr muted">—</td>'}
+      <td class="tr" data-v="${pc>0?pc:''}"><input type="number" step="0.01" class="fctl pc-in" data-id="${p.id}" data-orig="${pc>0?pc:''}" data-lista="${pl}" data-base="${num(p.precio_venta)}" value="${pc>0?pc:''}" placeholder="${pl>0?'lista '+pl:(p.precio_venta?'base '+num(p.precio_venta):'')}" style="text-align:right" oninput="this.style.background=this.value!==this.dataset.orig?'#fffbeb':''"></td>
+      ${ef>0?tdM(r2(ef*(1+alic/100)),'muted'):'<td class="tr muted">—</td>'}</tr>`; }).join(''):emptyRow(6,'Sin productos');
+  el('pc-foot').textContent=rows.length+' productos · '+Object.keys(pcMap).length+' con precio propio del cliente';
+}
+function pcDesdeLista(){ let n=0; document.querySelectorAll('.pc-in').forEach(i=>{ const l=num(i.dataset.lista); if(l>0){ i.value=l; i.dispatchEvent(new Event('input')); n++; } }); toast(n?n+' precios traídos de la lista (falta guardar)':'El cliente no tiene lista asignada o la lista no tiene precios',n?'ok':'warn'); }
+function pcAjuste(){ const v=prompt('Porcentaje de ajuste para TODOS los precios del cliente que se ven en pantalla (ej: 8 para +8%, -5 para -5%):'); if(v==null||v==='') return; const pct=num(String(v).replace(',','.'));
+  document.querySelectorAll('.pc-in').forEach(i=>{ const b=num(i.value)||num(i.dataset.lista)||num(i.dataset.base); if(b>0){ i.value=r2(b*(1+pct/100)); i.dispatchEvent(new Event('input')); } }); toast('Ajuste aplicado en pantalla (falta guardar)','ok'); }
+async function guardarPreciosCliente(){
+  const id=V('pc-cli'); if(!id){ toast('Elegí un cliente','warn'); return; }
+  const ch=[...document.querySelectorAll('.pc-in')].filter(i=>i.value!==i.dataset.orig);
+  if(!ch.length){ toast('No hay cambios para guardar','warn'); return; }
+  try{
+    const ups=ch.filter(i=>num(i.value)>0).map(i=>({empresa_id:S.empresaId,cliente_id:id,producto_id:i.dataset.id,precio:r2(num(i.value))}));
+    const dels=ch.filter(i=>!(num(i.value)>0)).map(i=>i.dataset.id);
+    if(ups.length){ const { error } = await sb.from('precios_cliente').upsert(ups,{onConflict:'cliente_id,producto_id'}); if(error) throw error; }
+    if(dels.length){ const { error } = await sb.from('precios_cliente').delete().eq('empresa_id',S.empresaId).eq('cliente_id',id).in('producto_id',dels); if(error) throw error; }
+    D.pcli=await fetchAll('precios_cliente'); rPC(); toast(ups.length+' precios guardados'+(dels.length?' · '+dels.length+' quitados':'')+' · ya los usa TRACE','ok');
+  }catch(e){ toast('No se pudo guardar: '+e.message,'err'); }
 }
 
 // ══════════════════════════════════════════════════════════════
