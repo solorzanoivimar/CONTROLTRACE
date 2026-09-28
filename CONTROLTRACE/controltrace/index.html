@@ -149,7 +149,7 @@ td{padding:9px 10px;border-bottom:1px solid #f0ece2}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnPass" style="margin-top:10px;width:100%" onclick="cambiarMiClave()">🔑 Cambiar mi contraseña</button><button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:6px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v155 · Configuración (empresa, PIN, operarios, permisos) y Usuarios se abren en Configuración CONTROL MAX. Sin SQL nuevo. · v154: botón flotante 🏠 CONTROL MAX arriba a la derecha (vía cmax-top.js) para volver al portal desde cualquier módulo, rápido y sin cerrar sesión. Trace sin login propio ni cintillo. Sin SQL nuevo.</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v156 · Trace en /CONTROLTRACE/controltrace/. Configuración y Usuarios salen del menú: se manejan desde Configuración CONTROL MAX (portal). · v155: accesos directos a Configuración CONTROL MAX. Sin SQL nuevo. · v154: botón flotante 🏠 CONTROL MAX arriba a la derecha (vía cmax-top.js) para volver al portal desde cualquier módulo, rápido y sin cerrar sesión. Trace sin login propio ni cintillo. Sin SQL nuevo.</div>
       </div>
     </nav>
     <div class="main">
@@ -233,10 +233,9 @@ const MODS=[
   {id:'usuarios',ico:'👥',name:'Usuarios',grupo:'Sistema',roles:['admin','supervisor']}
 ];
 function buildNav(){
-  const allowed=MODS.filter(m=>canSee(S.rol,m.id));
+  const allowed=MODS.filter(m=>canSee(S.rol,m.id)&&!CFG_MAX[m.id]); // v156: Configuración y Usuarios viven en Configuración CONTROL MAX (portal)
   let html='',grupo='';
   allowed.forEach(m=>{if(m.grupo!==grupo){grupo=m.grupo;html+=`<div class="gl">${grupo}</div>`;}
-    if(CFG_MAX[m.id]){html+=`<button data-v="${m.id}" onclick="location.href='${CFG_MAX_URL}#${CFG_MAX[m.id]}'" title="Se abre en Configuración CONTROL MAX"><span class="ico">${m.ico}</span><span>${m.name} ↗</span></button>`;return;}
     html+=`<button data-v="${m.id}" onclick="go('${m.id}')"><span class="ico">${m.ico}</span><span>${m.name}</span></button>`;});
   $('nav').innerHTML=html;
 }
