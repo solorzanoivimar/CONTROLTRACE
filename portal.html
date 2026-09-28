@@ -135,7 +135,7 @@ const MODULES=[
   {id:'total',nom:'CONTROL TOTAL',sub:'Reportes y análisis (con IA)',ico:'📊',url:'',activo:true},
   {id:'docs', nom:'CONTROL DOCS', sub:'Documentos publicados',ico:'📄',url:'',activo:true},
   {id:'rrhh', nom:'CONTROL RRHH', sub:'Recursos humanos',ico:'👥',url:'',activo:false},
-  {id:'config',nom:'Configuración',sub:'Empresa, usuarios y permisos',ico:'⚙️',url:'',activo:true},
+  {id:'config',nom:'Configuración',sub:'Empresa, usuarios y permisos',ico:'⚙️',url:'/CONTROLTRACE/controlconfig/index.html',activo:true},
 ];
 // permisos por rol (los roles reales que existen hoy en 'perfiles')
 const PERM={
@@ -145,7 +145,17 @@ const PERM={
   galpon:['trace','docs'],
   finca:['agro','docs'],
 };
-function permsFor(rol){return PERM[rol]||['trace','plus','agro','total','docs','config'];}
+// Módulos por rol: lo que se defina en Configuración CONTROL MAX (empresas.permisos_max.modulos); si no, estos valores por defecto
+const DEF_ROL={supervisor:['trace','plus','total','docs'],comercial:['trace','plus','docs'],preparador:['trace','docs'],chofer:['trace']};
+const ADMINS=['admin','dueno','dueño','administrador'];
+let EMP={};
+function permsFor(rol){
+  if(ADMINS.includes(rol))return PERM.admin;
+  const pm=(EMP&&EMP.permisos_max&&EMP.permisos_max.modulos)||null;
+  if(pm&&Array.isArray(pm[rol]))return pm[rol].filter(x=>x!=='config');
+  return PERM[rol]||DEF_ROL[rol]||['trace','docs'];
+}
+function enPlanMod(m){const md=EMP&&EMP.modulos;if(m.id==='config')return true;return (md&&typeof md==='object'&&m.id in md)?!!md[m.id]:m.activo;}
 
 let CUR=null;
 function avatarTxt(nom){const p=(nom||'U').split(/[\s—]+/).filter(Boolean);return ((p[0]||' ')[0]+((p[1]||'')[0]||'')).toUpperCase();}
@@ -173,7 +183,7 @@ async function cargarPerfil(onFail){
   if(error||!perfil){await sb.auth.signOut();showErr('No encontramos tu perfil. Avisale al administrador. ('+(error?error.message:'sin perfil')+')');if(onFail)onFail();return false;}
   if(perfil.activo===false){await sb.auth.signOut();showErr('Tu usuario está inactivo. Contactá al administrador.');if(onFail)onFail();return false;}
   let razon='Mi empresa';
-  try{const {data:emp}=await sb.from('empresas').select('razon_social,nombre_fantasia').eq('id',perfil.empresa_id).single();if(emp)razon=emp.razon_social||emp.nombre_fantasia||razon;}catch(e){}
+  try{const {data:emp}=await sb.from('empresas').select('*').eq('id',perfil.empresa_id).single();if(emp){EMP=emp;razon=emp.razon_social||emp.nombre_fantasia||razon;}}catch(e){}
   CUR={nom:perfil.nombre||session.user.email,email:session.user.email,rol:(perfil.rol||'').toLowerCase(),empresa_id:perfil.empresa_id,razon};
   try{localStorage.setItem('fmn',JSON.stringify({rol:CUR.rol,nombre:CUR.nom,email:CUR.email,empresa_id:CUR.empresa_id,razon_social:CUR.razon}));}catch(e){}
   renderHome();show('home');return true;
@@ -190,7 +200,7 @@ function renderHome(){
   document.getElementById('home-av').textContent=avatarTxt(CUR.nom);
   const perm=permsFor(CUR.rol);
   document.getElementById('home-grid').innerHTML=MODULES.map(m=>{
-    const permitido=perm.includes(m.id),enPlan=m.activo,listo=!!m.url,usable=permitido&&enPlan&&listo;
+    const permitido=perm.includes(m.id),enPlan=enPlanMod(m),listo=!!m.url,usable=permitido&&enPlan&&listo;
     let badge='';
     if(!enPlan)badge='<span class="lock tag" style="background:#f0ece2;color:var(--lock)">🔒 No en tu plan</span>';
     else if(!permitido)badge='<span class="lock tag" style="background:#f0ece2;color:var(--lock)">🔒 Sin permiso</span>';
