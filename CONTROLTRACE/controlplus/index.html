@@ -1200,7 +1200,7 @@ textarea.fctl{resize:vertical}
     <div class="fsec">
       <div class="fsec-title">Seguridad — Autorizaciones</div>
       <div class="fgrid fgrid-2">
-        <div class="fgroup"><label class="flabel">PIN de supervisor</label><input class="fctl" id="cfg-pin" type="password" placeholder="Ej: 4 dígitos" autocomplete="off"><div style="font-size:10px;color:var(--text-muted);margin-top:3px">Se pide para facturar a un cliente que supera su límite de crédito o tiene facturas vencidas, y para anular recibos, pagos y movimientos.</div></div>
+        <div class="fgroup"><label class="flabel">PIN de supervisor</label><input class="fctl" id="cfg-pin" type="password" placeholder="Ej: 4 dígitos" autocomplete="off"><div style="font-size:10px;color:var(--text-muted);margin-top:3px">Es el <b>mismo PIN de CONTROL TRACE</b> (también valen los autorizadores cargados en Trace). Se pide al facturar a un cliente con crédito excedido o vencido, y al anular recibos, pagos y movimientos.</div></div>
         <div class="fgroup" style="align-self:end"><button class="btn btn-gold" onclick="guardarPinSupervisor()">🔐 Guardar PIN</button></div>
       </div>
     </div>
@@ -1576,7 +1576,7 @@ textarea.fctl{resize:vertical}
         </div>
       </div>
       <div id="pin-nopin-note" style="display:none;background:var(--warning-bg);border:1px solid #fcd34d;border-radius:6px;padding:10px;font-size:12px;color:var(--warning)">
-        No hay un PIN de supervisor configurado. Podés emitir igual, pero para <b>exigir autorización</b> cargá un PIN en <b>Configuración → Seguridad</b>.
+        No hay un PIN de supervisor configurado. Podés continuar igual, pero para <b>exigir autorización</b> cargá el PIN en <b>Configuración → Seguridad</b> (es el mismo de CONTROL TRACE).
       </div>
     </div>
     <div class="mfooter">
@@ -1789,8 +1789,9 @@ function prvById(id){ return (S.proveedores||[]).find(p=>p.id===id)||null; }
 function prvByName(n){ const u=String(n||'').trim().toUpperCase(); return (S.proveedores||[]).find(p=>(p.nombre||'').trim().toUpperCase()===u)||null; }
 
 // ── Permisos ──
-const ROLES_SIN_PLUS=['galpon','galpón','finca','operario','produccion','producción'];
-function esAdmin(){ return ['admin','administrador','dueno','dueño','supervisor'].includes(S.rol||''); }
+// Roles reales de perfiles: admin · supervisor · comercial · preparador · chofer (+ dueno). PLUS = administración y finanzas.
+const ROLES_PLUS=['admin','administrador','administracion','administración','dueno','dueño','supervisor','comercial'];
+function esAdmin(){ return ['admin','administrador','dueno','dueño'].includes(S.rol||''); }
 
 // ── Navegación ──
 const MODS=['dashboard','ventas','compras','clientes','inventario','caja','banco','config'];
@@ -1928,12 +1929,12 @@ function badges(){
 // ── INIT ──
 async function initPlus(){
   const { data:{ session } } = await sb.auth.getSession();
-  if(!session||!session.user){ window.location.href='/'; return; }
+  if(!session||!session.user){ window.location.href='/portal.html'; return; }
   const { data:perfil, error:perr } = await sb.from('perfiles').select('nombre, rol, empresa_id, activo').eq('id',session.user.id).single();
-  if(perr||!perfil||perfil.activo===false){ window.location.href='/'; return; }
+  if(perr||!perfil||perfil.activo===false){ window.location.href='/portal.html'; return; }
   S.empresaId=perfil.empresa_id; S.rol=(perfil.rol||'').toLowerCase(); S.nombre=perfil.nombre||session.user.email; S.email=session.user.email;
-  // Permisos: galpón y finca no entran a PLUS (administración y finanzas)
-  if(ROLES_SIN_PLUS.includes(S.rol)){ const sp=el('splash'); if(sp) sp.innerHTML='<div style="color:#fff;text-align:center;padding:24px;max-width:420px"><div style="font-size:30px">🔒</div><div style="font-size:16px;font-weight:800;margin:8px 0">Sin acceso a CONTROL PLUS</div><div style="font-size:13px;color:rgba(255,255,255,.7)">Tu usuario ('+esc(S.rol)+') no tiene permiso para administración y finanzas. Si lo necesitás, pedíselo a un administrador.</div><a href="/" style="display:inline-block;margin-top:16px;color:#C9A84C">← Volver</a></div>'; return; }
+  // Permisos: solo roles de administración / comerciales entran a PLUS
+  if(!ROLES_PLUS.includes(S.rol)){ const sp=el('splash'); if(sp) sp.innerHTML='<div style="color:#fff;text-align:center;padding:24px;max-width:420px"><div style="font-size:30px">🔒</div><div style="font-size:16px;font-weight:800;margin:8px 0">Sin acceso a CONTROL PLUS</div><div style="font-size:13px;color:rgba(255,255,255,.7)">Tu usuario ('+esc(S.rol)+') no tiene permiso para administración y finanzas. Si lo necesitás, pedíselo a un administrador.</div><a href="/portal.html" style="display:inline-block;margin-top:16px;color:#C9A84C">← Volver</a></div>'; return; }
   if(!esAdmin()){ const n=el('n-config'); if(n) n.style.display='none'; }
   const { data:empresa } = await sb.from('empresas').select('*').eq('id',S.empresaId).single();
   S.empresa=empresa||{};
@@ -2332,7 +2333,7 @@ function pedirPinSupervisor(motivos, onOK, opts){
   const _b=document.getElementById('pin-btn'); if(_b) _b.textContent=opts.btn||'✅ Autorizar y facturar';
   const cont=document.getElementById('pin-motivos');
   if(cont) cont.innerHTML=(motivos||[]).map(m=>'<li>'+m+'</li>').join('');
-  const hasPin=!!(S.empresa && S.empresa.pin_supervisor);
+  const hasPin=pinConfigurado();
   const wrap=document.getElementById('pin-input-wrap');
   const note=document.getElementById('pin-nopin-note');
   const inp=document.getElementById('pin-input');
@@ -2348,20 +2349,28 @@ function confirmarPin(){
   if(window._pinHas){
     const val=((document.getElementById('pin-input')||{}).value||'').trim();
     if(!val){ toast('Ingresá el PIN','warn'); return; }
-    if(val!==String(S.empresa.pin_supervisor)){ toast('PIN incorrecto','err'); return; }
-    toast('Autorizado por supervisor','ok');
+    const a=pinAutoriza(val); if(!a){ toast('PIN incorrecto','err'); return; }
+    window._pinAutorizo=a.nombre; toast('Autorizado por '+a.nombre,'ok');
   }
   closeM('m-pin');
   const cb=window._pinOK; window._pinOK=null;
   if(typeof cb==='function') cb();
 }
 
+// PIN único de CONTROL MAX: el mismo de CONTROL TRACE (empresas.pin + autorizadores); se acepta el PIN viejo de PLUS por compatibilidad
+function pinConfigurado(){ const e=S.empresa||{}; return !!(e.pin||e.pin_supervisor||((e.autorizadores||[]).some(a=>a&&a.activo!==false&&a.pin))); }
+function pinAutoriza(v){ v=String(v||'').trim(); if(!v) return null; const e=S.empresa||{};
+  if(e.pin&&String(e.pin).trim()===v) return {nombre:e.pin_nombre||'Supervisor'};
+  const f=(e.autorizadores||[]).find(a=>a&&a.activo!==false&&String(a.pin||'').trim()===v); if(f) return {nombre:f.nombre||'Autorizador'};
+  if(e.pin_supervisor&&String(e.pin_supervisor).trim()===v) return {nombre:'Supervisor'};
+  return null; }
 async function guardarPinSupervisor(){
   const pin=((document.getElementById('cfg-pin')||{}).value||'').trim();
-  const { error } = await sb.from('empresas').update({ pin_supervisor: pin||null }).eq('id', S.empresaId);
+  if(!pin){ toast('Ingresá el PIN','warn'); return; }
+  if(!confirm('Este PIN es el MISMO que usa CONTROL TRACE para autorizar anulaciones y ajustes. ¿Cambiarlo para todo el sistema?')) return;
+  const { error } = await sb.from('empresas').update({ pin: pin }).eq('id', S.empresaId);
   if(error){ toast('No se pudo guardar el PIN: '+error.message,'err'); return; }
-  if(S.empresa) S.empresa.pin_supervisor = pin||null; else S.empresa={ pin_supervisor: pin||null };
-  toast(pin?'PIN de supervisor guardado':'PIN de supervisor eliminado','ok');
+  S.empresa.pin=pin; toast('PIN actualizado para todo CONTROL MAX','ok');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3940,7 +3949,7 @@ function rCFG(){
   const map={'cfg-razon':c.razon_social||e.razon_social,'cfg-fantasia':c.nombre_fantasia||e.nombre_fantasia,'cfg-cuit':c.cuit||e.cuit,'cfg-iva':c.condicion_iva||'Responsable Inscripto','cfg-iibb':c.iibb,'cfg-inicio':c.inicio_actividades,'cfg-dom':c.domicilio_fiscal,'cfg-loc':c.localidad,'cfg-prov':c.provincia,'cfg-tel':c.telefono,'cfg-email':c.email,
     'cfg-alic':String(c.alicuota_default!=null?num(c.alicuota_default):10.5),'cfg-concepto':String(c.concepto_default||1),'cfg-diasvto':c.dias_vto_default!=null?c.dias_vto_default:30,'cfg-pie':c.leyenda_pie,
     'cfg-cbu':c.fce_cbu,'cfg-alias':c.fce_alias,'cfg-fcemod':c.fce_modalidad||'SCA','cfg-fcemin':c.fce_monto_minimo,'cfg-fceley':c.fce_leyenda,
-    'cfg-arcaprov':c.arca_proveedor||'TusFacturasAPP','cfg-arcamodo':c.arca_modo||'homologacion','cfg-apitoken':c.arca_api_token,'cfg-apikey':c.arca_api_key,'cfg-usertoken':c.arca_user_token,'cfg-pin':e.pin_supervisor};
+    'cfg-arcaprov':c.arca_proveedor||'TusFacturasAPP','cfg-arcamodo':c.arca_modo||'homologacion','cfg-apitoken':c.arca_api_token,'cfg-apikey':c.arca_api_key,'cfg-usertoken':c.arca_user_token,'cfg-pin':e.pin||e.pin_supervisor};
   Object.entries(map).forEach(([k,v])=>setV(k,v==null?'':v));
   fillPV('cfg-pv'); setV('cfg-pv',String(c.pto_venta_default||pvDefault()));
   const tb=el('pv-body'); if(tb) tb.innerHTML=(D.pv||[]).length?(D.pv||[]).sort((a,b)=>num(a.numero)-num(b.numero)).map(p=>`<tr style="${p.activo===false?'opacity:.5':''}"><td class="fw mono">${pad(p.numero,5)}</td><td>${esc(p.descripcion||'')}</td><td>${esc(p.sistema||'')}</td><td>${p.por_defecto?badge('Por defecto','b-gold'):''}</td><td>${p.activo===false?badge('Inactivo','b-neutral'):badge('Activo','b-success')}</td><td><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="editPV('${p.id}')">✏️</button><button class="btn btn-${p.activo===false?'success':'danger'} btn-xs" onclick="togglePV('${p.id}')">${p.activo===false?'Activar':'Desactivar'}</button></div></td></tr>`).join('')
