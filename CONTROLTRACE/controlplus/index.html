@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CONTROL PLUS — Sistema Administrativo</title>
-<!-- build v6.1 · PLUS — Entidades: días de vencimiento por cliente, rubro Materia Prima en proveedores, y control de crédito (límite/vencidas) con PIN de supervisor al facturar -->
+<!-- build v6.2 · PLUS — Entidades: campo Código visible/editable en Cliente y Proveedor, búsqueda por código; (v6.1) días de vto, rubro Materia Prima, control de crédito con PIN -->
 <!-- Supabase JS (mismo que TRACE y AGRO) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Navbar compartido de CONTROL MAX -->
@@ -967,7 +967,7 @@ textarea.fctl{resize:vertical}
   <!-- TAB CLIENTES -->
   <div class="tab-pane active" id="te-cli">
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="ent-cli-q" oninput="filtrarEntidad('cliente')" placeholder="Razón social, CUIT..." style="min-width:200px"></div>
+      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="ent-cli-q" oninput="filtrarEntidad('cliente')" placeholder="Razón social, CUIT, código..." style="min-width:200px"></div>
       <div class="fg"><div class="fg-lbl">Condición IVA</div><select class="fs" id="ent-cli-iva" onchange="filtrarEntidad('cliente')"><option value="">Todas</option><option>Responsable Inscripto</option><option>Monotributista</option><option>Consumidor Final</option><option>Exento</option></select></div>
       <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="ent-cli-estado" onchange="filtrarEntidad('cliente')"><option value="activos">Activos</option><option value="todos">Todos</option><option value="inactivos">Inactivos</option></select></div>
     </div>
@@ -983,7 +983,7 @@ textarea.fctl{resize:vertical}
   <!-- TAB PROVEEDORES -->
   <div class="tab-pane" id="te-prov">
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="ent-prov-q" oninput="filtrarEntidad('proveedor')" placeholder="Razón social, CUIT, rubro..." style="min-width:200px"></div>
+      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="ent-prov-q" oninput="filtrarEntidad('proveedor')" placeholder="Razón social, CUIT, código, rubro..." style="min-width:200px"></div>
       <div class="fg"><div class="fg-lbl">Rubro</div><select class="fs" id="ent-prov-rubro" onchange="filtrarEntidad('proveedor')"><option value="">Todos</option><option>Materia Prima</option><option>Insumos agrícolas</option><option>Logística</option><option>Servicios</option><option>Packaging</option></select></div>
       <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="ent-prov-estado" onchange="filtrarEntidad('proveedor')"><option value="activos">Activos</option><option value="todos">Todos</option><option value="inactivos">Inactivos</option></select></div>
     </div>
@@ -1806,6 +1806,7 @@ textarea.fctl{resize:vertical}
       <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'tc-gen')">Datos generales</button><button class="tab-btn" onclick="switchTab(this,'tc-fisc')">Fiscal</button><button class="tab-btn" onclick="switchTab(this,'tc-com')">Comercial</button></div>
       <div class="tab-pane active" id="tc-gen">
         <div class="fgrid">
+          <div class="fgroup"><label class="flabel">Código</label><input class="fctl" id="clm-codigo" placeholder="Auto"></div>
           <div class="fgroup fcol-full"><label class="flabel">Razón Social <span class="req">*</span></label><input class="fctl" id="clm-razon"></div>
           <div class="fgroup"><label class="flabel">CUIT</label><input class="fctl" id="clm-cuit-in" placeholder="30-00000000-0"></div>
           <div class="fgroup"><label class="flabel">Condición IVA</label><select class="fctl" id="clm-iva"><option>Responsable Inscripto</option><option>Monotributista</option><option>Consumidor Final</option><option>Exento</option></select></div>
@@ -1863,6 +1864,7 @@ textarea.fctl{resize:vertical}
       <div class="tabs"><button class="tab-btn active" onclick="switchTab(this,'tp-gen')">Datos generales</button><button class="tab-btn" onclick="switchTab(this,'tp-banco')">Bancarios</button><button class="tab-btn" onclick="switchTab(this,'tp-cond')">Condiciones</button></div>
       <div class="tab-pane active" id="tp-gen">
         <div class="fgrid">
+          <div class="fgroup"><label class="flabel">Código</label><input class="fctl" id="prv-codigo" placeholder="Auto"></div>
           <div class="fgroup fcol-full"><label class="flabel">Razón Social <span class="req">*</span></label><input class="fctl" id="prv-razon"></div>
           <div class="fgroup"><label class="flabel">CUIT</label><input class="fctl" id="prv-cuit" placeholder="30-00000000-0"></div>
           <div class="fgroup"><label class="flabel">Condición IVA</label><select class="fctl" id="prv-iva"><option>Responsable Inscripto</option><option>Monotributista</option><option>Exento</option></select></div>
@@ -4168,6 +4170,7 @@ function abrirEntidad(tipo, id){
     renderSelectVendedores();
     const c = id ? (S.clientes||[]).find(x=>x.id===id) : null;
     const t=document.getElementById('clm-title'); if(t) t.textContent = c?'Editar Cliente':'Nuevo Cliente';
+    _setv('clm-codigo', c?c.codigo:_nextCodigo(S.clientes,'CLI-',4));
     _setv('clm-razon', c?c.razon_social:''); _setv('clm-cuit-in', c?c.cuit:'');
     _setv('clm-iva', c?(c.iva||'Responsable Inscripto'):'Responsable Inscripto');
     _setv('clm-tel', c?c.telefono:''); _setv('clm-email', c?c.email:'');
@@ -4182,6 +4185,7 @@ function abrirEntidad(tipo, id){
   } else if(tipo==='proveedor'){
     const p = id ? (S.proveedores||[]).find(x=>x.id===id) : null;
     const t=document.getElementById('prv-title'); if(t) t.textContent = p?'Editar Proveedor':'Nuevo Proveedor';
+    _setv('prv-codigo', p?p.codigo:_nextCodigo(S.proveedores,'PRV-',4));
     _setv('prv-razon', p?p.nombre:''); _setv('prv-cuit', p?p.cuit:'');
     _setv('prv-iva', p?(p.iva||'Responsable Inscripto'):'Responsable Inscripto');
     _setv('prv-rubro', p?(p.rubro||'Insumos agrícolas'):'Insumos agrícolas');
@@ -4224,6 +4228,7 @@ async function guardarCliente(){
     inicio_actividades: _val('clm-inicio')||null,
     tipo_comprobante: _val('clm-tipocomp')||null,
     lista_precio: _val('clm-lista')||null,
+    codigo: (_val('clm-codigo') || (S._entEdit.cliente ? null : _nextCodigo(S.clientes,'CLI-',4))) || null,
     condicion_pago: _val('clm-cpago')||null,
     dias_vencimiento: _val('clm-diasvto')? parseInt(_val('clm-diasvto'),10): null,
     vendedor_id: _val('clm-vendedor')||null,
@@ -4235,7 +4240,6 @@ async function guardarCliente(){
     ({ error } = await sb.from('clientes').update(payload).eq('id',id).eq('empresa_id',S.empresaId));
   } else {
     payload.empresa_id=S.empresaId; payload.activo=true;
-    payload.codigo=_nextCodigo(S.clientes,'CLI-',4);
     ({ error } = await sb.from('clientes').insert(payload));
   }
   await _lockBtn('clm-save',false);
@@ -4251,6 +4255,7 @@ async function guardarProveedor(){
   const id=S._entEdit.proveedor;
   const payload={
     nombre: razon,
+    codigo: (_val('prv-codigo') || (S._entEdit.proveedor ? null : _nextCodigo(S.proveedores,'PRV-',4))) || null,
     cuit: _val('prv-cuit')||null,
     iva: _val('prv-iva')||null,
     rubro: _val('prv-rubro')||null,
@@ -4270,7 +4275,6 @@ async function guardarProveedor(){
     ({ error } = await sb.from('proveedores').update(payload).eq('id',id).eq('empresa_id',S.empresaId));
   } else {
     payload.empresa_id=S.empresaId; payload.activo=true;
-    payload.codigo=_nextCodigo(S.proveedores,'PRV-',4);
     ({ error } = await sb.from('proveedores').insert(payload));
   }
   await _lockBtn('prv-save',false);
