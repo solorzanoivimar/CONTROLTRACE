@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONTROL MAX — Configuración</title>
+<!-- CONTROL MAX · Configuración unificada · build cfg 1.0 (empresa, facturación, operarios, usuarios, roles y permisos, PIN, plan y módulos). Requiere config_max_setup.sql -->
+<!-- Supabase JS (mismo que TRACE y AGRO) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Navbar compartido de CONTROL MAX -->
+<style>
+:root {
+  --navy:        #0D1B2A;
+  --navy-mid:    #1A2E45;
+  --navy-light:  #243B55;
+  --gold:        #C9A84C;
+  --gold-light:  #E8C96A;
+  --ice:         #F0F4F8;
+  --ice-dark:    #DDE4EC;
+  --white:       #FFFFFF;
+  --text-main:   #1A2E45;
+  --text-muted:  #6B7A8D;
+  --success:     #2D7D46;
+  --success-bg:  #E8F5ED;
+  --warning:     #B45309;
+  --warning-bg:  #FEF3C7;
+  --danger:      #B91C1C;
+  --danger-bg:   #FEE2E2;
+  --info:        #1D4ED8;
+  --info-bg:     #EFF6FF;
+  --sidebar-w:   220px;
+  --header-h:    56px;
+  --radius:      7px;
+  --shadow:      0 2px 8px rgba(13,27,42,0.09);
+  --shadow-lg:   0 6px 28px rgba(13,27,42,0.16);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:var(--ice);color:var(--text-main);font-size:13px}
+
+/* HEADER */
+.hdr{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:var(--navy);display:flex;align-items:center;padding:0 18px;gap:14px;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.hdr-logo{display:flex;align-items:center;gap:9px}
+.logo-mark{width:32px;height:32px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--navy)}
+.logo-text{color:#fff;font-size:14px;font-weight:700;letter-spacing:.4px}.logo-text span{color:var(--gold)}
+.hdr-sep{width:1px;height:26px;background:rgba(255,255,255,.15)}
+.hdr-mod{color:rgba(255,255,255,.6);font-size:12px;font-weight:500}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.hdr-tenant{background:var(--navy-light);border-radius:20px;padding:3px 11px;color:var(--gold-light);font-size:11px;font-weight:700}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--navy)}
+.hdr-user{display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:var(--header-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--navy-mid);overflow-y:auto;z-index:100;padding:10px 0}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+.nav-sec{padding:14px 16px 4px;font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.32)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;color:rgba(255,255,255,.68);font-size:12px;font-weight:500;border-left:3px solid transparent;transition:background .13s}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:rgba(201,168,76,.13);color:var(--gold-light);border-left-color:var(--gold)}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--gold);color:var(--navy);font-size:9px;font-weight:800;padding:1px 5px;border-radius:9px}
+
+/* MAIN */
+.main{margin-left:var(--sidebar-w);margin-top:var(--header-h);padding:20px;min-height:calc(100vh - var(--header-h))}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.ph-title{font-size:18px;font-weight:800;color:var(--navy)}
+.ph-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
+.ph-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .14s;white-space:nowrap}
+.btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:var(--navy-light)}
+.btn-gold{background:var(--gold);color:var(--navy)}.btn-gold:hover{background:var(--gold-light)}
+.btn-outline{background:transparent;border:1.5px solid var(--ice-dark);color:var(--text-main)}.btn-outline:hover{background:var(--ice-dark)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #fca5a5}.btn-danger:hover{background:#fee2e2}
+.btn-success{background:var(--success-bg);color:var(--success);border:1px solid #86efac}
+.btn-sm{padding:5px 9px;font-size:11px}
+.btn-xs{padding:3px 7px;font-size:10px}
+.btn-icon{padding:5px 7px}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);border-top:3px solid transparent}
+.kpi.k-navy{border-top-color:var(--navy)}.kpi.k-gold{border-top-color:var(--gold)}
+.kpi.k-green{border-top-color:var(--success)}.kpi.k-red{border-top-color:var(--danger)}
+.kpi.k-info{border-top-color:var(--info)}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:5px}
+.kpi-val{font-size:20px;font-weight:900;color:var(--navy);line-height:1}
+.kpi-sub{font-size:10px;color:var(--text-muted);margin-top:3px}
+
+/* FILTER BAR */
+.fbar{background:#fff;border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);margin-bottom:13px;display:flex;flex-wrap:wrap;gap:9px;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg-lbl{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.fi,.fs{padding:6px 9px;border:1.5px solid var(--ice-dark);border-radius:5px;font-size:12px;color:var(--text-main);background:#fff;outline:none;transition:border-color .14s;min-width:120px}
+.fi:focus,.fs:focus{border-color:var(--navy)}
+.fi[readonly]{background:var(--ice);color:var(--text-muted)}
+.fbar-actions{display:flex;gap:7px;margin-left:auto;align-items:flex-end}
+
+/* TABLE */
+.tcard{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px}
+.tbar{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ice-dark);flex-wrap:wrap;gap:8px}
+.tbar-title{font-size:13px;font-weight:700;color:var(--navy)}
+.tbar-actions{display:flex;gap:6px}
+table{width:100%;border-collapse:collapse}
+thead th{padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);background:var(--ice);border-bottom:1px solid var(--ice-dark);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--ice);transition:background .1s}
+tbody tr:hover{background:#f7f9fc}
+tbody td{padding:8px 12px;font-size:12px;color:var(--text-main)}
+.tfooter{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--ice-dark);font-size:11px;color:var(--text-muted);flex-wrap:wrap;gap:8px}
+
+/* ACTION BUTTONS STANDARD */
+.act-btns{display:flex;gap:4px;flex-wrap:nowrap}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.b-success{background:var(--success-bg);color:var(--success)}
+.b-warning{background:var(--warning-bg);color:var(--warning)}
+.b-danger{background:var(--danger-bg);color:var(--danger)}
+.b-info{background:var(--info-bg);color:var(--info)}
+.b-neutral{background:var(--ice-dark);color:var(--text-muted)}
+.b-gold{background:#fef9ec;color:#92680a}
+.b-navy{background:#e8eef5;color:var(--navy)}
+.chip{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:800;background:var(--info-bg);color:var(--info)}
+.chip-x{background:#f3f4f6;color:#4b5563}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--ice-dark);margin-bottom:16px;flex-wrap:wrap}
+.tab-btn{padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .14s}
+.tab-btn:hover{color:var(--navy)}
+.tab-btn.active{color:var(--navy);border-bottom-color:var(--gold)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* MODAL */
+.moverlay{position:fixed;inset:0;background:rgba(13,27,42,.55);z-index:300;display:none;align-items:center;justify-content:center;padding:16px}
+.moverlay.open{display:flex}
+.modal{background:#fff;border-radius:10px;box-shadow:var(--shadow-lg);width:100%;max-width:760px;max-height:92vh;overflow-y:auto;animation:mIn .18s ease}
+.modal-lg{max-width:960px}
+.modal-xl{max-width:1100px}
+@keyframes mIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.mhdr{padding:16px 20px;border-bottom:1px solid var(--ice-dark);display:flex;align-items:center;justify-content:space-between;background:var(--navy);border-radius:10px 10px 0 0}
+.mhdr-title{font-size:15px;font-weight:700;color:#fff}
+.mhdr-sub{font-size:11px;color:rgba(255,255,255,.55);margin-top:1px}
+.mclose{width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.mclose:hover{background:rgba(255,255,255,.25)}
+.mbody{padding:20px}
+.mfooter{padding:12px 20px;border-top:1px solid var(--ice-dark);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+
+/* FORM */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.fgrid-2{grid-template-columns:repeat(2,1fr)}
+.fgrid-3{grid-template-columns:repeat(3,1fr)}
+.fgrid-4{grid-template-columns:repeat(4,1fr)}
+.fcol-full{grid-column:1/-1}
+.fgroup{display:flex;flex-direction:column;gap:4px}
+.flabel{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px}
+.flabel .req{color:var(--danger)}
+.fctl{padding:7px 10px;border:1.5px solid var(--ice-dark);border-radius:5px;font-size:12px;color:var(--text-main);outline:none;transition:border-color .14s;background:#fff;width:100%}
+.fctl:focus{border-color:var(--navy)}
+.fctl[readonly]{background:var(--ice);color:var(--text-muted)}
+textarea.fctl{resize:vertical}
+.fsec{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--ice-dark)}
+.fsec:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.fsec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.fsec-title::after{content:'';flex:1;height:1px;background:var(--ice-dark)}
+
+/* CC */
+.cc-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.cc-box{background:var(--ice);border-radius:var(--radius);padding:12px;text-align:center;border:1.5px solid var(--ice-dark)}
+.cc-lbl{font-size:10px;color:var(--text-muted);font-weight:700;margin-bottom:3px}
+.cc-val{font-size:17px;font-weight:900;color:var(--navy)}
+.cc-box.pos .cc-val{color:var(--success)}.cc-box.neg .cc-val{color:var(--danger)}
+
+/* DETAIL ROWS */
+.drow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--ice);font-size:12px}
+.drow:last-child{border-bottom:none}
+.dkey{color:var(--text-muted);font-weight:500}
+.dval{font-weight:700;color:var(--text-main);text-align:right}
+.divider{height:1px;background:var(--ice-dark);margin:12px 0}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--navy);color:#fff;padding:10px 16px;border-radius:var(--radius);box-shadow:var(--shadow-lg);font-size:12px;font-weight:500;display:flex;align-items:center;gap:9px;animation:tIn .22s ease;max-width:300px}
+.toast.ok{border-left:4px solid var(--success)}.toast.err{border-left:4px solid var(--danger)}.toast.warn{border-left:4px solid var(--gold)}
+@keyframes tIn{from{transform:translateX(110%);opacity:0}to{transform:none;opacity:1}}
+
+/* FACTURA PREVIEW */
+.fv{border:2px solid var(--navy);border-radius:var(--radius);padding:18px;font-size:11px;background:#fff}
+.fv-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.fv-tipo{width:56px;height:56px;border:2px solid var(--navy);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:var(--navy)}
+.fv-cae{background:var(--ice);border-radius:4px;padding:7px 10px;font-size:10px;text-align:right;min-width:220px}
+.fv-items th{background:var(--navy);color:#fff;padding:5px 7px;font-size:10px}
+.fv-items td{padding:4px 7px;border-bottom:1px solid var(--ice-dark)}
+.fv-totales{margin-left:auto;width:240px;margin-top:10px}
+
+/* SYNC BADGE */
+.sync-badge{display:inline-flex;align-items:center;gap:5px;background:#e8f5ed;color:var(--success);border-radius:4px;padding:3px 9px;font-size:10px;font-weight:700;border:1px solid #86efac}
+.standalone-badge{display:inline-flex;align-items:center;gap:5px;background:var(--info-bg);color:var(--info);border-radius:4px;padding:3px 9px;font-size:10px;font-weight:700;border:1px solid #93c5fd}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--text-muted)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.empty-title{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:5px}
+.empty-text{font-size:12px;margin-bottom:14px}
+
+/* UTILS */
+.tr{text-align:right}.tc{text-align:center}
+.fw{font-weight:700}.fw9{font-weight:900}
+.cs{color:var(--success)}.cd{color:var(--danger)}.cg{color:var(--gold)}.cn{color:var(--navy)}
+.mt8{margin-top:8px}.mb8{margin-bottom:8px}.mb14{margin-bottom:14px}
+.nowrap{white-space:nowrap}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.col{flex:1;min-width:0}
+.items-wrap{overflow-x:auto;margin:12px 0}
+.items-wrap table th{background:var(--navy-light);color:#fff}
+
+/* RANKING */
+.rank-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--ice)}
+.rank-item:last-child{border-bottom:none}
+.rank-num{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rank-bar-wrap{flex:1;background:var(--ice-dark);border-radius:3px;height:8px}
+.rank-bar{height:8px;border-radius:3px;background:var(--gold)}
+.rank-val{font-size:11px;font-weight:700;color:var(--navy);white-space:nowrap}
+
+/* CHART SIMPLE */
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 4px}
+.chart-bar{flex:1;border-radius:3px 3px 0 0;background:var(--navy);opacity:.7;transition:opacity .2s;cursor:pointer}
+.chart-bar:hover{opacity:1}
+.chart-bar.gold{background:var(--gold)}
+.chart-xlabels{display:flex;gap:6px;padding:4px 4px 0}
+.chart-xl{flex:1;text-align:center;font-size:9px;color:var(--text-muted)}
+/* ── v7 additions ── */
+.badge{white-space:nowrap}
+.tab-btn{padding:8px 12px}
+.tscroll.nomin table{min-width:0}
+.tscroll td{white-space:nowrap}
+.tscroll td.wr,.tscroll td.small{white-space:normal;min-width:150px;max-width:260px}
+.kpi-val.sm{font-size:16px}
+.muted{color:var(--text-muted)}
+.small{font-size:11px}
+.mono{font-family:ui-monospace,Consolas,monospace}
+.tscroll{overflow-x:auto}
+.tscroll table{min-width:760px}
+.chk{width:15px;height:15px;cursor:pointer}
+.row-sel{background:#fffbeb !important}
+.alert{border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;display:flex;gap:10px;align-items:flex-start}
+.alert-info{background:var(--info-bg);border:1.5px solid #bfdbfe;color:#1e3a8a}
+.alert-warn{background:var(--warning-bg);border:1.5px solid #fcd34d;color:#78350f}
+.alert-err{background:var(--danger-bg);border:1.5px solid #fca5a5;color:#7f1d1d}
+.alert-ok{background:var(--success-bg);border:1.5px solid #86efac;color:#14532d}
+.fce-box{border:2px solid var(--gold);background:#fffbeb;border-radius:8px;padding:12px;margin-top:10px}
+.switch{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;cursor:pointer;color:var(--navy)}
+.lines-tbl td,.lines-tbl th{padding:5px 6px}
+.lines-tbl .fctl{padding:5px 7px;font-size:12px}
+.lines-tbl th{background:var(--navy-light);color:#fff;font-size:10px;text-transform:uppercase;letter-spacing:.4px;text-align:left;white-space:nowrap}
+.medio-row{border:1.5px solid var(--ice-dark);border-radius:8px;padding:10px;display:grid;grid-template-columns:170px 1fr auto;gap:10px;align-items:end}
+.medio-det{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.sum-box{background:var(--ice);border-radius:8px;padding:14px}
+.pag{display:flex;gap:6px;align-items:center}
+.link{color:var(--info);cursor:pointer;text-decoration:underline}
+.bar-v{display:flex;align-items:flex-end;gap:6px;height:130px}
+.bar-v .b{flex:1;background:var(--navy);opacity:.75;border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.bar-v .b.gold{background:var(--gold);opacity:1}
+.bar-v .b:hover{opacity:1}
+.setup-banner{display:none}
+#nav-tgl{display:none;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 6px}
+@media (max-width:760px){
+  #nav-tgl{display:block}
+  .sidebar{transform:translateX(-100%);transition:transform .2s}
+  body.nav-open .sidebar{transform:none}
+  .hdr-mod,.hdr-tenant,.hdr-sep{display:none}
+  .main{margin-left:0;padding:12px}
+  .fgrid-2,.fgrid-3,.fgrid-4{grid-template-columns:1fr}
+  .medio-row{grid-template-columns:1fr}
+}
+.perm-tbl th,.perm-tbl td{text-align:center;padding:7px 8px}
+.perm-tbl th:first-child,.perm-tbl td:first-child{text-align:left}
+.perm-tbl input{width:16px;height:16px;cursor:pointer}
+.perm-tbl tr.grp td{background:var(--ice);font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);text-align:left}
+.mod-card{border:1.5px solid var(--ice-dark);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:flex-start;background:#fff}
+.mod-card.on{border-color:var(--gold);background:#fffbeb}
+.mod-card .ico{font-size:24px}
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.logo-box{width:120px;height:74px;border:1.5px solid var(--ice-dark);border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
+.logo-box img{max-width:100%;max-height:100%;object-fit:contain}
+.sec-hint{font-size:12px;color:var(--text-muted);margin:-4px 0 14px}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <button id="nav-tgl" onclick="document.body.classList.toggle('nav-open')" aria-label="Menú">☰</button>
+  <div class="hdr-logo"><div class="logo-mark">⚙</div><div class="logo-text">CONTROL <span>MAX</span></div></div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-mod" id="hdrMod">Configuración</div>
+  <div class="hdr-right">
+    <div class="hdr-tenant" id="hdr-tenant">🏢 —</div>
+    <div class="hdr-user" style="cursor:pointer" onclick="cambiarMiClave()" title="Cambiar mi contraseña"><div class="avatar" id="hdr-avatar">··</div><span id="hdr-user">—</span></div>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <div style="padding:16px 16px 14px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:10px">
+    <div style="color:#fff;font-size:13px;font-weight:800;letter-spacing:.3px">⚙️ CONFIGURACIÓN</div>
+    <div style="color:var(--gold);font-size:11px;margin-top:2px" id="sb-empresa">—</div>
+  </div>
+  <div class="nav-sec">Empresa</div>
+  <div class="nav-item" onclick="go('empresa')" id="n-empresa"><span class="nav-icon">🏢</span>Datos de la empresa</div>
+  <div class="nav-item" onclick="go('facturacion')" id="n-facturacion"><span class="nav-icon">🧾</span>Facturación y FCE</div>
+  <div class="nav-item" onclick="go('operarios')" id="n-operarios"><span class="nav-icon">👷</span>Operarios</div>
+  <div class="nav-sec">Accesos</div>
+  <div class="nav-item" onclick="go('usuarios')" id="n-usuarios"><span class="nav-icon">👥</span>Usuarios</div>
+  <div class="nav-item" onclick="go('permisos')" id="n-permisos"><span class="nav-icon">🛡️</span>Roles y permisos</div>
+  <div class="nav-item" onclick="go('seguridad')" id="n-seguridad"><span class="nav-icon">🔐</span>PIN y autorizadores</div>
+  <div class="nav-sec">Suscripción</div>
+  <div class="nav-item" onclick="go('plan')" id="n-plan"><span class="nav-icon">🧩</span>Plan y módulos</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build cfg 1.0</div>
+</nav>
+
+<main class="main">
+  <div class="alert alert-warn setup-banner" id="setup-banner">⚠️ <div id="setup-detail"></div></div>
+  <div id="view"></div>
+</main>
+
+<!-- MODAL GENÉRICO -->
+<div class="moverlay" id="m-form">
+  <div class="modal" id="mf-modal">
+    <div class="mhdr"><div><div class="mhdr-title" id="mf-title">—</div><div class="mhdr-sub" id="mf-sub"></div></div><button class="mclose" onclick="closeM('m-form')">✕</button></div>
+    <div class="mbody"><div id="mf-pre"></div><div class="fgrid fgrid-2" id="mf-body"></div><div id="mf-post"></div></div>
+    <div class="mfooter"><button class="btn btn-outline" onclick="closeM('m-form')">Cancelar</button><button class="btn btn-gold" id="mf-save">💾 Guardar</button></div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+<div id="splash" style="position:fixed;inset:0;background:#0D1B2A;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;gap:16px">
+  <div style="font-size:28px;font-weight:900;color:#C9A84C;letter-spacing:2px">CONTROL <span style="color:white">MAX</span></div>
+  <div style="font-size:13px;color:rgba(255,255,255,.6)">Configuración</div>
+  <div style="width:40px;height:40px;border:3px solid rgba(201,168,76,0.3);border-top-color:#C9A84C;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</div>
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONTROL MAX · Configuración unificada — build cfg 1.0
+// Misma base (Supabase) que TRACE / PLUS / AGRO. Escribe en las MISMAS
+// columnas que usa CONTROL TRACE (empresas.*, operarios, permisos) y en
+// plus_config / puntos_venta de CONTROL PLUS: no hay nada que sincronizar.
+// ══════════════════════════════════════════════════════════════
+const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
+const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
+const sb=(window._sbClient)||(window._sbClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}}));
+
+const S={empresaId:null,uid:null,rol:null,nombre:null,email:null,empresa:{},cfg:null,cfgMissing:false,pv:[],pvMissing:false,ops:[],opsMissing:false,colsMissing:[]};
+
+// ── utilidades ──
+const el=id=>document.getElementById(id);
+const esc=v=>(v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const V=id=>{const e=el(id);return e?String(e.value==null?'':e.value).trim():'';};
+const num=v=>{const n=parseFloat(v);return isFinite(n)?n:0;};
+const pad=(n,l)=>String(n==null?'':n).padStart(l,'0');
+function isMissing(err){const m=(err&&(err.message||''))+' '+(err&&err.code||'');return /PGRST205|42P01|does not exist|Could not find the table/i.test(m);}
+function cuitFmt(c){const d=String(c||'').replace(/\D/g,'');return d.length===11?d.slice(0,2)+'-'+d.slice(2,10)+'-'+d.slice(10):c;}
+function cuitValido(c){const d=String(c||'').replace(/\D/g,'');if(d.length!==11)return false;const w=[5,4,3,2,7,6,5,4,3,2];let s=0;for(let i=0;i<10;i++)s+=(+d[i])*w[i];let v=11-(s%11);if(v===11)v=0;if(v===10)v=9;return v===+d[10];}
+function toast(msg,type='ok'){const c=el('toastWrap');if(!c)return;const t=document.createElement('div');t.className='toast '+type;t.textContent=(type==='ok'?'✅':type==='err'?'❌':'⚠️')+' '+msg;c.appendChild(t);setTimeout(()=>t.remove(),type==='err'?6500:3400);}
+function openM(id){const e=el(id);if(e)e.classList.add('open');}
+function closeM(id){const e=el(id);if(e)e.classList.remove('open');}
+async function lockBtn(id,on,txt){const b=el(id);if(!b)return;if(on){b._t=b.innerHTML;b.innerHTML='⏳ '+(txt||'Guardando…');b.disabled=true;}else{b.innerHTML=b._t||b.innerHTML;b.disabled=false;}}
+function esAdmin(){return ['admin','administrador','dueno','dueño'].includes(S.rol||'');}
+
+// UPDATE tolerante: si a la tabla le falta una columna (SQL no corrido), la saca y reintenta
+async function updSafe(table,match,obj){
+  const o=Object.assign({},obj),miss=[];
+  for(let i=0;i<12;i++){
+    let q=sb.from(table).update(o);Object.keys(match).forEach(k=>{q=q.eq(k,match[k]);});
+    const {data,error}=await q.select();
+    if(!error){if(!data||!data.length)return {error:{message:'la base no permitió el cambio (permisos de la tabla '+table+')'},missing:miss};return {error:null,missing:miss};}
+    const m=/Could not find the '([^']+)' column/i.exec(error.message||'')||/column "?([a-z_]+)"? .*does not exist/i.exec(error.message||'');
+    if(m&&(m[1] in o)){delete o[m[1]];miss.push(m[1]);if(!Object.keys(o).length)return {error:null,missing:miss};continue;}
+    return {error,missing:miss};
+  }
+  return {error:{message:'demasiadas columnas faltantes'},missing:miss};
+}
+
+// Formulario genérico
+function formModal(o){
+  el('mf-title').textContent=o.title||'';el('mf-sub').textContent=o.sub||'';
+  el('mf-pre').innerHTML=o.pre||'';el('mf-post').innerHTML=o.post||'';
+  const vals=o.values||{};
+  el('mf-body').innerHTML=(o.fields||[]).map(f=>{
+    const id='mf-'+f.id,v=vals[f.id]!=null?vals[f.id]:(f.value!=null?f.value:'');
+    const lbl=`<label class="flabel">${esc(f.label)}${f.req?' <span class="req">*</span>':''}</label>`;
+    const cls='fgroup'+(f.full?' fcol-full':'');
+    const help=f.help?`<div style="font-size:10px;color:var(--text-muted);margin-top:2px">${f.help}</div>`:'';
+    if(f.type==='select'){const opts=(f.options||[]).map(x=>Array.isArray(x)?x:[x,x]);return `<div class="${cls}">${lbl}<select class="fctl" id="${id}">${opts.map(([a,b])=>`<option value="${esc(a)}"${String(a)===String(v)?' selected':''}>${esc(b)}</option>`).join('')}</select>${help}</div>`;}
+    if(f.type==='checkbox')return `<div class="${cls}"><label class="switch" style="margin-top:18px"><input type="checkbox" id="${id}"${v?' checked':''}> ${esc(f.label)}</label>${help}</div>`;
+    return `<div class="${cls}">${lbl}<input class="fctl" id="${id}" type="${f.type||'text'}" value="${esc(v)}" placeholder="${esc(f.ph||'')}" autocomplete="off">${help}</div>`;
+  }).join('');
+  const btn=el('mf-save');btn.innerHTML=o.saveLabel||'💾 Guardar';
+  btn.onclick=async()=>{
+    const out={};
+    for(const f of (o.fields||[])){const e=el('mf-'+f.id);if(!e)continue;
+      out[f.id]=f.type==='checkbox'?e.checked:(f.type==='number'?(e.value===''?null:num(e.value)):e.value.trim());
+      if(f.req&&(out[f.id]===''||out[f.id]==null)){toast('Completá: '+f.label,'warn');e.focus();return;}}
+    await lockBtn('mf-save',true);let ok;
+    try{ok=await o.onSave(out);}catch(e){console.error(e);toast(e.message||String(e),'err');ok=false;}
+    await lockBtn('mf-save',false);if(ok!==false)closeM('m-form');
+  };
+  openM('m-form');setTimeout(()=>{const f=el('mf-body').querySelector('input,select');if(f)f.focus();},60);
+}
+
+// ══════════════ catálogos compartidos ══════════════
+// Roles internos (perfiles.rol) — los mismos de CONTROL TRACE
+const ROLES=['supervisor','comercial','preparador','chofer'];
+const ROL_LABEL={admin:'Administrador',supervisor:'Supervisor',comercial:'Comercial',preparador:'Preparador',chofer:'Chofer',dueno:'Dueño','dueño':'Dueño'};
+const ACCESO_LABEL={admin:'Administrador · todos los módulos',galpon:'Galpón · CONTROL TRACE',finca:'Finca · CONTROLAGRO'};
+// Módulos de la suite (mismos ids que el portal)
+const MODULOS=[
+  {id:'trace',nom:'CONTROL TRACE',ico:'🏭',sub:'Producción y trazabilidad'},
+  {id:'plus', nom:'CONTROL PLUS', ico:'🧾',sub:'Administración y finanzas'},
+  {id:'agro', nom:'CONTROLAGRO',  ico:'🌿',sub:'Finca y agro'},
+  {id:'total',nom:'CONTROL TOTAL',ico:'📊',sub:'Reportes y análisis (con IA)'},
+  {id:'docs', nom:'CONTROL DOCS', ico:'📄',sub:'Documentos publicados'},
+  {id:'rrhh', nom:'CONTROL RRHH', ico:'👥',sub:'Recursos humanos'},
+];
+// Qué módulos ve cada rol si nunca se configuró (coincide con lo que hoy hace cada app)
+const DEF_MODROL={supervisor:['trace','plus','total','docs'],comercial:['trace','plus','docs'],preparador:['trace','docs'],chofer:['trace']};
+// Pantallas de CONTROL TRACE (copia de la matriz de Trace v154 · ids = empresas.permisos)
+const TRACE_MODS=[
+  {id:'rec',ico:'📥',name:'Recepción',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
+  {id:'acond',ico:'🌽',name:'Acondicionamiento',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
+  {id:'prod',ico:'⚙️',name:'Producción',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
+  {id:'ens',ico:'🌿',name:'Ensamblado',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
+  {id:'descmp',ico:'🗑️',name:'Descarte de MP',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
+  {id:'dev',ico:'↩️',name:'Devoluciones',grupo:'Operaciones',roles:['admin','supervisor','comercial']},
+  {id:'carga',ico:'✅',name:'Validación de carga',grupo:'Operaciones',roles:['admin','supervisor','chofer']},
+  {id:'ped',ico:'📋',name:'Pedidos',grupo:'Administración',roles:['admin','supervisor','comercial']},
+  {id:'plan',ico:'🗓️',name:'Plan de producción',grupo:'Administración',roles:['admin','supervisor','comercial','preparador']},
+  {id:'ent',ico:'🧾',name:'Remitos',grupo:'Administración',roles:['admin','supervisor','comercial']},
+  {id:'ajuste',ico:'⚖️',name:'Ajuste de stock',grupo:'Administración',roles:['admin','supervisor']},
+  {id:'desp',ico:'🏷️',name:'Impresión de Etiquetas',grupo:'Administración',roles:['admin','supervisor','preparador']},
+  {id:'bd',ico:'🗂️',name:'Datos maestros',grupo:'Administración',roles:['admin','supervisor','comercial','preparador']},
+  {id:'traz',ico:'🔎',name:'Trazabilidad',grupo:'Análisis',roles:['admin','supervisor','comercial','preparador']},
+  {id:'stock',ico:'🏬',name:'Stock',grupo:'Análisis',roles:['admin','supervisor','comercial','preparador']},
+  {id:'rep',ico:'📊',name:'Reportes',grupo:'Análisis',roles:['admin','supervisor','comercial']},
+  {id:'usuarios',ico:'👥',name:'Usuarios',grupo:'Sistema',roles:['admin','supervisor']},
+];
+// Secciones de CONTROL PLUS
+const PLUS_SECS=[
+  {id:'dashboard',ico:'📊',name:'Dashboard'},{id:'ventas',ico:'🧾',name:'Ventas'},{id:'compras',ico:'🛒',name:'Compras'},
+  {id:'clientes',ico:'🏢',name:'Entidades'},{id:'inventario',ico:'📦',name:'Inventario'},{id:'caja',ico:'💵',name:'Caja'},{id:'banco',ico:'🏦',name:'Banco'},
+];
+const DEF_PLUS={supervisor:PLUS_SECS.map(s=>s.id),comercial:PLUS_SECS.map(s=>s.id),preparador:[],chofer:[]};
+
+// ══════════════ navegación ══════════════
+const NAMES={empresa:'Datos de la empresa',facturacion:'Facturación y FCE',operarios:'Operarios',usuarios:'Usuarios',permisos:'Roles y permisos',seguridad:'PIN y autorizadores',plan:'Plan y módulos'};
+const R={};let CUR='empresa';
+function go(id){CUR=id;document.body.classList.remove('nav-open');
+  Object.keys(NAMES).forEach(k=>{const n=el('n-'+k);if(n)n.classList.toggle('active',k===id);});
+  el('hdrMod').textContent=NAMES[id]||'Configuración';window.scrollTo(0,0);
+  try{R[id]();}catch(e){console.error(e);el('view').innerHTML='<div class="alert alert-err">Error: '+esc(e.message)+'</div>';}
+  try{history.replaceState(null,'','#'+id);}catch(e){}
+}
+function ph(title,sub,actions){return `<div class="ph"><div><div class="ph-title">${title}</div><div class="ph-sub">${sub||''}</div></div><div class="ph-actions">${actions||''}</div></div>`;}
+function fg(label,input,opt){opt=opt||{};return `<div class="fgroup${opt.full?' fcol-full':''}"${opt.span?` style="grid-column:span ${opt.span}"`:''}><label class="flabel">${label}${opt.req?' <span class="req">*</span>':''}</label>${input}${opt.help?`<div style="font-size:10px;color:var(--text-muted);margin-top:3px">${opt.help}</div>`:''}</div>`;}
+function inp(id,v,opt){opt=opt||{};return `<input class="fctl${opt.mono?' mono':''}" id="${id}" type="${opt.type||'text'}" value="${esc(v==null?'':v)}" placeholder="${esc(opt.ph||'')}"${opt.max?` maxlength="${opt.max}"`:''} autocomplete="off">`;}
+function sel(id,v,opts){return `<select class="fctl" id="${id}">${opts.map(o=>Array.isArray(o)?o:[o,o]).map(([a,b])=>`<option value="${esc(a)}"${String(a)===String(v==null?'':v)?' selected':''}>${esc(b)}</option>`).join('')}</select>`;}
+
+// ══════════════ carga ══════════════
+async function cargarEmpresa(){const {data,error}=await sb.from('empresas').select('*').eq('id',S.empresaId).single();if(error)throw error;S.empresa=data||{};
+  const nom=S.empresa.razon_social||'Mi empresa';el('sb-empresa').textContent=nom;el('hdr-tenant').textContent='🏢 '+nom;
+  const need=['plan','modulos','permisos_max'].filter(c=>!(c in S.empresa));S.colsMissing=need;banner();}
+async function cargarCfg(){const {data,error}=await sb.from('plus_config').select('*').eq('empresa_id',S.empresaId).maybeSingle();S.cfgMissing=!!(error&&isMissing(error));S.cfg=data||null;
+  const r=await sb.from('puntos_venta').select('*').eq('empresa_id',S.empresaId).order('numero');S.pvMissing=!!(r.error&&isMissing(r.error));S.pv=r.data||[];}
+async function cargarOps(){const {data,error}=await sb.from('operarios').select('*').eq('empresa_id',S.empresaId).order('nombre');S.opsMissing=!!(error&&isMissing(error));S.ops=data||[];}
+function banner(){const b=el('setup-banner');const msgs=[];
+  if(S.colsMissing.length)msgs.push('Para guardar el <b>plan, los módulos y los permisos de CONTROL MAX</b> corré <b>config_max_setup.sql</b> en Supabase → SQL Editor y recargá.');
+  if(S.cfgMissing)msgs.push('Para la sección <b>Facturación</b> falta correr <b>plus_v7_setup.sql</b> (el de CONTROL PLUS).');
+  el('setup-detail').innerHTML=msgs.join('<br>');b.style.display=msgs.length?'flex':'none';}
+
+// ══════════════ 1 · EMPRESA ══════════════
+function logoEmp(){const c=S.empresa.etiqueta_config;return (c&&c.logo)||'';}
+R.empresa=function(){const e=S.empresa,c=S.cfg||{};
+  el('view').innerHTML=ph('Datos de la empresa','Salen en remitos, etiquetas, facturas y recibos. Lo que guardes acá lo usan <b>CONTROL TRACE</b> y <b>CONTROL PLUS</b> a la vez.','<button class="btn btn-gold" id="bt-emp" onclick="guardarEmpresa()">💾 Guardar</button>')+`
+  <div class="tcard" style="padding:20px">
+   <div class="fsec"><div class="fsec-title">Identificación</div><div class="fgrid fgrid-3">
+    ${fg('Razón social',inp('e-rs',e.razon_social||c.razon_social),{req:1})}
+    ${fg('Nombre de fantasía',inp('e-fant',e.nombre_fantasia||c.nombre_fantasia))}
+    ${fg('CUIT',inp('e-cuit',e.cuit||c.cuit,{ph:'30-00000000-0'}),{req:1})}
+    ${fg('Condición frente al IVA',sel('e-iva',c.condicion_iva||'Responsable Inscripto',['Responsable Inscripto','Monotributista','Exento']),{help:'Define la letra de las facturas en PLUS (A/B o C).'})}
+    ${fg('Ingresos Brutos',inp('e-iibb',c.iibb))}
+    ${fg('Inicio de actividades',inp('e-inicio',c.inicio_actividades,{type:'date'}))}
+   </div></div>
+   <div class="fsec"><div class="fsec-title">Domicilios y contacto</div><div class="fgrid fgrid-3">
+    ${fg('Domicilio fiscal',inp('e-domf',e.dom_fiscal||c.domicilio_fiscal),{span:2,help:'Sale en remitos (TRACE) y facturas (PLUS).'})}
+    ${fg('Localidad',inp('e-loc',c.localidad))}
+    ${fg('Provincia',inp('e-prov',c.provincia,{ph:'Mendoza'}))}
+    ${fg('Domicilio de planta',inp('e-domp',e.dom_planta),{span:2,help:'Sale en las etiquetas.'})}
+    ${fg('Teléfono',inp('e-tel',e.tel||c.telefono))}
+    ${fg('Email',inp('e-email',e.email||c.email))}
+   </div></div>
+   <div class="fsec"><div class="fsec-title">Habilitaciones y numeración de remitos</div><div class="fgrid fgrid-3">
+    ${fg('RENSPA',inp('e-renspa',e.renspa))}
+    ${fg('RNE',inp('e-rne',e.rne))}
+    ${fg('Punto de venta de remitos (TRACE)',inp('e-ptov',e.pto_venta,{ph:'0001'}),{help:'Prefijo del número de remito. Los puntos de venta de facturas están en <a class="link" onclick="go(\'facturacion\')">Facturación</a>.'})}
+   </div></div>
+   <div class="fsec"><div class="fsec-title">Logo</div>
+    <div style="display:flex;gap:14px;align-items:center">
+     <div class="logo-box">${logoEmp()?`<img src="${logoEmp()}" alt="logo">`:'<span class="small muted">sin logo</span>'}</div>
+     <div><label class="btn btn-outline btn-sm" style="cursor:pointer">⬆ Subir logo<input type="file" accept="image/*" onchange="subirLogo(this)" style="display:none"></label>
+     <div class="small muted" style="margin-top:6px">PNG o JPG liviano (máx. 1,5 MB). Sale en el comprobante de recepción y en las etiquetas.</div></div>
+    </div></div>
+  </div>`;};
+async function guardarEmpresa(){
+  const rs=V('e-rs'),cuit=V('e-cuit');
+  if(!rs){toast('Completá la razón social','warn');return;}
+  if(cuit&&!cuitValido(cuit)){toast('El CUIT no es válido (revisá el dígito verificador)','warn');return;}
+  await lockBtn('bt-emp',true);
+  try{
+    const up={razon_social:rs,nombre_fantasia:V('e-fant')||null,cuit:cuit?cuitFmt(cuit):'',dom_fiscal:V('e-domf'),dom_planta:V('e-domp'),renspa:V('e-renspa'),rne:V('e-rne'),pto_venta:V('e-ptov'),tel:V('e-tel'),email:V('e-email')};
+    const r=await updSafe('empresas',{id:S.empresaId},up);if(r.error)throw r.error;
+    if(!S.cfgMissing){
+      const o={empresa_id:S.empresaId,razon_social:rs,nombre_fantasia:V('e-fant')||null,cuit:cuit?cuitFmt(cuit):null,condicion_iva:V('e-iva'),iibb:V('e-iibb')||null,inicio_actividades:V('e-inicio')||null,domicilio_fiscal:V('e-domf')||null,localidad:V('e-loc')||null,provincia:V('e-prov')||null,telefono:V('e-tel')||null,email:V('e-email')||null,updated_at:new Date().toISOString()};
+      const {error}=await sb.from('plus_config').upsert(o,{onConflict:'empresa_id'});if(error)throw error;
+    }
+    await cargarEmpresa();await cargarCfg();R.empresa();
+    toast('Datos de la empresa guardados · ya los usan TRACE y PLUS','ok');
+  }catch(e){toast('No se pudo guardar: '+e.message,'err');}
+  await lockBtn('bt-emp',false);
+}
+function subirLogo(input){const f=input.files&&input.files[0];if(!f)return;
+  if(f.size>1500000){toast('La imagen es muy pesada (máx. 1,5 MB)','warn');return;}
+  const rd=new FileReader();rd.onload=async()=>{
+    const cfg=Object.assign({},S.empresa.etiqueta_config||{});cfg.logo=rd.result;
+    const {error}=await sb.from('empresas').update({etiqueta_config:cfg}).eq('id',S.empresaId);
+    if(error){toast('No se pudo guardar el logo: '+error.message,'err');return;}
+    S.empresa.etiqueta_config=cfg;R.empresa();toast('Logo guardado','ok');};
+  rd.readAsDataURL(f);}
+
+// ══════════════ 2 · FACTURACIÓN ══════════════
+R.facturacion=function(){const c=S.cfg||{};
+  if(S.cfgMissing){el('view').innerHTML=ph('Facturación y FCE','')+'<div class="alert alert-warn">⚠️ <div>Falta correr <b>plus_v7_setup.sql</b> en Supabase → SQL Editor (crea las tablas de CONTROL PLUS). Después recargá esta página.</div></div>';return;}
+  const pvOpts=(S.pv.filter(p=>p.activo!==false).map(p=>[p.numero,pad(p.numero,5)+(p.descripcion?' — '+p.descripcion:'')]));if(!pvOpts.length)pvOpts.push([c.pto_venta_default||1,pad(c.pto_venta_default||1,5)]);
+  el('view').innerHTML=ph('Facturación y FCE','Puntos de venta, valores por defecto de CONTROL PLUS y Factura de Crédito Electrónica MiPyME.','<button class="btn btn-gold" id="bt-fac" onclick="guardarFacturacion()">💾 Guardar</button>')+`
+  <div class="tcard" style="padding:20px">
+   <div class="fsec"><div class="fsec-title">Puntos de venta</div>
+    <div class="tcard"><div class="tbar"><div class="tbar-title">Puntos de venta habilitados en ARCA</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="editPV()">＋ Agregar</button></div></div>
+    <div class="tscroll nomin"><table><thead><tr><th>N°</th><th>Descripción</th><th>Sistema en ARCA</th><th>Por defecto</th><th>Estado</th><th></th></tr></thead><tbody>
+    ${S.pv.map(p=>`<tr style="${p.activo===false?'opacity:.5':''}"><td class="mono">${pad(p.numero,5)}</td><td>${esc(p.descripcion||'—')}</td><td>${esc(p.sistema||'—')}</td><td>${p.por_defecto?'<span class="badge b-success">Sí</span>':''}</td><td>${p.activo===false?'<span class="badge b-neutral">Inactivo</span>':'<span class="badge b-success">Activo</span>'}</td><td style="white-space:nowrap"><button class="btn btn-outline btn-xs" onclick="editPV('${p.id}')">✏️</button> <button class="btn btn-outline btn-xs" onclick="togglePV('${p.id}')">${p.activo===false?'Activar':'Desactivar'}</button></td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--text-muted)">Sin puntos de venta cargados</td></tr>'}
+    </tbody></table></div></div>
+    <div class="small muted" style="margin-top:6px">El punto de venta tiene que estar dado de alta en ARCA como <b>RECE para aplicativo y web services</b> para facturar desde el sistema.</div>
+   </div>
+   <div class="fsec"><div class="fsec-title">Valores por defecto</div><div class="fgrid fgrid-4">
+    ${fg('Punto de venta por defecto',sel('f-pv',c.pto_venta_default||1,pvOpts))}
+    ${fg('Alícuota IVA',sel('f-alic',c.alicuota_default==null?10.5:c.alicuota_default,[['10.5','10,5% (frutas y hortalizas)'],['21','21%'],['27','27%'],['0','Exento']]))}
+    ${fg('Concepto',sel('f-conc',c.concepto_default||1,[['1','Productos'],['2','Servicios'],['3','Productos y servicios']]))}
+    ${fg('Días de vencimiento',inp('f-dias',c.dias_vto_default==null?30:c.dias_vto_default,{type:'number'}))}
+    ${fg('Leyenda al pie de los comprobantes',inp('f-pie',c.leyenda_pie,{ph:'Ej: Gracias por su compra'}),{full:1})}
+   </div></div>
+   <div class="fsec"><div class="fsec-title">Factura de Crédito Electrónica MiPyME (FCE)</div>
+    <div class="alert alert-info">ℹ️ <div>Se usa cuando el cliente es una <b>empresa grande obligada a recibir FCE</b> (se marca en su ficha) y el comprobante supera el <b>monto mínimo</b> vigente de ARCA. Lleva el <b>CBU del emisor</b>, la fecha de vencimiento del pago y la opción de transferencia (SCA o ADC).</div></div>
+    <div class="fgrid fgrid-3">
+     ${fg('CBU del emisor (22 dígitos)',inp('f-cbu',c.fce_cbu,{mono:1,max:22}),{req:1})}
+     ${fg('Alias CBU',inp('f-alias',c.fce_alias))}
+     ${fg('Transferencia por defecto',sel('f-mod',c.fce_modalidad||'SCA',[['SCA','SCA — Sistema de Circulación Abierta'],['ADC','ADC — Agente de Depósito Colectivo']]))}
+     ${fg('Monto mínimo FCE vigente ($)',inp('f-min',c.fce_monto_minimo,{type:'number',ph:'Según ARCA'}))}
+     ${fg('Leyenda adicional FCE',inp('f-ley',c.fce_leyenda),{span:2})}
+    </div></div>
+   <div class="fsec"><div class="fsec-title">Integración ARCA</div>
+    <div class="alert alert-warn">⏳ <div>La conexión con ARCA se habilita en la <b>última etapa</b>. Mientras tanto las facturas quedan “Pendiente de CAE” y se puede registrar el CAE a mano desde CONTROL PLUS.</div></div></div>
+  </div>`;};
+async function guardarFacturacion(){
+  const cbu=V('f-cbu').replace(/\D/g,'');if(cbu&&cbu.length!==22){toast('El CBU tiene 22 dígitos','warn');return;}
+  await lockBtn('bt-fac',true);
+  const o={empresa_id:S.empresaId,pto_venta_default:+V('f-pv')||1,alicuota_default:num(V('f-alic')),concepto_default:+V('f-conc')||1,dias_vto_default:V('f-dias')===''?30:+V('f-dias'),leyenda_pie:V('f-pie')||null,
+    fce_cbu:cbu||null,fce_alias:V('f-alias')||null,fce_modalidad:V('f-mod'),fce_monto_minimo:V('f-min')===''?null:num(V('f-min')),fce_leyenda:V('f-ley')||null,updated_at:new Date().toISOString()};
+  const {error}=await sb.from('plus_config').upsert(o,{onConflict:'empresa_id'});
+  await lockBtn('bt-fac',false);
+  if(error){toast('No se pudo guardar: '+error.message,'err');return;}
+  await cargarCfg();R.facturacion();toast('Facturación guardada · ya la usa CONTROL PLUS','ok');
+}
+function editPV(id){const p=id?S.pv.find(x=>x.id===id):null;
+  formModal({title:p?'Editar punto de venta':'Nuevo punto de venta',fields:[{id:'numero',label:'Número (como figura en ARCA)',type:'number',req:true},{id:'descripcion',label:'Descripción',ph:'Casa central'},{id:'sistema',label:'Sistema en ARCA',type:'select',options:['Web Service','Factura en línea','Controlador fiscal','Manual']},{id:'por_defecto',label:'Usar por defecto',type:'checkbox'}],values:p||{sistema:'Web Service'},
+    onSave:async v=>{if(!(v.numero>0)){toast('Número inválido','warn');return false;}
+      if(S.pv.some(x=>+x.numero===+v.numero&&x.id!==(p&&p.id))){toast('Ese número ya existe','warn');return false;}
+      if(v.por_defecto)for(const x of S.pv.filter(x=>x.por_defecto&&x.id!==(p&&p.id)))await sb.from('puntos_venta').update({por_defecto:false}).eq('id',x.id);
+      const o={numero:+v.numero,descripcion:v.descripcion||null,sistema:v.sistema,por_defecto:!!v.por_defecto};
+      const {error}=p?await sb.from('puntos_venta').update(o).eq('id',p.id):await sb.from('puntos_venta').insert({...o,activo:true,empresa_id:S.empresaId});
+      if(error){toast(error.message,'err');return false;}
+      if(v.por_defecto&&!S.cfgMissing)await sb.from('plus_config').upsert({empresa_id:S.empresaId,pto_venta_default:+v.numero},{onConflict:'empresa_id'});
+      await cargarCfg();R.facturacion();toast('Punto de venta guardado','ok');}});}
+async function togglePV(id){const p=S.pv.find(x=>x.id===id);const {error}=await sb.from('puntos_venta').update({activo:p.activo===false}).eq('id',id);if(error){toast(error.message,'err');return;}await cargarCfg();R.facturacion();}
+
+// ══════════════ 3 · OPERARIOS (padrón de TRACE) ══════════════
+const AREAS=['recepción','producción','despacho','general'];
+R.operarios=function(){
+  if(S.opsMissing){el('view').innerHTML=ph('Operarios','')+'<div class="alert alert-warn">⚠️ <div>La tabla de operarios de CONTROL TRACE no existe en esta base.</div></div>';return;}
+  el('view').innerHTML=ph('Operarios','Padrón del galpón. CONTROL TRACE lo usa en “recibido por” y en producción / etiquetado.','<button class="btn btn-gold" onclick="editOp()">＋ Agregar operario</button>')+`
+  <div class="tcard"><div class="tscroll nomin"><table><thead><tr><th>Nombre</th><th>Área</th><th>Estado</th><th></th></tr></thead><tbody>
+  ${S.ops.map(o=>`<tr style="${o.activo===false?'opacity:.5':''}"><td>${esc(o.nombre)}</td><td>${esc(o.area||'—')}</td><td>${o.activo===false?'<span class="badge b-neutral">Inactivo</span>':'<span class="badge b-success">Activo</span>'}</td><td style="white-space:nowrap"><button class="btn btn-outline btn-xs" onclick="editOp('${o.id}')">✏️</button> <button class="btn btn-outline btn-xs" onclick="toggleOp('${o.id}')">${o.activo===false?'Activar':'Desactivar'}</button></td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--text-muted)">Sin operarios cargados</td></tr>'}
+  </tbody></table></div></div>`;};
+function editOp(id){const o=id?S.ops.find(x=>x.id===id):null;
+  formModal({title:o?'Editar operario':'Nuevo operario',fields:[{id:'nombre',label:'Nombre y apellido',req:true},{id:'area',label:'Área',type:'select',options:AREAS}],values:o||{area:'producción'},
+    onSave:async v=>{const {error}=o?await sb.from('operarios').update({nombre:v.nombre,area:v.area}).eq('id',o.id):await sb.from('operarios').insert({empresa_id:S.empresaId,nombre:v.nombre,area:v.area});
+      if(error){toast(error.message,'err');return false;}await cargarOps();R.operarios();toast('Operario guardado','ok');}});}
+async function toggleOp(id){const o=S.ops.find(x=>x.id===id);const {error}=await sb.from('operarios').update({activo:o.activo===false}).eq('id',id);if(error){toast(error.message,'err');return;}await cargarOps();R.operarios();}
+
+// ══════════════ 4 · USUARIOS (Edge Function manage-users, la misma de TRACE) ══════════════
+let USERS=null,USERS_ERR=null;
+async function mu(body){const {data,error}=await sb.functions.invoke('manage-users',{body});const err=(data&&data.error)||(error&&(error.message||String(error)));if(err)throw new Error(err);return data||{};}
+function rolOpts(sel_){const l=['admin'].concat(ROLES);if(sel_&&!l.includes(sel_))l.push(sel_);return l.map(r=>`<option value="${r}"${r===sel_?' selected':''}>${esc(ROL_LABEL[r]||r)}</option>`).join('');}
+function accOpts(sel_){const l=['admin','galpon','finca'];if(sel_&&!l.includes(sel_))l.push(sel_);return (sel_?'':'<option value="">—</option>')+l.map(a=>`<option value="${a}"${a===sel_?' selected':''}>${esc(ACCESO_LABEL[a]||a)}</option>`).join('');}
+R.usuarios=function(){
+  el('view').innerHTML=ph('Usuarios','Quién entra al sistema. El <b>rol</b> define qué puede hacer (ver <a class="link" onclick="go(\'permisos\')">Roles y permisos</a>); el <b>acceso</b> es el que ya usa CONTROL TRACE (Galpón / Finca / Administrador).','<button class="btn btn-gold" onclick="nuevoUsuario()">＋ Nuevo usuario</button>')+
+  `<div class="tcard"><div class="tbar"><div class="tbar-title">Usuarios de la empresa</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="cargarUsuarios(true)">↻ Actualizar</button></div></div><div id="u-list" style="padding:0"><div style="padding:18px" class="muted">Cargando usuarios…</div></div></div>`;
+  cargarUsuarios(USERS==null);};
+async function cargarUsuarios(force){
+  if(force||USERS==null){try{const d=await mu({action:'list'});USERS=d.users||[];USERS_ERR=null;}catch(e){USERS=[];USERS_ERR=e.message;}}
+  const box=el('u-list');if(!box)return;
+  if(USERS_ERR){box.innerHTML=`<div class="alert alert-err" style="margin:14px">❌ <div>No se pudieron cargar los usuarios: ${esc(USERS_ERR)}.<br>Verificá que la Edge Function <b>manage-users</b> esté desplegada en Supabase (es la misma que usa CONTROL TRACE).</div></div>`;return;}
+  box.innerHTML=`<div class="tscroll"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acceso</th><th>Estado</th><th></th></tr></thead><tbody>${USERS.map(u=>{const yo=u.id===S.uid;
+    return `<tr style="${u.activo===false?'opacity:.55':''}"><td>${esc(u.nombre||'—')}${yo?' <span class="badge b-gold">vos</span>':''}</td><td class="mono">${esc(u.email||'—')}</td>
+    <td><select class="fctl" style="padding:4px 6px;font-size:12px;min-width:130px" ${yo?'disabled':''} onchange="cambiarRol('${u.id}',this.value)">${rolOpts(u.rol)}</select></td>
+    <td><select class="fctl" style="padding:4px 6px;font-size:12px;min-width:170px" ${yo?'disabled':''} onchange="cambiarAcceso('${u.id}',this.value)">${accOpts(u.acceso)}</select></td>
+    <td>${u.activo===false?'<span class="badge b-neutral">Inactivo</span>':'<span class="badge b-success">Activo</span>'}</td>
+    <td style="white-space:nowrap">${yo?'':`<button class="btn btn-outline btn-xs" onclick="blanquear('${u.id}')">🔑 Blanquear clave</button> <button class="btn btn-outline btn-xs" onclick="toggleUsuario('${u.id}',${u.activo===false})">${u.activo===false?'Activar':'Dar de baja'}</button>`}</td></tr>`;}).join('')||'<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--text-muted)">Sin usuarios</td></tr>'}</tbody></table></div>`;
+}
+function nuevoUsuario(){formModal({title:'Nuevo usuario',sub:'Podrá ingresar con este correo y contraseña desde el portal CONTROL MAX',fields:[
+  {id:'nombre',label:'Nombre y apellido',req:true},{id:'email',label:'Correo (para ingresar)',type:'email',req:true},
+  {id:'password',label:'Contraseña inicial (mín. 6)',req:true,help:'Pedile que la cambie después desde su usuario.'},
+  {id:'rol',label:'Rol',type:'select',options:['admin'].concat(ROLES).map(r=>[r,ROL_LABEL[r]])},
+  {id:'acceso',label:'Acceso',type:'select',options:[['galpon',ACCESO_LABEL.galpon],['finca',ACCESO_LABEL.finca],['admin',ACCESO_LABEL.admin]]}],values:{rol:'preparador',acceso:'galpon'},
+  onSave:async v=>{if(v.password.length<6){toast('La contraseña debe tener al menos 6 caracteres','warn');return false;}
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)){toast('El correo no es válido','warn');return false;}
+    const d=await mu({action:'create',nombre:v.nombre,email:v.email,password:v.password,rol:v.rol,acceso:v.acceso});
+    toast(d.warn?('Usuario creado. '+d.warn):'Usuario creado',d.warn?'warn':'ok');await cargarUsuarios(true);}});}
+async function cambiarRol(id,rol){try{await mu({action:'set-role',id,rol});toast('Rol actualizado','ok');const u=USERS.find(x=>x.id===id);if(u)u.rol=rol;}catch(e){toast('Error: '+e.message,'err');cargarUsuarios(true);}}
+async function cambiarAcceso(id,acceso){if(!acceso)return;try{await mu({action:'set-acceso',id,acceso});toast('Acceso actualizado','ok');const u=USERS.find(x=>x.id===id);if(u)u.acceso=acceso;}catch(e){toast('Error: '+e.message,'err');cargarUsuarios(true);}}
+async function toggleUsuario(id,activar){if(!confirm(activar?'¿Reactivar este usuario? Podrá volver a ingresar.':'¿Dar de baja este usuario? No podrá ingresar al sistema.'))return;
+  try{await mu({action:'set-active',id,activo:activar});toast('Usuario actualizado','ok');await cargarUsuarios(true);}catch(e){toast('Error: '+e.message,'err');}}
+function blanquear(id){const u=(USERS||[]).find(x=>x.id===id)||{};formModal({title:'Blanquear contraseña',sub:u.nombre||u.email||'',fields:[{id:'pw',label:'Contraseña temporal (mín. 6)',req:true,ph:'ej: FMN2026'}],saveLabel:'🔑 Blanquear',
+  onSave:async v=>{if(v.pw.length<6){toast('Mínimo 6 caracteres','warn');return false;}await mu({action:'set-password',id,password:v.pw});toast('Contraseña blanqueada · pasale la temporal al usuario','ok');}});}
+function cambiarMiClave(){formModal({title:'Cambiar mi contraseña',sub:S.email,fields:[{id:'a',label:'Nueva contraseña',type:'password',req:true},{id:'b',label:'Repetir contraseña',type:'password',req:true}],
+  onSave:async v=>{if(v.a.length<6){toast('Mínimo 6 caracteres','warn');return false;}if(v.a!==v.b){toast('Las contraseñas no coinciden','warn');return false;}
+    const {error}=await sb.auth.updateUser({password:v.a});if(error){toast(error.message,'err');return false;}toast('Contraseña actualizada','ok');}});}
+
+// ══════════════ 5 · ROLES Y PERMISOS ══════════════
+function pmax(){return S.empresa.permisos_max||{};}
+function modsDeRol(r){const m=pmax().modulos;return (m&&Array.isArray(m[r]))?m[r]:(DEF_MODROL[r]||[]);}
+function plusDeRol(r){const m=pmax().plus;return (m&&Array.isArray(m[r]))?m[r]:(DEF_PLUS[r]||[]);}
+function traceDeRol(r,mod){const p=S.empresa.permisos||{};return (p[r]&&Array.isArray(p[r]))?p[r].includes(mod.id):mod.roles.includes(r);}
+function chk(scope,r,id,on,dis){return `<td><input type="checkbox" data-s="${scope}" data-r="${r}" data-id="${id}"${on?' checked':''}${dis?' disabled':''}></td>`;}
+R.permisos=function(){const enPlan=id=>modActivo(id);
+  const head=`<tr><th style="min-width:210px">&nbsp;</th>${ROLES.map(r=>`<th>${ROL_LABEL[r]}</th>`).join('')}</tr>`;
+  let traceRows='',g='';TRACE_MODS.forEach(m=>{if(m.grupo!==g){g=m.grupo;traceRows+=`<tr class="grp"><td colspan="${ROLES.length+1}">${g}</td></tr>`;}traceRows+=`<tr><td>${m.ico} ${esc(m.name)}</td>${ROLES.map(r=>chk('trace',r,m.id,traceDeRol(r,m))).join('')}</tr>`;});
+  el('view').innerHTML=ph('Roles y permisos','El <b>Administrador</b> (y el Dueño) ven todo siempre, para no quedarse sin acceso. Acá definís qué ve cada uno de los otros roles.','<button class="btn btn-gold" id="bt-perm" onclick="guardarPermisos()">💾 Guardar permisos</button>')+
+  (S.colsMissing.length?'<div class="alert alert-warn">⚠️ <div>Los permisos de <b>módulos</b> y de <b>CONTROL PLUS</b> se guardan cuando corras <b>config_max_setup.sql</b>. Los de CONTROL TRACE ya se pueden guardar.</div></div>':'')+`
+  <div class="tcard" style="margin-bottom:16px"><div class="tbar"><div class="tbar-title">1 · Módulos de CONTROL MAX que ve cada rol en el portal</div></div>
+   <div class="tscroll nomin"><table class="perm-tbl"><thead>${head}</thead><tbody>
+   ${MODULOS.map(m=>`<tr><td>${m.ico} ${m.nom}${enPlan(m.id)?'':' <span class="badge b-neutral">no está en el plan</span>'}</td>${ROLES.map(r=>chk('mod',r,m.id,modsDeRol(r).includes(m.id))).join('')}</tr>`).join('')}
+   <tr><td>⚙️ Configuración</td>${ROLES.map(()=>'<td><span class="small muted">solo admin</span></td>').join('')}</tr>
+   </tbody></table></div></div>
+  <div class="tcard" style="margin-bottom:16px"><div class="tbar"><div class="tbar-title">2 · Pantallas de CONTROL TRACE</div><div class="small muted">Es la misma matriz de Configuración → Permisos de TRACE. El Panel lo ven todos.</div></div>
+   <div class="tscroll nomin"><table class="perm-tbl"><thead>${head}</thead><tbody>${traceRows}</tbody></table></div></div>
+  <div class="tcard"><div class="tbar"><div class="tbar-title">3 · Secciones de CONTROL PLUS</div><div class="small muted">Solo aplica a los roles que tienen CONTROL PLUS tildado arriba.</div></div>
+   <div class="tscroll nomin"><table class="perm-tbl"><thead>${head}</thead><tbody>
+   ${PLUS_SECS.map(s=>`<tr><td>${s.ico} ${s.name}</td>${ROLES.map(r=>chk('plus',r,s.id,plusDeRol(r).includes(s.id))).join('')}</tr>`).join('')}
+   <tr><td>⚙️ Configuración de PLUS</td>${ROLES.map(()=>'<td><span class="small muted">solo admin</span></td>').join('')}</tr>
+   </tbody></table></div></div>`;};
+function leer(scope){const o={};ROLES.forEach(r=>o[r]=[]);document.querySelectorAll(`#view input[data-s="${scope}"]:checked`).forEach(c=>o[c.dataset.r].push(c.dataset.id));return o;}
+async function guardarPermisos(){
+  await lockBtn('bt-perm',true);
+  try{
+    // TRACE: mismo formato que guarda Trace ({rol:['dash',...]}); se conservan ids que esta pantalla no conoce
+    const tr=leer('trace'),prev=S.empresa.permisos||{},known=TRACE_MODS.map(m=>m.id),permisos=Object.assign({},prev);
+    ROLES.forEach(r=>{const extra=(Array.isArray(prev[r])?prev[r]:[]).filter(x=>x!=='dash'&&!known.includes(x));permisos[r]=['dash'].concat(tr[r],extra);});
+    const upd={permisos};
+    if(!S.colsMissing.length)upd.permisos_max=Object.assign({},pmax(),{modulos:leer('mod'),plus:leer('plus')});
+    const r=await updSafe('empresas',{id:S.empresaId},upd);if(r.error)throw r.error;
+    await cargarEmpresa();R.permisos();
+    toast(r.missing.length?'Permisos de TRACE guardados · falta correr config_max_setup.sql para el resto':'Permisos guardados · se aplican al volver a entrar a cada módulo',r.missing.length?'warn':'ok');
+  }catch(e){toast('No se pudo guardar: '+e.message,'err');}
+  await lockBtn('bt-perm',false);
+}
+
+// ══════════════ 6 · PIN Y AUTORIZADORES (los mismos de TRACE) ══════════════
+R.seguridad=function(){const e=S.empresa;const au=e.autorizadores||[];const pinDef=!e.pin||String(e.pin).trim()==='1234';
+  el('view').innerHTML=ph('PIN y autorizadores','Un único PIN para todo CONTROL MAX: TRACE lo pide para anular, editar, desbloquear o ajustar stock y PLUS para facturar con crédito excedido y anular recibos o pagos.','<button class="btn btn-gold" id="bt-pin" onclick="guardarPin()">💾 Guardar</button>')+
+  (pinDef?'<div class="alert alert-warn">⚠️ <div>El PIN principal está en <b>1234</b> (el que trae TRACE de fábrica) o vacío. Conviene cambiarlo.</div></div>':'')+`
+  <div class="tcard" style="padding:20px">
+   <div class="fsec"><div class="fsec-title">Supervisor principal</div><div class="fgrid fgrid-3">
+    ${fg('Nombre',inp('p-nom',e.pin_nombre,{ph:'Supervisor'}))}
+    ${fg('PIN',inp('p-pin',e.pin,{type:'password',ph:'4 dígitos o más'}),{req:1})}
+    ${fg('Repetir PIN',inp('p-pin2',e.pin,{type:'password'}))}
+   </div></div>
+   <div class="fsec"><div class="fsec-title">Autorizadores adicionales</div><div class="sec-hint">Personas que también pueden autorizar con su propio PIN cuando el supervisor no está. Para quitar a alguien, borrá su PIN.</div>
+   ${[0,1,2].map(i=>{const a=au[i]||{};return `<div class="fgrid fgrid-2" style="margin-bottom:8px">${fg('Nombre autorizador '+(i+1),inp('a-n'+i,a.nombre,{ph:'Nombre y apellido'}))}${fg('PIN',inp('a-p'+i,a.pin,{type:'password',ph:'—'}))}</div>`;}).join('')}
+   <label class="switch" style="margin-top:4px"><input type="checkbox" onchange="document.querySelectorAll('#view input[type=password],#view input[data-pw]').forEach(i=>{i.type=this.checked?'text':'password';i.dataset.pw=1;})"> Mostrar PINes</label>
+   </div>
+  </div>`;};
+async function guardarPin(){
+  const pin=V('p-pin');if(!pin){toast('Ingresá el PIN principal','warn');return;}
+  if(pin.length<4){toast('El PIN debe tener al menos 4 caracteres','warn');return;}
+  if(pin!==V('p-pin2')){toast('Los dos PIN no coinciden','warn');return;}
+  const au=[0,1,2].map(i=>({nombre:V('a-n'+i),pin:V('a-p'+i),activo:true})).filter(a=>a.pin);
+  const all=[pin].concat(au.map(a=>a.pin));if(new Set(all).size!==all.length){toast('Cada persona tiene que tener un PIN distinto','warn');return;}
+  if(au.some(a=>!a.nombre)){toast('Poné el nombre de cada autorizador','warn');return;}
+  await lockBtn('bt-pin',true);
+  const r=await updSafe('empresas',{id:S.empresaId},{pin,pin_nombre:V('p-nom')||null,autorizadores:au});
+  await lockBtn('bt-pin',false);
+  if(r.error){toast('No se pudo guardar: '+r.error.message,'err');return;}
+  await cargarEmpresa();R.seguridad();toast('PIN guardado · vale para TRACE y PLUS','ok');
+}
+
+// ══════════════ 7 · PLAN Y MÓDULOS ══════════════
+const DEF_ACT={trace:true,plus:true,agro:true,total:true,docs:true,rrhh:false};
+function modActivo(id){const m=S.empresa.modulos;return (m&&typeof m==='object'&&id in m)?!!m[id]:!!DEF_ACT[id];}
+R.plan=function(){const e=S.empresa;
+  el('view').innerHTML=ph('Plan y módulos','Qué módulos de CONTROL MAX tiene habilitados la empresa. Los que no estén tildados aparecen en el portal como <b>“No en tu plan”</b>.','<button class="btn btn-gold" id="bt-plan" onclick="guardarPlan()">💾 Guardar</button>')+
+  (S.colsMissing.length?'<div class="alert alert-warn">⚠️ <div>Para guardar el plan corré <b>config_max_setup.sql</b> en Supabase → SQL Editor.</div></div>':'')+`
+  <div class="tcard" style="padding:20px">
+   <div class="fgrid fgrid-3" style="margin-bottom:16px">${fg('Plan',sel('pl-plan',e.plan||'Completo',['Completo','Profesional','Básico','Personalizado']))}</div>
+   <div class="mod-grid">${MODULOS.map(m=>`<label class="mod-card${modActivo(m.id)?' on':''}"><input type="checkbox" data-mod="${m.id}"${modActivo(m.id)?' checked':''} onchange="this.parentElement.classList.toggle('on',this.checked)" style="margin-top:4px"><div class="ico">${m.ico}</div><div><div style="font-weight:800;color:var(--navy)">${m.nom}</div><div class="small muted">${m.sub}</div>${m.id==='rrhh'?'<div class="small" style="color:var(--gold);margin-top:3px">En construcción</div>':''}</div></label>`).join('')}</div>
+   <div class="small muted" style="margin-top:14px">⚙️ Configuración siempre está habilitada para el administrador. Cuando CONTROL MAX se venda a otras empresas, el plan lo va a administrar el proveedor desde su propio panel.</div>
+  </div>`;};
+async function guardarPlan(){
+  if(S.colsMissing.length){toast('Primero corré config_max_setup.sql','warn');return;}
+  const m={};document.querySelectorAll('#view input[data-mod]').forEach(c=>m[c.dataset.mod]=c.checked);
+  if(!m.trace&&!m.plus&&!m.agro){toast('Dejá al menos un módulo operativo (TRACE, PLUS o AGRO)','warn');return;}
+  await lockBtn('bt-plan',true);
+  const r=await updSafe('empresas',{id:S.empresaId},{plan:V('pl-plan'),modulos:m});
+  await lockBtn('bt-plan',false);
+  if(r.error){toast('No se pudo guardar: '+r.error.message,'err');return;}
+  await cargarEmpresa();R.plan();toast('Plan guardado','ok');
+}
+
+// ══════════════ INIT ══════════════
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session||!session.user){location.href='/portal.html';return;}
+  const {data:perfil,error:perr}=await sb.from('perfiles').select('nombre,rol,empresa_id,activo').eq('id',session.user.id).single();
+  if(perr||!perfil||perfil.activo===false){location.href='/portal.html';return;}
+  S.uid=session.user.id;S.empresaId=perfil.empresa_id;S.rol=(perfil.rol||'').toLowerCase();S.nombre=perfil.nombre||session.user.email;S.email=session.user.email;
+  if(!esAdmin()){el('splash').innerHTML='<div style="color:#fff;text-align:center;padding:24px;max-width:420px"><div style="font-size:30px">🔒</div><div style="font-size:16px;font-weight:800;margin:8px 0">Solo administradores</div><div style="font-size:13px;color:rgba(255,255,255,.7)">La configuración de CONTROL MAX la maneja un administrador de tu empresa.</div><a href="/portal.html" style="display:inline-block;margin-top:16px;color:#C9A84C">← Volver al portal</a></div>';return;}
+  el('hdr-user').textContent=S.nombre;el('hdr-avatar').textContent=(S.nombre||'··').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  await cargarEmpresa();await Promise.all([cargarCfg(),cargarOps()]);banner();
+  el('splash').style.display='none';
+  const h=(location.hash||'').slice(1);go(NAMES[h]?h:'empresa');
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.moverlay').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)o.classList.remove('open');}));
+  init().catch(e=>{console.error(e);el('splash').innerHTML='<div style="color:#fff;padding:20px;text-align:center">Error al iniciar: '+esc(e.message)+'</div>';});
+});
+
+</script>
+<script src="/cmax-top.js"></script>
+</body>
+</html>
