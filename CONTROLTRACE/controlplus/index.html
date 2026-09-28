@@ -323,7 +323,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v7.7</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v7.8</div>
 </nav>
 
 <!-- MAIN -->
@@ -994,7 +994,8 @@ textarea.fctl{resize:vertical}
     <div class="fbar"><div class="fg"><div class="fg-lbl">Ver</div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-gold" id="stkb-mp" onclick="stkMode('mp')">Materia prima</button><button class="btn btn-sm btn-outline" id="stkb-pt" onclick="stkMode('pt')">Productos</button><button class="btn btn-sm btn-outline" id="stkb-ins" onclick="stkMode('ins')">Insumos</button></div></div>
       <div class="fg"><div class="fg-lbl">Buscar</div><input class="fi" id="stk-q" placeholder="Artículo o lote…" oninput="rSTK()"></div>
       <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="stkXls()">📥 Excel</button></div></div>
-    <div class="alert alert-info">📦 <div>Stock por lote calculado con la <b>misma fórmula que CONTROL TRACE</b> (producción, acondicionamiento, descartes, remitos, devoluciones y ajustes).</div></div>
+    <div class="alert alert-info">📦 <div>Stock por lote desde la <b>vista única de la base</b> (producción, acondicionamiento, descartes, remitos, devoluciones y ajustes), con la fórmula de CONTROL TRACE. <span class="link" onclick="stockVerificar()">Verificar contra Trace</span></div></div>
+    <div class="alert alert-warn" id="stk-warn" style="display:none">⚠️ <div>Todavía no está creada la vista de stock: corré <b>plus_v7_8_stock.sql</b> en Supabase. Mientras tanto se usa el cálculo local (mismo resultado).</div></div>
     <div id="stkw-mp" class="tcard"><div class="tbar"><div class="tbar-title">Materia prima en cámara — por lote</div></div><div class="tscroll"><table id="tbl-stkmp"><thead><tr><th>Cód.</th><th>Lote</th><th>Recepción</th><th>Proveedor</th><th class="tr">Kg recibidos</th><th class="tr">Cajas</th><th class="tr">Stock</th></tr></thead><tbody id="stkmp-body"></tbody></table></div></div>
     <div id="stkw-pt" class="tcard" style="display:none"><div class="tbar"><div class="tbar-title">Productos terminados — por lote</div></div><div class="tscroll"><table id="tbl-stkpt"><thead><tr><th>Cód.</th><th>Lote</th><th>Producción</th><th class="tr"></th><th class="tr">Stock (u)</th></tr></thead><tbody id="stkpt-body"></tbody></table></div></div>
     <div id="stkw-ins" class="tcard" style="display:none"><div class="tbar"><div class="tbar-title">Stock de insumos a la fecha</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="printTbl('tbl-stk','Stock de insumos')">🖨️</button></div></div><div class="tscroll"><table id="tbl-stk"><thead><tr><th>Insumo</th><th>Unidad</th><th class="tr">Stock</th><th class="tr">Mínimo</th><th>Estado</th></tr></thead><tbody id="stk-body"></tbody></table></div></div>
@@ -3929,10 +3930,11 @@ async function borrarExt(id){ if(!confirm('¿Quitar esta línea del extracto?'))
 // ══════════════════════════════════════════════════════════════
 // CONTROL PLUS · INVENTARIO (lectura de maestros de TRACE + datos de facturación)
 // ══════════════════════════════════════════════════════════════
-const INV={loaded:false, acond:[], enscons:[], devs:[], ent:[], enti:[], costos:[], rec:[], prod:[], pout:[], plot:[], desc:[], receta:[], recmp:[], comp:[], ajustes:[], insmov:[]};
+const INV={loaded:false, vok:false, vmp:{}, vpt:{}, acond:[], enscons:[], devs:[], ent:[], enti:[], costos:[], rec:[], prod:[], pout:[], plot:[], desc:[], receta:[], recmp:[], comp:[], ajustes:[], insmov:[]};
 async function loadInventario(force,quiet){
   if(INV.loaded&&!force) return;
   const [costos, receta, recmp, comp, ajustes, insmov, rec, prod, pout, plot, desc, acond, enscons, devs, ent, enti] = await Promise.all([ fetchAll('costos_producto'), fetchAll('producto_insumos'), fetchAll('producto_materias'), fetchAll('producto_componentes'), fetchAll('ajustes_stock'), fetchAll('insumo_movimientos',q=>q.gte('fecha',addDays(hoy(),-400))), fetchAll('recepciones'), fetchAll('producciones'), fetchAll('produccion_outputs'), fetchAll('produccion_lotes'), fetchAll('descartes'), fetchAll('acondicionamientos'), fetchAll('ensamblado_consumos'), fetchAll('devoluciones'), fetchAll('entregas'), fetchAll('entrega_items') ]);
+  await recargarStock();
   Object.assign(INV,{costos,receta,recmp,comp,ajustes,insmov,rec,prod,pout,plot,desc,acond,enscons,devs,ent,enti,loaded:true});
   if(force){ await Promise.all([cargarProductos(),cargarMaterias()]); D.ins=await fetchAll('insumos'); await reload(['rub']); if(!quiet) toast('Inventario actualizado','ok'); }
   renderMod('inventario');
@@ -4319,17 +4321,31 @@ function kConsumido(cod){ let s=0; (INV.prod||[]).filter(p=>p.estado!=='anulada'
 function kDescartado(cod){ return (INV.desc||[]).filter(d=>d.estado!=='anulada'&&d.codigo_lote===cod).reduce((s,d)=>s+num(d.kg),0); }
 function kAcond(uuid){ return (INV.acond||[]).filter(a=>a.estado!=='anulada'&&a.recepcion_id===uuid).reduce((s,a)=>s+num(a.kg_entrada),0); }
 function kAjMP(cod){ return (INV.ajustes||[]).filter(a=>a.estado!=='anulada'&&a.tipo==='mp'&&a.lote===cod).reduce((s,a)=>s+num(a.cantidad),0); }
-function stockLoteMP(r){ const raw=num(r.kilos)-kConsumido(r.codigo_lote)-kDescartado(r.codigo_lote)-kAcond(r.id)+kAjMP(r.codigo_lote); return raw<0.1?0:raw; }
+function jsStockMP(r){ const raw=num(r.kilos)-kConsumido(r.codigo_lote)-kDescartado(r.codigo_lote)-kAcond(r.id)+kAjMP(r.codigo_lote); return raw<0.1?0:raw; }
 function kOpAnulada(op){ const p=(INV.prod||[]).find(x=>x.codigo_op===op); return !!p&&p.estado==='anulada'; }
 function kEnsDe(code){ return (INV.enscons||[]).filter(c=>c.output_code===code&&!kOpAnulada(c.ensamblado_op)).reduce((s,c)=>s+num(c.cantidad),0); }
 function kProducido(prod,lote){ let s=0; (INV.prod||[]).forEach(p=>{ if(p.estado!=='validada'||kLoteProd(p)!==lote) return; (INV.pout||[]).filter(o=>o.produccion_id===p.id&&o.producto_nombre===prod).forEach(o=>{ s+=num(o.cantidad)-kEnsDe(o.codigo_prod); }); }); return s; }
 function kEntregado(prod,lote){ let s=0; const ok=new Set((INV.ent||[]).filter(e=>e.estado!=='anulada').map(e=>e.id)); (INV.enti||[]).forEach(it=>{ if(ok.has(it.entrega_id)&&it.producto_nombre===prod&&(it.lote_ref||'')===lote) s+=num(it.cantidad); }); return s; }
 function kReing(prod,lote){ return (INV.devs||[]).filter(d=>d.estado!=='anulada'&&d.tipo==='reingreso_pt'&&d.producto_nombre===prod&&(d.lote_ref||'')===lote).reduce((s,d)=>s+num(d.cantidad),0); }
 function kAjPT(prod,lote){ return (INV.ajustes||[]).filter(a=>a.estado!=='anulada'&&a.tipo==='pt'&&a.item===prod&&a.lote===lote).reduce((s,a)=>s+num(a.cantidad),0); }
-function stockLotePT(prod,lote){ return Math.max(0,Math.round(kProducido(prod,lote)+kReing(prod,lote)-kEntregado(prod,lote)+kAjPT(prod,lote))); }
-function kLotesProducto(nombre){ const set=new Set(); (INV.prod||[]).forEach(p=>{ if(p.estado==='validada'&&(INV.pout||[]).some(o=>o.produccion_id===p.id&&o.producto_nombre===nombre)) set.add(kLoteProd(p)); });
+function jsStockPT(prod,lote){ return Math.max(0,Math.round(kProducido(prod,lote)+kReing(prod,lote)-kEntregado(prod,lote)+kAjPT(prod,lote))); }
+// Fuente única: vistas de la base (v_stock_mp_lote / v_stock_pt_lote). Si todavía no se creó, cae al cálculo local (misma fórmula).
+function stockVistas(){ return !!(INV.vok); }
+function stockLoteMP(r){ if(!stockVistas()) return jsStockMP(r); const v=INV.vmp[r.codigo_lote]; return v?num(v.stock):0; }
+function stockLotePT(prod,lote){ if(!stockVistas()) return jsStockPT(prod,lote); const v=INV.vpt[prod+'|'+lote]; return v?num(v.stock):0; }
+async function recargarStock(){ const [a,b]=await Promise.all([fetchAll('v_stock_mp_lote'),fetchAll('v_stock_pt_lote')]);
+  const miss=!!(D._missing&&(D._missing['v_stock_mp_lote']||D._missing['v_stock_pt_lote'])); INV.vok=!miss; INV.vmp={}; INV.vpt={}; a.forEach(r=>INV.vmp[r.codigo_lote]=r); b.forEach(r=>INV.vpt[r.id]=r); }
+function stockVerificar(){ if(!stockVistas()){ toast('Todavía no está creada la vista de stock en Supabase (plus_v7_8_stock.sql)','warn'); return; }
+  const dif=[]; let n=0;
+  (INV.rec||[]).filter(r=>r.estado!=='anulada').forEach(r=>{ n++; const a=stockLoteMP(r), b=jsStockMP(r); if(Math.abs(a-b)>0.05) dif.push(['MP',r.materia_prima,r.codigo_lote,a,b]); });
+  kPTItems().forEach(it=>kLotesProducto(it).forEach(l=>{ n++; const a=stockLotePT(it,l), b=jsStockPT(it,l); if(Math.abs(a-b)>0.5) dif.push(['PT',it,l,a,b]); }));
+  viewModal('Verificación de stock','Vista de la base vs. fórmula de CONTROL TRACE',
+   dif.length?`<div class="alert alert-warn">⚠️ <div>${dif.length} de ${n} lotes no coinciden.</div></div><table><thead><tr><th>Tipo</th><th>Artículo</th><th>Lote</th><th class="tr">Base (vista)</th><th class="tr">Fórmula Trace</th></tr></thead><tbody>${dif.map(d=>`<tr><td>${d[0]}</td><td>${esc(d[1])}</td><td class="mono">${esc(d[2])}</td><td class="tr">${d[3]}</td><td class="tr">${d[4]}</td></tr>`).join('')}</tbody></table>`
+   :`<div class="alert alert-ok">✅ <div>Los <b>${n} lotes</b> coinciden exactamente: la vista de la base da el mismo stock que la fórmula de TRACE.</div></div>`); }
+function kLotesProducto(nombre){ if(stockVistas()){ return Object.values(INV.vpt).filter(v=>v.producto===nombre).map(v=>v.lote); } return kLotesProductoJS(nombre); }
+function kLotesProductoJS(nombre){ const set=new Set(); (INV.prod||[]).forEach(p=>{ if(p.estado==='validada'&&(INV.pout||[]).some(o=>o.produccion_id===p.id&&o.producto_nombre===nombre)) set.add(kLoteProd(p)); });
   const ok=new Set((INV.ent||[]).filter(e=>e.estado!=='anulada').map(e=>e.id)); (INV.enti||[]).forEach(it=>{ if(ok.has(it.entrega_id)&&it.producto_nombre===nombre&&it.lote_ref) set.add(it.lote_ref); }); return [...set]; }
-function kFechaLotePT(nombre,lote){ const p=(INV.prod||[]).find(x=>x.estado==='validada'&&kLoteProd(x)===lote&&(INV.pout||[]).some(o=>o.produccion_id===x.id&&o.producto_nombre===nombre)); return p?p.fecha:''; }
+function kFechaLotePT(nombre,lote){ if(stockVistas()){ const v=INV.vpt[nombre+'|'+lote]; if(v&&v.fecha) return v.fecha; } const p=(INV.prod||[]).find(x=>x.estado==='validada'&&kLoteProd(x)===lote&&(INV.pout||[]).some(o=>o.produccion_id===x.id&&o.producto_nombre===nombre)); return p?p.fecha:''; }
 function kMPItems(){ return [...new Set((INV.rec||[]).filter(r=>r.estado!=='anulada').map(r=>r.materia_prima))].filter(Boolean).sort(); }
 function kPTItems(){ const set=new Set(); (INV.prod||[]).forEach(p=>{ if(p.estado==='validada') (INV.pout||[]).filter(o=>o.produccion_id===p.id).forEach(o=>set.add(o.producto_nombre)); }); return [...set].sort(); }
 const artCodPlus=n=>{ const p=(S.productos||[]).find(x=>x.nombre===n); if(p) return p.codigo||''; const m=(S.materias||[]).find(x=>String(x.nombre||'').toUpperCase()===String(n||'').toUpperCase()); return m?m.codigo||'':''; };
@@ -4341,7 +4357,7 @@ function kGrid(tipo){ const out=[];
 // ── Stock (solapa) ──
 window._stkMode=window._stkMode||'mp';
 function stkMode(m){ window._stkMode=m; rSTK(); }
-function rSTK(){ const m=window._stkMode||'mp';
+function rSTK(){ const m=window._stkMode||'mp'; const w0=el('stk-warn'); if(w0) w0.style.display=(INV.loaded&&!stockVistas())?'':'none';
   ['mp','pt','ins'].forEach(k=>{ const b=el('stkb-'+k); if(b) b.className='btn btn-sm '+(k===m?'btn-gold':'btn-outline'); const w=el('stkw-'+k); if(w) w.style.display=k===m?'':'none'; });
   if(m==='ins') return rSTKIns();
   const tb=el('stk'+m+'-body'); if(!tb) return; const q=(V('stk-q')||'').toLowerCase();
@@ -4382,15 +4398,15 @@ async function aplicarAjustes(ch,mot){ const quien=window._pinAutorizo||''; wind
   try{ for(const c of ch){ const { data:n, error:e1 } = await sb.rpc('siguiente_numero',{p_tipo:'ajuste'}); if(e1) throw e1; const codigo='AJ-'+String(n).padStart(5,'0');
       const { error } = await sb.from('ajustes_stock').insert({empresa_id:S.empresaId,codigo,fecha:hoy(),tipo:c.tipo,item:c.item,lote:c.lote,cantidad:c.delta,motivo:mot,estado:'activo',registrado_por:S.nombre||S.email||'',autorizado_por:quien}); if(error) throw error; }
     try{ await sb.from('novedades').insert({empresa_id:S.empresaId,fecha:hoy(),tipo:'ajuste_stock',referencia:'('+ch.length+' lote'+(ch.length>1?'s':'')+')',detalle:('Ajuste masivo ('+(ch[0].tipo==='mp'?'MP':'PT')+') · '+mot+' · '+ch.map(c=>c.item+' '+c.lote+' '+(c.delta>=0?'+':'')+c.delta+c.un).join('; ')).slice(0,400),autorizado_por:quien||null,ejecutado_por:S.nombre||S.email||null}); }catch(_){}
-    INV.ajustes=await fetchAll('ajustes_stock'); rAJ(); rSTK(); toast(ch.length+' ajuste(s) aplicado(s)','ok');
+    INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rSTK(); toast(ch.length+' ajuste(s) aplicado(s)','ok');
   }catch(e){ toast(e.message||String(e),'err'); INV.ajustes=await fetchAll('ajustes_stock'); rAJ(); } }
 function editAjuste(id){ const a=(INV.ajustes||[]).find(x=>x.id===id); if(!a) return; const un=a.tipo==='mp'?'kg':'u';
   formModal({title:'Editar ajuste '+a.codigo, sub:a.item+' · lote '+a.lote, fields:[{id:'cantidad',label:'Cantidad (± '+un+')',type:'number',step:'0.01',req:true,value:num(a.cantidad)},{id:'motivo',label:'Motivo',req:true,value:a.motivo||'',full:true}],
    onSave:async v=>{ const nv=a.tipo==='pt'?Math.round(v.cantidad):v.cantidad; setTimeout(()=>autorizar('Modificar el ajuste <b>'+esc(a.codigo)+'</b> a <b>'+nv+' '+un+'</b>', async()=>{ const q=window._pinAutorizo; window._pinAutorizo=null;
-       try{ const { data, error } = await sb.from('ajustes_stock').update({cantidad:nv,motivo:v.motivo,autorizado_por:q||a.autorizado_por}).eq('id',id).eq('empresa_id',S.empresaId).select('id'); if(error) throw error; if(!data||!data.length) throw new Error('No se pudo actualizar el ajuste'); INV.ajustes=await fetchAll('ajustes_stock'); rAJ(); rSTK(); toast('Ajuste actualizado','ok'); }catch(e){ toast(e.message,'err'); } }),50); return true; }}); }
+       try{ const { data, error } = await sb.from('ajustes_stock').update({cantidad:nv,motivo:v.motivo,autorizado_por:q||a.autorizado_por}).eq('id',id).eq('empresa_id',S.empresaId).select('id'); if(error) throw error; if(!data||!data.length) throw new Error('No se pudo actualizar el ajuste'); INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rSTK(); toast('Ajuste actualizado','ok'); }catch(e){ toast(e.message,'err'); } }),50); return true; }}); }
 function anularAjuste(id){ const a=(INV.ajustes||[]).find(x=>x.id===id); if(!a||a.estado==='anulada') return;
   autorizar('Anular el ajuste <b>'+esc(a.codigo)+'</b> ('+esc(a.item)+' · '+esc(a.lote)+' · '+num(a.cantidad)+'). El stock vuelve al valor anterior.', async()=>{ window._pinAutorizo=null;
-    try{ const { data, error } = await sb.from('ajustes_stock').update({estado:'anulada'}).eq('id',id).eq('empresa_id',S.empresaId).select('id'); if(error) throw error; if(!data||!data.length) throw new Error('No se pudo anular'); INV.ajustes=await fetchAll('ajustes_stock'); rAJ(); rSTK(); toast('Ajuste anulado','ok'); }catch(e){ toast(e.message,'err'); } }); }
+    try{ const { data, error } = await sb.from('ajustes_stock').update({estado:'anulada'}).eq('id',id).eq('empresa_id',S.empresaId).select('id'); if(error) throw error; if(!data||!data.length) throw new Error('No se pudo anular'); INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rSTK(); toast('Ajuste anulado','ok'); }catch(e){ toast(e.message,'err'); } }); }
 // ── Movimientos (insumos + kardex por lote de MP / productos) ──
 window._movSrc=window._movSrc||'ins';
 function movSrc(s){ window._movSrc=s; const ins=s==='ins'; el('mov-ins-wrap').style.display=ins?'':'none'; el('mov-kx-wrap').style.display=ins?'none':''; if(!ins){ const sel=el('mov-item'); const items=s==='mp'?kMPItems():kPTItems(); sel.innerHTML=items.map(i=>`<option>${esc(i)}</option>`).join(''); } rMOV(); }
