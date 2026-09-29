@@ -150,7 +150,7 @@ body.sinprec .prc{display:none!important}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnPass" style="margin-top:10px;width:100%" onclick="cambiarMiClave()">🔑 Cambiar mi contraseña</button><button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:6px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v157 · Recepción: precios de compra ocultos para los roles sin permiso (se habilita por rol en Configuración CONTROL MAX); el precio real lo carga CONTROL PLUS al registrar la factura. · v156: Trace en /CONTROLTRACE/controltrace/. Configuración y Usuarios salen del menú: se manejan desde Configuración CONTROL MAX (portal). · v155: accesos directos a Configuración CONTROL MAX. Sin SQL nuevo. · v154: botón flotante 🏠 CONTROL MAX arriba a la derecha (vía cmax-top.js) para volver al portal desde cualquier módulo, rápido y sin cerrar sesión. Trace sin login propio ni cintillo. Sin SQL nuevo.</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v161 · v161: chequeo de stock al terminar la carga inicial · v160: stock leído de la base (mismo dato que CONTROL PLUS) · v159: módulo Etiquetas (Impresión, Diseños, Asignación por producto); Datos maestros pasa a Plus · v158: Materias primas, Productos, Insumos, Costeo y Ajuste de stock pasan a CONTROL PLUS → Inventario · v157: precios de compra ocultos en Recepción según permisos</div>
       </div>
     </nav>
     <div class="main">
@@ -325,6 +325,7 @@ async function boot(){
     await reloadDescartes();
     await reloadAjustes();
     await reloadNovedades();
+    stockBoot();
     // pintar shell
     $('empName').textContent=emp.razon_social;
     $('whoName').textContent=S.nombre;$('whoRole').textContent=S.rol;
@@ -2753,7 +2754,7 @@ function insuMov(){const insById={};S.insumos.forEach(i=>insById[i.id]=i.nombre)
 
 // ---- v160: STOCK ÚNICO — lee las vistas de la base (v_stock_mp_lote / v_stock_pt_lote), las mismas que usa CONTROL PLUS ----
 // Seguridad: si la vista no existe, falla, o no coincide con el cálculo local, se sigue usando el cálculo local de siempre.
-const STKV={ok:false,off:false,mp:{},pt:{},guard:false};
+const STKV={ok:false,off:false,mp:{},pt:{},guard:false,ready:false,retry:false,t:null};
 function stockLote(r){if(STKV.ok&&!STKV.off){const v=STKV.mp[r.codigo_lote];if(v)return +v.stock||0;}return stockLoteJS(r);}
 function stockLoteProd(prod,lote){if(STKV.ok&&!STKV.off){const v=STKV.pt[prod+'|'+lote];if(v)return +v.stock||0;}return stockLoteProdJS(prod,lote);}
 async function _svFetch(){try{const [a,b]=await Promise.all([sbAll('v_stock_mp_lote',{order:'id',asc:true}),sbAll('v_stock_pt_lote',{order:'id',asc:true})]);
@@ -2761,14 +2762,18 @@ async function _svFetch(){try{const [a,b]=await Promise.all([sbAll('v_stock_mp_l
   const mp={},pt={};a.data.forEach(x=>mp[x.codigo_lote]=x);b.data.forEach(x=>pt[x.id]=x);STKV.mp=mp;STKV.pt=pt;STKV.ok=true;}catch(e){STKV.ok=false;}}
 let _svRun=null,_svDirty=false;
 function refreshStockViews(){if(_svRun){_svDirty=true;return _svRun;}
-  _svRun=(async()=>{do{_svDirty=false;await _svFetch();}while(_svDirty);})().then(()=>{_svRun=null;if(!STKV.guard&&STKV.ok){STKV.guard=true;setTimeout(stockGuard,1500);}},()=>{_svRun=null;});return _svRun;}
+  _svRun=(async()=>{do{_svDirty=false;await _svFetch();}while(_svDirty);})().then(()=>{_svRun=null;},()=>{_svRun=null;});return _svRun;}
+// Carga inicial completa: una sola lectura de las vistas y, recién ahí, el chequeo de coherencia.
+async function stockBoot(){STKV.ready=true;await refreshStockViews();if(STKV.ok&&!STKV.guard){STKV.guard=true;clearTimeout(STKV.t);STKV.t=setTimeout(stockGuard,1200);}}
 // Chequeo automático (una vez por sesión): compara vista vs cálculo local; si hay diferencias, se desactiva la vista para esta sesión.
 function stockDiffs(){const d=[];(S.recepciones||[]).filter(r=>r.estado!=='anulada').forEach(r=>{const v=STKV.mp[r.codigo_lote];if(!v)return;const a=+v.stock||0,b=stockLoteJS(r);if(Math.abs(a-b)>0.15)d.push(['MP',r.materia_prima,r.codigo_lote,a,b]);});
   Object.values(STKV.pt).forEach(v=>{const a=+v.stock||0,b=stockLoteProdJS(v.producto,v.lote);if(Math.abs(a-b)>0.5)d.push(['PT',v.producto,v.lote,a,b]);});return d;}
 function stockFuenteTxt(){if(STKV.ok&&!STKV.off)return '🔗 Stock calculado por la base de datos (mismo dato que CONTROL PLUS) · <a href="#" onclick="stockVerifUI();return false">verificar</a>';return '🧮 Stock calculado en este equipo'+(STKV.off?' (la vista de la base no coincidía)':' (la vista de la base todavía no está disponible)');}
-function stockVerifUI(){const d=stockDiffs();banner(d.length?('⚠ '+d.length+' lote(s) difieren entre la base y el cálculo local'):'✓ La base y el cálculo local coinciden en todos los lotes',d.length?'warn':'');}
-function stockGuard(){try{const d=stockDiffs();if(d.length){STKV.off=true;console.warn('[stock] la vista de la base no coincide con el cálculo local; se usa el cálculo local',d.slice(0,10));banner('Stock: se usa el cálculo local ('+d.length+' diferencia(s) con la base). Avisale a soporte.','warn');}else{STKV.off=false;}}catch(e){}}
-['reloadRecepciones','reloadProducciones','reloadDescartes','reloadAjustes','reloadDevoluciones','reloadAcond','reloadEnsamblados','reloadEntregas'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=async function(){const r=await f.apply(this,arguments);await refreshStockViews();return r;};});
+function stockVerifUI(){const d=stockDiffs();if(!d.length){banner('✓ La base y el cálculo local coinciden en todos los lotes','');return;}
+  const det=x=>{const v=x[0]==='MP'?STKV.mp[x[2]]:STKV.pt[x[1]+'|'+x[2]];if(!v)return '';return x[0]==='MP'?`recib ${nf(v.kilos,1)} · prod ${nf(v.consumido,1)} · desc ${nf(v.descartado,1)} · acond ${nf(v.acondicionado,1)} · aj ${nf(v.ajustes,1)}`:`prod ${nf(v.producido)} · reing ${nf(v.reingresos)} · entreg ${nf(v.entregado)} · aj ${nf(v.ajustes)}`;};
+  modal(`<h3>Diferencias de stock (${d.length})</h3><p class="hint">Base de datos vs. cálculo local. Se muestran las primeras 40.</p><div style="max-height:55vh;overflow:auto"><table><thead><tr><th>Tipo</th><th>Artículo</th><th>Lote</th><th>Base</th><th>Local</th><th>Detalle de la base</th></tr></thead><tbody>${d.slice(0,40).map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1])}</td><td class="mono">${esc(x[2])}</td><td class="mono">${nf(x[3],1)}</td><td class="mono">${nf(x[4],1)}</td><td style="font-size:11px">${det(x)}</td></tr>`).join('')}</tbody></table></div><div class="row"><button class="btn btn-gold" onclick="closeModal()">Cerrar</button></div>`);}
+async function stockGuard(){try{let d=stockDiffs();if(d.length&&!STKV.retry){STKV.retry=true;await refreshStockViews();d=stockDiffs();}if(d.length){STKV.off=true;console.warn('[stock] la vista de la base no coincide con el cálculo local; se usa el cálculo local',d.slice(0,10));banner('Stock: se usa el cálculo local ('+d.length+' diferencia(s) con la base). Avisale a soporte.','warn');}else{STKV.off=false;}}catch(e){}}
+['reloadRecepciones','reloadProducciones','reloadDescartes','reloadAjustes','reloadDevoluciones','reloadAcond','reloadEnsamblados','reloadEntregas'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=async function(){const r=await f.apply(this,arguments);if(STKV.ready)await refreshStockViews();return r;};});
 
 // ---- COSTEO DE PRODUCTOS ----
 async function reloadCostos(){const {data}=await sb.from('costos_producto').select('*').eq('empresa_id',S.empresaId);S.costos={};(data||[]).forEach(c=>{S.costos[c.producto_id]={gastos_op:+c.gastos_op||0,mano_obra:+c.mano_obra||0,flete:+c.flete||0,otros:+c.otros||0,precio_venta:+c.precio_venta||0};});}
