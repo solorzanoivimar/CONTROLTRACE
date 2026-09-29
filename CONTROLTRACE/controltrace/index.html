@@ -150,7 +150,7 @@ body.sinprec .prc{display:none!important}
       <div class="foot">
         <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
         <button class="btn btn-ghost btn-sm" id="btnPass" style="margin-top:10px;width:100%" onclick="cambiarMiClave()">🔑 Cambiar mi contraseña</button><button class="btn btn-ghost btn-sm" id="btnLogout" style="margin-top:6px;width:100%">Cerrar sesión</button>
-        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v161 · v161: chequeo de stock al terminar la carga inicial · v160: stock leído de la base (mismo dato que CONTROL PLUS) · v159: módulo Etiquetas (Impresión, Diseños, Asignación por producto); Datos maestros pasa a Plus · v158: Materias primas, Productos, Insumos, Costeo y Ajuste de stock pasan a CONTROL PLUS → Inventario · v157: precios de compra ocultos en Recepción según permisos</div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:8px;opacity:.75">build v162 · v162: corrige código de barras en etiquetas · v161: chequeo de stock al terminar la carga inicial · v160: stock leído de la base (mismo dato que CONTROL PLUS) · v159: módulo Etiquetas (Impresión, Diseños, Asignación por producto); Datos maestros pasa a Plus · v158: Materias primas, Productos, Insumos, Costeo y Ajuste de stock pasan a CONTROL PLUS → Inventario · v157: precios de compra ocultos en Recepción según permisos</div>
       </div>
     </nav>
     <div class="main">
@@ -2464,10 +2464,10 @@ async function etqSave(){const {error}=await sb.from('empresas').update({etiquet
 function etqReset(){const tpl=curDesign();if(!tpl)return;if(!confirm('¿Restaurar este diseño al de fábrica de su tipo? Se pierde lo que hayas cambiado en él.'))return;const def=etqDefault(tpl.kind);tpl.w=def.w;tpl.h=def.h;tpl.cols=def.cols;tpl.gapx=def.gapx;tpl.gapy=def.gapy||0;tpl.elements=def.elements;S.etqSel=null;etqRenderCanvas();etqRenderProps();}
 
 let etqTab='imp';
-function etqBar(){const tabs=[['imp','🖨️ Impresión'],['dis','🎨 Diseños'],['asg','🔗 Asignación por producto']];return `<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">${tabs.map(t=>`<button class="btn btn-sm ${t[0]===etqTab?'btn-gold':'btn-ghost'}" onclick="etqGo('${t[0]}')">${t[1]}</button>`).join('')}</div>`;}
+function etqTabsBar(){const tabs=[['imp','🖨️ Impresión'],['dis','🎨 Diseños'],['asg','🔗 Asignación por producto']];return `<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">${tabs.map(t=>`<button class="btn btn-sm ${t[0]===etqTab?'btn-gold':'btn-ghost'}" onclick="etqGo('${t[0]}')">${t[1]}</button>`).join('')}</div>`;}
 function etqGo(t){etqTab=t;render();}
-function viewEtq(){if(etqTab==='imp'){viewDesp();$('view').insertAdjacentHTML('afterbegin',etqBar());return;}
-  $('view').innerHTML=etqBar()+`<div class="card"><div id="cfg_body"></div></div>`;
+function viewEtq(){if(etqTab==='imp'){viewDesp();$('view').insertAdjacentHTML('afterbegin',etqTabsBar());return;}
+  $('view').innerHTML=etqTabsBar()+`<div class="card"><div id="cfg_body"></div></div>`;
   if(etqTab==='asg')cfgEtqAsig();else cfgEtiquetas();}
 let bdTab='cli';
 function viewBD(){
