@@ -230,8 +230,7 @@ const MODS=[
   {id:'ped',ico:'📋',name:'Pedidos',grupo:'Administración',roles:['admin','supervisor','comercial']},
   {id:'plan',ico:'🗓️',name:'Plan de producción',grupo:'Administración',roles:['admin','supervisor','comercial','preparador']},
   {id:'ent',ico:'🧾',name:'Remitos',grupo:'Administración',roles:['admin','supervisor','comercial']},
-  {id:'desp',ico:'🏷️',name:'Impresión de Etiquetas',grupo:'Administración',roles:['admin','supervisor','preparador']},
-  {id:'bd',ico:'🗂️',name:'Datos maestros',grupo:'Administración',roles:['admin','supervisor','comercial','preparador']},
+  {id:'desp',ico:'🏷️',name:'Etiquetas',grupo:'Administración',roles:['admin','supervisor','preparador']},
   {id:'traz',ico:'🔎',name:'Trazabilidad',grupo:'Análisis',roles:['admin','supervisor','comercial','preparador']},
   {id:'stock',ico:'🏬',name:'Stock',grupo:'Análisis',roles:['admin','supervisor','comercial','preparador']},
   {id:'rep',ico:'📊',name:'Reportes',grupo:'Análisis',roles:['admin','supervisor','comercial']},
@@ -250,7 +249,7 @@ const MOD_RELOAD={dash:()=>Promise.all([reloadRecepciones(),reloadProducciones()
 async function refreshModule(v){const fn=MOD_RELOAD[v];if(!fn)return;try{await Promise.all([fn(),reloadAjustes()]);const mb=document.getElementById('modalBg');const modalOpen=mb&&mb.classList.contains('show');const a=document.activeElement,tn=a?a.tagName:'';const typing=(tn==='INPUT'||tn==='SELECT'||tn==='TEXTAREA');if(cur===v&&!modalOpen&&!typing)render();}catch(e){}}
 async function refreshNow(){const b=document.getElementById('btnRefresh');if(b)b.textContent='⏳ Actualizando…';try{const fn=MOD_RELOAD[cur];await Promise.all([fn?fn():Promise.resolve(),reloadAjustes()]);render();banner('Datos actualizados ✓','');}catch(e){banner('No se pudo actualizar','err');}if(b)b.textContent='🔄 Actualizar';}
 
-const META={dash:['PANEL','Panel de control'],rec:['PASO 1 · ENTRADA','Recepción de mercadería'],prod:['PASO 2 · PROCESO','Producción'],desp:['PASO 3 · ETIQUETADO','Impresión de etiquetas'],ent:['PASO 4 · SALIDA','Remitos'],ped:['ADMINISTRACIÓN','Pedidos'],plan:['ADMINISTRACIÓN','Plan de producción'],bd:['ADMINISTRACIÓN','Datos maestros'],rep:['DIRECCIÓN','Reporte diario'],traz:['CONSULTA','Consultar trazabilidad'],cfg:['SISTEMA','Configuración'],stock:['ANÁLISIS','Stock en cámara'],insu:['ANÁLISIS','Stock de insumos'],costeo:['ANÁLISIS','Costeo de productos'],dev:['OPERACIÓN','Devoluciones'],carga:['OPERACIÓN','Validación de carga'],ens:['OPERACIÓN','Ensamblado'],descmp:['OPERACIÓN','Descarte de materia prima'],usuarios:['SISTEMA','Usuarios y accesos']};
+const META={dash:['PANEL','Panel de control'],rec:['PASO 1 · ENTRADA','Recepción de mercadería'],prod:['PASO 2 · PROCESO','Producción'],desp:['PASO 3 · ETIQUETADO','Etiquetas'],ent:['PASO 4 · SALIDA','Remitos'],ped:['ADMINISTRACIÓN','Pedidos'],plan:['ADMINISTRACIÓN','Plan de producción'],bd:['ADMINISTRACIÓN','Datos maestros'],rep:['DIRECCIÓN','Reporte diario'],traz:['CONSULTA','Consultar trazabilidad'],cfg:['SISTEMA','Configuración'],stock:['ANÁLISIS','Stock en cámara'],insu:['ANÁLISIS','Stock de insumos'],costeo:['ANÁLISIS','Costeo de productos'],dev:['OPERACIÓN','Devoluciones'],carga:['OPERACIÓN','Validación de carga'],ens:['OPERACIÓN','Ensamblado'],descmp:['OPERACIÓN','Descarte de materia prima'],usuarios:['SISTEMA','Usuarios y accesos']};
 function render(){
   const m=MODS.find(x=>x.id===cur);
   $('crumb').textContent=(META[cur]||[m.name.toUpperCase(),m.name])[0];
@@ -260,7 +259,7 @@ function render(){
   else if(cur==='rec')viewRec();
   else if(cur==='acond')viewAcond();
   else if(cur==='prod')viewProd();
-  else if(cur==='desp')viewDesp();
+  else if(cur==='desp')viewEtq();
   else if(cur==='ent')viewEnt();
   else if(cur==='ped')viewPed();
   else if(cur==='rep')viewRep();
@@ -276,7 +275,6 @@ function render(){
   else if(cur==='carga')viewCarga();
   else if(cur==='ajuste')viewAjuste();
   else if(cur==='plan')viewPlan();
-  else if(cur==='bd')viewBD();
 }
 
 // ---- LOGIN ----
@@ -663,7 +661,7 @@ function kgConsumidoLote(codigo){let s=0;S.producciones.filter(p=>p.estado!=='an
 function descartadoLote(codigo){return (S.descartes||[]).filter(d=>d.estado!=='anulada'&&d.codigo_lote===codigo).reduce((s,d)=>s+(+d.kg||0),0);}
 function acondConsumidoLote(uuid){return (S.acond||[]).filter(a=>a.estado!=='anulada'&&a.recepcionId===uuid).reduce((s,a)=>s+(+a.kgEnt||0),0);}
 function ajusteLoteMP(lote){return (S.ajustes||[]).filter(a=>a.estado!=='anulada'&&a.tipo==='mp'&&a.lote===lote).reduce((s,a)=>s+(+a.cantidad||0),0);}
-function stockLote(r){const raw=(+r.kilos||0)-kgConsumidoLote(r.codigo_lote)-descartadoLote(r.codigo_lote)-acondConsumidoLote(r.id)+ajusteLoteMP(r.codigo_lote);return raw<0.1?0:raw;}
+function stockLoteJS(r){const raw=(+r.kilos||0)-kgConsumidoLote(r.codigo_lote)-descartadoLote(r.codigo_lote)-acondConsumidoLote(r.id)+ajusteLoteMP(r.codigo_lote);return raw<0.1?0:raw;}
 function lotesConStock(){return S.recepciones.filter(r=>r.estado!=='anulada'&&stockLote(r)>0.001).sort((a,b)=>a.fecha<b.fecha?-1:1);}
 function mpConStock(){return [...new Set(lotesConStock().map(r=>r.materia_prima).filter(Boolean))].sort();}
 function mpConStockOpts(){return mpConStock().map(m=>{const rec=(S.materiasPrimas||[]).find(x=>(x.nombre||'').toUpperCase()===m.toUpperCase());const label=rec&&rec.codigo?`[${rec.codigo}] ${m}`:m;return `<option value="${esc(m)}">${esc(label)}</option>`;}).join('');}
@@ -1065,7 +1063,7 @@ function producidoLote(prod,lote){let s=0;S.producciones.forEach(p=>{if(p.estado
 function entregadoLote(prod,lote){let s=0;(S.entregas||[]).forEach(e=>{if(e.estado==='anulada')return;(e.items||[]).forEach(it=>{if(it.producto===prod&&(it.loteRef||'')===lote)s+=+it.cantidad||0;});});return s;}
 function reingLote(prod,lote){let s=0;(S.devoluciones||[]).forEach(d=>{if(d.estado==='anulada')return;if(d.tipo==='reingreso_pt'&&d.producto_nombre===prod&&(d.lote_ref||'')===lote)s+=+d.cantidad||0;});return s;}
 function ajusteLotePT(prod,lote){return (S.ajustes||[]).filter(a=>a.estado!=='anulada'&&a.tipo==='pt'&&a.item===prod&&a.lote===lote).reduce((s,a)=>s+(+a.cantidad||0),0);}
-function stockLoteProd(prod,lote){return Math.max(0,Math.round(producidoLote(prod,lote)+reingLote(prod,lote)-entregadoLote(prod,lote)+ajusteLotePT(prod,lote)));}
+function stockLoteProdJS(prod,lote){return Math.max(0,Math.round(producidoLote(prod,lote)+reingLote(prod,lote)-entregadoLote(prod,lote)+ajusteLotePT(prod,lote)));}
 function lotesDeProducto(name){const set=new Set();S.producciones.forEach(p=>{if(p.estado==='validada'&&p.outputs.some(o=>o.producto===name))set.add(loteDeProd(p));});(S.entregas||[]).forEach(e=>{if(e.estado!=='anulada')(e.items||[]).forEach(it=>{if(it.producto===name&&it.loteRef)set.add(it.loteRef);});});return [...set];}
 function prodByCode(code){for(const p of S.producciones){for(const o of p.outputs){if(o.code===code)return p;}}return null;}
 function loteInfoDeProd(p){if(p.lotes&&p.lotes.length){return {lote:p.id,op:p.id,origen:p.lotes.map(l=>`${l.mp} ${l.loteId}`)};}return {lote:p.loteId||p.id,op:p.id,origen:[p.loteId||p.id]};}
@@ -1689,7 +1687,7 @@ function planStockProy(prod,fechaE,excludeId){let x=stockProd(prod);(S.planes||[
 function planMPProy(mp,fechaE,excludeId){let x=stockMP(mp);(S.planes||[]).forEach(pl=>{if(pl.id===excludeId)return;const fe=pl.fecha_entrega;if(!fe||fe>=fechaE||fe<=today())return;(pl.compra||[]).forEach(c=>{if(c.mp===mp)x+=(+c.comprar||0)-(+c.need||0);});});return x;}
 function planConsolidadoMP(fechaE){const need={};(window._compra||[]).forEach(c=>{need[c.mp]=(need[c.mp]||0)+(+c.need||0);});(S.planes||[]).forEach(pl=>{if(pl.id===window._planEditId)return;const fe=pl.fecha_entrega;if(!fe||fe<=today()||fe>fechaE)return;(pl.compra||[]).forEach(c=>{need[c.mp]=(need[c.mp]||0)+(+c.need||0);});});return Object.keys(need).sort().map(mp=>{const nd=+(+need[mp]).toFixed(2);const stk=+stockMP(mp).toFixed(2);return {mp,need:nd,stk,comprar:+Math.max(0,nd-stk).toFixed(2)};});}
 function planConsolidadoTable(fechaE){const list=planConsolidadoMP(fechaE);const rows=list.length?list.map(c=>`<tr><td>${esc(c.mp)}</td><td class="mono">${nf(c.need,1)}</td><td class="mono">${nf(c.stk,1)}</td><td class="mono" style="font-weight:600;color:${c.comprar>0?'var(--clay)':'var(--sage)'}">${nf(c.comprar,1)}</td></tr>`).join(''):'<tr><td colspan=4 class=empty>Sin materia prima en el horizonte</td></tr>';return `<div style="overflow:auto"><table><thead><tr><th>Materia prima</th><th>Requerido total (kg)</th><th>Stock real (kg)</th><th>Comprar (kg)</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
-async function planSetDefault(i){const r=window._plan&&window._plan[i];if(!r)return;const pr=S.productos.find(x=>x.nombre===r.prod);if(!pr)return banner('Ese producto no está en el catálogo — cargalo en Datos maestros para fijarle producción por defecto','warn');const v=Math.max(0,+r.producir||0);try{const {error}=await sb.from('productos').update({prod_default:v}).eq('id',pr.id).eq('empresa_id',S.empresaId);if(error)throw error;pr.prod_default=v;if(window._planProducir)delete window._planProducir[r.prod];banner('Producción por defecto de '+r.prod+' = '+nf(v),'');renderPlan();}catch(err){if(/prod_default|column|does not exist|schema/i.test(err.message||''))return banner('Falta la columna: corré prod_default_setup.sql en Supabase','err');banner('Error: '+err.message,'err');}}
+async function planSetDefault(i){const r=window._plan&&window._plan[i];if(!r)return;const pr=S.productos.find(x=>x.nombre===r.prod);if(!pr)return banner('Ese producto no está en el catálogo — cargalo en CONTROL PLUS → Inventario → Productos para fijarle producción por defecto','warn');const v=Math.max(0,+r.producir||0);try{const {error}=await sb.from('productos').update({prod_default:v}).eq('id',pr.id).eq('empresa_id',S.empresaId);if(error)throw error;pr.prod_default=v;if(window._planProducir)delete window._planProducir[r.prod];banner('Producción por defecto de '+r.prod+' = '+nf(v),'');renderPlan();}catch(err){if(/prod_default|column|does not exist|schema/i.test(err.message||''))return banner('Falta la columna: corré prod_default_setup.sql en Supabase','err');banner('Error: '+err.message,'err');}}
 function planCompraCalc(list){const mpNeed={};list.forEach(x=>{const producir=+x.producir||0;if(producir<=0)return;const tipo=prodTipo(x.prod);if(tipo==='comp_produccion'){(S.recetas[x.prod]||[]).forEach(r=>{mpNeed[r.mp]=(mpNeed[r.mp]||0)+producir*r.cantidad;});}else if(tipo==='simple'){const rinde=rindeBasis(rindeTeo(x.prod),rindeReal(x.prod));const mp=(S.prodMP[x.prod]||[])[0];if(mp&&rinde>0)mpNeed[mp]=(mpNeed[mp]||0)+producir/rinde;}});return Object.keys(mpNeed).map(mp=>{const need=mpNeed[mp];const stk=stockMP(mp);return {mp,need:+need.toFixed(2),stk:+stk.toFixed(2),comprar:+Math.max(0,need-stk).toFixed(2)};});}
 function planCompraTable(){const compra=window._compra||[];const rows=compra.length?compra.map((c,i)=>`<tr><td>${esc(c.mp)}</td><td class="mono">${nf(c.need,1)}</td><td class="mono">${nf(c.stk,1)}</td><td><input type="number" step="0.1" value="${c.comprar}" style="width:90px;padding:6px 8px;border:1px solid var(--line);border-radius:7px" onchange="window._compra[${i}].comprar=+this.value"></td></tr>`).join(''):'<tr><td colspan=4 class=empty>No hace falta comprar materia prima</td></tr>';return `<div style="overflow:auto"><table><thead><tr><th>Materia prima</th><th>Requerido (kg)</th><th>Stock (kg)</th><th>Comprar (kg)</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
 function planTogglePed(id){if(!window._planSelPed)window._planSelPed=new Set();if(window._planSelPed.has(id))window._planSelPed.delete(id);else window._planSelPed.add(id);renderPlan();}
@@ -2186,7 +2184,7 @@ function labelLoteRec(codigo){const r=recById(codigo);if(!r)return;window._loteL
   modal(`<h3>Etiqueta de lote ${r.codigo_lote}</h3><p class="hint">Sale con el diseño <b>${esc(tpl.name||'Lote')}</b> (${nf(tpl.w,1)}×${nf(tpl.h,1)} mm${dm.cols>1?' · '+dm.cols+' bandas':''}${tpl.rot?' · rotada 90°':''})${tpl.printer?` · cola <b>${esc(tpl.printer)}</b>`:''}. El formato lo editás en <b>Datos maestros → Etiquetas</b>.</p>
   <div class="g2"><div><label>Cantidad a imprimir</label><input type="number" id="ll_n" value="${nDef}" min="1" max="500" oninput="renderLoteLbl()"></div><div style="display:flex;align-items:flex-end"><div class="scan-note">Por defecto, una por caja recibida (${nf(r.cajas||0)} caja/s).</div></div></div>
   <div style="background:#efeae0;border-radius:10px;padding:14px;margin:12px 0;overflow:auto;display:flex;justify-content:center"><div id="lblArea"></div></div>
-  <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-ghost" onclick="closeModal();bdTab='etq';go('bd')">✎ Editar diseño</button><button class="btn btn-gold" onclick="printLoteLabels()">🖨️ Imprimir etiqueta</button></div>`);
+  <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-ghost" onclick="closeModal();etqTab='dis';go('desp')">✎ Editar diseño</button><button class="btn btn-gold" onclick="printLoteLabels()">🖨️ Imprimir etiqueta</button></div>`);
   renderLoteLbl();
 }
 function renderLoteLbl(){const r=recById(window._loteLbl);if(!r)return;const area=$('lblArea');if(!area)return;
@@ -2378,7 +2376,7 @@ function cfgEtiquetas(){if(!S.etq)etqLoad();if(!curDesign()){const f=(S.etq.desi
   const lotes=(S.etq.designs||[]).filter(d=>d.kind==='lote');
   const cajmx=(S.etq.designs||[]).filter(d=>d.kind==='cajamix');
   $('cfg_body').innerHTML=`<style>.etqEd{position:relative;background:#fff;border:1px solid var(--line);box-shadow:0 1px 6px rgba(0,0,0,.1)}.etqEd .etqEl{outline:1px dashed rgba(0,0,0,.18);cursor:move;box-sizing:border-box}</style>
-  <p class="hint">Biblioteca de diseños de etiqueta. Creá los que necesites, nombralos y marcá uno “por defecto” (★) de cada tipo. Después, en la pestaña <b>Productos</b>, a cada producto le asignás qué diseño usa. En <b>Despacho</b> sale solo el que corresponde, sin elegir nada. Para <b>etiqueta preimpresa</b>, creá un diseño que solo tenga los datos variables (lote, fecha, código).</p>
+  <p class="hint">Biblioteca de diseños de etiqueta. Creá los que necesites, nombralos y marcá uno “por defecto” (★) de cada tipo. Después, en la pestaña <b>Asignación por producto</b>, a cada producto le asignás qué diseño usa. En <b>Despacho</b> sale solo el que corresponde, sin elegir nada. Para <b>etiqueta preimpresa</b>, creá un diseño que solo tenga los datos variables (lote, fecha, código).</p>
   <div style="background:#efeae0;border-radius:10px;padding:12px;margin-bottom:14px">
     <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px">📦 Diseños de PAQUETE</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px">${pkgs.map(chip).join('')||'<span class="scan-note">Sin diseños</span>'} <button class="btn btn-ghost btn-sm" onclick="etqNew('paquete')">+ Nuevo de paquete</button></div>
@@ -2464,6 +2462,12 @@ function etqRenderProps(){const box=$('etqProps');if(!box)return;const tpl=curDe
 async function etqSave(){const {error}=await sb.from('empresas').update({etiqueta_config:S.etq}).eq('id',S.empresaId);if(error)return banner('Error al guardar: '+error.message,'err');S.empresa.etiqueta_config=JSON.parse(JSON.stringify(S.etq));banner('Diseño de etiquetas guardado ✓','');}
 function etqReset(){const tpl=curDesign();if(!tpl)return;if(!confirm('¿Restaurar este diseño al de fábrica de su tipo? Se pierde lo que hayas cambiado en él.'))return;const def=etqDefault(tpl.kind);tpl.w=def.w;tpl.h=def.h;tpl.cols=def.cols;tpl.gapx=def.gapx;tpl.gapy=def.gapy||0;tpl.elements=def.elements;S.etqSel=null;etqRenderCanvas();etqRenderProps();}
 
+let etqTab='imp';
+function etqBar(){const tabs=[['imp','🖨️ Impresión'],['dis','🎨 Diseños'],['asg','🔗 Asignación por producto']];return `<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">${tabs.map(t=>`<button class="btn btn-sm ${t[0]===etqTab?'btn-gold':'btn-ghost'}" onclick="etqGo('${t[0]}')">${t[1]}</button>`).join('')}</div>`;}
+function etqGo(t){etqTab=t;render();}
+function viewEtq(){if(etqTab==='imp'){viewDesp();$('view').insertAdjacentHTML('afterbegin',etqBar());return;}
+  $('view').innerHTML=etqBar()+`<div class="card"><div id="cfg_body"></div></div>`;
+  if(etqTab==='asg')cfgEtqAsig();else cfgEtiquetas();}
 let bdTab='cli';
 function viewBD(){
   const tabs=[['cli','Clientes'],['prov','Proveedores'],['unif','Unificar duplicados'],['etq','Etiquetas'],['etqasg','Etiquetas por producto']];
@@ -2479,7 +2483,7 @@ function bdGo(t){bdTab=t;['cli','prov','unif','etq','etqasg'].forEach(x=>{const 
   if(t==='unif')return cfgUnif();
   ({prod:cfgProd,cli:cfgCli,prov:cfgProv,etq:cfgEtiquetas}[t]||cfgProd)();}
 function cfgEtqAsig(){const cfg=etqCfg();const ps=[...S.productos].filter(p=>p.activo!==false).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
-  $('cfg_body').innerHTML=`<p class="hint">Elegí qué diseño de etiqueta usa cada producto (paquete y caja). Sin elegir, sale el diseño <b>por defecto</b> de cada tipo. Los diseños se crean en la pestaña <b>Etiquetas</b>. Se guarda al cambiar.</p>
+  $('cfg_body').innerHTML=`<p class="hint">Elegí qué diseño de etiqueta usa cada producto (paquete y caja). Sin elegir, sale el diseño <b>por defecto</b> de cada tipo. Los diseños se crean en la pestaña <b>Diseños</b>. Se guarda al cambiar.</p>
    <div style="overflow:auto"><table><thead><tr><th>Cód.</th><th>Producto</th><th>Diseño de paquete</th><th>Diseño de caja</th></tr></thead><tbody>${ps.map(p=>{const a=(cfg.assign||{})[p.id]||{};return `<tr><td class="mono" style="font-size:11px;color:var(--muted)">${esc(p.codigo||'')}</td><td>${esc(p.nombre)}</td><td><select id="ea_p_${p.id}" onchange="etqAsigSave('${p.id}')">${etqDesignOpts(cfg,'paquete',a.paquete)}</select></td><td><select id="ea_c_${p.id}" onchange="etqAsigSave('${p.id}')">${etqDesignOpts(cfg,'caja',a.caja)}</select></td></tr>`;}).join('')||'<tr><td colspan=4 class="empty">Sin productos</td></tr>'}</tbody></table></div>`;}
 async function etqAsigSave(pid){await saveEtqAssign(pid,$('ea_p_'+pid).value,$('ea_c_'+pid).value);banner('Diseño asignado ✓','');}
 let cfgTab='empresa';
@@ -2577,6 +2581,7 @@ function viewStock(){
   const totMP=S.recepciones.filter(r=>r.estado!=='anulada').reduce((s,r)=>s+stockLote(r),0);
   let totProd=0;[...new Set(S.producciones.filter(p=>p.estado!=='anulada').flatMap(p=>p.outputs.map(o=>o.producto)))].forEach(_pn=>{totProd+=stockProd(_pn);});
   $('view').innerHTML=`
+   <div class="hint" style="margin-bottom:8px">${stockFuenteTxt()}</div>
    <div class="kpis" style="grid-template-columns:repeat(2,1fr)">
      <div class="kpi steel"><div class="lab">🏬 Stock de materia prima</div><div class="val">${nf(totMP,1)}</div><div class="un">kg en cámara</div></div>
      <div class="kpi gold"><div class="lab">🥗 Stock de productos</div><div class="val">${nf(totProd)}</div><div class="un">unidades listas para despacho</div></div>
@@ -2744,6 +2749,26 @@ async function delRecetaInsumo(prod,insId){const pid=prodIdByName(prod);await sb
 function insuMov(){const insById={};S.insumos.forEach(i=>insById[i.id]=i.nombre);
   $('insu_body').innerHTML=`<p class="hint">Historial de movimientos de insumos (ingresos, consumos por producción, ajustes).</p>
    <div style="overflow:auto"><table><thead><tr><th>Fecha</th><th>Insumo</th><th>Tipo</th><th>Cantidad</th><th>Referencia</th><th>Nota</th></tr></thead><tbody>${S.insumoMovs.slice(0,40).map(m=>{const t=m.tipo==='consumo'?['out','-']:m.tipo==='ingreso'?['ok','+']:['','±'];return `<tr><td>${fmtD(m.fecha)}</td><td>${insById[m.insumo_id]||'—'}</td><td><span class="tag ${t[0]}">${m.tipo}</span></td><td class="mono">${t[1]}${nf(Math.abs(m.cantidad),1)}</td><td class="mono">${m.referencia||'—'}</td><td>${m.nota||''}</td></tr>`;}).join('')||'<tr><td colspan=6 class=empty>Sin movimientos</td></tr>'}</tbody></table></div>`;}
+
+
+// ---- v160: STOCK ÚNICO — lee las vistas de la base (v_stock_mp_lote / v_stock_pt_lote), las mismas que usa CONTROL PLUS ----
+// Seguridad: si la vista no existe, falla, o no coincide con el cálculo local, se sigue usando el cálculo local de siempre.
+const STKV={ok:false,off:false,mp:{},pt:{},guard:false};
+function stockLote(r){if(STKV.ok&&!STKV.off){const v=STKV.mp[r.codigo_lote];if(v)return +v.stock||0;}return stockLoteJS(r);}
+function stockLoteProd(prod,lote){if(STKV.ok&&!STKV.off){const v=STKV.pt[prod+'|'+lote];if(v)return +v.stock||0;}return stockLoteProdJS(prod,lote);}
+async function _svFetch(){try{const [a,b]=await Promise.all([sbAll('v_stock_mp_lote',{order:'id',asc:true}),sbAll('v_stock_pt_lote',{order:'id',asc:true})]);
+  if(a.error||b.error||!a.data||!b.data){STKV.ok=false;return;}
+  const mp={},pt={};a.data.forEach(x=>mp[x.codigo_lote]=x);b.data.forEach(x=>pt[x.id]=x);STKV.mp=mp;STKV.pt=pt;STKV.ok=true;}catch(e){STKV.ok=false;}}
+let _svRun=null,_svDirty=false;
+function refreshStockViews(){if(_svRun){_svDirty=true;return _svRun;}
+  _svRun=(async()=>{do{_svDirty=false;await _svFetch();}while(_svDirty);})().then(()=>{_svRun=null;if(!STKV.guard&&STKV.ok){STKV.guard=true;setTimeout(stockGuard,1500);}},()=>{_svRun=null;});return _svRun;}
+// Chequeo automático (una vez por sesión): compara vista vs cálculo local; si hay diferencias, se desactiva la vista para esta sesión.
+function stockDiffs(){const d=[];(S.recepciones||[]).filter(r=>r.estado!=='anulada').forEach(r=>{const v=STKV.mp[r.codigo_lote];if(!v)return;const a=+v.stock||0,b=stockLoteJS(r);if(Math.abs(a-b)>0.15)d.push(['MP',r.materia_prima,r.codigo_lote,a,b]);});
+  Object.values(STKV.pt).forEach(v=>{const a=+v.stock||0,b=stockLoteProdJS(v.producto,v.lote);if(Math.abs(a-b)>0.5)d.push(['PT',v.producto,v.lote,a,b]);});return d;}
+function stockFuenteTxt(){if(STKV.ok&&!STKV.off)return '🔗 Stock calculado por la base de datos (mismo dato que CONTROL PLUS) · <a href="#" onclick="stockVerifUI();return false">verificar</a>';return '🧮 Stock calculado en este equipo'+(STKV.off?' (la vista de la base no coincidía)':' (la vista de la base todavía no está disponible)');}
+function stockVerifUI(){const d=stockDiffs();banner(d.length?('⚠ '+d.length+' lote(s) difieren entre la base y el cálculo local'):'✓ La base y el cálculo local coinciden en todos los lotes',d.length?'warn':'');}
+function stockGuard(){try{const d=stockDiffs();if(d.length){STKV.off=true;console.warn('[stock] la vista de la base no coincide con el cálculo local; se usa el cálculo local',d.slice(0,10));banner('Stock: se usa el cálculo local ('+d.length+' diferencia(s) con la base). Avisale a soporte.','warn');}else{STKV.off=false;}}catch(e){}}
+['reloadRecepciones','reloadProducciones','reloadDescartes','reloadAjustes','reloadDevoluciones','reloadAcond','reloadEnsamblados','reloadEntregas'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=async function(){const r=await f.apply(this,arguments);await refreshStockViews();return r;};});
 
 // ---- COSTEO DE PRODUCTOS ----
 async function reloadCostos(){const {data}=await sb.from('costos_producto').select('*').eq('empresa_id',S.empresaId);S.costos={};(data||[]).forEach(c=>{S.costos[c.producto_id]={gastos_op:+c.gastos_op||0,mano_obra:+c.mano_obra||0,flete:+c.flete||0,otros:+c.otros||0,precio_venta:+c.precio_venta||0};});}
