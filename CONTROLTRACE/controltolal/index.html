@@ -221,8 +221,26 @@ function vIA(){const tipos=[['ejecutivo','Resumen ejecutivo del período'],['pro
   return card('Informe con IA',`<p class="hint">La IA analiza el resumen numérico del período seleccionado (y el anterior, si comparás). No ve datos personales ni comprobantes individuales: solo totales y rankings.</p>
   <div class="bar"><div><label>Tipo de informe</label><select id="iaTipo" onchange="iaTipoCambio()">${tipos.map(t=>`<option value="${t[0]}">${t[1]}</option>`).join('')}</select></div></div>
   <div id="iaQW" style="margin-top:8px;display:none"><label>Tu pregunta</label><textarea id="iaQ" placeholder="Ej: ¿Qué producto conviene priorizar el mes que viene y por qué?"></textarea></div>
-  <div style="margin-top:10px" class="noprint"><button class="btn gold" id="iaBtn" onclick="iaGenerar()">🤖 Generar informe</button> <button class="btn" onclick="iaCopiar()">Copiar</button> <button class="btn" onclick="window.print()">Imprimir / PDF</button></div>
+  <div style="margin-top:10px" class="noprint"><button class="btn gold" id="iaBtn" onclick="iaGenerar()">🤖 Generar informe (automático)</button> <button class="btn" onclick="iaCopiarPrompt(false)">📋 Copiar datos para Claude</button> <button class="btn" onclick="iaCopiarPrompt(true)">📋 Copiar y abrir Claude</button> <button class="btn" onclick="iaCopiar()">Copiar informe</button> <button class="btn" onclick="window.print()">Imprimir / PDF</button></div>
+  <p class="hint noprint" style="margin-top:8px"><b>Dos formas de usarlo:</b> <b>Automático</b> genera el informe acá mismo (requiere la clave de API configurada en Supabase). <b>Copiar datos para Claude</b> no necesita clave: copia el resumen del período con el pedido ya redactado, y lo pegás en tu Claude (claude.ai).</p>
   <div id="iaOut" class="ia" style="margin-top:14px">${S.iaTxt?mdHTML(S.iaTxt):'<span class="hint">Elegí el tipo de informe y tocá "Generar informe".</span>'}</div>`)}
+const IA_FOCO={ejecutivo:'Un resumen ejecutivo del período para la gerencia: qué pasó, cifras clave con su variación frente al período anterior, 3 a 5 hallazgos y 3 acciones recomendadas.',produccion:'Un análisis de producción: recepción de materia prima, rinde, descarte (por materia prima y motivo), mix de productos, y qué corregir.',comercial:'Un análisis comercial: facturación, concentración de clientes, ticket promedio, notas de crédito, entregas por producto y oportunidades.',finanzas:'Un análisis financiero: cobranzas vs pagos, flujo, cuentas a cobrar y a pagar (antigüedad y vencidos), caja y banco, y riesgos de liquidez.',riesgos:'Una lista priorizada de alertas y riesgos que requieren atención, cada una con evidencia numérica, impacto probable y acción sugerida.',libre:'Responder la pregunta del usuario usando solo los datos entregados.'};
+const IA_REGLAS=`Actuá como analista administrativo-financiero senior de una empresa frutihortícola argentina que procesa y distribuye producto fresco y envasado. Escribí en español rioplatense, claro y profesional.
+Reglas:
+- Usá EXCLUSIVAMENTE los datos del JSON. Si algo no está, decilo ("no tengo ese dato"); nunca inventes cifras.
+- Los importes están en pesos argentinos. Formateá con separador de miles (ej: $1.250.000) y los kg también.
+- Cuando haya período anterior, calculá y mostrá la variación porcentual de las cifras importantes.
+- Distinguí hechos (datos) de interpretaciones (hipótesis) y marcá las hipótesis como tales.
+- "resultado_simple_neto" es facturado neto menos compras y gastos netos, sin costo de stock ni impuestos: no lo presentes como ganancia contable.
+- Si "tablas_sin_datos" no está vacío, avisá que esa parte del análisis es incompleta.
+- Estructurá con títulos, viñetas cortas y, si ayuda, alguna tabla. Cerrá con "Acciones recomendadas" numeradas.
+- Sé conciso: máximo ~600 palabras salvo que la pregunta pida más.`;
+function iaPromptTexto(){const tipo=$('iaTipo').value,q=($('iaQ')||{}).value||'';
+  return IA_REGLAS+'\n\nTarea: '+(IA_FOCO[tipo]||IA_FOCO.ejecutivo)+(q.trim()?'\nPregunta: '+q.trim():'')+'\n\nDatos del período (JSON):\n'+JSON.stringify(resumenIA(),null,1)}
+async function iaCopiarPrompt(abrir){const tipo=$('iaTipo').value;if(tipo==='libre'&&!($('iaQ').value||'').trim())return toast('Escribí tu pregunta');
+  const t=iaPromptTexto();let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{ok=document.execCommand('copy')}catch(_){}ta.remove()}
+  if(!ok)return toast('No se pudo copiar. Probá de nuevo o usá otro navegador.');
+  toast('Copiado. Pegalo en Claude (Ctrl+V) y enviá.');if(abrir)window.open('https://claude.ai/new','_blank','noopener')}
 function iaTipoCambio(){$('iaQW').style.display=$('iaTipo').value==='libre'?'block':'none'}
 function resumenIA(){const c=S.cur,p=S.prv,sd=saldos();const top=(a,n)=>(a||[]).slice(0,n||8).map(x=>({nombre:x.k,valor:Math.round(x.v*100)/100}));
   const blk=x=>({periodo:fD(x.a)+' al '+fD(x.b),produccion:{recepciones:x.rec.n,kg_recibidos:Math.round(x.rec.kg),kg_procesados:Math.round(x.prod.mpkg),ordenes:x.prod.ops,unidades_producidas:Math.round(x.prod.unid),rinde:x.prod.rinde==null?null:+x.prod.rinde.toFixed(3),descarte_kg:Math.round(x.prod.descKg),descarte_pct_mp:x.prod.descPct==null?null:+x.prod.descPct.toFixed(3),kg_por_mp:top(x.rec.porMP),kg_por_proveedor:top(x.rec.porProv),precio_prom_mp_por_kg:x.rec.precioMP.slice(0,8).map(y=>({nombre:y.k,valor:Math.round(y.p)})),unidades_por_producto:top(x.prod.porProd,10),descarte_por_mp:top(x.prod.descPorMP),descarte_por_motivo:top(x.prod.descPorMotivo)},
@@ -238,7 +256,7 @@ async function iaGenerar(){const tipo=$('iaTipo').value,q=($('iaQ')||{}).value||
     if(error){let m=error.message||'error';try{const j=await error.context.json();m=j.error||m}catch(e){}throw new Error(m)}
     if(data&&data.error)throw new Error(data.error);
     S.iaTxt=data.texto||'';S.iaMeta={tipo,rango:S.rng};$('iaOut').innerHTML=mdHTML(S.iaTxt)+`<p class="hint" style="margin-top:14px">Informe generado por IA el ${new Date().toLocaleString('es-AR')} sobre ${fD(S.rng.a)} → ${fD(S.rng.b)}. Verificá las cifras críticas antes de decidir.</p>`;
-  }catch(e){console.error(e);const nf404=/not found|404|Failed to send|FunctionsFetch|Relay/i.test(e.message);$('iaOut').innerHTML='<div class="alert bad">No se pudo generar el informe: '+esc(e.message)+(nf404?'<br>Es probable que la función <b>informe-ia</b> todavía no esté desplegada en Supabase (ver instrucciones).':'')+'</div>'}
+  }catch(e){console.error(e);const nf404=/not found|404|Failed to send|FunctionsFetch|Relay/i.test(e.message);$('iaOut').innerHTML='<div class="alert bad">No se pudo generar el informe automático: '+esc(e.message)+(nf404?'<br>Es probable que la función <b>informe-ia</b> todavía no esté desplegada en Supabase. Mientras tanto usá <b>Copiar datos para Claude</b>.':'')+'</div>'}
   b.disabled=false;b.textContent='🤖 Generar informe'}
 function iaCopiar(){if(!S.iaTxt)return toast('Todavía no hay informe');navigator.clipboard.writeText(S.iaTxt).then(()=>toast('Informe copiado'))}
 function mdHTML(t){const L=String(t).replace(/\r/g,'').split('\n');let h='',ul=false,tb=null;const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>');
