@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CONTROL MAX — Control Total</title>
-<!-- CONTROL TOTAL · build tot 1.0 · reportes de Producción, Comercial y Finanzas + informes con IA. Solo lectura sobre la base compartida. -->
+<!-- CONTROL TOTAL · build tot 2.0 · reportes ERP (comercial, compras, finanzas) + auditoría de todos los módulos · tot 1.3: reportes de TRACE dentro de Producción, Compras y Finanzas · tot 1.2: filtro de período aplica al cambiar · reportes de Producción, Comercial y Finanzas + informes con IA. Solo lectura sobre la base compartida. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#0D1B2A;--navy-mid:#1A2E45;--gold:#C9A84C;--ice:#F0F4F8;--line:#DDE4EC;--white:#fff;--text:#1A2E45;--muted:#6B7A8D;--ok:#2D7D46;--okbg:#E8F5ED;--bad:#B3261E;--badbg:#FDECEA;--warn:#9A6700;--warnbg:#FFF4D6}
@@ -35,7 +35,9 @@ td{padding:6px 8px;border-bottom:1px solid #eef2f6}td.r,th.r{text-align:right;fo
 .alert{border-radius:10px;padding:9px 12px;margin-bottom:8px;font-size:13px}.alert.warn{background:var(--warnbg);color:var(--warn)}.alert.bad{background:var(--badbg);color:var(--bad)}
 #splash{position:fixed;inset:0;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;z-index:99;font-weight:700}
 .sk{color:var(--muted);font-size:12px}
-@media print{header,.tabs,.noprint,#filtros{display:none!important}body{background:#fff}.card{border:none;padding:0}}
+tr.rw-bad td{background:#FDECEA}tr.rw-warn td{background:#FFF8E1}tfoot td{border-top:2px solid var(--line)}
+.prt-only{display:none}.subg{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;align-self:center;margin:0 2px 0 8px}
+@media print{header,.tabs,.noprint,#filtros{display:none!important}body{background:#fff}.card{border:none;padding:0}.prt-only{display:block}table{font-size:10px}body.prt #body>*:not(.prt-on),body.prt #repWrap{display:none!important}}
 </style>
 </head>
 <body>
@@ -44,24 +46,26 @@ td{padding:6px 8px;border-bottom:1px solid #eef2f6}td.r,th.r{text-align:right;fo
 <main>
 <div class="card" id="filtros">
   <div class="bar">
-    <div><label>Período</label><select id="fPer" onchange="perCambio()"><option value="mes">Este mes</option><option value="mesant">Mes anterior</option><option value="trim">Este trimestre</option><option value="anio">Este año</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option><option value="90">Últimos 90 días</option><option value="custom">Personalizado…</option></select></div>
-    <div><label>Desde</label><input type="date" id="fD"></div>
-    <div><label>Hasta</label><input type="date" id="fH"></div>
-    <div><label>Comparar con</label><select id="fCmp"><option value="prev">Período anterior</option><option value="none">Sin comparar</option></select></div>
+    <div><label>Período</label><select id="fPer" onchange="perCambio();aplicar()"><option value="mes">Este mes</option><option value="mesant">Mes anterior</option><option value="trim">Este trimestre</option><option value="anio">Este año</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option><option value="90">Últimos 90 días</option><option value="custom">Personalizado…</option></select></div>
+    <div><label>Desde</label><input type="date" id="fD" onchange="fechaManual()"></div>
+    <div><label>Hasta</label><input type="date" id="fH" onchange="fechaManual()"></div>
+    <div><label>Comparar con</label><select id="fCmp" onchange="aplicar()"><option value="prev">Período anterior</option><option value="none">Sin comparar</option></select></div>
     <button class="btn gold" onclick="aplicar()">Aplicar</button>
     <span class="sk" id="fInfo"></span>
   </div>
 </div>
 <div class="tabs" id="tabs"></div>
 <div id="body"></div>
+<div id="repWrap" style="display:none"></div>
+<div class="sk noprint" style="text-align:center;margin:18px 0 6px">build tot 2.0</div>
 </main>
 <script>
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=(window._sbClient)||(window._sbClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}}));
 const $=id=>document.getElementById(id);
-const S={empresaId:null,rol:'',nombre:'',tab:'resumen',raw:{},faltan:[],cur:null,prv:null,rng:null,iaTxt:'',iaMeta:null};
-const TABS=[['resumen','📊 Resumen'],['prod','🏭 Producción'],['com','🧾 Comercial'],['compras','🛒 Compras'],['fin','💵 Finanzas'],['ia','🤖 Informe con IA']];
+const S={empresaId:null,rol:'',nombre:'',tab:'resumen',sub:{},raw:{},faltan:[],cur:null,prv:null,rng:null,iaTxt:'',iaMeta:null};
+const TABS=[['resumen','📊 Resumen'],['prod','🏭 Producción'],['com','🧾 Comercial'],['compras','🛒 Compras'],['fin','💵 Finanzas'],['aud','🔒 Auditoría'],['ia','🤖 Informe con IA']];
 // ───────── util ─────────
 const num=v=>{const n=parseFloat(v);return isFinite(n)?n:0};
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -79,6 +83,7 @@ const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Di
 function toast(m){const t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0D1B2A;color:#fff;padding:10px 16px;border-radius:10px;z-index:200;font-weight:600';document.body.appendChild(t);setTimeout(()=>t.remove(),3500)}
 function isMissing(e){return /PGRST205|42P01|does not exist|Could not find the table|schema cache/i.test((e&&(e.message||''))+' '+(e&&e.code||''))}
 async function fetchAll(table,f){const P=1000;let out=[],from=0;for(;;){let q=sb.from(table).select('*').eq('empresa_id',S.empresaId);if(f)q=f(q);q=q.range(from,from+P-1);const {data,error}=await q;if(error){if(isMissing(error)||/column/i.test(error.message||'')){S.faltan.push(table);return out}throw new Error(table+': '+error.message)}out=out.concat(data||[]);if(!data||data.length<P)break;from+=P}return out}
+async function fetchIn(table,col,ids){ids=[...new Set(ids.filter(Boolean))];let out=[];for(let i=0;i<ids.length;i+=150){const part=ids.slice(i,i+150);out=out.concat(await fetchAll(table,q=>q.in(col,part)));if(S.faltan.includes(table))break}return out}
 function group(arr,kf,vf){const m={};arr.forEach(x=>{const k=kf(x)||'(sin dato)';m[k]=(m[k]||0)+vf(x)});return Object.entries(m).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v)}
 function csv(name,rows){const t=rows.map(r=>r.map(c=>{c=String(c==null?'':c);return /[",;\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(';')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+t],{type:'text/csv'}));a.download=name+'_'+hoy()+'.csv';a.click()}
 // ───────── período ─────────
@@ -90,12 +95,16 @@ function rango(){const p=$('fPer').value,t=hoy(),d=new Date();let a,b=t;
   else if(p==='custom'){a=$('fD').value||t;b=$('fH').value||t}
   else a=addD(t,-(+p-1));
   return {a,b}}
+function fechaManual(){$('fPer').value='custom';aplicar()}
 function perCambio(){const r=rango();if($('fPer').value!=='custom'){$('fD').value=r.a;$('fH').value=r.b}}
-async function aplicar(){perCambio();const r=rango();if(r.a>r.b)return toast('La fecha "desde" es posterior a "hasta"');
+let _apSeq=0;
+async function aplicar(){perCambio();const r=rango();if(r.a>r.b)return toast('La fecha "desde" es posterior a "hasta"');const seq=++_apSeq;
   const n=days(r.a,r.b);const cmp=$('fCmp').value==='prev';const pb=addD(r.a,-1),pa=addD(pb,-(n-1));
   S.rng={a:r.a,b:r.b,pa:cmp?pa:null,pb:cmp?pb:null,n};
-  $('body').innerHTML='<div class="card">⏳ Cargando datos del período…</div>';
-  try{await cargar(cmp?pa:r.a,r.b)}catch(e){console.error(e);$('body').innerHTML='<div class="card alert bad">No se pudieron cargar los datos: '+esc(e.message)+'</div>';return}
+  if(!subRep())$('body').innerHTML='<div class="card">⏳ Cargando datos del período…</div>';
+  repSync();
+  try{await cargar(cmp?pa:r.a,r.b)}catch(e){if(seq!==_apSeq)return;console.error(e);$('body').innerHTML='<div class="card alert bad">No se pudieron cargar los datos: '+esc(e.message)+'</div>';return}
+  if(seq!==_apSeq)return;
   S.cur=calc(r.a,r.b);S.prv=cmp?calc(pa,pb):null;
   $('fInfo').textContent='Período: '+fD(r.a)+' → '+fD(r.b)+' ('+n+' días)'+(cmp?' · comparado con '+fD(pa)+' → '+fD(pb):'');
   render();}
@@ -105,15 +114,25 @@ async function cargar(a,b){S.faltan=[];const R=S.raw;
   const [rec,prd,desc,ent,cv,cc,cob,pag,caja,banco]=await Promise.all([
     fetchAll('recepciones',fd('fecha')),fetchAll('producciones',fd('fecha')),fetchAll('descartes',fd('fecha')),fetchAll('entregas',fd('fecha')),
     fetchAll('comprobantes_venta',fd('fecha')),fetchAll('comprobantes_compra',fd('fecha')),fetchAll('cobranzas',fd('fecha')),fetchAll('pagos',fd('fecha')),
-    fetchAll('caja_movimientos',q=>q.gte('fecha_hora',a+'T00:00:00').lte('fecha_hora',b+'T23:59:59')),fetchAll('banco_movimientos',fd('fecha'))]);
+    Promise.resolve([]),Promise.resolve([])]);
   Object.assign(R,{rec,prd,desc,ent,cv,cc,cob,pag,caja,banco});
+  // tot 2.0: comprobantes en dólares → pesos (cotización del comprobante)
+  const FXF=['neto_gravado','neto_no_gravado','exento','iva_105','iva_21','iva_27','tributos','total','saldo'];const fxN=c=>{if(c._fx)return;const f=c.moneda==='DOL'?num(c.cotizacion)||1:1;c._fx=f;if(f!==1)FXF.forEach(k=>{if(c[k]!=null)c[k]=num(c[k])*f})};cv.forEach(fxN);
   const pid=new Set(prd.map(p=>p.id)),eid=new Set(ent.map(e=>e.id));
   const [outs,items,cxc,cxp,clis]=await Promise.all([
     prd.length?fetchAll('produccion_outputs'):Promise.resolve([]),
     ent.length?fetchAll('entrega_items'):Promise.resolve([]),
     fetchAll('comprobantes_venta',q=>q.gt('saldo',0)),fetchAll('comprobantes_compra',q=>q.gt('saldo',0)),fetchAll('clientes')]);
   R.outs=outs.filter(o=>pid.has(o.produccion_id));R.items=items.filter(i=>eid.has(i.entrega_id));R.cxc=cxc;R.cxp=cxp;
-  R.cli={};clis.forEach(c=>R.cli[c.id]=c.razon_social||c.nombre||'');
+  R.cli={};clis.forEach(c=>R.cli[c.id]=c.razon_social||c.nombre||'');R.clis=clis;cxc.forEach(fxN);
+  // tot 2.0: detalle para reportes ERP
+  const [cvi,cci,cobm,cobr,pagm,chq,cajas,ctas,vends,prods,cjmAll,bmAll,nov]=await Promise.all([
+    fetchIn('comprobantes_venta_items','comprobante_id',cv.map(c=>c.id)),fetchIn('comprobantes_compra_items','comprobante_id',cc.map(c=>c.id)),
+    fetchIn('cobranza_medios','cobranza_id',cob.map(c=>c.id)),fetchIn('cobranza_retenciones','cobranza_id',cob.map(c=>c.id)),fetchIn('pago_medios','pago_id',pag.map(p=>p.id)),
+    fetchAll('cheques'),fetchAll('cajas'),fetchAll('cuentas_bancarias'),fetchAll('vendedores'),fetchAll('productos'),fetchAll('caja_movimientos'),fetchAll('banco_movimientos'),fetchAll('novedades',fd('fecha'))]);
+  const fxm={};cv.forEach(c=>fxm[c.id]=c._fx||1);cvi.forEach(i=>{const f=fxm[i.comprobante_id]||1;if(f!==1)['neto','iva','precio_unit'].forEach(k=>{if(i[k]!=null)i[k]=num(i[k])*f})});
+  Object.assign(R,{cvi,cci,cobm,cobr,pagm,chq,cajas,ctas,vends,cjmAll,bmAll,nov});R.prods={};prods.forEach(p=>R.prods[p.id]=p);
+  R.caja=cjmAll.filter(m=>inR(String(m.fecha_hora).slice(0,10),a,b));R.banco=bmAll.filter(m=>inR(m.fecha,a,b));
   S.faltan=[...new Set(S.faltan)];}
 // ───────── cálculo ─────────
 const neto=x=>num(x.neto_gravado)+num(x.neto_no_gravado)+num(x.exento);
@@ -131,7 +150,7 @@ function calc(a,b){const R=S.raw,X={a,b};
     porProd:group(outs,o=>o.producto_nombre,o=>num(o.cantidad)),descKg:dkg,descPct:(mpkg+dkg)>0?dkg/Math.max(mpkg,1):null,
     descPorMP:group(des,d=>d.materia_prima,d=>num(d.kg)),descPorMotivo:group(des,d=>d.motivo,d=>num(d.kg)),
     porMes:group(prd,p=>String(p.fecha).slice(0,7),p=>num(p.mp_kg)).sort((x,y)=>x.k<y.k?-1:1)};
-  const cv=R.cv.filter(c=>vivaV(c)&&inR(c.fecha,a,b));const sg=c=>c.clase==='nc'?-1:1;
+  const cv=R.cv.filter(c=>esVenta(c)&&inR(c.fecha,a,b));const sg=c=>c.clase==='nc'?-1:1;
   const vt=cv.reduce((s,c)=>s+sg(c)*num(c.total),0),vn=cv.reduce((s,c)=>s+sg(c)*neto(c),0);
   const fac=cv.filter(c=>c.clase!=='nc');
   X.ven={n:fac.length,total:vt,neto:vn,nc:cv.filter(c=>c.clase==='nc').reduce((s,c)=>s+num(c.total),0),
@@ -144,13 +163,13 @@ function calc(a,b){const R=S.raw,X={a,b};
   X.rem={n:ent.length,muestras:ent.filter(e=>e.es_muestra).length,unid:real.reduce((s,i)=>s+num(i.cantidad),0),valor:real.reduce((s,i)=>s+num(i.cantidad)*num(i.precio),0),
     porProd:group(real,i=>i.producto_nombre,i=>num(i.cantidad)),porProdVal:group(real,i=>i.producto_nombre,i=>num(i.cantidad)*num(i.precio)),
     porCli:group(ent,e=>R.cli[e.cliente_id]||'(sin cliente)',e=>real.filter(i=>i.entrega_id===e.id).reduce((s,i)=>s+num(i.cantidad),0))};
-  const cc=R.cc.filter(c=>c.estado!=='anulada'&&inR(c.fecha,a,b));const sc=c=>c.clase==='nc'?-1:1;
+  const cc=R.cc.filter(c=>esCompra(c)&&inR(c.fecha,a,b));const sc=c=>c.clase==='nc'?-1:1;
   X.cmp={n:cc.length,total:cc.reduce((s,c)=>s+sc(c)*num(c.total),0),neto:cc.reduce((s,c)=>s+sc(c)*neto(c),0),
     compras:cc.filter(c=>c.subtipo!=='gasto').reduce((s,c)=>s+sc(c)*neto(c),0),gastos:cc.filter(c=>c.subtipo==='gasto').reduce((s,c)=>s+sc(c)*neto(c),0),
     porProv:group(cc,c=>c.proveedor_nombre,c=>sc(c)*num(c.total)),porCat:group(cc.filter(c=>c.subtipo==='gasto'),c=>c.categoria||c.concepto,c=>sc(c)*neto(c)),
     porMes:group(cc,c=>String(c.fecha).slice(0,7),c=>sc(c)*num(c.total)).sort((x,y)=>x.k<y.k?-1:1)};
   const cob=R.cob.filter(c=>c.estado!=='anulada'&&inR(c.fecha,a,b)),pag=R.pag.filter(p=>p.estado!=='anulado'&&p.estado!=='anulada'&&inR(p.fecha,a,b));
-  const cj=R.caja.filter(m=>m.estado!=='anulado'&&m.estado!=='anulada'),bn=R.banco.filter(m=>m.estado!=='anulado'&&m.estado!=='anulada'&&inR(m.fecha,a,b));
+  const cj=R.caja.filter(m=>m.estado!=='anulado'&&m.estado!=='anulada'&&inR(String(m.fecha_hora).slice(0,10),a,b)),bn=R.banco.filter(m=>m.estado!=='anulado'&&m.estado!=='anulada'&&inR(m.fecha,a,b));
   X.fin={cobrado:cob.reduce((s,c)=>s+num(c.total_neto),0),nCob:cob.length,pagado:pag.reduce((s,p)=>s+num(p.total),0),nPag:pag.length,
     cajaIng:cj.filter(m=>m.tipo==='ingreso').reduce((s,m)=>s+num(m.importe),0),cajaEgr:cj.filter(m=>m.tipo==='egreso').reduce((s,m)=>s+num(m.importe),0),
     bcoCre:bn.filter(m=>m.tipo==='credito').reduce((s,m)=>s+num(m.importe),0),bcoDeb:bn.filter(m=>m.tipo==='debito').reduce((s,m)=>s+num(m.importe),0),
@@ -199,7 +218,7 @@ function vProd(){const c=S.cur,p=S.prv,g=f=>p?f(p):null;
   ${card('Producción por producto',tbl(['Producto','Unidades'],c.prod.porProd.map(x=>[esc(x.k),nf(x.v)]),'produccion_producto'))}
   ${card('Descarte por materia prima',tbl(['Materia prima','Kg descartados'],c.prod.descPorMP.map(x=>[esc(x.k),nf(x.v,1)]),'descarte_mp'))}
   ${card('Descarte por motivo',bars(c.prod.descPorMotivo,v=>nf(v,1)+' kg'))}${card('MP procesada por mes (kg)',cols(c.prod.porMes,v=>nf(v)))}</div>
-  <div class="hint">El detalle por lote (Rinde por lote, Trazabilidad, Capacidad h-h) sigue en CONTROL TRACE → Reportes.</div>`}
+  <div class="hint">El detalle por lote (Rinde por lote, Trazabilidad, Capacidad h-h, Estacionalidad, Cumplimiento y el resto) está en los botones de arriba de esta pestaña.</div>`}
 function vCom(){const c=S.cur,p=S.prv,g=f=>p?f(p):null;
   return `<div class="kpis">${kpi('Comprobantes emitidos',nf(c.ven.n),c.ven.n,g(x=>x.ven.n))}${kpi('Facturado con IVA (neto de NC)',m$(c.ven.total),c.ven.total,g(x=>x.ven.total))}${kpi('Ticket promedio',m$(c.ven.ticket),c.ven.ticket,g(x=>x.ven.ticket))}${kpi('Notas de crédito',m$(c.ven.nc),c.ven.nc,g(x=>x.ven.nc),true)}${kpi('Remitos',nf(c.rem.n),c.rem.n,g(x=>x.rem.n))}${kpi('Unidades entregadas',nf(c.rem.unid),c.rem.unid,g(x=>x.rem.unid))}${kpi('Valor de remitos (lista)',m$(c.rem.valor),c.rem.valor,g(x=>x.rem.valor))}</div>
   <div class="g2">${card('Ventas por cliente',tbl(['Cliente','Facturado'],c.ven.porCli.slice(0,25).map(x=>[esc(x.k),m$(x.v)]),'ventas_cliente'))}
@@ -263,10 +282,256 @@ function mdHTML(t){const L=String(t).replace(/\r/g,'').split('\n');let h='',ul=f
   const cl=()=>{if(ul){h+='</ul>';ul=false}if(tb){h+='<table><thead><tr>'+tb[0].map(c=>'<th>'+inl(c)+'</th>').join('')+'</tr></thead><tbody>'+tb.slice(1).map(r=>'<tr>'+r.map(c=>'<td>'+inl(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';tb=null}};
   L.forEach(l=>{const s=l.trim();if(/^\|.*\|$/.test(s)){if(/^\|[\s:|-]+\|$/.test(s))return;if(ul){h+='</ul>';ul=false}tb=tb||[];tb.push(s.slice(1,-1).split('|').map(x=>x.trim()));return}
     cl();let m;if(m=s.match(/^(#{1,4})\s+(.*)/)){const n=Math.min(4,m[1].length+1);h+=`<h${n}>${inl(m[2])}</h${n}>`}else if(m=s.match(/^[-*•]\s+(.*)/)){if(!ul){h+='<ul>';ul=true}h+='<li>'+inl(m[1])+'</li>'}else if(m=s.match(/^\d+[.)]\s+(.*)/)){if(!ul){h+='<ul>';ul=true}h+='<li>'+inl(m[1])+'</li>'}else if(s)h+='<p>'+inl(s)+'</p>'});cl();return h}
+// ═════════════════ REPORTES ERP (tot 2.0) ═════════════════
+// Motor genérico: buscador, filtros, orden por columna, totales, Excel e impresión.
+const RS={};window._RP={};
+const T$='$',TN='n',TN1='n1',TN2='n2',TP='%',TD='d',TX='t';
+function fmtC(t,v){if(v==null||v==='')return '—';if(t===T$)return m$(v);if(t===TN)return nf(v);if(t===TN1)return nf(v,1);if(t===TN2)return nf(v,2);if(t===TP)return isFinite(v)?pc(v):'—';if(t===TD)return fD(v);return esc(v)}
+function rpt(o){const st=RS[o.id]=RS[o.id]||{q:'',s:o.sort==null?null:o.sort,d:o.dir||-1,f:{}};window._RP[o.id]=o;
+  const fl=(o.filters||[]).map(f=>{const vals=[...new Set(o.rows.map(r=>r[f.k]).filter(v=>v!=null&&v!==''))].sort();return `<div><label>${f.l}</label><select onchange="rptF('${o.id}','${f.k}',this.value)"><option value="">Todos</option>${vals.map(v=>`<option ${st.f[f.k]===String(v)?'selected':''}>${esc(v)}</option>`).join('')}</select></div>`}).join('');
+  return `<div class="card rp" id="rpc_${o.id}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap"><div><h3 style="margin-bottom:2px">${o.titulo}</h3><div class="hint">${o.desc||''}</div><div class="hint prt-only">Período: ${fD(S.rng.a)} al ${fD(S.rng.b)} · ${esc((S.emp&&S.emp.razon_social)||'')}</div></div>
+  <div class="noprint" style="display:flex;gap:6px"><button class="btn" onclick="rptXls('${o.id}')">⬇ Excel</button><button class="btn" onclick="rptPrint('${o.id}')">🖨 Imprimir</button></div></div>
+  ${o.pre||''}
+  <div class="bar noprint" style="margin:10px 0">${o.noSearch?'':`<div><label>Buscar</label><input placeholder="Escribí para filtrar…" value="${esc(st.q)}" oninput="rptQ('${o.id}',this.value)" style="min-width:230px"></div>`}${fl}</div>
+  <div id="rpb_${o.id}" style="overflow:auto">${rptTable(o.id)}</div>${o.post||''}</div>`}
+function rptRows(id){const o=window._RP[id],st=RS[id];let rows=o.rows.slice();
+  if(st.q){const q=st.q.toLowerCase();rows=rows.filter(r=>o.cols.some(c=>c.t===TX&&String(r[c.k]==null?'':r[c.k]).toLowerCase().includes(q)))}
+  Object.entries(st.f).forEach(([k,v])=>{if(v)rows=rows.filter(r=>String(r[k])===v)});
+  if(st.s!=null){const c=o.cols[st.s];rows.sort((a,b)=>{let x=a[c.k],y=b[c.k];if(x==null)x=c.t===TX||c.t===TD?'':-Infinity;if(y==null)y=c.t===TX||c.t===TD?'':-Infinity;return (x<y?-1:x>y?1:0)*st.d})}
+  return rows}
+function rptTot(o,rows){return o.cols.map((c,i)=>{if(i===0)return 'TOTAL ('+rows.length+')';if(typeof c.tot==='function')return c.tot(rows);if(c.tot===false||c.t===TX||c.t===TD||c.t===TP)return null;return rows.reduce((s,r)=>s+num(r[c.k]),0)})}
+function rptTable(id){const o=window._RP[id],st=RS[id],rows=rptRows(id);const tot=o.noTot?null:rptTot(o,rows);const lim=o.limit||1500;
+  const al=c=>c.t===TX||c.t===TD?'':'r';
+  return `<table><thead><tr>${o.cols.map((c,i)=>`<th class="${al(c)}" style="cursor:pointer;white-space:nowrap" onclick="rptS('${id}',${i})">${c.l}${st.s===i?(st.d>0?' ▲':' ▼'):''}</th>`).join('')}</tr></thead>
+  <tbody>${rows.slice(0,lim).map(r=>`<tr${r._cls?` class="${r._cls}"`:''}>${o.cols.map(c=>`<td class="${al(c)}">${c.h?c.h(r):fmtC(c.t,r[c.k])}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${o.cols.length}" class="hint">Sin datos en el período</td></tr>`}</tbody>
+  ${tot&&rows.length?`<tfoot><tr style="font-weight:800;background:#f6f8fb">${o.cols.map((c,i)=>`<td class="${al(c)}">${i===0?tot[0]:tot[i]==null?'':fmtC(c.t===TX?TN:c.t,tot[i])}</td>`).join('')}</tr></tfoot>`:''}</table>${rows.length>lim?`<div class="hint">Se muestran ${lim} de ${rows.length} filas. La exportación a Excel incluye todas.</div>`:''}`}
+function rptQ(id,v){RS[id].q=v;$('rpb_'+id).innerHTML=rptTable(id)}
+function rptF(id,k,v){RS[id].f[k]=v;$('rpb_'+id).innerHTML=rptTable(id)}
+function rptS(id,i){const st=RS[id];if(st.s===i)st.d=-st.d;else{st.s=i;const t=window._RP[id].cols[i].t;st.d=t===TX||t===TD?1:-1}$('rpb_'+id).innerHTML=rptTable(id)}
+let _xlsxP=null;function loadXLSX(){if(window.XLSX)return Promise.resolve();if(!_xlsxP)_xlsxP=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=res;s.onerror=()=>rej(new Error('No se pudo cargar el exportador'));document.head.appendChild(s)});return _xlsxP}
+async function rptXls(id){const o=window._RP[id],rows=rptRows(id);const val=(c,r)=>{const v=r[c.k];if(v==null)return '';if(c.t===TD)return fD(v);if(c.t===TP)return isFinite(v)?Math.round(v*1000)/10:'';if(c.t===TX)return String(v);return Math.round(num(v)*100)/100};
+  const aoa=[[o.titulo],['Período: '+fD(S.rng.a)+' al '+fD(S.rng.b)],[],o.cols.map(c=>c.l+(c.t===TP?' (%)':''))].concat(rows.map(r=>o.cols.map(c=>val(c,r))));
+  if(!o.noTot){const t=rptTot(o,rows);aoa.push(o.cols.map((c,i)=>i===0?t[0]:t[i]==null?'':c.t===TP?Math.round(t[i]*1000)/10:Math.round(num(t[i])*100)/100))}
+  const fname=(o.file||o.id)+'_'+S.rng.a+'_'+S.rng.b;
+  try{await loadXLSX();const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=o.cols.map(c=>({wch:c.t===TX?Math.min(40,Math.max(12,c.l.length+2)):Math.max(12,c.l.length+2)}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Reporte');XLSX.writeFile(wb,fname+'.xlsx')}
+  catch(e){csv(fname,aoa.slice(3))}}
+function rptPrint(id){document.body.classList.add('prt');const c=$('rpc_'+id);c.classList.add('prt-on');const lim=window._RP[id].limit;window._RP[id].limit=1e9;$('rpb_'+id).innerHTML=rptTable(id);
+  setTimeout(()=>{window.print();document.body.classList.remove('prt');c.classList.remove('prt-on');window._RP[id].limit=lim;$('rpb_'+id).innerHTML=rptTable(id)},50)}
+function kpis(arr){return `<div class="kpis">${arr.map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v">${k[1]}</div>${k[2]?`<div class="sk">${k[2]}</div>`:''}</div>`).join('')}</div>`}
+function sumBy(a,f){return a.reduce((s,x)=>s+num(f(x)),0)}
+function varP(c,p){return p?(c-p)/Math.abs(p):null}
+function abc(rows,k){const tot=rows.reduce((s,r)=>s+Math.max(0,num(r[k])),0);let acc=0;rows.slice().sort((a,b)=>num(b[k])-num(a[k])).forEach(r=>{acc+=Math.max(0,num(r[k]));r.pct=tot?num(r[k])/tot:0;r.acum=tot?acc/tot:0;r.abc=r.acum<=.8||r.pct>=.8?'A':r.acum<=.95?'B':'C'});return rows}
+const nroV=c=>(c.tipo||c.clase||'')+' '+pad(c.punto_venta||0,5)+'-'+pad(c.numero||0,8);
+const nroC=c=>(c.tipo||'')+' '+(c.nro_comprobante||('#'+(c.numero_interno||'')));
+const sgn=c=>c.clase==='nc'?-1:1;
+// ───── acceso a datos del período ─────
+const esVenta=c=>(!c.clase||['factura','nc','nd'].includes(c.clase))&&!['anulada','borrador'].includes(c.estado);
+const esCompra=c=>c.estado!=='anulada'&&c.clase!=='saldo_inicial'&&c.tipo!=='Saldo inicial';
+function per(prev){const r=S.rng;return prev?(r.pa?[r.pa,r.pb]:null):[r.a,r.b]}
+function ventasP(prev){const p=per(prev);return p?S.raw.cv.filter(c=>esVenta(c)&&inR(c.fecha,p[0],p[1])):[]}
+function comprasP(prev){const p=per(prev);return p?S.raw.cc.filter(c=>esCompra(c)&&inR(c.fecha,p[0],p[1])):[]}
+function itemsV(cvs){const ids=new Set(cvs.map(c=>c.id)),m={};cvs.forEach(c=>m[c.id]=c);return (S.raw.cvi||[]).filter(i=>ids.has(i.comprobante_id)).map(i=>({...i,_c:m[i.comprobante_id],_s:sgn(m[i.comprobante_id])}))}
+function itemsC(ccs){const ids=new Set(ccs.map(c=>c.id)),m={};ccs.forEach(c=>m[c.id]=c);return (S.raw.cci||[]).filter(i=>ids.has(i.comprobante_id)).map(i=>({...i,_c:m[i.comprobante_id],_s:sgn(m[i.comprobante_id])}))}
+const cliOf=id=>(S.raw.clis||[]).find(c=>c.id===id)||{};
+const prodOf=id=>(S.raw.prods||{})[id]||{};
+const vendN=id=>((S.raw.vends||[]).find(v=>v.id===id)||{}).nombre||'(sin vendedor)';
+const artKey=i=>i.producto_id||('d:'+(i.descripcion||'').toUpperCase());
+function bucketK(f){const n=S.rng.n;f=String(f).slice(0,10);if(n>62)return f.slice(0,7);if(n>21){const d=new Date(f+'T12:00:00');const w=new Date(d);w.setDate(d.getDate()-((d.getDay()+6)%7));return iso(w)}return f}
+function bucketL(k){if(k.length===7){const [y,m]=k.split('-');return MES[+m-1]+' '+y.slice(2)}return S.rng.n>21?'Sem. '+fD(k).slice(0,5):fD(k).slice(0,5)}
+function colsB(data,fmt){if(!data.length)return '<div class="hint">Sin datos</div>';const mx=Math.max(...data.map(d=>Math.abs(d.v)),1);return `<div style="display:flex;align-items:flex-end;gap:4px;height:160px;padding-top:18px;overflow-x:auto">`+data.map(d=>`<div style="flex:1;min-width:26px;text-align:center"><div style="font-size:10px;font-variant-numeric:tabular-nums;white-space:nowrap">${fmt(d.v)}</div><div style="height:${Math.max(3,Math.abs(d.v)/mx*110)}px;background:${d.v<0?'#B3261E':'#1A2E45'};border-radius:4px 4px 0 0;margin:2px 2px 0"></div><div class="sk" style="font-size:10px;white-space:nowrap">${d.l}</div></div>`).join('')+'</div>'}
+function saldoPorCliente(){const t=hoy(),m={};(S.raw.cxc||[]).filter(c=>!['anulada','borrador','presupuesto'].includes(c.estado)&&c.clase!=='presupuesto'&&num(c.saldo)>0).forEach(c=>{const k=c.cliente_id||c.cliente_nombre;const g=m[k]=m[k]||{cli:c.cliente_nombre,id:c.cliente_id,saldo:0,av:0,b1:0,b2:0,b3:0,b4:0,n:0};const s=num(c.saldo)*(c.clase==='nc'?-1:1);g.saldo+=s;g.n++;
+    if(c.clase==='nc'){g.av+=s;return}const v=String(c.fecha_vto||c.fecha).slice(0,10);const d=v<t?Math.round((new Date(t+'T12:00:00')-new Date(v+'T12:00:00'))/864e5):0;if(d<=0)g.av+=s;else if(d<=30)g.b1+=s;else if(d<=60)g.b2+=s;else if(d<=90)g.b3+=s;else g.b4+=s});return Object.values(m)}
+function saldoPorProv(){const t=hoy(),m={};(S.raw.cxp||[]).filter(c=>c.estado!=='anulada'&&num(c.saldo)>0).forEach(c=>{const k=c.proveedor_id||c.proveedor_nombre;const g=m[k]=m[k]||{prv:c.proveedor_nombre||c.concepto||'(sin proveedor)',saldo:0,av:0,b1:0,b2:0,b3:0,b4:0,n:0};const s=num(c.saldo)*(c.clase==='nc'?-1:1);g.saldo+=s;g.n++;
+    if(c.clase==='nc'){g.av+=s;return}const v=String(c.fecha_vto||c.fecha).slice(0,10);const d=v<t?Math.round((new Date(t+'T12:00:00')-new Date(v+'T12:00:00'))/864e5):0;if(d<=0)g.av+=s;else if(d<=30)g.b1+=s;else if(d<=60)g.b2+=s;else if(d<=90)g.b3+=s;else g.b4+=s});return Object.values(m)}
+const COLS_AGING=[{k:'av',l:'Al día / a vencer',t:T$},{k:'b1',l:'1-30 días',t:T$},{k:'b2',l:'31-60',t:T$},{k:'b3',l:'61-90',t:T$},{k:'b4',l:'+90',t:T$}];
+function faltaAviso(tabs){const f=(tabs||[]).filter(t=>S.faltan.includes(t));return f.length?`<div class="alert warn">No se encontraron datos de: ${f.join(', ')}. Esa parte del reporte aparece vacía.</div>`:''}
+
+// ═════════ COMERCIAL ═════════
+const R_COM={
+ facCli(){const cv=ventasP(),pv=ventasP(true),m={};const add=(c,prev)=>{const k=c.cliente_id||c.cliente_nombre;const g=m[k]=m[k]||{cli:c.cliente_nombre,cod:cliOf(c.cliente_id).codigo||'',n:0,neto:0,iva:0,total:0,nc:0,ant:0,ult:''};if(prev){g.ant+=sgn(c)*neto(c);return}g.cli=c.cliente_nombre||g.cli;if(c.clase==='nc')g.nc+=num(c.total);else{g.n++;if(String(c.fecha)>g.ult)g.ult=String(c.fecha).slice(0,10)}g.neto+=sgn(c)*neto(c);g.total+=sgn(c)*num(c.total);g.iva+=sgn(c)*(num(c.total)-neto(c))};
+  cv.forEach(c=>add(c));pv.forEach(c=>add(c,true));let rows=Object.values(m).filter(r=>r.n||r.neto||r.nc);abc(rows,'neto');rows.forEach(r=>{r.var=S.prv?varP(r.neto,r.ant):null;r.tk=r.n?r.total/r.n:0});
+  return rpt({id:'facCli',titulo:'Facturación por cliente',desc:'Ranking de clientes por facturación neta (sin IVA, descontando notas de crédito), con clasificación ABC y variación contra el período anterior.',sort:4,rows,filters:[{k:'abc',l:'Clase ABC'}],
+   cols:[{k:'cod',l:'Código',t:TX},{k:'cli',l:'Cliente',t:TX},{k:'n',l:'Comprob.',t:TN},{k:'nc',l:'Notas de crédito',t:T$},{k:'neto',l:'Neto',t:T$},{k:'iva',l:'IVA y tributos',t:T$},{k:'total',l:'Total',t:T$},{k:'tk',l:'Ticket prom.',t:T$,tot:false},{k:'pct',l:'% del total',t:TP,tot:r=>1},{k:'abc',l:'ABC',t:TX},{k:'ant',l:'Neto período ant.',t:T$},{k:'var',l:'Var. %',t:TP,tot:r=>varP(sumBy(r,x=>x.neto),sumBy(r,x=>x.ant))},{k:'ult',l:'Última compra',t:TD}]})},
+ libroV(){const rows=ventasP().map(c=>{const s=sgn(c);return {f:c.fecha,nro:nroV(c),cli:c.cliente_nombre,cuit:c.cliente_cuit||'',civa:c.cliente_iva||'',ng:s*num(c.neto_gravado),nn:s*num(c.neto_no_gravado),ex:s*num(c.exento),i105:s*num(c.iva_105),i21:s*num(c.iva_21),i27:s*num(c.iva_27),trib:s*num(c.tributos),tot:s*num(c.total),saldo:num(c.saldo),est:c.estado||'',cae:c.cae?'Sí':'No'}});
+  return rpt({id:'libroV',titulo:'Libro IVA Ventas / Detalle de comprobantes',desc:'Todos los comprobantes de venta del período (facturas, notas de débito y de crédito; las NC restan). Sin presupuestos, borradores ni anulados.',sort:0,dir:1,rows,filters:[{k:'civa',l:'Cond. IVA'},{k:'cae',l:'Con CAE'}],
+   cols:[{k:'f',l:'Fecha',t:TD},{k:'nro',l:'Comprobante',t:TX},{k:'cli',l:'Cliente',t:TX},{k:'cuit',l:'CUIT',t:TX},{k:'civa',l:'Cond. IVA',t:TX},{k:'ng',l:'Neto gravado',t:T$},{k:'nn',l:'No gravado',t:T$},{k:'ex',l:'Exento',t:T$},{k:'i105',l:'IVA 10,5%',t:T$},{k:'i21',l:'IVA 21%',t:T$},{k:'i27',l:'IVA 27%',t:T$},{k:'trib',l:'Tributos',t:T$},{k:'tot',l:'Total',t:T$},{k:'saldo',l:'Saldo pend.',t:T$},{k:'est',l:'Estado',t:TX}]})},
+ artCli(){const its=itemsV(ventasP()),m={},tc={};its.forEach(i=>{const c=i._c,ck=c.cliente_id||c.cliente_nombre,k=ck+'|'+artKey(i);const p=prodOf(i.producto_id);const g=m[k]=m[k]||{cli:c.cliente_nombre,ck,cod:i.codigo||p.codigo||'',art:i.descripcion||p.nombre||'',rubro:p.rubro||'',cant:0,un:i.unidad||'',neto:0,n:new Set()};g.cant+=i._s*num(i.cantidad);g.neto+=i._s*num(i.neto);g.n.add(c.id);tc[ck]=(tc[ck]||0)+i._s*num(i.neto)});
+  const rows=Object.values(m).map(r=>({...r,veces:r.n.size,pp:r.cant?r.neto/r.cant:0,pct:tc[r.ck]?r.neto/tc[r.ck]:0})).sort((a,b)=>String(a.cli).localeCompare(b.cli)||b.neto-a.neto);
+  return rpt({id:'artCli',titulo:'Artículos vendidos por cliente',desc:'Qué compra cada cliente: cantidades, importe neto y precio promedio por artículo. Escribí el nombre del cliente en el buscador para ver solo el suyo.',rows,filters:[{k:'rubro',l:'Rubro'}],
+   cols:[{k:'cli',l:'Cliente',t:TX},{k:'cod',l:'Código',t:TX},{k:'art',l:'Artículo',t:TX},{k:'rubro',l:'Rubro',t:TX},{k:'cant',l:'Cantidad',t:TN1},{k:'un',l:'Unidad',t:TX},{k:'veces',l:'Comprob.',t:TN},{k:'neto',l:'Neto',t:T$},{k:'pp',l:'Precio prom.',t:T$,tot:false},{k:'pct',l:'% del cliente',t:TP}]})},
+ rankArt(){const cur=itemsV(ventasP()),prv=itemsV(ventasP(true)),m={};const g0=i=>{const k=artKey(i),p=prodOf(i.producto_id);return m[k]=m[k]||{cod:i.codigo||p.codigo||'',art:i.descripcion||p.nombre||'',rubro:p.rubro||'',un:i.unidad||'',cant:0,neto:0,cli:new Set(),antN:0,antC:0}};
+  cur.forEach(i=>{const g=g0(i);g.cant+=i._s*num(i.cantidad);g.neto+=i._s*num(i.neto);g.cli.add(i._c.cliente_id||i._c.cliente_nombre)});prv.forEach(i=>{const g=g0(i);g.antN+=i._s*num(i.neto);g.antC+=i._s*num(i.cantidad)});
+  let rows=Object.values(m).filter(r=>r.cant||r.neto).map(r=>({...r,ncli:r.cli.size,pp:r.cant?r.neto/r.cant:0,var:S.prv?varP(r.neto,r.antN):null,varC:S.prv?varP(r.cant,r.antC):null}));abc(rows,'neto');rows.sort((a,b)=>b.neto-a.neto).forEach((r,i)=>r.pos=i+1);
+  return rpt({id:'rankArt',titulo:'Ranking de artículos vendidos (ABC)',desc:'Artículos ordenados por venta neta. Clase A = el 80% de la facturación, B = el siguiente 15%, C = el 5% restante.',sort:7,rows,filters:[{k:'abc',l:'Clase ABC'},{k:'rubro',l:'Rubro'}],
+   cols:[{k:'pos',l:'#',t:TN,tot:false},{k:'cod',l:'Código',t:TX},{k:'art',l:'Artículo',t:TX},{k:'rubro',l:'Rubro',t:TX},{k:'cant',l:'Cantidad',t:TN1},{k:'un',l:'Unidad',t:TX},{k:'ncli',l:'Clientes',t:TN,tot:false},{k:'neto',l:'Neto',t:T$},{k:'pp',l:'Precio prom.',t:T$,tot:false},{k:'pct',l:'% ventas',t:TP,tot:r=>1},{k:'acum',l:'% acum.',t:TP,tot:false},{k:'abc',l:'ABC',t:TX},{k:'varC',l:'Var. cant.',t:TP,tot:false},{k:'var',l:'Var. neto',t:TP,tot:r=>varP(sumBy(r,x=>x.neto),sumBy(r,x=>x.antN))}]})},
+ estad(){const cv=ventasP(),pv=ventasP(true),its=itemsV(cv);const nt=sumBy(cv,c=>sgn(c)*neto(c)),ntp=sumBy(pv,c=>sgn(c)*neto(c));const fac=cv.filter(c=>c.clase!=='nc');const clis=new Set(fac.map(c=>c.cliente_id||c.cliente_nombre)),clisP=new Set(pv.filter(c=>c.clase!=='nc').map(c=>c.cliente_id||c.cliente_nombre));
+  const nuevos=[...clis].filter(c=>!clisP.has(c)).length,perdidos=[...clisP].filter(c=>!clis.has(c)).length;const ncT=sumBy(cv.filter(c=>c.clase==='nc'),c=>neto(c));
+  const unid=sumBy(its,i=>i._s*num(i.cantidad));const arts=new Set(its.map(artKey)).size;const dias=S.rng.n;
+  const gb=(arr,kf,vf)=>group(arr,kf,vf);const porBk=Object.entries(cv.reduce((m,c)=>{const k=bucketK(c.fecha);m[k]=(m[k]||0)+sgn(c)*neto(c);return m},{})).sort().map(([k,v])=>({l:bucketL(k),v}));
+  const DS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];const porDia=DS.map((d,i)=>({k:d,v:sumBy(cv.filter(c=>new Date(String(c.fecha).slice(0,10)+'T12:00:00').getDay()===i),c=>sgn(c)*neto(c))})).filter(x=>x.v);
+  const porRub=gb(its,i=>prodOf(i.producto_id).rubro||'(sin rubro)',i=>i._s*num(i.neto));const porVend=gb(cv,c=>vendN(c.vendedor_id),c=>sgn(c)*neto(c));
+  const porLoc=gb(cv,c=>{const x=cliOf(c.cliente_id);return [x.localidad,x.provincia].filter(Boolean).join(', ')||'(sin localidad)'},c=>sgn(c)*neto(c));const porCond=gb(fac,c=>c.condicion_pago||'(sin dato)',c=>neto(c));
+  const cliR=gb(cv,c=>c.cliente_nombre,c=>sgn(c)*neto(c));const top5=sumBy(cliR.slice(0,5),x=>x.v);const artR=gb(its,i=>i.descripcion,i=>i._s*num(i.neto));const top10=sumBy(artR.slice(0,10),x=>x.v);
+  const vp=v=>S.prv&&ntp?` · ${v>=0?'▲':'▼'} ${nf(Math.abs(v)*100,1)}% vs ant.`:'';
+  return `<div class="card"><h3>Estadísticas de ventas</h3><div class="hint">Montos netos sin IVA, con notas de crédito descontadas.</div></div>`+
+  kpis([['Venta neta',m$(nt),S.prv?vp(varP(nt,ntp)).slice(3):''],['Venta neta por día',m$(dias?nt/dias:0),dias+' días del período'],['Comprobantes',nf(fac.length),''],['Ticket promedio',m$(fac.length?sumBy(fac,c=>neto(c))/fac.length:0),'neto por factura'],['Clientes que compraron',nf(clis.size),S.prv?nuevos+' nuevos · '+perdidos+' dejaron de comprar':''],['Artículos distintos',nf(arts),nf(unid)+' unidades'],['Notas de crédito',m$(ncT),nt?pc(ncT/(nt+ncT))+' de lo facturado':''],['Concentración',nt?pc(top5/nt):'—','de la venta en los 5 mejores clientes']])+
+  `<div class="g2">${card('Evolución de la venta neta',colsB(porBk,v=>'$'+nf(v/1000)+'k'))}${card('Venta por día de la semana',bars(porDia,m$,7))}${card('Venta por rubro',bars(porRub,m$,10))}${card('Venta por vendedor',bars(porVend,m$,10))}${card('Venta por localidad',bars(porLoc,m$,10))}${card('Condición de pago (facturas)',bars(porCond,m$))}${card('Top 10 clientes',bars(cliR,m$,10))}${card('Top 10 artículos',bars(artR,m$,10)+`<div class="hint" style="margin-top:6px">Los 10 primeros artículos son el ${nt?pc(top10/nt):'—'} de la venta.</div>`)}</div>`},
+ vend(){const cv=ventasP(),pv=ventasP(true),m={};const g0=c=>{const k=c.vendedor_id||'-';return m[k]=m[k]||{v:vendN(c.vendedor_id),n:0,cli:new Set(),neto:0,total:0,ant:0}};
+  cv.forEach(c=>{const g=g0(c);if(c.clase!=='nc'){g.n++;g.cli.add(c.cliente_id)}g.neto+=sgn(c)*neto(c);g.total+=sgn(c)*num(c.total)});pv.forEach(c=>{g0(c).ant+=sgn(c)*neto(c)});
+  const tot=Object.values(m).reduce((s,g)=>s+g.neto,0);const rows=Object.values(m).map(g=>({...g,ncli:g.cli.size,tk:g.n?g.total/g.n:0,pct:tot?g.neto/tot:0,var:S.prv?varP(g.neto,g.ant):null}));
+  return rpt({id:'vend',titulo:'Ventas por vendedor',desc:'Facturación neta por vendedor asignado en el comprobante.',sort:3,rows,
+   cols:[{k:'v',l:'Vendedor',t:TX},{k:'n',l:'Comprob.',t:TN},{k:'ncli',l:'Clientes',t:TN},{k:'neto',l:'Neto',t:T$},{k:'total',l:'Total con IVA',t:T$},{k:'tk',l:'Ticket prom.',t:T$,tot:false},{k:'pct',l:'% del total',t:TP,tot:r=>1},{k:'ant',l:'Neto período ant.',t:T$},{k:'var',l:'Var. %',t:TP,tot:r=>varP(sumBy(r,x=>x.neto),sumBy(r,x=>x.ant))}]})},
+ evoCli(){if(!S.prv)return '<div class="card alert warn">Este reporte compara contra el período anterior: elegí "Comparar con: Período anterior" arriba.</div>';
+  const m={};const add=(c,k2)=>{const k=c.cliente_id||c.cliente_nombre;const g=m[k]=m[k]||{cli:c.cliente_nombre,act:0,ant:0,ult:''};g[k2]+=sgn(c)*neto(c);if(c.clase!=='nc'&&String(c.fecha)>g.ult)g.ult=String(c.fecha).slice(0,10)};ventasP().forEach(c=>add(c,'act'));ventasP(true).forEach(c=>add(c,'ant'));
+  const t=hoy();const rows=Object.values(m).map(g=>{const v=varP(g.act,g.ant);const sit=g.ant<=0&&g.act>0?'Nuevo / reactivado':g.act<=0&&g.ant>0?'Dejó de comprar':v!=null&&v<=-.3?'Cayó más de 30%':v!=null&&v>=.3?'Creció más de 30%':'Estable';return {...g,dif:g.act-g.ant,var:v,sit,dias:g.ult?days(g.ult,t)-1:null,_cls:sit==='Dejó de comprar'?'rw-bad':sit==='Cayó más de 30%'?'rw-warn':''}});
+  return rpt({id:'evoCli',titulo:'Evolución de clientes',desc:'Compara cada cliente contra el período anterior: quién es nuevo, quién dejó de comprar y quién cayó o creció fuerte. Ideal para que el equipo comercial llame a los que se están yendo.',sort:3,dir:1,rows,filters:[{k:'sit',l:'Situación'}],
+   cols:[{k:'cli',l:'Cliente',t:TX},{k:'ant',l:'Neto período ant.',t:T$},{k:'act',l:'Neto período actual',t:T$},{k:'dif',l:'Diferencia',t:T$},{k:'var',l:'Var. %',t:TP,tot:r=>varP(sumBy(r,x=>x.act),sumBy(r,x=>x.ant))},{k:'sit',l:'Situación',t:TX},{k:'ult',l:'Última compra',t:TD},{k:'dias',l:'Días desde última',t:TN,tot:false}]})},
+ ctaCli(){const rows=saldoPorCliente().map(g=>{const c=cliOf(g.id);const lim=num(c.limite_credito);return {...g,cod:c.codigo||'',lim,uso:lim?g.saldo/lim:null,venc:g.b1+g.b2+g.b3+g.b4,_cls:(g.b3+g.b4)>0?'rw-bad':g.b1+g.b2>0?'rw-warn':''}}).filter(r=>Math.abs(r.saldo)>.5);
+  const T=sumBy(rows,r=>r.saldo),V=sumBy(rows,r=>r.venc);
+  return rpt({id:'ctaCli',titulo:'Saldos y antigüedad de deuda de clientes',desc:'Lo que nos deben hoy, por cliente y por antigüedad del vencimiento. Las notas de crédito sin aplicar restan. No depende del período elegido.',sort:2,rows,
+   pre:kpis([['Total a cobrar',m$(T),rows.length+' clientes'],['Vencido',m$(V),T?pc(V/T)+' del total':''],['Más de 60 días',m$(sumBy(rows,r=>r.b3+r.b4)),''],['Clientes excedidos del límite',nf(rows.filter(r=>r.uso>1).length),'']])+faltaAviso(['comprobantes_venta']),
+   cols:[{k:'cod',l:'Código',t:TX},{k:'cli',l:'Cliente',t:TX},{k:'saldo',l:'Saldo total',t:T$},...COLS_AGING,{k:'venc',l:'Total vencido',t:T$},{k:'lim',l:'Límite crédito',t:T$,tot:false},{k:'uso',l:'% del límite',t:TP,tot:false}]})},
+ nc(){const rows=ventasP().filter(c=>c.clase==='nc').map(c=>{const a=S.raw.cv.find(x=>x.id===c.cbte_asoc_id)||(S.raw.cxc||[]).find(x=>x.id===c.cbte_asoc_id);return {f:c.fecha,nro:nroV(c),cli:c.cliente_nombre,asoc:a?nroV(a):'',neto:neto(c),tot:num(c.total),obs:c.observaciones||''}});
+  return rpt({id:'nc',titulo:'Notas de crédito emitidas',desc:'Devoluciones, bonificaciones y correcciones del período, con el comprobante al que se aplican.',sort:0,dir:1,rows,
+   cols:[{k:'f',l:'Fecha',t:TD},{k:'nro',l:'Comprobante',t:TX},{k:'cli',l:'Cliente',t:TX},{k:'asoc',l:'Aplica a',t:TX},{k:'neto',l:'Neto',t:T$},{k:'tot',l:'Total',t:T$},{k:'obs',l:'Observaciones',t:TX}]})}
+};
+// ═════════ COMPRAS ═════════
+const R_CMP={
+ cmpProv(){const cc=comprasP(),pc_=comprasP(true),m={};const g0=c=>{const k=c.proveedor_id||c.proveedor_nombre||c.concepto;return m[k]=m[k]||{prv:c.proveedor_nombre||c.concepto||'(sin proveedor)',cuit:c.proveedor_cuit||'',n:0,comp:0,gas:0,total:0,ant:0}};
+  cc.forEach(c=>{const g=g0(c),s=sgn(c);g.n++;if(c.subtipo==='gasto')g.gas+=s*neto(c);else g.comp+=s*neto(c);g.total+=s*num(c.total)});pc_.forEach(c=>{g0(c).ant+=sgn(c)*neto(c)});
+  let rows=Object.values(m).map(g=>({...g,neto:g.comp+g.gas}));abc(rows,'neto');rows.forEach(r=>r.var=S.prv?varP(r.neto,r.ant):null);
+  return rpt({id:'cmpProv',titulo:'Compras y gastos por proveedor',desc:'Ranking de proveedores por importe neto (sin IVA) del período, con clasificación ABC y variación contra el período anterior.',sort:5,rows,filters:[{k:'abc',l:'Clase ABC'}],
+   cols:[{k:'prv',l:'Proveedor',t:TX},{k:'cuit',l:'CUIT',t:TX},{k:'n',l:'Comprob.',t:TN},{k:'comp',l:'Compras neto',t:T$},{k:'gas',l:'Gastos neto',t:T$},{k:'neto',l:'Total neto',t:T$},{k:'total',l:'Total con IVA',t:T$},{k:'pct',l:'% del total',t:TP,tot:r=>1},{k:'abc',l:'ABC',t:TX},{k:'ant',l:'Neto período ant.',t:T$},{k:'var',l:'Var. %',t:TP,tot:r=>varP(sumBy(r,x=>x.neto),sumBy(r,x=>x.ant))}]})},
+ libroC(){const rows=comprasP().map(c=>{const s=sgn(c);return {f:c.fecha,tipo:c.subtipo==='gasto'?'Gasto':'Compra',nro:nroC(c),prv:c.proveedor_nombre||c.concepto||'',cuit:c.proveedor_cuit||'',ng:s*num(c.neto_gravado),nn:s*num(c.neto_no_gravado),ex:s*num(c.exento),i105:s*num(c.iva_105),i21:s*num(c.iva_21),i27:s*num(c.iva_27),piva:s*num(c.perc_iva),piibb:s*num(c.perc_iibb),otr:s*num(c.otros_tributos),tot:s*num(c.total),saldo:num(c.saldo),est:c.estado||''}});
+  return rpt({id:'libroC',titulo:'Libro IVA Compras / Detalle de comprobantes',desc:'Todas las facturas, notas de crédito y débito de proveedores y gastos del período (las NC restan). Sin anulados ni saldos iniciales.',sort:0,dir:1,rows,filters:[{k:'tipo',l:'Tipo'},{k:'est',l:'Estado'}],
+   cols:[{k:'f',l:'Fecha',t:TD},{k:'tipo',l:'Tipo',t:TX},{k:'nro',l:'Comprobante',t:TX},{k:'prv',l:'Proveedor',t:TX},{k:'cuit',l:'CUIT',t:TX},{k:'ng',l:'Neto gravado',t:T$},{k:'nn',l:'No gravado',t:T$},{k:'ex',l:'Exento',t:T$},{k:'i105',l:'IVA 10,5%',t:T$},{k:'i21',l:'IVA 21%',t:T$},{k:'i27',l:'IVA 27%',t:T$},{k:'piva',l:'Perc. IVA',t:T$},{k:'piibb',l:'Perc. IIBB',t:T$},{k:'otr',l:'Otros trib.',t:T$},{k:'tot',l:'Total',t:T$},{k:'saldo',l:'Saldo pend.',t:T$},{k:'est',l:'Estado',t:TX}]})},
+ artComp(){const cur=itemsC(comprasP()),prv=itemsC(comprasP(true)),m={};const TIP={mp:'Materia prima',insumo:'Insumo',producto:'Producto',libre:'Otro'};const g0=i=>{const k=(i.item_tipo||'')+'|'+(i.item_id||String(i.descripcion||'').toUpperCase());return m[k]=m[k]||{art:i.descripcion||'',tipo:TIP[i.item_tipo]||i.item_tipo||'Otro',un:i.unidad||'',cant:0,neto:0,mn:null,mx:null,prv:new Set(),aN:0,aC:0}};
+  cur.forEach(i=>{const g=g0(i);const q=num(i.cantidad),n=num(i.neto)||q*num(i.precio_unit);g.cant+=i._s*q;g.neto+=i._s*n;const pu=num(i.precio_unit);if(pu>0&&i._s>0){g.mn=g.mn==null?pu:Math.min(g.mn,pu);g.mx=g.mx==null?pu:Math.max(g.mx,pu)}g.prv.add(i._c.proveedor_nombre)});
+  prv.forEach(i=>{const g=g0(i);g.aC+=i._s*num(i.cantidad);g.aN+=i._s*(num(i.neto)||num(i.cantidad)*num(i.precio_unit))});
+  const rows=Object.values(m).filter(r=>r.cant||r.neto).map(r=>{const pp=r.cant?r.neto/r.cant:0,pa=r.aC?r.aN/r.aC:0;return {...r,nprv:r.prv.size,pp,pa,vp:S.prv&&pa?varP(pp,pa):null}});
+  return rpt({id:'artComp',titulo:'Artículos, materias primas e insumos comprados',desc:'Qué compramos, cuánto y a qué precio (promedio, mínimo y máximo), con la variación del precio promedio contra el período anterior.',sort:4,rows,filters:[{k:'tipo',l:'Tipo'}],
+   cols:[{k:'art',l:'Artículo',t:TX},{k:'tipo',l:'Tipo',t:TX},{k:'cant',l:'Cantidad',t:TN1},{k:'un',l:'Unidad',t:TX},{k:'neto',l:'Neto',t:T$},{k:'pp',l:'Precio prom.',t:T$,tot:false},{k:'mn',l:'Mínimo',t:T$,tot:false},{k:'mx',l:'Máximo',t:T$,tot:false},{k:'nprv',l:'Proveedores',t:TN,tot:false},{k:'pa',l:'Precio prom. ant.',t:T$,tot:false},{k:'vp',l:'Var. precio',t:TP,tot:false}]})},
+ gastosCat(){const cur=comprasP().filter(c=>c.subtipo==='gasto'),prv=comprasP(true).filter(c=>c.subtipo==='gasto'),m={};const g0=c=>{const k=c.categoria||'(sin categoría)';return m[k]=m[k]||{cat:k,n:0,neto:0,total:0,ant:0}};
+  cur.forEach(c=>{const g=g0(c);g.n++;g.neto+=sgn(c)*neto(c);g.total+=sgn(c)*num(c.total)});prv.forEach(c=>{g0(c).ant+=sgn(c)*neto(c)});const tot=Object.values(m).reduce((s,g)=>s+g.neto,0);const meses=Math.max(1,S.rng.n/30.4);
+  const rows=Object.values(m).map(g=>({...g,pct:tot?g.neto/tot:0,mes:g.neto/meses,var:S.prv?varP(g.neto,g.ant):null}));
+  return rpt({id:'gastosCat',titulo:'Gastos por categoría',desc:'Gastos operativos del período agrupados por categoría, con promedio mensual y variación contra el período anterior.',sort:2,rows,pre:`<div style="margin-top:10px">${bars(rows.map(r=>({k:r.cat,v:r.neto})).sort((a,b)=>b.v-a.v),m$,10)}</div>`,
+   cols:[{k:'cat',l:'Categoría',t:TX},{k:'n',l:'Comprob.',t:TN},{k:'neto',l:'Neto',t:T$},{k:'total',l:'Total con IVA',t:T$},{k:'pct',l:'% de los gastos',t:TP,tot:r=>1},{k:'mes',l:'Promedio mensual',t:T$},{k:'ant',l:'Neto período ant.',t:T$},{k:'var',l:'Var. %',t:TP,tot:r=>varP(sumBy(r,x=>x.neto),sumBy(r,x=>x.ant))}]})},
+ gastosDet(){const rows=comprasP().filter(c=>c.subtipo==='gasto').map(c=>({f:c.fecha,cat:c.categoria||'(sin categoría)',con:c.concepto||'',prv:c.proveedor_nombre||'',nro:nroC(c),neto:sgn(c)*neto(c),tot:sgn(c)*num(c.total),saldo:num(c.saldo),est:num(c.saldo)>.01?'Pendiente':'Pagado'}));
+  return rpt({id:'gastosDet',titulo:'Detalle de gastos',desc:'Cada gasto del período con su categoría, proveedor y si está pagado.',sort:0,dir:1,rows,filters:[{k:'cat',l:'Categoría'},{k:'est',l:'Estado'}],
+   cols:[{k:'f',l:'Fecha',t:TD},{k:'cat',l:'Categoría',t:TX},{k:'con',l:'Concepto',t:TX},{k:'prv',l:'Proveedor',t:TX},{k:'nro',l:'Comprobante',t:TX},{k:'neto',l:'Neto',t:T$},{k:'tot',l:'Total',t:T$},{k:'saldo',l:'Saldo',t:T$},{k:'est',l:'Estado',t:TX}]})},
+ precioMP(){const p=per(),pp=per(true),m={};const g0=r=>{const k=(r.materia_prima||'')+'|'+(r.proveedor||'');return m[k]=m[k]||{mp:r.materia_prima||'',prv:r.proveedor||'',n:0,kg:0,v:0,mn:null,mx:null,akg:0,av:0}};
+  S.raw.rec.filter(r=>r.estado!=='anulada'&&num(r.precio_kilo)>0).forEach(r=>{const f=String(r.fecha).slice(0,10);const kg=num(r.kilos),pr=num(r.precio_kilo);if(inR(f,p[0],p[1])){const g=g0(r);g.n++;g.kg+=kg;g.v+=kg*pr;g.mn=g.mn==null?pr:Math.min(g.mn,pr);g.mx=g.mx==null?pr:Math.max(g.mx,pr)}else if(pp&&inR(f,pp[0],pp[1])){const g=g0(r);g.akg+=kg;g.av+=kg*pr}});
+  const rows=Object.values(m).filter(g=>g.kg>0).map(g=>{const pr=g.v/g.kg,pa=g.akg?g.av/g.akg:null;return {...g,pr,pa,var:pa?varP(pr,pa):null}}).sort((a,b)=>a.mp.localeCompare(b.mp)||a.pr-b.pr);
+  return rpt({id:'precioMP',titulo:'Precio de materia prima por proveedor',desc:'Cuánto pagamos el kilo de cada materia prima a cada proveedor (promedio ponderado por kilos, mínimo y máximo), para comparar proveedores y negociar.',rows,filters:[{k:'mp',l:'Materia prima'}],
+   cols:[{k:'mp',l:'Materia prima',t:TX},{k:'prv',l:'Proveedor',t:TX},{k:'n',l:'Recepciones',t:TN},{k:'kg',l:'Kg',t:TN},{k:'v',l:'Importe',t:T$},{k:'pr',l:'$/kg prom.',t:T$,tot:r=>{const k=sumBy(r,x=>x.kg);return k?sumBy(r,x=>x.v)/k:0}},{k:'mn',l:'$/kg mín.',t:T$,tot:false},{k:'mx',l:'$/kg máx.',t:T$,tot:false},{k:'pa',l:'$/kg período ant.',t:T$,tot:false},{k:'var',l:'Var. %',t:TP,tot:false}]})},
+ ctaPrv(){const rows=saldoPorProv().filter(r=>Math.abs(r.saldo)>.5).map(g=>({...g,venc:g.b1+g.b2+g.b3+g.b4,_cls:(g.b3+g.b4)>0?'rw-bad':g.b1+g.b2>0?'rw-warn':''}));const T=sumBy(rows,r=>r.saldo),V=sumBy(rows,r=>r.venc);
+  return rpt({id:'ctaPrv',titulo:'Saldos y antigüedad de deuda con proveedores',desc:'Lo que debemos hoy, por proveedor y por antigüedad del vencimiento. No depende del período elegido.',sort:1,rows,
+   pre:kpis([['Total a pagar',m$(T),rows.length+' proveedores'],['Vencido',m$(V),T?pc(V/T)+' del total':''],['Más de 60 días',m$(sumBy(rows,r=>r.b3+r.b4)),'']]),
+   cols:[{k:'prv',l:'Proveedor',t:TX},{k:'saldo',l:'Saldo total',t:T$},...COLS_AGING,{k:'venc',l:'Total vencido',t:T$},{k:'n',l:'Comprob.',t:TN}]})}
+};
+// ═════════ FINANZAS ═════════
+const ML={efectivo:'Efectivo',transferencia:'Transferencia',cheque_tercero:'Cheque de terceros',cheque_propio:'Cheque propio',tarjeta_debito:'Tarjeta débito',tarjeta_credito:'Tarjeta crédito',mercado_pago:'Mercado Pago',credito_nc:'Nota de crédito',credito_anticipo:'Anticipo'};
+const cajaN=id=>((S.raw.cajas||[]).find(c=>c.id===id)||{}).nombre||'(caja)';
+const ctaN=id=>{const c=(S.raw.ctas||[]).find(x=>x.id===id)||{};return (c.banco||'Banco')+(c.alias?' · '+c.alias:c.numero?' · '+c.numero:c.nro_cuenta?' · '+c.nro_cuenta:'')};
+function saldoCajaA(id,f){const c=(S.raw.cajas||[]).find(x=>x.id===id)||{};return num(c.saldo_inicial)+sumBy((S.raw.cjmAll||[]).filter(m=>m.caja_id===id&&m.estado!=='anulado'&&String(m.fecha_hora).slice(0,10)<=f),m=>(m.tipo==='ingreso'?1:-1)*num(m.importe))}
+function saldoCtaA(id,f){const c=(S.raw.ctas||[]).find(x=>x.id===id)||{};return num(c.saldo_inicial)+sumBy((S.raw.bmAll||[]).filter(m=>m.cuenta_id===id&&m.estado!=='anulado'&&String(m.fecha).slice(0,10)<=f),m=>(m.tipo==='credito'?1:-1)*num(m.importe))}
+const chqVivos=()=>(S.raw.chq||[]).filter(c=>c.estado!=='anulado');
+const R_FIN={
+ cobranzas(){const p=per();const cob=S.raw.cob.filter(c=>c.estado!=='anulada'&&inR(c.fecha,p[0],p[1]));const med=S.raw.cobm||[],ret=S.raw.cobr||[];
+  const rows=cob.map(c=>{const ms=med.filter(m=>m.cobranza_id===c.id);const t=k=>sumBy(ms.filter(m=>k.includes(m.tipo)),m=>m.importe);return {f:c.fecha,nro:'Rec. '+pad(c.punto_venta||0,5)+'-'+pad(c.numero||0,8),cli:c.cliente_nombre,ef:t(['efectivo']),tr:t(['transferencia']),ch:t(['cheque_tercero']),tj:t(['tarjeta_debito','tarjeta_credito']),mp:t(['mercado_pago']),cr:t(['credito_nc','credito_anticipo']),ret:num(c.total_retenciones)||sumBy(ret.filter(r=>r.cobranza_id===c.id),r=>r.importe),neto:num(c.total_neto),bruto:num(c.total_bruto),acta:num(c.a_cuenta)}});
+  const pm=Object.entries(ML).map(([k,l])=>({k:l,v:sumBy(med.filter(m=>m.tipo===k&&cob.some(c=>c.id===m.cobranza_id)),m=>m.importe)})).filter(x=>x.v);
+  return rpt({id:'cobranzas',titulo:'Cobranzas',desc:'Recibos del período con el desglose por medio de cobro y las retenciones sufridas.',sort:0,dir:1,rows,pre:kpis([['Cobrado neto',m$(sumBy(rows,r=>r.neto)),rows.length+' recibos'],['Retenciones',m$(sumBy(rows,r=>r.ret)),''],['Cobrado a cuenta (sin imputar)',m$(sumBy(rows,r=>r.acta)),'']])+`<div class="g2" style="margin-top:4px"><div>${bars(pm,m$)}</div><div>${bars(group(cob,c=>c.cliente_nombre,c=>c.total_neto),m$,6)}</div></div>`+faltaAviso(['cobranzas','cobranza_medios']),
+   cols:[{k:'f',l:'Fecha',t:TD},{k:'nro',l:'Recibo',t:TX},{k:'cli',l:'Cliente',t:TX},{k:'ef',l:'Efectivo',t:T$},{k:'tr',l:'Transferencia',t:T$},{k:'ch',l:'Cheques',t:T$},{k:'tj',l:'Tarjetas',t:T$},{k:'mp',l:'Mercado Pago',t:T$},{k:'cr',l:'NC / anticipos',t:T$},{k:'ret',l:'Retenciones',t:T$},{k:'bruto',l:'Total bruto',t:T$},{k:'neto',l:'Total neto',t:T$}]})},
+ pagos(){const p=per();const pag=S.raw.pag.filter(x=>x.estado!=='anulado'&&x.estado!=='anulada'&&inR(x.fecha,p[0],p[1]));const med=S.raw.pagm||[];
+  const rows=pag.map(x=>{const ms=med.filter(m=>m.pago_id===x.id);const t=k=>sumBy(ms.filter(m=>k.includes(m.tipo)),m=>m.importe);return {f:x.fecha,nro:'OP '+pad(x.numero||0,6),prv:x.proveedor_nombre||'',tipo:x.tipo==='gasto'?'Gasto':'Proveedor',ef:t(['efectivo']),tr:t(['transferencia']),chp:t(['cheque_propio']),cht:t(['cheque_tercero']),otr:num(x.total)-t(['efectivo','transferencia','cheque_propio','cheque_tercero']),tot:num(x.total),acta:num(x.a_cuenta)}});
+  const pm=[['Efectivo','ef'],['Transferencia','tr'],['Cheque propio','chp'],['Cheque de terceros','cht'],['Otros','otr']].map(([l,k])=>({k:l,v:sumBy(rows,r=>r[k])})).filter(x=>x.v);
+  return rpt({id:'pagos',titulo:'Pagos (órdenes de pago)',desc:'Pagos a proveedores y de gastos del período, desglosados por medio de pago.',sort:0,dir:1,rows,filters:[{k:'tipo',l:'Tipo'}],pre:kpis([['Total pagado',m$(sumBy(rows,r=>r.tot)),rows.length+' órdenes'],['A proveedores',m$(sumBy(rows.filter(r=>r.tipo==='Proveedor'),r=>r.tot)),''],['Gastos',m$(sumBy(rows.filter(r=>r.tipo==='Gasto'),r=>r.tot)),''],['Pagado a cuenta',m$(sumBy(rows,r=>r.acta)),'']])+`<div class="g2" style="margin-top:4px"><div>${bars(pm,m$)}</div><div>${bars(group(pag,x=>x.proveedor_nombre,x=>x.total),m$,6)}</div></div>`+faltaAviso(['pagos','pago_medios']),
+   cols:[{k:'f',l:'Fecha',t:TD},{k:'nro',l:'Orden',t:TX},{k:'prv',l:'Proveedor / concepto',t:TX},{k:'tipo',l:'Tipo',t:TX},{k:'ef',l:'Efectivo',t:T$},{k:'tr',l:'Transferencia',t:T$},{k:'chp',l:'Cheque propio',t:T$},{k:'cht',l:'Cheque terceros',t:T$},{k:'otr',l:'Otros',t:T$},{k:'tot',l:'Total',t:T$}]})},
+ cheques(){const t=hoy(),in7=addD(t,7),in30=addD(t,30);const EL={cartera:'En cartera',depositado:'Depositado',entregado:'Entregado',rechazado:'Rechazado',debitado:'Debitado',emitido:'Emitido'};
+  const all=chqVivos();const cart=all.filter(c=>c.origen==='tercero'&&c.estado==='cartera');const prop=all.filter(c=>c.origen==='propio'&&['entregado','emitido'].includes(c.estado));
+  const rows=all.map(c=>{const f=String(c.fecha_cobro||'').slice(0,10);const d=f?days(t,f)-1:null;const pend=(c.origen==='tercero'&&c.estado==='cartera')||(c.origen==='propio'&&['entregado','emitido'].includes(c.estado));
+    return {org:c.origen==='propio'?'Propio (emitido)':'De terceros (recibido)',nro:c.numero||'',banco:c.banco||'',quien:c.origen==='propio'?(c.beneficiario||''):(c.librador||''),cuit:c.cuit_librador||'',mod:c.modalidad||'',em:c.fecha_emision,fc:f,dias:pend?d:null,imp:num(c.importe),est:EL[c.estado]||c.estado,sit:!pend?'—':d<0?'Vencido':d<=7?'Próximos 7 días':d<=30?'8 a 30 días':'Más de 30 días',_cls:pend&&d<0?'rw-bad':pend&&d<=7?'rw-warn':''}});
+  return rpt({id:'cheques',titulo:'Cheques',desc:'Cartera de cheques de terceros y cheques propios emitidos, con su estado y fecha de cobro/pago. Muestra la situación de hoy (no depende del período).',sort:6,dir:1,rows,filters:[{k:'org',l:'Origen'},{k:'est',l:'Estado'},{k:'sit',l:'Vencimiento'}],
+   pre:kpis([['Terceros en cartera',m$(sumBy(cart,c=>c.importe)),cart.length+' cheques'],['En cartera vencidos',m$(sumBy(cart.filter(c=>String(c.fecha_cobro)<t),c=>c.importe)),'depositar ya'],['A cobrar próximos 7 días',m$(sumBy(cart.filter(c=>String(c.fecha_cobro)>=t&&String(c.fecha_cobro)<=in7),c=>c.importe)),''],['A cobrar próximos 30 días',m$(sumBy(cart.filter(c=>String(c.fecha_cobro)>=t&&String(c.fecha_cobro)<=in30),c=>c.importe)),''],['Propios pendientes de débito',m$(sumBy(prop,c=>c.importe)),prop.length+' cheques'],['Propios a debitar en 7 días',m$(sumBy(prop.filter(c=>String(c.fecha_cobro)<=in7),c=>c.importe)),'tener fondos en el banco'],['Rechazados',m$(sumBy(all.filter(c=>c.estado==='rechazado'),c=>c.importe)),all.filter(c=>c.estado==='rechazado').length+' cheques']])+faltaAviso(['cheques']),
+   cols:[{k:'org',l:'Origen',t:TX},{k:'nro',l:'Número',t:TX},{k:'banco',l:'Banco',t:TX},{k:'quien',l:'Librador / beneficiario',t:TX},{k:'mod',l:'Modalidad',t:TX},{k:'em',l:'Emisión',t:TD},{k:'fc',l:'Fecha cobro/pago',t:TD},{k:'dias',l:'Días',t:TN,tot:false},{k:'imp',l:'Importe',t:T$},{k:'est',l:'Estado',t:TX},{k:'sit',l:'Vencimiento',t:TX}]})},
+ retenc(){const p=per();const cob=S.raw.cob.filter(c=>c.estado!=='anulada'&&inR(c.fecha,p[0],p[1]));const cm={};cob.forEach(c=>cm[c.id]=c);
+  const rows=(S.raw.cobr||[]).filter(r=>cm[r.cobranza_id]).map(r=>{const c=cm[r.cobranza_id];return {f:c.fecha,nro:'Rec. '+pad(c.punto_venta||0,5)+'-'+pad(c.numero||0,8),cli:c.cliente_nombre,cuit:(cliOf(c.cliente_id).cuit)||'',tipo:String(r.tipo||'').toUpperCase(),cert:r.numero_cert||'',ali:num(r.alicuota)/100,imp:num(r.importe)}});
+  return rpt({id:'retenc',titulo:'Retenciones sufridas',desc:'Retenciones que nos hicieron los clientes al pagar (IVA, Ganancias, IIBB, SUSS…). Sirve para computarlas en las declaraciones juradas.',sort:0,dir:1,rows,filters:[{k:'tipo',l:'Tipo'}],pre:`<div style="margin-top:8px">${bars(group(rows,r=>r.tipo,r=>r.imp),m$)}</div>`+faltaAviso(['cobranza_retenciones']),
+   cols:[{k:'f',l:'Fecha',t:TD},{k:'nro',l:'Recibo',t:TX},{k:'cli',l:'Cliente (agente)',t:TX},{k:'cuit',l:'CUIT',t:TX},{k:'tipo',l:'Impuesto',t:TX},{k:'cert',l:'N° certificado',t:TX},{k:'ali',l:'Alícuota',t:TP,tot:false},{k:'imp',l:'Importe',t:T$}]})},
+ caja(){const p=per(),ini=addD(p[0],-1);const cajas=(S.raw.cajas||[]);const mv=(S.raw.cjmAll||[]).filter(m=>m.estado!=='anulado'&&inR(String(m.fecha_hora).slice(0,10),p[0],p[1]));
+  const res=cajas.map(c=>{const ms=mv.filter(m=>m.caja_id===c.id);const i=sumBy(ms.filter(m=>m.tipo==='ingreso'),m=>m.importe),e=sumBy(ms.filter(m=>m.tipo==='egreso'),m=>m.importe),si=saldoCajaA(c.id,ini);return [esc(c.nombre),m$(si),m$(i),m$(e),m$(si+i-e)]});
+  const rows=mv.map(m=>({f:String(m.fecha_hora).slice(0,10),h:String(m.fecha_hora).slice(11,16),caja:cajaN(m.caja_id),cat:m.categoria||'',con:m.concepto||'',usr:m.usuario||'',ing:m.tipo==='ingreso'?num(m.importe):0,egr:m.tipo==='egreso'?num(m.importe):0}));
+  return rpt({id:'caja',titulo:'Caja',desc:'Saldo de cada caja al inicio y al cierre del período, y todos sus movimientos.',sort:0,dir:1,rows,filters:[{k:'caja',l:'Caja'},{k:'cat',l:'Categoría'}],pre:`<div style="margin-top:10px">${tbl(['Caja','Saldo inicial','Ingresos','Egresos','Saldo final'],res)}</div>`+faltaAviso(['cajas','caja_movimientos']),
+   cols:[{k:'f',l:'Fecha',t:TD},{k:'h',l:'Hora',t:TX},{k:'caja',l:'Caja',t:TX},{k:'cat',l:'Categoría',t:TX},{k:'con',l:'Concepto',t:TX},{k:'usr',l:'Usuario',t:TX},{k:'ing',l:'Ingreso',t:T$},{k:'egr',l:'Egreso',t:T$}]})},
+ bancos(){const p=per(),ini=addD(p[0],-1);const ctas=S.raw.ctas||[];const mv=(S.raw.bmAll||[]).filter(m=>m.estado!=='anulado'&&inR(m.fecha,p[0],p[1]));
+  const res=ctas.map(c=>{const ms=mv.filter(m=>m.cuenta_id===c.id);const cr=sumBy(ms.filter(m=>m.tipo==='credito'),m=>m.importe),db=sumBy(ms.filter(m=>m.tipo==='debito'),m=>m.importe),si=saldoCtaA(c.id,ini);const nc=sumBy((S.raw.bmAll||[]).filter(m=>m.cuenta_id===c.id&&m.estado!=='anulado'&&!m.conciliado),m=>(m.tipo==='credito'?1:-1)*num(m.importe));return [esc(ctaN(c.id)),m$(si),m$(cr),m$(db),m$(si+cr-db),m$(nc)]});
+  const rows=mv.map(m=>({f:m.fecha,cta:ctaN(m.cuenta_id),cat:m.categoria||'',con:m.concepto||'',ref:m.ref_banco||m.referencia||'',cre:m.tipo==='credito'?num(m.importe):0,deb:m.tipo==='debito'?num(m.importe):0,conc:m.conciliado?'Sí':'No'}));
+  return rpt({id:'bancos',titulo:'Bancos',desc:'Saldo de cada cuenta al inicio y al cierre del período, movimientos y lo pendiente de conciliar.',sort:0,dir:1,rows,filters:[{k:'cta',l:'Cuenta'},{k:'cat',l:'Categoría'},{k:'conc',l:'Conciliado'}],pre:`<div style="margin-top:10px">${tbl(['Cuenta','Saldo inicial','Créditos','Débitos','Saldo final','Sin conciliar (total)'],res)}</div>`+faltaAviso(['cuentas_bancarias','banco_movimientos']),
+   cols:[{k:'f',l:'Fecha',t:TD},{k:'cta',l:'Cuenta',t:TX},{k:'cat',l:'Categoría',t:TX},{k:'con',l:'Concepto',t:TX},{k:'ref',l:'Referencia',t:TX},{k:'cre',l:'Crédito',t:T$},{k:'deb',l:'Débito',t:T$},{k:'conc',l:'Conciliado',t:TX}]})},
+ posicion(){const t=hoy();const cj=(S.raw.cajas||[]).filter(c=>c.activo!==false).map(c=>({k:c.nombre,v:saldoCajaA(c.id,t)}));const bc=(S.raw.ctas||[]).filter(c=>c.activo!==false).map(c=>({k:ctaN(c.id),v:saldoCtaA(c.id,t)}));
+  const chc=sumBy(chqVivos().filter(c=>c.origen==='tercero'&&c.estado==='cartera'),c=>c.importe),chp=sumBy(chqVivos().filter(c=>c.origen==='propio'&&['entregado','emitido'].includes(c.estado)),c=>c.importe);
+  const cxc=sumBy(saldoPorCliente(),g=>g.saldo),cxp=sumBy(saldoPorProv(),g=>g.saldo);const disp=sumBy(cj,x=>x.v)+sumBy(bc,x=>x.v);const liq=disp+chc-chp;const neta=liq+cxc-cxp;
+  const L=(l,v,b)=>`<tr${b?' style="font-weight:800;background:#f6f8fb"':''}><td>${l}</td><td class="r">${m$(v)}</td></tr>`;
+  return `<div class="card"><h3>Posición financiera al ${fD(t)}</h3><div class="hint">Foto de hoy: disponibilidades, valores a cobrar y deudas. No depende del período elegido.</div></div>`+
+  kpis([['Disponible (cajas + bancos)',m$(disp),''],['Liquidez inmediata',m$(liq),'disponible + cheques en cartera − cheques propios pendientes'],['Posición neta',m$(neta),'liquidez + a cobrar − a pagar'],['Cobertura de deudas',cxp>0?nf((liq+cxc)/cxp,2)+' veces':'—','(liquidez + a cobrar) / a pagar']])+
+  `<div class="g2">${card('Composición',`<table><tbody>${cj.map(x=>L('Caja · '+esc(x.k),x.v)).join('')}${bc.map(x=>L('Banco · '+esc(x.k),x.v)).join('')}${L('Disponible',disp,1)}${L('+ Cheques de terceros en cartera',chc)}${L('− Cheques propios pendientes de débito',-chp)}${L('Liquidez inmediata',liq,1)}${L('+ Cuentas a cobrar',cxc)}${L('− Cuentas a pagar',-cxp)}${L('Posición neta',neta,1)}</tbody></table>`)}${card('Saldos por caja y banco',bars(cj.concat(bc).sort((a,b)=>b.v-a.v),m$,12))}</div>`+faltaAviso(['cajas','cuentas_bancarias','cheques'])},
+ flujo(){const t=hoy();const p=per();const cob=S.raw.cob.filter(c=>c.estado!=='anulada'&&inR(c.fecha,p[0],p[1])),pag=S.raw.pag.filter(x=>x.estado!=='anulado'&&x.estado!=='anulada'&&inR(x.fecha,p[0],p[1]));
+  const m={};const add=(f,k,v)=>{const b=bucketK(f);(m[b]=m[b]||{ing:0,egr:0})[k]+=num(v)};cob.forEach(c=>add(c.fecha,'ing',c.total_neto));pag.forEach(x=>add(x.fecha,'egr',x.total));let ac=0;
+  const real=Object.keys(m).sort().map(k=>{const r=m[k];ac+=r.ing-r.egr;return [bucketL(k),m$(r.ing),m$(r.egr),`<b style="color:${r.ing-r.egr<0?'#B3261E':'#2D7D46'}">${m$(r.ing-r.egr)}</b>`,m$(ac)]});
+  // proyección semanal 13 semanas
+  const disp=sumBy((S.raw.cajas||[]),c=>saldoCajaA(c.id,t))+sumBy((S.raw.ctas||[]),c=>saldoCtaA(c.id,t));const W=[];for(let i=0;i<13;i++)W.push({a:addD(t,i*7),b:addD(t,i*7+6),cxc:0,chc:0,cxp:0,chp:0});const wk=f=>{f=String(f||t).slice(0,10);if(f<t)return 0;const i=Math.floor((days(t,f)-1)/7);return i<13?i:-1};
+  (S.raw.cxc||[]).filter(c=>!['anulada','borrador'].includes(c.estado)&&c.clase!=='presupuesto'&&num(c.saldo)>0).forEach(c=>{const i=wk(c.fecha_vto||c.fecha);if(i>=0)W[i].cxc+=num(c.saldo)*(c.clase==='nc'?-1:1)});
+  (S.raw.cxp||[]).filter(c=>c.estado!=='anulada'&&num(c.saldo)>0).forEach(c=>{const i=wk(c.fecha_vto||c.fecha);if(i>=0)W[i].cxp+=num(c.saldo)*(c.clase==='nc'?-1:1)});
+  chqVivos().forEach(c=>{const i=wk(c.fecha_cobro);if(i<0)return;if(c.origen==='tercero'&&c.estado==='cartera')W[i].chc+=num(c.importe);if(c.origen==='propio'&&['entregado','emitido'].includes(c.estado))W[i].chp+=num(c.importe)});
+  let sal=disp;const proy=W.map((w,i)=>{const n=w.cxc+w.chc-w.cxp-w.chp;sal+=n;return [(i?'':'<b>Hoy y vencidos</b><br>')+fD(w.a).slice(0,5)+' al '+fD(w.b).slice(0,5),m$(w.cxc),m$(w.chc),m$(w.cxp),m$(w.chp),`<b style="color:${n<0?'#B3261E':'#2D7D46'}">${m$(n)}</b>`,`<b style="color:${sal<0?'#B3261E':'inherit'}">${m$(sal)}</b>`]});
+  const minS=Math.min(...(()=>{let s=disp;return W.map(w=>s+=w.cxc+w.chc-w.cxp-w.chp)})());
+  return card('Flujo de fondos real del período',`<p class="hint">Lo efectivamente cobrado (recibos) y pagado (órdenes de pago), por ${S.rng.n>62?'mes':S.rng.n>21?'semana':'día'}.</p>`+tbl(['Período','Cobrado','Pagado','Neto','Acumulado'],real,'flujo_real'))+
+  card('Proyección de fondos · próximas 13 semanas',`<p class="hint">Parte del disponible de hoy (${m$(disp)}) y suma lo que debería entrar (facturas a cobrar por su vencimiento + cheques en cartera por su fecha de cobro) menos lo que debería salir (facturas a pagar + cheques propios a debitar). Lo vencido se imputa a la primera semana. Es una proyección: depende de que clientes y proveedores cumplan los plazos.</p>${minS<0?`<div class="alert bad">Atención: la proyección muestra saldo negativo (mínimo ${m$(minS)}). Conviene adelantar cobranzas o reprogramar pagos.</div>`:''}`+tbl(['Semana','A cobrar (facturas)','Cheques a cobrar','A pagar (facturas)','Cheques propios','Neto semana','Saldo proyectado'],proy,'proyeccion_fondos'))},
+ eerr(){const cv=ventasP(),cc=comprasP();const m={};const g=k=>m[k]=m[k]||{v:0,c:0,g:0};cv.forEach(c=>g(String(c.fecha).slice(0,7)).v+=sgn(c)*neto(c));cc.forEach(c=>{const x=g(String(c.fecha).slice(0,7));if(c.subtipo==='gasto')x.g+=sgn(c)*neto(c);else x.c+=sgn(c)*neto(c)});
+  const rows=Object.keys(m).sort().map(k=>{const x=m[k];const[y,mm]=k.split('-');const r=x.v-x.c-x.g;return {mes:MES[+mm-1]+' '+y,k,v:x.v,c:x.c,mb:x.v-x.c,mbp:x.v?(x.v-x.c)/x.v:null,g:x.g,r,rp:x.v?r/x.v:null}});
+  const cats=group(cc.filter(c=>c.subtipo==='gasto'),c=>c.categoria||'(sin categoría)',c=>sgn(c)*neto(c));
+  return rpt({id:'eerr',titulo:'Resultado mensual (ventas − compras − gastos)',desc:'Estado de resultados simplificado por mes con importes netos sin IVA. No incluye variación de stock, amortizaciones, sueldos no cargados como gasto ni impuestos a las ganancias: es un indicador de gestión, no un balance contable.',rows,noSearch:true,sort:null,
+   post:card('Gastos del período por categoría',bars(cats,m$,12)),
+   cols:[{k:'mes',l:'Mes',t:TX},{k:'v',l:'Ventas netas',t:T$},{k:'c',l:'Compras',t:T$},{k:'mb',l:'Margen bruto',t:T$},{k:'mbp',l:'Margen bruto %',t:TP,tot:r=>{const v=sumBy(r,x=>x.v);return v?sumBy(r,x=>x.mb)/v:null}},{k:'g',l:'Gastos',t:T$},{k:'r',l:'Resultado',t:T$},{k:'rp',l:'Resultado %',t:TP,tot:r=>{const v=sumBy(r,x=>x.v);return v?sumBy(r,x=>x.r)/v:null}}]})}
+};
+// ═════════ AUDITORÍA (novedades de todos los módulos) ═════════
+const NOV_L={anular_recepcion:'Anular recepción',editar_recepcion:'Editar recepción',anular_acondicionamiento:'Anular acondicionamiento',editar_acondicionamiento:'Editar acondicionamiento',peps_forzado:'PEPS forzado',desbloqueo_produccion:'Desbloquear producción',editar_despacho:'Editar despacho',anular_despacho:'Anular despacho',anular_remito:'Anular remito',editar_remito:'Editar remito',validar_carga_dif:'Carga con diferencias',descarte:'Descarte MP',anular_descarte:'Anular descarte',editar_descarte:'Editar descarte',anular_devolucion:'Anular devolución',editar_devolucion:'Editar devolución',anular_produccion:'Anular producción',anular_ensamblado:'Anular ensamblado',editar_ensamblado:'Editar ensamblado',ajuste_stock:'Ajuste de stock',editar_ajuste:'Editar ajuste de stock',anular_ajuste:'Anular ajuste de stock',unificar_dup:'Unificar duplicados',asignar_lote_neg:'Asignar lote (stock negativo)',
+ plus_anular_factura:'Anular comprobante de venta',plus_anular_cobranza:'Anular recibo',plus_anular_compra:'Anular comprobante de compra',plus_anular_pago:'Anular orden de pago',plus_anular_remito_compra:'Anular remito de compra',plus_anular_mov_caja:'Anular movimiento de caja',plus_anular_mov_banco:'Anular movimiento bancario',plus_eliminar_pedido:'Eliminar pedido',plus_cheque_rechazado:'Cheque rechazado',plus_cheque_estado:'Cambiar estado de cheque',plus_egreso_caja:'Egreso manual de caja',plus_ajuste_stock:'Ajuste de stock',plus_editar_ajuste:'Editar ajuste de stock',plus_anular_ajuste:'Anular ajuste de stock',plus_credito_excedido:'Facturar con crédito excedido',plus_autorizacion:'Autorización'};
+const novMod=n=>n.modulo?String(n.modulo).toUpperCase():/^plus_/.test(n.tipo||'')?'PLUS':/^agro_/.test(n.tipo||'')?'AGRO':/^rrhh_/.test(n.tipo||'')?'RRHH':'TRACE';
+function vAud(){if(S.faltan.includes('novedades'))return '<div class="card alert warn">No se encontró la tabla de novedades en la base. Corré novedades_setup.sql en Supabase para activar la auditoría.</div>';
+  const rows=(S.raw.nov||[]).map(n=>({f:n.fecha,h:String(n.created_at||'').slice(11,16),mod:novMod(n),op:NOV_L[n.tipo]||n.tipo||'',ref:n.referencia||'',det:n.detalle||'',aut:n.autorizado_por||'(sin PIN)',eje:n.ejecutado_por||''}));
+  return rpt({id:'aud',titulo:'Auditoría · operaciones autorizadas',desc:'Todo lo que requirió autorización de supervisor (PIN) en los módulos de CONTROL MAX: anulaciones, ediciones, ajustes de stock, cheques rechazados, facturación con crédito excedido y más. Los registros de PLUS se guardan desde la versión 8.0.',sort:0,rows,filters:[{k:'mod',l:'Módulo'},{k:'op',l:'Operación'},{k:'aut',l:'Autorizó'},{k:'eje',l:'Ejecutó'}],noTot:true,
+   pre:kpis([['Operaciones autorizadas',nf(rows.length),'en el período'],['TRACE',nf(rows.filter(r=>r.mod==='TRACE').length),''],['PLUS',nf(rows.filter(r=>r.mod==='PLUS').length),''],['Anulaciones',nf(rows.filter(r=>/anular/i.test(r.op)).length),'']])+`<div class="g2"><div>${card('Por operación',bars(group(rows,r=>r.op,r=>1),v=>nf(v),8))}</div><div>${card('Por quién autorizó',bars(group(rows,r=>r.aut,r=>1),v=>nf(v),8))}</div></div>`,
+   cols:[{k:'f',l:'Fecha',t:TD},{k:'h',l:'Hora',t:TX},{k:'mod',l:'Módulo',t:TX},{k:'op',l:'Operación',t:TX},{k:'ref',l:'Referencia',t:TX},{k:'det',l:'Detalle',t:TX},{k:'aut',l:'Autorizó',t:TX},{k:'eje',l:'Ejecutó',t:TX}]})}
+
+// ───────── reportes de TRACE dentro de cada pestaña (mismo código que TRACE → Reportes, embebido) ─────────
+const TRACE_URL='/CONTROLTRACE/controltrace/index.html';
+const SUBS={
+ prod:[['res','📊 Resumen del período'],['|','De TRACE'],['t:diario','Diario'],['t:prov','Rinde proveedor'],['t:merma','Rinde por lote'],['t:traza','Trazabilidad'],['t:pedidos','Pedidos'],['t:estac','Estacionalidad'],['t:comp','Comparativo'],['t:cumpl','Cumplimiento'],['t:capac','Capacidad h-h'],['t:movim','Movimientos de stock']],
+ com:[['res','📊 Resumen del período'],['n:facCli','Facturación por cliente'],['n:artCli','Artículos por cliente'],['n:rankArt','Ranking de artículos'],['n:estad','Estadísticas de ventas'],['n:vend','Ventas por vendedor'],['n:evoCli','Evolución de clientes'],['n:ctaCli','Saldos de clientes'],['n:nc','Notas de crédito'],['n:libroV','Libro IVA Ventas'],['|','De TRACE'],['t:ent','Entregas']],
+ compras:[['res','📊 Resumen del período'],['n:cmpProv','Compras por proveedor'],['n:artComp','Artículos comprados'],['n:precioMP','Precio de MP por proveedor'],['n:gastosCat','Gastos por categoría'],['n:gastosDet','Detalle de gastos'],['n:ctaPrv','Saldos a proveedores'],['n:libroC','Libro IVA Compras'],['|','De TRACE'],['t:compras','Compras por MP y lote']],
+ fin:[['res','📊 Resumen del período'],['n:posicion','Posición financiera'],['n:flujo','Flujo y proyección de fondos'],['n:eerr','Resultado mensual'],['n:cobranzas','Cobranzas'],['n:pagos','Pagos'],['n:cheques','Cheques'],['n:caja','Caja'],['n:bancos','Bancos'],['n:retenc','Retenciones sufridas'],['|','De TRACE'],['t:ventas','Ventas y utilidad']]};
+const R_ALL=Object.assign({},R_COM,R_CMP,R_FIN);
+function subCur(){return (SUBS[S.tab]&&S.sub[S.tab])||'res'}
+function subRep(){const v=subCur();return v.startsWith('t:')?v.slice(2):null}
+function subBar(){const l=SUBS[S.tab];if(!l)return '';const v=subCur();
+  return `<div class="tabs noprint" style="margin-top:-4px;align-items:center">${l.map(r=>r[0]==='|'?`<span class="subg">${r[1]}:</span>`:`<button class="btn ${v===r[0]?'gold':''}" onclick="S.sub[S.tab]='${r[0]}';render()">${r[1]}</button>`).join('')}${v.startsWith('t:')?'':'<span style="flex:1"></span><button class="btn" onclick="window.print()">🖨 Imprimir vista</button>'}</div>`}
+function repFrame(){return document.getElementById('repFrame')}
+function repSync(){const f=repFrame();if(!f||!S.rng)return;try{f.contentWindow.postMessage({type:'cmax-periodo',desde:S.rng.a,hasta:S.rng.b},location.origin)}catch(e){}}
+function repMostrar(r){const w=$('repWrap');w.style.display='block';const f=repFrame();
+  if(f){try{f.contentWindow.postMessage({type:'cmax-reporte',r},location.origin)}catch(e){}return}
+  const p=S.rng||rango();
+  w.innerHTML=`<div class="card" style="padding:0;overflow:hidden"><div id="repLoad" class="hint" style="padding:12px 16px">⏳ Cargando los reportes de TRACE (la primera vez tarda unos segundos)…</div>
+  <iframe id="repFrame" title="Reportes" src="${TRACE_URL}?embed=rep&desde=${p.a}&hasta=${p.b}&r=${r}" style="display:block;width:100%;height:calc(100vh - 230px);min-height:620px;border:0;background:#fff"></iframe></div>
+  <div class="hint">El período se toma de arriba. Los filtros de proveedor, materia prima y cliente están dentro del reporte. El Diario usa su propia fecha.</div>`}
+window.addEventListener('message',e=>{if(e.origin!==location.origin)return;if(e.data&&e.data.type==='cmax-trace-listo'){const l=$('repLoad');if(l)l.remove();repSync();const r=subRep();if(r)try{repFrame().contentWindow.postMessage({type:'cmax-reporte',r},location.origin)}catch(_){}}});
 // ───────── render ─────────
 function render(){$('tabs').innerHTML=TABS.map(t=>`<button class="btn ${t[0]===S.tab?'on':''}" onclick="S.tab='${t[0]}';render()">${t[1]}</button>`).join('');
-  const V={resumen:vResumen,prod:vProd,com:vCom,compras:vCompras,fin:vFin,ia:vIA};let h;try{h=V[S.tab]()}catch(e){console.error(e);h='<div class="card alert bad">Error al armar la vista: '+esc(e.message)+'</div>'}
-  $('body').innerHTML=h;if(S.tab==='ia')iaTipoCambio();}
+  const r=subRep();if(r){$('body').innerHTML=subBar();repMostrar(r);return}
+  $('repWrap').style.display='none';const v=subCur();
+  const V={resumen:vResumen,prod:vProd,com:vCom,compras:vCompras,fin:vFin,aud:vAud,ia:vIA};let h;
+  try{h=v.startsWith('n:')?R_ALL[v.slice(2)]():V[S.tab]()}catch(e){console.error(e);h='<div class="card alert bad">Error al armar la vista: '+esc(e.message)+'</div>'}
+  $('body').innerHTML=subBar()+h;if(S.tab==='ia')iaTipoCambio();}
 // ───────── init ─────────
 async function init(){const {data:{session}}=await sb.auth.getSession();if(!session||!session.user){location.href='/portal.html';return}
   const {data:pf,error}=await sb.from('perfiles').select('nombre,rol,empresa_id,activo').eq('id',session.user.id).single();if(error||!pf||pf.activo===false){location.href='/portal.html';return}
