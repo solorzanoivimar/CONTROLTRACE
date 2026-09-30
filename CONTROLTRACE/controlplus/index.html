@@ -323,7 +323,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v7.8</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v8.0 · auditoría de autorizaciones · incluye v7.9: enlaces directos desde Trace (#inventario/ti-aj)</div>
 </nav>
 
 <!-- MAIN -->
@@ -1898,8 +1898,15 @@ function viewModal(title, sub, html, buttons){
 // Confirmación con PIN (si hay PIN configurado); si no, confirm() simple
 function autorizar(motivo, cb){
   if(pinConfigurado()){ pedirPinSupervisor([motivo], cb, {titulo:'Autorización requerida', sub:'Operación protegida con PIN de supervisor', head:'Para continuar se necesita autorización:', btn:'✅ Autorizar'}); }
-  else if(confirm(motivo.replace(/<[^>]+>/g,'')+'\n\n¿Confirmás?')) cb();
+  else if(confirm(motivo.replace(/<[^>]+>/g,'')+'\n\n¿Confirmás?')){ logAutorizacion([motivo],null,''); cb(); }
 }
+// v8.0: auditoría — cada autorización queda registrada en la tabla novedades (se ve en CONTROL TOTAL → Auditoría)
+function tipoAutorizacion(t,sub){ t=String(t||'');
+  if(/Facturación bloqueada/i.test(sub||'')) return 'plus_credito_excedido';
+  const R=[[/^Anular <b>/,'plus_anular_factura'],[/^Anular el recibo/,'plus_anular_cobranza'],[/^Anular el comprobante/,'plus_anular_compra'],[/^Anular la orden de pago/,'plus_anular_pago'],[/^Anular el remito de compra/,'plus_anular_remito_compra'],[/^Anular el movimiento de caja/,'plus_anular_mov_caja'],[/^Anular el movimiento bancario/,'plus_anular_mov_banco'],[/^Eliminar el pedido/,'plus_eliminar_pedido'],[/rechazado/i,'plus_cheque_rechazado'],[/^Marcar el cheque/,'plus_cheque_estado'],[/^Egreso manual/,'plus_egreso_caja'],[/^Modificar el ajuste/,'plus_editar_ajuste'],[/^Anular el ajuste/,'plus_anular_ajuste'],[/ajust/i,'plus_ajuste_stock']];
+  const f=R.find(x=>x[0].test(t)); return f?f[1]:'plus_autorizacion'; }
+function logAutorizacion(motivos,quien,sub){ try{ const html=(motivos||[]).join(' · '); const txt=html.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim(); const ref=((html.match(/<b>(.*?)<\/b>/)||[])[1]||'').replace(/<[^>]+>/g,'');
+    sb.from('novedades').insert({empresa_id:S.empresaId,fecha:hoy(),tipo:tipoAutorizacion(html,sub),referencia:ref||null,detalle:txt.slice(0,400)||null,autorizado_por:quien||null,ejecutado_por:S.nombre||S.email||null}).then(({error})=>{ if(error) console.warn('[auditoría] no se pudo registrar',error.message); }); }catch(e){ console.warn('[auditoría]',e); } }
 
 // ── Exportar a Excel / imprimir ──
 let _xlsxP=null;
@@ -1972,6 +1979,8 @@ async function initPlus(){
   const sp=el('splash'); if(sp) sp.style.display='none';
   if(typeof setEntidad==='function') setEntidad('cliente');
   go(MODS.find(secPermitida)||'dashboard');
+  // v7.9 (recuperada en v8.0): acceso directo desde otros módulos: #modulo  o  #modulo/pestaña (ej. #inventario/ti-aj)
+  try{ const h=(location.hash||'').replace('#','').split('/'); if(h[0]&&MODS.includes(h[0])&&secPermitida(h[0])){ if(h[1]) openTab(h[0],h[1]); else go(h[0]); } }catch(_){}
 }
 document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelectorAll('.moverlay').forEach(o=>o.addEventListener('mousedown',e=>{ if(e.target===o && o.id!=='m-cbte' && o.id!=='m-cob' && o.id!=='m-cpa' && o.id!=='m-pag') o.classList.remove('open'); }));
@@ -2365,7 +2374,7 @@ function pedirPinSupervisor(motivos, onOK, opts){
   if(inp) inp.value='';
   if(wrap) wrap.style.display=hasPin?'block':'none';
   if(note) note.style.display=hasPin?'none':'block';
-  window._pinOK=onOK; window._pinHas=hasPin;
+  window._pinOK=onOK; window._pinHas=hasPin; window._pinMotivos=motivos||[]; window._pinSub=opts.sub||'Facturación bloqueada por control de crédito';
   openM('m-pin');
   setTimeout(()=>{ const i=document.getElementById('pin-input'); if(i&&hasPin) i.focus(); },60);
 }
@@ -2377,6 +2386,7 @@ function confirmarPin(){
     const a=pinAutoriza(val); if(!a){ toast('PIN incorrecto','err'); return; }
     window._pinAutorizo=a.nombre; toast('Autorizado por '+a.nombre,'ok');
   }
+  logAutorizacion(window._pinMotivos,window._pinHas?window._pinAutorizo:null,window._pinSub);
   closeM('m-pin');
   const cb=window._pinOK; window._pinOK=null;
   if(typeof cb==='function') cb();
