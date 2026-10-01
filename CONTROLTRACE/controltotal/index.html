@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CONTROL MAX — Control Total</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230D1B2A'/%3E%3Ctext x='32' y='46' font-family='Segoe UI,Arial,sans-serif' font-size='40' font-weight='800' text-anchor='middle' fill='%23C9A84C'%3E%CE%A3%3C/text%3E%3C/svg%3E">
-<!-- CONTROL TOTAL · build tot 2.1 · ícono de pestaña · tot 2.0: reportes ERP (comercial, compras, finanzas) + auditoría de todos los módulos · tot 1.3: reportes de TRACE dentro de Producción, Compras y Finanzas · tot 1.2: filtro de período aplica al cambiar · reportes de Producción, Comercial y Finanzas + informes con IA. Solo lectura sobre la base compartida. -->
+<!-- CONTROL TOTAL · build tot 2.2 · etiquetas de auditoría de remitos/recepciones listos · tot 2.1: ícono de pestaña · tot 2.0: reportes ERP (comercial, compras, finanzas) + auditoría de todos los módulos · tot 1.3: reportes de TRACE dentro de Producción, Compras y Finanzas · tot 1.2: filtro de período aplica al cambiar · reportes de Producción, Comercial y Finanzas + informes con IA. Solo lectura sobre la base compartida. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#0D1B2A;--navy-mid:#1A2E45;--gold:#C9A84C;--ice:#F0F4F8;--line:#DDE4EC;--white:#fff;--text:#1A2E45;--muted:#6B7A8D;--ok:#2D7D46;--okbg:#E8F5ED;--bad:#B3261E;--badbg:#FDECEA;--warn:#9A6700;--warnbg:#FFF4D6}
@@ -58,7 +58,7 @@ tr.rw-bad td{background:#FDECEA}tr.rw-warn td{background:#FFF8E1}tfoot td{border
 <div class="tabs" id="tabs"></div>
 <div id="body"></div>
 <div id="repWrap" style="display:none"></div>
-<div class="sk noprint" style="text-align:center;margin:18px 0 6px">build tot 2.1</div>
+<div class="sk noprint" style="text-align:center;margin:18px 0 6px">build tot 2.2</div>
 </main>
 <script>
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
@@ -497,7 +497,7 @@ const R_FIN={
 };
 // ═════════ AUDITORÍA (novedades de todos los módulos) ═════════
 const NOV_L={anular_recepcion:'Anular recepción',editar_recepcion:'Editar recepción',anular_acondicionamiento:'Anular acondicionamiento',editar_acondicionamiento:'Editar acondicionamiento',peps_forzado:'PEPS forzado',desbloqueo_produccion:'Desbloquear producción',editar_despacho:'Editar despacho',anular_despacho:'Anular despacho',anular_remito:'Anular remito',editar_remito:'Editar remito',validar_carga_dif:'Carga con diferencias',descarte:'Descarte MP',anular_descarte:'Anular descarte',editar_descarte:'Editar descarte',anular_devolucion:'Anular devolución',editar_devolucion:'Editar devolución',anular_produccion:'Anular producción',anular_ensamblado:'Anular ensamblado',editar_ensamblado:'Editar ensamblado',ajuste_stock:'Ajuste de stock',editar_ajuste:'Editar ajuste de stock',anular_ajuste:'Anular ajuste de stock',unificar_dup:'Unificar duplicados',asignar_lote_neg:'Asignar lote (stock negativo)',
- plus_anular_factura:'Anular comprobante de venta',plus_anular_cobranza:'Anular recibo',plus_anular_compra:'Anular comprobante de compra',plus_anular_pago:'Anular orden de pago',plus_anular_remito_compra:'Anular remito de compra',plus_anular_mov_caja:'Anular movimiento de caja',plus_anular_mov_banco:'Anular movimiento bancario',plus_eliminar_pedido:'Eliminar pedido',plus_cheque_rechazado:'Cheque rechazado',plus_cheque_estado:'Cambiar estado de cheque',plus_egreso_caja:'Egreso manual de caja',plus_ajuste_stock:'Ajuste de stock',plus_editar_ajuste:'Editar ajuste de stock',plus_anular_ajuste:'Anular ajuste de stock',plus_credito_excedido:'Facturar con crédito excedido',plus_autorizacion:'Autorización'};
+ plus_anular_factura:'Anular comprobante de venta',plus_anular_cobranza:'Anular recibo',plus_anular_compra:'Anular comprobante de compra',plus_anular_pago:'Anular orden de pago',plus_anular_remito_compra:'Anular remito de compra',plus_anular_mov_caja:'Anular movimiento de caja',plus_anular_mov_banco:'Anular movimiento bancario',plus_eliminar_pedido:'Eliminar pedido',plus_cheque_rechazado:'Cheque rechazado',plus_cheque_estado:'Cambiar estado de cheque',plus_egreso_caja:'Egreso manual de caja',plus_ajuste_stock:'Ajuste de stock',plus_editar_ajuste:'Editar ajuste de stock',plus_anular_ajuste:'Anular ajuste de stock',plus_credito_excedido:'Facturar con crédito excedido',plus_autorizacion:'Autorización',plus_omitir_pendientes:'Marcar remitos/recepciones como listos',plus_revertir_omitido:'Volver a pendiente (desmarcar listo)'};
 const novMod=n=>n.modulo?String(n.modulo).toUpperCase():/^plus_/.test(n.tipo||'')?'PLUS':/^agro_/.test(n.tipo||'')?'AGRO':/^rrhh_/.test(n.tipo||'')?'RRHH':'TRACE';
 function vAud(){if(S.faltan.includes('novedades'))return '<div class="card alert warn">No se encontró la tabla de novedades en la base. Corré novedades_setup.sql en Supabase para activar la auditoría.</div>';
   const rows=(S.raw.nov||[]).map(n=>({f:n.fecha,h:String(n.created_at||'').slice(11,16),mod:novMod(n),op:NOV_L[n.tipo]||n.tipo||'',ref:n.referencia||'',det:n.detalle||'',aut:n.autorizado_por||'(sin PIN)',eje:n.ejecutado_por||''}));
