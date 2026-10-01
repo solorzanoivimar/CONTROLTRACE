@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CONTROL PLUS — Sistema Administrativo</title>
+<title>CONTROL MAX — Control Plus</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F4E79'/%3E%3Ctext x='32' y='46' font-family='Segoe UI,Arial,sans-serif' font-size='40' font-weight='800' text-anchor='middle' fill='%23C9A84C'%3EP%3C/text%3E%3C/svg%3E">
 <!-- build v7.4 · PLUS — (v7.4: Insumos editables — alta, ingresos, ajustes con PIN, planilla de conteo; las facturas de compra con insumos ingresan stock y actualizan costo; v7.3: Inventario editable — Materia prima y Productos con receta de MP, insumos y componentes, mismas tablas que TRACE; v7.2: permisos por rol y plan desde Configuración CONTROL MAX; v7.1: pedidos editar/copiar/cumplido, precios por cliente como fuente única compartida con TRACE, permisos por rol) · v7.0: Todos los módulos con datos reales: Ventas (A/B/C/X + FCE MiPyME, NC/ND, presupuestos, pedidos, remitos TRACE, cobranzas, cheques, C/C), Compras (recepciones TRACE, gastos, pagos, chequera, comisiones), Caja, Banco (conciliación), Inventario (lectura TRACE), Configuración fiscal. Requiere plus_v7_setup.sql -->
 <!-- Supabase JS (mismo que TRACE y AGRO) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -323,7 +324,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v8.1 · Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v8.2 · título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
