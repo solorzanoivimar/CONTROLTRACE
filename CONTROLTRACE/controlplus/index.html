@@ -323,7 +323,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v8.0 · auditoría de autorizaciones · incluye v7.9: enlaces directos desde Trace (#inventario/ti-aj)</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v8.1 · Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -1001,8 +1001,15 @@ textarea.fctl{resize:vertical}
     <div id="stkw-ins" class="tcard" style="display:none"><div class="tbar"><div class="tbar-title">Stock de insumos a la fecha</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="printTbl('tbl-stk','Stock de insumos')">🖨️</button></div></div><div class="tscroll"><table id="tbl-stk"><thead><tr><th>Insumo</th><th>Unidad</th><th class="tr">Stock</th><th class="tr">Mínimo</th><th>Estado</th></tr></thead><tbody id="stk-body"></tbody></table></div></div>
   </div>
   <div class="tab-pane" id="ti-aj">
+    <div class="tcard" style="margin-bottom:16px"><div class="tbar"><div class="tbar-title">Ajustar stock por lote</div><div class="tbar-actions" style="gap:6px"><button class="btn btn-sm btn-gold" id="ajb-mp" onclick="ajMode('mp')">🥬 Materia prima (kg)</button><button class="btn btn-sm btn-outline" id="ajb-pt" onclick="ajMode('pt')">📦 Productos (u)</button></div></div>
+      <div style="padding:10px 14px 0" class="small muted">Escribí el <b>conteo físico</b> (o directamente el <b>ajuste ±</b>) solo en los lotes que no coinciden. Después cargá el motivo y tocá <b>Aplicar ajustes</b>: pide PIN de supervisor y queda registrado.</div>
+      <div class="fbar" style="box-shadow:none;border:0;margin:0"><div class="fg"><div class="fg-lbl">Buscar</div><input class="fi" id="aji-q" placeholder="Código, artículo o lote…" oninput="rAJGrid()" style="min-width:240px"></div>
+        <div class="fg" style="flex:1"><div class="fg-lbl">Motivo (aplica a todos los cambios)</div><input class="fi" id="aji-mot" placeholder="ej: conteo físico mensual" style="width:100%"></div>
+        <div class="fbar-actions"><span class="small muted" id="aji-pend">Sin cambios</span><button class="btn btn-outline btn-sm" onclick="ajiLimpiar()">Limpiar</button><button class="btn btn-gold btn-sm" onclick="ajiAplicar()">✅ Aplicar ajustes</button></div></div>
+      <div class="tscroll" style="max-height:58vh;overflow:auto"><table id="tbl-aji"><thead id="aji-head"></thead><tbody id="aji-body"></tbody></table></div></div>
+    <div class="small fw" style="margin:4px 0 8px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">Historial de ajustes</div>
     <div class="fbar"><div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi f-desde" id="aj-d" onchange="rAJ()"></div><div class="fg"><div class="fg-lbl">Hasta</div><input type="date" class="fi" id="aj-h" onchange="rAJ()"></div><div class="fg"><div class="fg-lbl">Buscar</div><input class="fi" id="aj-q" placeholder="Código, artículo, lote, motivo…" oninput="rAJ()"></div><div class="fg"><div class="fg-lbl">&nbsp;</div><label class="small"><input type="checkbox" id="aj-anul" onchange="rAJ()"> Ver anulados</label></div>
-      <div class="fbar-actions"><button class="btn btn-gold btn-sm" onclick="ajusteMasivo('mp')">＋ Ajuste por lote (planilla de conteo)</button><button class="btn btn-outline btn-sm" onclick="xls('tbl-aj','Ajustes_stock')">📥 Excel</button></div></div>
+      <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-aj','Ajustes_stock')">📥 Excel</button></div></div>
     <div class="tcard"><div class="tbar"><div class="tbar-title">Ajustes de stock de materia prima y productos (con PIN de supervisor)</div><div class="tbar-actions"><span class="small muted">Los ajustes de insumos se hacen desde la solapa Insumos</span></div></div>
       <div class="tscroll"><table id="tbl-aj"><thead><tr><th>N°</th><th>Fecha</th><th>Tipo</th><th>Artículo</th><th>Lote</th><th class="tr">Cantidad</th><th>Motivo</th><th>Registró</th><th>Autorizó</th><th>Estado</th><th class="noprint"></th></tr></thead><tbody id="aj-body"></tbody></table></div></div>
   </div>
@@ -3950,7 +3957,7 @@ async function loadInventario(force,quiet){
   renderMod('inventario');
 }
 MOD_R.inventario=()=>{ if(!INV.loaded) loadInventario(); const s=el('prod-fam'); if(s&&!s.options.length) s.innerHTML='<option value="">Todos</option>'+rubrosList().map(r=>`<option>${esc(r.nombre)}</option>`).join(''); const mi=el('mov-ins'); if(mi&&mi.options.length<=1) mi.innerHTML='<option value="">Todos</option>'+(D.ins||[]).map(i=>`<option value="${i.id}">${esc(i.nombre)}</option>`).join(''); };
-TAB_R['ti-mp']=rMP; TAB_R['ti-prod']=rPROD; TAB_R['ti-ins']=rINS; TAB_R['ti-cost']=rCOST; TAB_R['ti-rub']=rRUB; TAB_R['ti-stock']=rSTK; TAB_R['ti-aj']=rAJ; TAB_R['ti-mov']=rMOV;
+TAB_R['ti-mp']=rMP; TAB_R['ti-prod']=rPROD; TAB_R['ti-ins']=rINS; TAB_R['ti-cost']=rCOST; TAB_R['ti-rub']=rRUB; TAB_R['ti-stock']=rSTK; TAB_R['ti-aj']=()=>{ rAJGrid(); rAJ(); }; TAB_R['ti-mov']=rMOV;
 function rMP(){ const tb=el('mp-body'); if(!tb) return; const q=V('mp-q').toLowerCase(), e=V('mp-est');
   const rows=(S.materias||[]).filter(m=>(!e||m.activo!==false)&&(!q||((m.codigo||'')+' '+m.nombre).toLowerCase().includes(q)));
   tb.innerHTML=rows.length?rows.map(m=>{ const rc=(D.rec||[]).filter(r=>String(r.materia_prima||'').toUpperCase()===String(m.nombre||'').toUpperCase()&&r.estado!=='anulada').sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')); const u=rc[0];
@@ -4360,9 +4367,9 @@ function kMPItems(){ return [...new Set((INV.rec||[]).filter(r=>r.estado!=='anul
 function kPTItems(){ const set=new Set(); (INV.prod||[]).forEach(p=>{ if(p.estado==='validada') (INV.pout||[]).filter(o=>o.produccion_id===p.id).forEach(o=>set.add(o.producto_nombre)); }); return [...set].sort(); }
 const artCodPlus=n=>{ const p=(S.productos||[]).find(x=>x.nombre===n); if(p) return p.codigo||''; const m=(S.materias||[]).find(x=>String(x.nombre||'').toUpperCase()===String(n||'').toUpperCase()); return m?m.codigo||'':''; };
 // ── grilla de lotes con stock ──
-function kGrid(tipo){ const out=[];
-  if(tipo==='mp') kMPItems().forEach(it=>{ const lotes=(INV.rec||[]).filter(r=>r.estado!=='anulada'&&r.materia_prima===it).map(r=>({lote:r.codigo_lote,stock:stockLoteMP(r),fecha:r.fecha,prov:r.proveedor,kilos:num(r.kilos),cajas:num(r.cajas)})).filter(x=>x.stock>0.001).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')||String(a.lote).localeCompare(String(b.lote))); if(lotes.length) out.push({item:it,lotes,un:'kg',dec:1}); });
-  else kPTItems().forEach(it=>{ const lotes=kLotesProducto(it).map(l=>({lote:l,stock:stockLotePT(it,l),fecha:kFechaLotePT(it,l)})).filter(x=>x.stock>0.001).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')||String(a.lote).localeCompare(String(b.lote))); if(lotes.length) out.push({item:it,lotes,un:'u',dec:0}); });
+function kGrid(tipo,neg){ const out=[]; const keep=x=>x.stock>0.001||(neg&&x.stock<-0.001);
+  if(tipo==='mp') kMPItems().forEach(it=>{ const lotes=(INV.rec||[]).filter(r=>r.estado!=='anulada'&&r.materia_prima===it).map(r=>({lote:r.codigo_lote,stock:stockLoteMP(r),fecha:r.fecha,prov:r.proveedor,kilos:num(r.kilos),cajas:num(r.cajas)})).filter(keep).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')||String(a.lote).localeCompare(String(b.lote))); if(lotes.length) out.push({item:it,lotes,un:'kg',dec:1}); });
+  else kPTItems().forEach(it=>{ const lotes=kLotesProducto(it).map(l=>({lote:l,stock:stockLotePT(it,l),fecha:kFechaLotePT(it,l)})).filter(keep).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')||String(a.lote).localeCompare(String(b.lote))); if(lotes.length) out.push({item:it,lotes,un:'u',dec:0}); });
   return out; }
 // ── Stock (solapa) ──
 window._stkMode=window._stkMode||'mp';
@@ -4386,6 +4393,46 @@ function rAJ(){ const tb=el('aj-body'); if(!tb) return; const d=V('aj-d'), h=V('
   tb.innerHTML=rows.length?rows.slice(0,500).map(a=>{ const c=num(a.cantidad), un=a.tipo==='mp'?'kg':'u', an=a.estado==='anulada';
     return `<tr style="${an?'opacity:.5':''}"><td class="mono">${esc(a.codigo||'')}</td><td>${fD(a.fecha)}</td><td>${a.tipo==='mp'?'Materia prima':'Producto'}</td><td class="fw">${esc(a.item||'')}</td><td class="mono">${esc(a.lote||'')}</td><td class="tr ${c<0?'cd':'cs'} fw" data-v="${c}">${c>0?'+':''}${c.toLocaleString('es-AR',{maximumFractionDigits:2})} ${un}</td><td class="small">${esc(a.motivo||'')}</td><td class="small">${esc(a.registrado_por||'')}</td><td class="small">${esc(a.autorizado_por||'')}</td><td>${an?badge('Anulado','b-neutral'):badge('Activo','b-success')}</td><td class="noprint">${an?'':`<div class="act-btns"><button class="btn btn-outline btn-xs" onclick="editAjuste('${a.id}')">✏️</button><button class="btn btn-outline btn-xs" onclick="anularAjuste('${a.id}')">✕</button></div>`}</td></tr>`; }).join(''):emptyRow(11,INV.loaded?'Sin ajustes en el período':'Cargando…'); }
 window._ajRows=[];
+// ── v8.1: ajuste directo en la pestaña (MP / productos, stock por lote, conteo físico) ──
+window._ajMode=window._ajMode||'mp'; window._ajiD=window._ajiD||{}; window._ajiR=[];
+function ajMode(m){ window._ajMode=m; rAJGrid(); }
+function ajiKey(r){ return r.tipo+'|'+r.item+'|'+r.lote; }
+function rAJGrid(){ const tb=el('aji-body'); if(!tb) return; const m=window._ajMode||'mp';
+  ['mp','pt'].forEach(k=>{ const b=el('ajb-'+k); if(b) b.className='btn btn-sm '+(k===m?'btn-gold':'btn-outline'); });
+  const mp=m==='mp'; el('aji-head').innerHTML=`<tr><th>Cód.</th><th>${mp?'Materia prima':'Producto'}</th><th>Lote</th><th>Fecha</th><th class="tr">Stock actual</th><th>Conteo físico</th><th>Ajuste ±</th><th class="tr">Queda</th></tr>`;
+  if(!INV.loaded){ tb.innerHTML=emptyRow(8,'⏳ Cargando stock…'); return; }
+  const q=(V('aji-q')||'').toLowerCase(); window._ajiR=[]; let html='';
+  kGrid(m,true).forEach(g=>{
+    const itemOk=!q||(g.item+' '+artCodPlus(g.item)).toLowerCase().includes(q);
+    const lotes=itemOk?g.lotes:g.lotes.filter(l=>String(l.lote).toLowerCase().includes(q)); if(!lotes.length) return;
+    lotes.forEach((l,j)=>{ const i=window._ajiR.length; const kgc=(mp&&l.cajas>0&&l.kilos>0)?l.kilos/l.cajas:0; const r={tipo:m,item:g.item,lote:l.lote,un:g.un,dec:g.dec,stock:l.stock,kgCaja:kgc}; window._ajiR.push(r);
+      const d=window._ajiD[ajiKey(r)]; const has=d!=null&&Math.abs(d)>0.0001; const fmt=n=>n.toLocaleString('es-AR',{maximumFractionDigits:g.dec}); const bt=j===0?'border-top:2px solid var(--ice-dark);':'';
+      const st=mp?'0.01':'1'; const cont=has?+(l.stock+d).toFixed(g.dec):''; const neg=l.stock<-0.001;
+      html+=`<tr${neg?' style="background:#fdecea"':''}><td class="mono small" style="${bt}">${j===0?esc(artCodPlus(g.item)):''}</td><td class="fw" style="${bt}">${j===0?esc(g.item):''}</td><td class="mono" style="${bt}">${esc(l.lote)}</td><td class="small" style="${bt}">${fD(l.fecha)}</td><td class="tr" style="${bt}">${fmt(l.stock)} ${g.un}${neg?' <span class="small" style="color:#b4453a">negativo</span>':''}${kgc>0?`<div class="small muted">${fmt(l.stock/kgc)} cj</div>`:''}</td>`+
+        `<td style="${bt}"><div style="display:flex;gap:4px;align-items:center"><input type="number" step="${st}" min="0" class="fctl" id="aic-${i}" value="${cont}" placeholder="${g.un}" style="width:86px" oninput="ajiConteo(${i})">${kgc>0?`<input type="number" step="0.5" min="0" class="fctl" id="aicj-${i}" value="${has?+((l.stock+d)/kgc).toFixed(2):''}" placeholder="cajas" title="Conteo en cajas (${fmt(kgc)} kg por caja)" style="width:72px" oninput="ajiCajas(${i})">`:''}</div></td>`+
+        `<td style="${bt}"><input type="number" step="${st}" class="fctl" id="aid-${i}" value="${has?+d.toFixed(g.dec):''}" placeholder="±${g.un}" style="width:86px" oninput="ajiDelta(${i})"></td>`+
+        `<td class="tr" id="aiq-${i}" style="${bt}${has?'font-weight:700':''}">${fmt(l.stock+(has?d:0))} ${g.un}</td></tr>`; }); });
+  tb.innerHTML=html||emptyRow(8,q?'Ningún lote coincide con la búsqueda':'Sin lotes con stock'); ajiPend(); }
+function ajiSet(i,d,src){ const r=window._ajiR[i]; if(!r) return; if(r.tipo==='pt'&&d!=null) d=Math.round(d); const k=ajiKey(r);
+  if(d==null||Math.abs(d)<0.0001) delete window._ajiD[k]; else window._ajiD[k]=d;
+  const has=window._ajiD[k]!=null, dd=has?window._ajiD[k]:0, nv=r.stock+dd, f=n=>String(+n.toFixed(r.dec));
+  if(src!=='d'){ const e=el('aid-'+i); if(e) e.value=has?f(dd):''; }
+  if(src!=='c'){ const e=el('aic-'+i); if(e) e.value=has?f(nv):''; }
+  if(src!=='cj'){ const e=el('aicj-'+i); if(e&&r.kgCaja>0) e.value=has?+(nv/r.kgCaja).toFixed(2):''; }
+  const q=el('aiq-'+i); if(q){ q.textContent=nv.toLocaleString('es-AR',{maximumFractionDigits:r.dec})+' '+r.un; q.style.fontWeight=has?'700':'400'; q.style.color=nv<-0.001?'#b4453a':''; } ajiPend(); }
+function ajiConteo(i){ const r=window._ajiR[i]; const v=el('aic-'+i).value; ajiSet(i,v===''?null:num(v)-r.stock,'c'); }
+function ajiCajas(i){ const r=window._ajiR[i]; const v=el('aicj-'+i).value; ajiSet(i,v===''?null:num(v)*r.kgCaja-r.stock,'cj'); }
+function ajiDelta(i){ const v=el('aid-'+i).value; ajiSet(i,v===''?null:num(v),'d'); }
+function ajiCambios(){ const out=[]; const G={mp:kGrid('mp',true),pt:kGrid('pt',true)};
+  Object.entries(window._ajiD).forEach(([k,d])=>{ const p=k.split('|'); const tipo=p[0], lote=p[p.length-1], item=p.slice(1,-1).join('|'); const g=G[tipo].find(x=>x.item===item); const l=g&&g.lotes.find(x=>String(x.lote)===lote); if(l) out.push({tipo,item,lote,un:g.un,dec:g.dec,stock:l.stock,delta:d}); }); return out; }
+function ajiPend(){ const e=el('aji-pend'); if(!e) return; const ch=Object.keys(window._ajiD); const n={mp:0,pt:0}; ch.forEach(k=>n[k.split('|')[0]]++);
+  e.textContent=ch.length?[n.mp?n.mp+' lote(s) de MP':'',n.pt?n.pt+' lote(s) de productos':''].filter(Boolean).join(' + ')+' con cambios':'Sin cambios'; e.style.fontWeight=ch.length?'700':'400'; }
+function ajiLimpiar(){ window._ajiD={}; rAJGrid(); }
+function ajiAplicar(){ const ch=ajiCambios(); if(!ch.length){ toast('No cargaste ningún ajuste','warn'); return; }
+  const mot=V('aji-mot'); if(!mot){ toast('Escribí el motivo del ajuste','warn'); const m=el('aji-mot'); if(m) m.focus(); return; }
+  for(const c of ch){ if(c.stock+c.delta<-0.001){ toast('El lote '+c.lote+' de '+c.item+' quedaría negativo','warn'); return; } }
+  const res=ch.slice(0,6).map(c=>esc(c.item)+' · '+esc(c.lote)+' · '+(c.delta>0?'+':'')+(+c.delta.toFixed(c.dec))+' '+c.un).join('<br>')+(ch.length>6?'<br>… y '+(ch.length-6)+' más':'');
+  autorizar('Aplicar <b>'+ch.length+' ajuste(s) de stock</b> · '+esc(mot)+'<br><span style="font-weight:400">'+res+'</span>', async()=>{ if(!(await aplicarAjustes(ch,mot))) return; window._ajiD={}; const m=el('aji-mot'); if(m) m.value=''; rAJGrid(); }); }
 function ajusteMasivo(tipo){ tipo=tipo||'mp'; const grid=kGrid(tipo); window._ajRows=[]; let idx=0, rows='';
   grid.forEach(g=>g.lotes.forEach((l,j)=>{ const i=idx++; const kgc=(tipo==='mp'&&l.cajas>0&&l.kilos>0)?l.kilos/l.cajas:0; window._ajRows.push({tipo,item:g.item,lote:l.lote,un:g.un,dec:g.dec,stock:l.stock,kgCaja:kgc});
     const bt=j===0?'border-top:2px solid var(--ice-dark);':''; const fmt=n=>n.toLocaleString('es-AR',{maximumFractionDigits:g.dec});
@@ -4407,16 +4454,16 @@ function ajPrev(i){ const r=window._ajRows[i]; const d=num(el('ajd-'+i).value); 
 async function aplicarAjustes(ch,mot){ const quien=window._pinAutorizo||''; window._pinAutorizo=null;
   try{ for(const c of ch){ const { data:n, error:e1 } = await sb.rpc('siguiente_numero',{p_tipo:'ajuste'}); if(e1) throw e1; const codigo='AJ-'+String(n).padStart(5,'0');
       const { error } = await sb.from('ajustes_stock').insert({empresa_id:S.empresaId,codigo,fecha:hoy(),tipo:c.tipo,item:c.item,lote:c.lote,cantidad:c.delta,motivo:mot,estado:'activo',registrado_por:S.nombre||S.email||'',autorizado_por:quien}); if(error) throw error; }
-    try{ await sb.from('novedades').insert({empresa_id:S.empresaId,fecha:hoy(),tipo:'ajuste_stock',referencia:'('+ch.length+' lote'+(ch.length>1?'s':'')+')',detalle:('Ajuste masivo ('+(ch[0].tipo==='mp'?'MP':'PT')+') · '+mot+' · '+ch.map(c=>c.item+' '+c.lote+' '+(c.delta>=0?'+':'')+c.delta+c.un).join('; ')).slice(0,400),autorizado_por:quien||null,ejecutado_por:S.nombre||S.email||null}); }catch(_){}
-    INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rSTK(); toast(ch.length+' ajuste(s) aplicado(s)','ok');
-  }catch(e){ toast(e.message||String(e),'err'); INV.ajustes=await fetchAll('ajustes_stock'); rAJ(); } }
+    // la auditoría la registra autorizar() (v8.0), así no queda duplicada
+    INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rAJGrid(); rSTK(); toast(ch.length+' ajuste(s) aplicado(s)','ok'); return true;
+  }catch(e){ toast(e.message||String(e),'err'); INV.ajustes=await fetchAll('ajustes_stock'); rAJ(); return false; } }
 function editAjuste(id){ const a=(INV.ajustes||[]).find(x=>x.id===id); if(!a) return; const un=a.tipo==='mp'?'kg':'u';
   formModal({title:'Editar ajuste '+a.codigo, sub:a.item+' · lote '+a.lote, fields:[{id:'cantidad',label:'Cantidad (± '+un+')',type:'number',step:'0.01',req:true,value:num(a.cantidad)},{id:'motivo',label:'Motivo',req:true,value:a.motivo||'',full:true}],
    onSave:async v=>{ const nv=a.tipo==='pt'?Math.round(v.cantidad):v.cantidad; setTimeout(()=>autorizar('Modificar el ajuste <b>'+esc(a.codigo)+'</b> a <b>'+nv+' '+un+'</b>', async()=>{ const q=window._pinAutorizo; window._pinAutorizo=null;
-       try{ const { data, error } = await sb.from('ajustes_stock').update({cantidad:nv,motivo:v.motivo,autorizado_por:q||a.autorizado_por}).eq('id',id).eq('empresa_id',S.empresaId).select('id'); if(error) throw error; if(!data||!data.length) throw new Error('No se pudo actualizar el ajuste'); INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rSTK(); toast('Ajuste actualizado','ok'); }catch(e){ toast(e.message,'err'); } }),50); return true; }}); }
+       try{ const { data, error } = await sb.from('ajustes_stock').update({cantidad:nv,motivo:v.motivo,autorizado_por:q||a.autorizado_por}).eq('id',id).eq('empresa_id',S.empresaId).select('id'); if(error) throw error; if(!data||!data.length) throw new Error('No se pudo actualizar el ajuste'); INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rAJGrid(); rSTK(); toast('Ajuste actualizado','ok'); }catch(e){ toast(e.message,'err'); } }),50); return true; }}); }
 function anularAjuste(id){ const a=(INV.ajustes||[]).find(x=>x.id===id); if(!a||a.estado==='anulada') return;
   autorizar('Anular el ajuste <b>'+esc(a.codigo)+'</b> ('+esc(a.item)+' · '+esc(a.lote)+' · '+num(a.cantidad)+'). El stock vuelve al valor anterior.', async()=>{ window._pinAutorizo=null;
-    try{ const { data, error } = await sb.from('ajustes_stock').update({estado:'anulada'}).eq('id',id).eq('empresa_id',S.empresaId).select('id'); if(error) throw error; if(!data||!data.length) throw new Error('No se pudo anular'); INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rSTK(); toast('Ajuste anulado','ok'); }catch(e){ toast(e.message,'err'); } }); }
+    try{ const { data, error } = await sb.from('ajustes_stock').update({estado:'anulada'}).eq('id',id).eq('empresa_id',S.empresaId).select('id'); if(error) throw error; if(!data||!data.length) throw new Error('No se pudo anular'); INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rAJGrid(); rSTK(); toast('Ajuste anulado','ok'); }catch(e){ toast(e.message,'err'); } }); }
 // ── Movimientos (insumos + kardex por lote de MP / productos) ──
 window._movSrc=window._movSrc||'ins';
 function movSrc(s){ window._movSrc=s; const ins=s==='ins'; el('mov-ins-wrap').style.display=ins?'':'none'; el('mov-kx-wrap').style.display=ins?'none':''; if(!ins){ const sel=el('mov-item'); const items=s==='mp'?kMPItems():kPTItems(); sel.innerHTML=items.map(i=>`<option>${esc(i)}</option>`).join(''); } rMOV(); }
