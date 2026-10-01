@@ -324,7 +324,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v8.2 · título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v8.4 · remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -457,10 +457,10 @@ textarea.fctl{resize:vertical}
     </div>
     <div class="fbar">
       <div class="fg"><div class="fg-lbl">Cliente</div><select class="fs sel-cliente" id="rem-f-cli" onchange="rREM()"></select></div>
-      <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="rem-f-est" onchange="rREM()"><option value="">Todos</option><option value="pend" selected>Pendiente de facturar</option><option value="fact">Facturado</option><option value="muestra">Muestra</option><option value="anulada">Anulado</option></select></div>
+      <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="rem-f-est" onchange="rREM()"><option value="">Todos</option><option value="pend" selected>Pendiente de facturar</option><option value="fact">Facturado</option><option value="muestra">Muestra</option><option value="omit">✓ Listos (ocultos)</option><option value="anulada">Anulado</option></select></div>
       <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi" id="rem-f-d" onchange="rREM()"></div>
       <div class="fg"><div class="fg-lbl">Hasta</div><input type="date" class="fi" id="rem-f-h" onchange="rREM()"></div>
-      <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="reloadTrace().then(rREM)">🔄 Sincronizar</button><button class="btn btn-gold btn-sm" onclick="facturarRemitosSel()">🧾 Facturar seleccionados</button></div>
+      <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="reloadTrace().then(rREM)">🔄 Sincronizar</button><button class="btn btn-outline btn-sm" onclick="omiRemitos()" title="Remitos que no se facturan en PLUS (ej. incluidos en el saldo inicial): salen de la lista de pendientes">✓ Marcar como listos</button><button class="btn btn-gold btn-sm" onclick="facturarRemitosSel()">🧾 Facturar seleccionados</button></div>
     </div>
     <div class="tcard">
       <div class="tbar"><div class="tbar-title">Remitos de venta (CONTROL TRACE)</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-rem','Remitos')">📥 Excel</button><button class="btn btn-outline btn-sm" onclick="printTbl('tbl-rem','Remitos de venta')">🖨️</button></div></div>
@@ -673,7 +673,7 @@ textarea.fctl{resize:vertical}
     <div style="border:2px solid #bfdbfe;border-radius:8px;background:#eff6ff;padding:14px;margin-bottom:14px" id="rec-panel">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div style="font-size:12px;font-weight:700;color:#1d4ed8">📥 Recepciones de CONTROL TRACE sin comprobante de compra <span id="rec-count"></span></div>
-        <div style="display:flex;gap:6px"><button class="btn btn-outline btn-sm" onclick="reloadTrace().then(rCPA)">🔄 Sincronizar</button><button class="btn btn-gold btn-sm" onclick="compraDesdeRecepcionesSel()">💾 Registrar seleccionadas</button></div>
+        <div style="display:flex;gap:6px"><button class="btn btn-outline btn-sm" onclick="reloadTrace().then(rCPA)">🔄 Sincronizar</button><button class="btn btn-outline btn-sm" onclick="omiRecepcionesSel()" title="No se cargan como compra y salen de esta lista">✓ Marcar seleccionadas como listas</button><button class="btn btn-gold btn-sm" onclick="compraDesdeRecepcionesSel()">💾 Registrar seleccionadas</button></div>
       </div>
       <div class="tscroll" style="max-height:300px;overflow:auto"><table style="font-size:11px"><thead><tr><th><input type="checkbox" class="chk" onchange="document.querySelectorAll('.rec-chk').forEach(c=>c.checked=this.checked)"></th><th>Lote</th><th>Proveedor</th><th>Fecha</th><th>Materia prima</th><th class="tr">Kg / unid.</th><th class="tr">Cajas</th><th class="tr">Precio cargado</th><th class="tr">Total</th><th></th></tr></thead><tbody id="rec-body"></tbody></table></div>
     </div>
@@ -730,10 +730,10 @@ textarea.fctl{resize:vertical}
     <div class="fbar">
       <div class="fg"><div class="fg-lbl">Proveedor</div><select class="fs sel-proveedor" id="rc-f-prv" onchange="rRC()"></select></div>
       <div class="fg"><div class="fg-lbl">Origen</div><select class="fs" id="rc-f-org" onchange="rRC()"><option value="">Todos</option><option value="trace">CONTROL TRACE</option><option value="manual">Manual</option></select></div>
-      <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="rc-f-est" onchange="rRC()"><option value="">Todos</option><option value="pend">Sin facturar</option><option value="fact">Facturado</option></select></div>
+      <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="rc-f-est" onchange="rRC()"><option value="">Todos</option><option value="pend">Sin facturar</option><option value="fact">Facturado</option><option value="omit">✓ Listos (ocultos)</option></select></div>
       <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi f-desde" id="rc-f-d" onchange="rRC()"></div>
       <div class="fg"><div class="fg-lbl">Hasta</div><input type="date" class="fi" id="rc-f-h" onchange="rRC()"></div>
-      <div class="fbar-actions"><button class="btn btn-gold btn-sm" onclick="editRemitoCompra()">＋ Remito manual</button></div>
+      <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="omiRecepciones()" title="Recepciones que no se cargan como compra en PLUS (ej. incluidas en el saldo inicial): salen de la lista de pendientes">✓ Marcar como listos</button><button class="btn btn-gold btn-sm" onclick="editRemitoCompra()">＋ Remito manual</button></div>
     </div>
     <div class="tcard">
       <div class="tbar"><div class="tbar-title">Remitos de compra</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-rc','Remitos_compra')">📥 Excel</button></div></div>
@@ -1650,7 +1650,7 @@ const TBL = {
   cpa:'comprobantes_compra', cpai:'comprobantes_compra_items', rc:'remitos_compra',
   pag:'pagos', pagm:'pago_medios', pagi:'pago_imputaciones',
   cta:'cuentas_bancarias', bm:'banco_movimientos', ext:'banco_extracto',
-  caj:'cajas', cjs:'caja_sesiones', cjm:'caja_movimientos', rub:'rubros_articulos'
+  caj:'cajas', cjs:'caja_sesiones', cjm:'caja_movimientos', rub:'rubros_articulos', omi:'plus_omitidos'
 };
 Object.keys(TBL).forEach(k=>D[k]=[]);
 D.ent=[]; D.enti=[]; D.ped=[]; D.pedi=[]; D.rec=[]; D.pcli=[]; D.ins=[];
@@ -1911,6 +1911,7 @@ function autorizar(motivo, cb){
 // v8.0: auditoría — cada autorización queda registrada en la tabla novedades (se ve en CONTROL TOTAL → Auditoría)
 function tipoAutorizacion(t,sub){ t=String(t||'');
   if(/Facturación bloqueada/i.test(sub||'')) return 'plus_credito_excedido';
+  if(/^Marcar como list/.test(t)) return 'plus_omitir_pendientes'; if(/^Volver a pendiente/.test(t)) return 'plus_revertir_omitido';
   const R=[[/^Anular <b>/,'plus_anular_factura'],[/^Anular el recibo/,'plus_anular_cobranza'],[/^Anular el comprobante/,'plus_anular_compra'],[/^Anular la orden de pago/,'plus_anular_pago'],[/^Anular el remito de compra/,'plus_anular_remito_compra'],[/^Anular el movimiento de caja/,'plus_anular_mov_caja'],[/^Anular el movimiento bancario/,'plus_anular_mov_banco'],[/^Eliminar el pedido/,'plus_eliminar_pedido'],[/rechazado/i,'plus_cheque_rechazado'],[/^Marcar el cheque/,'plus_cheque_estado'],[/^Egreso manual/,'plus_egreso_caja'],[/^Modificar el ajuste/,'plus_editar_ajuste'],[/^Anular el ajuste/,'plus_anular_ajuste'],[/ajust/i,'plus_ajuste_stock']];
   const f=R.find(x=>x[0].test(t)); return f?f[1]:'plus_autorizacion'; }
 function logAutorizacion(motivos,quien,sub){ try{ const html=(motivos||[]).join(' · '); const txt=html.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim(); const ref=((html.match(/<b>(.*?)<\/b>/)||[])[1]||'').replace(/<[^>]+>/g,'');
@@ -2467,8 +2468,48 @@ async function verificarCreditoCliente(cliId, montoNuevo){
 function itemsEntrega(eid){ return (D.enti||[]).filter(i=>i.entrega_id===eid); }
 function importeEntrega(e){ const g=sumBy(itemsEntrega(e.id),i=>num(i.precio)*num(i.cantidad)); const d=e.descuento_tipo==='pct'?g*num(e.descuento_valor)/100:(e.descuento_tipo==='monto'?Math.min(num(e.descuento_valor),g):0); return {bruto:g, desc:d, neto:g-d}; }
 function facturaDeEntrega(eid){ return (D.cv||[]).find(c=>c.estado!=='anulada'&&Array.isArray(c.entrega_ids)&&c.entrega_ids.includes(eid)); }
-function remitosPendientes(){ return (D.ent||[]).filter(e=>e.estado!=='anulada'&&!e.es_muestra&&!facturaDeEntrega(e.id)); }
-function recepcionesPendientes(){ const used=new Set(); (D.cpa||[]).forEach(c=>{ if(c.estado!=='anulada'&&Array.isArray(c.recepcion_ids)) c.recepcion_ids.forEach(x=>used.add(x)); }); return (D.rec||[]).filter(r=>r.estado!=='anulada'&&!used.has(r.id)); }
+// ── v8.4: remitos y recepciones "✓ Listo" — no se cargan en PLUS (ya están en el saldo inicial u otro motivo).
+//    Desaparecen de las listas de pendientes, pero NO se borran: stock, costos, producción y trazabilidad siguen igual.
+function omiOK(){ return !(D._missing&&D._missing[TBL.omi]); }
+function omiMap(tipo){ const m={}; (D.omi||[]).forEach(o=>{ if(o.tipo===tipo&&o.estado!=='revertido') m[String(o.ref_id)]=o; }); return m; }
+function omitido(tipo,id){ return !!omiMap(tipo)[String(id)]; }
+function omiFaltaSQL(){ toast('Falta un paso en Supabase: corré plus_v8_3_omitidos.sql en el SQL Editor','warn'); }
+function omiBadge(o){ return `<span class="badge b-neutral" title="${esc((o&&o.motivo)||'Marcado como listo')}${o&&o.created_at?' · '+fD(String(o.created_at).slice(0,10)):''}">✓ Listo</span>`; }
+async function omiGuardar(tipo,ids,motivo){ const quien=window._pinAutorizo||''; window._pinAutorizo=null;
+  try{ for(let i=0;i<ids.length;i+=200){ const rows=ids.slice(i,i+200).map(id=>({empresa_id:S.empresaId,tipo,ref_id:String(id),motivo:motivo||'Marcado como listo',estado:'activo',created_by:S.nombre||S.email||'',autorizado_por:quien||null}));
+      const { error } = await sb.from(TBL.omi).upsert(rows,{onConflict:'empresa_id,tipo,ref_id'}); if(error) throw error; }
+    await reload(['omi']); refresh(); toast('✓ '+ids.length+' '+(tipo==='remito'?'remito(s)':'recepción(es)')+' marcados como listos','ok'); return true;
+  }catch(e){ if(isMissing(e)){ omiFaltaSQL(); return false; } toast(e.message||String(e),'err'); return false; } }
+function omiRevertir(tipo,id,nro){ if(!omiOK()) return omiFaltaSQL(); const o=omiMap(tipo)[String(id)]; if(!o) return;
+  autorizar('Volver a pendiente '+(tipo==='remito'?'el remito':'la recepción')+' <b>'+esc(nro||'')+'</b> (deja de estar marcado como listo)', async()=>{ window._pinAutorizo=null;
+    try{ await dbUpd(TBL.omi,o.id,{estado:'revertido'}); await reload(['omi']); refresh(); toast('Vuelve a figurar como pendiente','ok'); }catch(e){ toast(e.message,'err'); } }); }
+const OMI_SUB=' Desaparecen de la lista de pendientes pero no se borran: stock, costos, producción y trazabilidad siguen igual. Para verlos o deshacerlo, usá el filtro "✓ Listos".';
+// Remitos de venta: ids0 = lista puntual (botón ✓ de la fila); sin ids0 = seleccionados o todos hasta una fecha
+function omiRemitos(ids0){ if(!omiOK()) return omiFaltaSQL(); const one=Array.isArray(ids0)&&ids0.length; const sel=one?ids0:[...document.querySelectorAll('.rem-chk:checked')].map(c=>c.value);
+  formModal({title:'✓ Marcar remitos como listos', sub:'Remitos que no se van a facturar en PLUS (por ejemplo, porque ya están en el saldo inicial del cliente).'+OMI_SUB,
+    fields:one?[{id:'motivo',label:'Motivo (opcional)',full:true,ph:'ej: incluido en el saldo inicial'}]:[
+      {id:'modo',label:'¿Cuáles?',type:'select',full:true,value:sel.length?'sel':'fecha',options:[...(sel.length?[['sel','Los '+sel.length+' remito(s) que marqué en la lista']]:[]),['fecha','Todos los pendientes hasta una fecha']]},
+      {id:'hasta',label:'Hasta la fecha (inclusive)',type:'date',value:hoy(),help:'Solo se usa con "todos los pendientes hasta una fecha".'},
+      {id:'cli',label:'Cliente',type:'select',options:[['','Todos los clientes'],...(S.clientes||[]).map(c=>[c.id,c.razon_social])],help:'Opcional.'},
+      {id:'motivo',label:'Motivo (opcional)',full:true,ph:'ej: incluido en el saldo inicial'}],
+    onSave:async v=>{ const pend=remitosPendientes(); const ids=(one||v.modo==='sel')?sel:pend.filter(e=>String(e.fecha||'').slice(0,10)<=v.hasta&&(!v.cli||e.cliente_id===v.cli)).map(e=>e.id);
+      if(!ids.length){ toast('No hay remitos pendientes con ese criterio','warn'); return false; }
+      const L=pend.filter(e=>ids.includes(e.id)); const imp=sumBy(L,e=>importeEntrega(e).neto);
+      setTimeout(()=>autorizar('Marcar como listos <b>'+ids.length+' remito(s)</b> (importe neto '+m$(imp)+')'+(!one&&v.modo==='fecha'?' · pendientes hasta el '+fD(v.hasta):'')+'. No se van a facturar en PLUS.', ()=>omiGuardar('remito',ids,v.motivo)),50); return true; }}); }
+// Recepciones de TRACE: ids0 = puntuales; sin ids0 = seleccionadas en el panel de Comprobantes o todas hasta una fecha
+function omiRecepciones(ids0){ if(!omiOK()) return omiFaltaSQL(); const one=Array.isArray(ids0)&&ids0.length;
+  formModal({title:'✓ Marcar recepciones como listas', sub:'Recepciones de TRACE que no se van a cargar como compra en PLUS (por ejemplo, porque ya están en el saldo inicial del proveedor), así no suman a su cuenta corriente.'+OMI_SUB,
+    fields:one?[{id:'motivo',label:'Motivo (opcional)',full:true,ph:'ej: incluida en el saldo inicial'}]:[
+      {id:'hasta',label:'Todas las pendientes hasta la fecha (inclusive)',type:'date',value:hoy(),req:true},
+      {id:'prv',label:'Proveedor',type:'select',options:[['','Todos los proveedores'],...[...new Set(recepcionesPendientes().map(r=>r.proveedor).filter(Boolean))].sort().map(p=>[p,p])],help:'Opcional.'},
+      {id:'motivo',label:'Motivo (opcional)',full:true,ph:'ej: incluida en el saldo inicial'}],
+    onSave:async v=>{ const pend=recepcionesPendientes(); const ids=one?ids0:pend.filter(r=>String(r.fecha||'').slice(0,10)<=v.hasta&&(!v.prv||r.proveedor===v.prv)).map(r=>r.id);
+      if(!ids.length){ toast('No hay recepciones pendientes con ese criterio','warn'); return false; }
+      const L=pend.filter(r=>ids.includes(r.id)); const kg=sumBy(L,r=>r.kilos), imp=sumBy(L,r=>num(r.total)||num(r.kilos)*num(r.precio_kilo));
+      setTimeout(()=>autorizar('Marcar como listas <b>'+ids.length+' recepción(es)</b> de TRACE ('+kg.toLocaleString('es-AR')+' kg'+(imp?' · '+m$(imp):'')+')'+(one?'':' · pendientes hasta el '+fD(v.hasta))+'. No se van a cargar como compra en PLUS.', ()=>omiGuardar('recepcion',ids,v.motivo)),50); return true; }}); }
+function omiRecepcionesSel(){ const ids=[...document.querySelectorAll('.rec-chk:checked')].map(c=>c.value); if(!ids.length){ toast('Marcá una o más recepciones','warn'); return; } omiRecepciones(ids); }
+function remitosPendientes(){ const om=omiMap('remito'); return (D.ent||[]).filter(e=>e.estado!=='anulada'&&!e.es_muestra&&!facturaDeEntrega(e.id)&&!om[String(e.id)]); }
+function recepcionesPendientes(){ const used=new Set(); (D.cpa||[]).forEach(c=>{ if(c.estado!=='anulada'&&Array.isArray(c.recepcion_ids)) c.recepcion_ids.forEach(x=>used.add(x)); }); const om=omiMap('recepcion'); return (D.rec||[]).filter(r=>r.estado!=='anulada'&&!used.has(r.id)&&!om[String(r.id)]); }
 
 // ══════════════ LISTADO DE COMPROBANTES ══════════════
 TAB_R['tv-cv']=rCV;
@@ -2529,19 +2570,19 @@ function rREM(){
   if(!V('rem-f-d')&&!el('rem-f-d')._init){ el('rem-f-d')._init=1; setV('rem-f-d',addDays(hoy(),-90)); }
   const fc=V('rem-f-cli'), fe=V('rem-f-est'), fd=V('rem-f-d'), fh=V('rem-f-h');
   let rows=(D.ent||[]).filter(e=>(!fc||e.cliente_id===fc)&&inRange(e.fecha,fd,fh));
-  const st=e=>e.estado==='anulada'?'anulada':e.es_muestra?'muestra':facturaDeEntrega(e.id)?'fact':'pend';
-  const all=rows; if(fe) rows=rows.filter(e=>st(e)===fe);
+  const om=omiMap('remito'); const st=e=>e.estado==='anulada'?'anulada':e.es_muestra?'muestra':facturaDeEntrega(e.id)?'fact':om[String(e.id)]?'omit':'pend';
+  const all=rows; if(fe) rows=rows.filter(e=>st(e)===fe); else rows=rows.filter(e=>st(e)!=='omit');
   rows.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||String(b.numero_remito).localeCompare(String(a.numero_remito)));
   const inMes=(D.ent||[]).filter(e=>inRange(e.fecha,mesIni(),hoy())&&e.estado!=='anulada');
-  el('rem-k1').textContent=all.filter(e=>e.estado!=='anulada').length; const pend=remitosPendientes(); el('rem-k2').textContent=pend.length; el('rem-k2s').textContent=pend.length?k$(sumBy(pend,e=>importeEntrega(e).neto))+' a facturar':'Todo facturado';
+  el('rem-k1').textContent=all.filter(e=>e.estado!=='anulada').length; const pend=remitosPendientes(); el('rem-k2').textContent=pend.length; el('rem-k2s').textContent=pend.length?k$(sumBy(pend,e=>importeEntrega(e).neto))+' a facturar':'Nada pendiente';
   el('rem-k3').textContent=all.filter(e=>st(e)==='fact').length; el('rem-k4').textContent=Math.round(sumBy(inMes,e=>sumBy(itemsEntrega(e.id),'cantidad'))).toLocaleString('es-AR');
   tb.innerHTML=rows.length?rows.map(e=>{ const it=itemsEntrega(e.id); const imp=importeEntrega(e); const f=facturaDeEntrega(e.id); const s=st(e); const cli=cliById(e.cliente_id);
     const det=it.slice(0,3).map(i=>esc(i.producto_nombre)+' ×'+num(i.cantidad)).join(' · ')+(it.length>3?' …':'');
     return `<tr style="${s==='anulada'?'opacity:.5':''}"><td class="noprint">${s==='pend'?`<input type="checkbox" class="chk rem-chk" value="${e.id}" data-cli="${e.cliente_id}">`:''}</td><td class="fw mono">${esc(e.numero_remito)}</td><td class="wr">${esc(cli?cli.razon_social:'—')}</td><td>${fD(e.fecha)}</td><td class="small">${det||'—'}</td>
       <td class="tr" data-v="${sumBy(it,'cantidad')}">${sumBy(it,'cantidad').toLocaleString('es-AR')}</td>${tdM(imp.neto)}<td>${esc(e.orden_compra||'—')}</td>
       <td>${f?`<span class="link" onclick="verCbte('${f.id}')">${tipoCorto(f)} ${nroCbte(f)}</span>`:'—'}</td>
-      <td>${{pend:badge('Pendiente de facturar','b-warning'),fact:badge('Facturado','b-success'),muestra:badge('Muestra','b-gold'),anulada:badge('Anulado','b-neutral')}[s]}</td>
-      <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="verRemito('${e.id}')">👁</button>${s==='pend'?`<button class="btn btn-gold btn-xs" onclick="facturarRemitos(['${e.id}'])">🧾 Facturar</button>`:''}</div></td></tr>`; }).join(''):emptyRow(11,fe==='pend'?'No hay remitos pendientes de facturar 🎉':'Sin remitos en el período');
+      <td>${{pend:badge('Pendiente de facturar','b-warning'),fact:badge('Facturado','b-success'),muestra:badge('Muestra','b-gold'),anulada:badge('Anulado','b-neutral'),omit:omiBadge(om[String(e.id)])}[s]}</td>
+      <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="verRemito('${e.id}')">👁</button>${s==='pend'?`<button class="btn btn-gold btn-xs" onclick="facturarRemitos(['${e.id}'])">🧾 Facturar</button><button class="btn btn-outline btn-xs" title="Marcar como listo: no se factura en PLUS y sale de esta lista" onclick="omiRemitos(['${e.id}'])">✓</button>`:''}${s==='omit'?`<button class="btn btn-outline btn-xs" title="Volver a pendiente de facturar" onclick="omiRevertir('remito','${e.id}','${esc(e.numero_remito||'')}')">↩</button>`:''}</div></td></tr>`; }).join(''):emptyRow(11,fe==='pend'?'No hay remitos pendientes de facturar 🎉':'Sin remitos en el período');
   el('rem-foot').textContent=rows.length+' remitos · importe '+m$(sumBy(rows.filter(e=>e.estado!=='anulada'),e=>importeEntrega(e).neto));
 }
 function verRemito(id){
@@ -3336,7 +3377,7 @@ TAB_R['tc-cv']=rCPA;
 function rRecPanel(){
   const tb=el('rec-body'); if(!tb) return; const rp=recepcionesPendientes().sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   el('rec-count').textContent='('+rp.length+')'; el('rec-panel').style.display=rp.length?'':'none';
-  tb.innerHTML=rp.slice(0,200).map(r=>`<tr><td><input type="checkbox" class="chk rec-chk" value="${r.id}"></td><td class="mono fw">${esc(r.codigo_lote||'')}</td><td>${esc(r.proveedor||'—')}${prvByName(r.proveedor)?'':' <span class="badge b-warning" title="No existe en Entidades → Proveedores">?</span>'}</td><td>${fD(r.fecha)}</td><td>${esc(r.materia_prima||'')}</td><td class="tr">${num(r.kilos).toLocaleString('es-AR')}</td><td class="tr">${num(r.cajas)||'—'}</td>${tdM(r.precio_kilo)}${tdM(r.total,'fw')}<td><button class="btn btn-gold btn-xs" onclick="compraDesdeRecepciones(['${r.id}'])">Registrar</button></td></tr>`).join('');
+  tb.innerHTML=rp.slice(0,200).map(r=>`<tr><td><input type="checkbox" class="chk rec-chk" value="${r.id}"></td><td class="mono fw">${esc(r.codigo_lote||'')}</td><td>${esc(r.proveedor||'—')}${prvByName(r.proveedor)?'':' <span class="badge b-warning" title="No existe en Entidades → Proveedores">?</span>'}</td><td>${fD(r.fecha)}</td><td>${esc(r.materia_prima||'')}</td><td class="tr">${num(r.kilos).toLocaleString('es-AR')}</td><td class="tr">${num(r.cajas)||'—'}</td>${tdM(r.precio_kilo)}${tdM(r.total,'fw')}<td style="white-space:nowrap"><button class="btn btn-gold btn-xs" onclick="compraDesdeRecepciones(['${r.id}'])">Registrar</button> <button class="btn btn-outline btn-xs" title="Marcar como lista: no se carga como compra y sale de esta lista" onclick="omiRecepciones(['${r.id}'])">✓</button></td></tr>`).join('');
 }
 function rCPA(){
   rRecPanel(); const tb=el('cpa-body'); if(!tb) return;
@@ -3373,13 +3414,14 @@ TAB_R['tc-rem']=rRC;
 function rRC(){
   const tb=el('rc-body'); if(!tb) return; const fp=V('rc-f-prv'), fo=V('rc-f-org'), fe=V('rc-f-est'), fd=V('rc-f-d'), fh=V('rc-f-h');
   const used=new Set(); const usedR=new Set(); (D.cpa||[]).filter(vigC).forEach(c=>{ (c.recepcion_ids||[]).forEach(x=>used.add(x)); (c.remito_ids||[]).forEach(x=>usedR.add(x)); });
+  const omR=omiMap('recepcion');
   const prvN=fp?(prvById(fp)||{}).nombre:null;
-  let rows=[...(D.rec||[]).filter(r=>r.estado!=='anulada').map(r=>({org:'trace',id:r.id,nro:r.codigo_lote,prv:r.proveedor,prvId:(prvByName(r.proveedor)||{}).id,fecha:r.fecha,det:r.materia_prima,cant:num(r.kilos)+' kg',fact:used.has(r.id)})),
+  let rows=[...(D.rec||[]).filter(r=>r.estado!=='anulada').map(r=>({org:'trace',id:r.id,nro:r.codigo_lote,prv:r.proveedor,prvId:(prvByName(r.proveedor)||{}).id,fecha:r.fecha,det:r.materia_prima,cant:num(r.kilos)+' kg',fact:used.has(r.id),omit:!used.has(r.id)&&!!omR[String(r.id)]})),
     ...(D.rc||[]).filter(r=>r.estado!=='anulado').map(r=>({org:'manual',id:r.id,nro:r.numero,prv:r.proveedor_nombre,prvId:r.proveedor_id,fecha:r.fecha,det:(r.items||[]).map(i=>i.descripcion).join(', '),cant:(r.items||[]).map(i=>num(i.cantidad)+' '+(i.unidad||'')).join(', '),fact:usedR.has(r.id)}))];
-  rows=rows.filter(r=>(!fp||r.prvId===fp||(prvN&&String(r.prv||'').toUpperCase()===prvN.toUpperCase()))&&(!fo||r.org===fo)&&(!fe||(fe==='fact')===r.fact)&&inRange(r.fecha,fd,fh)).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  rows=rows.filter(r=>(!fp||r.prvId===fp||(prvN&&String(r.prv||'').toUpperCase()===prvN.toUpperCase()))&&(!fo||r.org===fo)&&(fe==='omit'?r.omit:(!r.omit&&(!fe||(fe==='fact'?r.fact:!r.fact))))&&inRange(r.fecha,fd,fh)).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   tb.innerHTML=rows.length?rows.slice(0,400).map(r=>{ const f=(D.cpa||[]).find(c=>vigC(c)&&((c.recepcion_ids||[]).includes(r.id)||(c.remito_ids||[]).includes(r.id)));
-    return `<tr><td class="mono fw">${esc(r.nro||'—')}</td><td>${r.org==='trace'?'<span class="sync-badge">TRACE</span>':badge('Manual','b-neutral')}</td><td>${esc(r.prv||'—')}</td><td>${fD(r.fecha)}</td><td class="small">${esc(r.det||'')}</td><td class="tr small">${esc(r.cant)}</td><td>${f?`<span class="link" onclick="verCompra('${f.id}')">${esc(f.tipo)} ${esc(f.nro_comprobante||nroInt(f))}</span>`:'—'}</td><td>${r.fact?badge('Facturado','b-success'):badge('Sin facturar','b-warning')}</td>
-    <td class="noprint">${r.fact?'':(r.org==='trace'?`<button class="btn btn-gold btn-xs" onclick="compraDesdeRecepciones(['${r.id}'])">Registrar factura</button>`:`<button class="btn btn-gold btn-xs" onclick="compraDesdeRemito('${r.id}')">Registrar factura</button> <button class="btn btn-danger btn-xs" onclick="anularRemitoCompra('${r.id}')">✕</button>`)}</td></tr>`; }).join(''):emptyRow(9);
+    return `<tr><td class="mono fw">${esc(r.nro||'—')}</td><td>${r.org==='trace'?'<span class="sync-badge">TRACE</span>':badge('Manual','b-neutral')}</td><td>${esc(r.prv||'—')}</td><td>${fD(r.fecha)}</td><td class="small">${esc(r.det||'')}</td><td class="tr small">${esc(r.cant)}</td><td>${f?`<span class="link" onclick="verCompra('${f.id}')">${esc(f.tipo)} ${esc(f.nro_comprobante||nroInt(f))}</span>`:'—'}</td><td>${r.fact?badge('Facturado','b-success'):r.omit?omiBadge(omR[String(r.id)]):badge('Sin facturar','b-warning')}</td>
+    <td class="noprint">${r.fact?'':r.omit?`<button class="btn btn-outline btn-xs" title="Volver a sin facturar" onclick="omiRevertir('recepcion','${r.id}','${esc(r.nro||'')}')">↩</button>`:(r.org==='trace'?`<button class="btn btn-gold btn-xs" onclick="compraDesdeRecepciones(['${r.id}'])">Registrar factura</button> <button class="btn btn-outline btn-xs" title="Marcar como lista: no se carga como compra y sale de esta lista" onclick="omiRecepciones(['${r.id}'])">✓</button>`:`<button class="btn btn-gold btn-xs" onclick="compraDesdeRemito('${r.id}')">Registrar factura</button> <button class="btn btn-danger btn-xs" onclick="anularRemitoCompra('${r.id}')">✕</button>`)}</td></tr>`; }).join(''):emptyRow(9);
 }
 function editRemitoCompra(){
   formModal({title:'Remito de compra manual', sub:'Para mercadería que no pasa por CONTROL TRACE', wide:true,
