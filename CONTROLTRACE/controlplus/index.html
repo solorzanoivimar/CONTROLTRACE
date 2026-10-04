@@ -324,7 +324,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.0 · factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.1 · corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -1714,15 +1714,20 @@ async function fetchIn(table, col, ids, select='*'){
   }
   return out;
 }
+// v9.1: en algunas tablas la columna "created_by" (y similares *_by) es de tipo uuid: si rechaza el nombre, se reintenta con el id del usuario
+function fixUuidBy(error, rows){ const m=/invalid input syntax for type uuid: "([^"]*)"/.exec((error&&error.message)||''); if(!m||!S.uid) return false; let hit=false;
+  rows.forEach(o=>Object.keys(o).forEach(k=>{ if(/_by$/.test(k)&&String(o[k])===m[1]){ o[k]=S.uid; hit=true; } })); return hit; }
 async function dbIns(table, obj){
   const arr=Array.isArray(obj)?obj:[obj];
   arr.forEach(o=>{ if(!o.empresa_id) o.empresa_id=S.empresaId; });
-  const { data, error } = await sb.from(table).insert(arr).select();
+  let { data, error } = await sb.from(table).insert(arr).select();
+  if(error&&fixUuidBy(error,arr)) ({ data, error } = await sb.from(table).insert(arr).select());
   if(error) throw new Error(table+': '+error.message);
   return Array.isArray(obj)? data : (data&&data[0]);
 }
 async function dbUpd(table, id, obj){
-  const { error } = await sb.from(table).update(obj).eq('id',id).eq('empresa_id',S.empresaId);
+  let { error } = await sb.from(table).update(obj).eq('id',id).eq('empresa_id',S.empresaId);
+  if(error&&fixUuidBy(error,[obj])) ({ error } = await sb.from(table).update(obj).eq('id',id).eq('empresa_id',S.empresaId));
   if(error) throw new Error(table+': '+error.message);
 }
 async function dbDel(table, id){
@@ -2035,7 +2040,7 @@ async function initPlus(){
   if(!session||!session.user){ window.location.href='/portal.html'; return; }
   const { data:perfil, error:perr } = await sb.from('perfiles').select('nombre, rol, empresa_id, activo').eq('id',session.user.id).single();
   if(perr||!perfil||perfil.activo===false){ window.location.href='/portal.html'; return; }
-  S.empresaId=perfil.empresa_id; S.rol=(perfil.rol||'').toLowerCase(); S.nombre=perfil.nombre||session.user.email; S.email=session.user.email;
+  S.empresaId=perfil.empresa_id; S.rol=(perfil.rol||'').toLowerCase(); S.nombre=perfil.nombre||session.user.email; S.email=session.user.email; S.uid=session.user.id;
   const { data:empresa } = await sb.from('empresas').select('*').eq('id',S.empresaId).single();
   S.empresa=empresa||{};
   // Permisos (Configuración CONTROL MAX): módulos por rol y secciones de PLUS por rol; si no se configuró, valen los roles por defecto
