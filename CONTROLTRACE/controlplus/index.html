@@ -137,6 +137,7 @@ tbody td{padding:8px 12px;font-size:12px;color:var(--text-main)}
 /* MODAL */
 .moverlay{position:fixed;inset:0;background:rgba(13,27,42,.55);z-index:300;display:none;align-items:center;justify-content:center;padding:16px}
 .moverlay.open{display:flex}
+#m-ncliente{z-index:360}
 .modal{background:#fff;border-radius:10px;box-shadow:var(--shadow-lg);width:100%;max-width:760px;max-height:92vh;overflow-y:auto;animation:mIn .18s ease}
 .modal-lg{max-width:960px}
 .modal-xl{max-width:1100px}
@@ -324,7 +325,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.1 · corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.2 · buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -1366,7 +1367,10 @@ textarea.fctl{resize:vertical}
       <div class="fsec">
         <div class="fsec-title">Cliente</div>
         <div class="fgrid fgrid-4">
-          <div class="fgroup" style="grid-column:1/3"><label class="flabel">Cliente <span class="req">*</span></label><select class="fctl sel-cliente" id="cb-cli" onchange="cbCliente()"></select></div>
+          <div class="fgroup" style="grid-column:1/3"><label class="flabel">Cliente <span class="req">*</span> <span style="font-weight:400;text-transform:none;color:var(--text-muted)">· buscá por código, nombre o CUIT</span></label>
+            <div style="display:flex;gap:6px;align-items:center"><input class="fctl" id="cb-cli-q" list="dl-cli" placeholder="Ej: CLI001, Cencosud o 30-…" autocomplete="off" oninput="cbCliBuscar(this)" onchange="cbCliBuscar(this,true)" onkeydown="if(event.key==='Enter'){event.preventDefault();cbCliBuscar(this,true)}" style="flex:1;min-width:0"><datalist id="dl-cli"></datalist>
+            <select class="fctl sel-cliente" id="cb-cli" onchange="cbCliente();cbCliSync()" style="flex:1;min-width:0"></select>
+            <button type="button" class="btn btn-outline btn-sm" title="Editar la ficha de este cliente (ej. le falta el CUIT)" onclick="cbEditCli()">✏️</button><button type="button" class="btn btn-outline btn-sm" title="Nuevo cliente" onclick="cbNuevoCli()">＋</button></div></div>
           <div class="fgroup"><label class="flabel">CUIT / DNI</label><input class="fctl mono" id="cb-cuit" readonly></div>
           <div class="fgroup"><label class="flabel">Condición IVA</label><input class="fctl" id="cb-iva" readonly></div>
           <div class="fgroup" style="grid-column:1/3"><label class="flabel">Domicilio</label><input class="fctl" id="cb-dom" readonly></div>
@@ -1919,7 +1923,7 @@ function autorizar(motivo, cb){
 // v8.0: auditoría — cada autorización queda registrada en la tabla novedades (se ve en CONTROL TOTAL → Auditoría)
 function tipoAutorizacion(t,sub){ t=String(t||'');
   if(/Facturación bloqueada/i.test(sub||'')) return 'plus_credito_excedido';
-  if(/PRODUCCIÓN/.test(t)) return 'plus_arca_produccion'; if(/^Marcar como list/.test(t)) return 'plus_omitir_pendientes'; if(/^Volver a pendiente/.test(t)) return 'plus_revertir_omitido';
+  if(/PRODUCCIÓN/.test(t)) return 'plus_arca_produccion'; if(/^Editar /.test(t)) return 'plus_editar_comprobante'; if(/^Marcar como list/.test(t)) return 'plus_omitir_pendientes'; if(/^Volver a pendiente/.test(t)) return 'plus_revertir_omitido';
   const R=[[/^Anular <b>/,'plus_anular_factura'],[/^Anular el recibo/,'plus_anular_cobranza'],[/^Anular el comprobante/,'plus_anular_compra'],[/^Anular la orden de pago/,'plus_anular_pago'],[/^Anular el remito de compra/,'plus_anular_remito_compra'],[/^Anular el movimiento de caja/,'plus_anular_mov_caja'],[/^Anular el movimiento bancario/,'plus_anular_mov_banco'],[/^Eliminar el pedido/,'plus_eliminar_pedido'],[/rechazado/i,'plus_cheque_rechazado'],[/^Marcar el cheque/,'plus_cheque_estado'],[/^Egreso manual/,'plus_egreso_caja'],[/^Modificar el ajuste/,'plus_editar_ajuste'],[/^Anular el ajuste/,'plus_anular_ajuste'],[/ajust/i,'plus_ajuste_stock']];
   const f=R.find(x=>x[0].test(t)); return f?f[1]:'plus_autorizacion'; }
 function logAutorizacion(motivos,quien,sub){ try{ const html=(motivos||[]).join(' · '); const txt=html.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim(); const ref=((html.match(/<b>(.*?)<\/b>/)||[])[1]||'').replace(/<[^>]+>/g,'');
@@ -2287,7 +2291,7 @@ async function guardarCliente(){
     ({ error } = await sb.from('clientes').update(payload).eq('id',id).eq('empresa_id',S.empresaId));
   } else {
     payload.empresa_id=S.empresaId; payload.activo=true;
-    ({ error } = await sb.from('clientes').insert(payload));
+    let ins; ({ data:ins, error } = await sb.from('clientes').insert(payload).select('id')); if(ins&&ins[0]) S._cbCliNuevo=ins[0].id;
   }
   if(error && /obligado_fce|provincia|column/i.test(error.message||'')){ // SQL v7 todavía no corrido
     delete payload.obligado_fce; delete payload.provincia;
@@ -2298,6 +2302,7 @@ async function guardarCliente(){
   await cargarClientes();
   toast(id?'Cliente actualizado':'Cliente guardado','ok');
   closeM('m-ncliente');
+  try{ cbCliVuelta(id||S._cbCliNuevo); }catch(_){ } S._cbCliNuevo=null;
 }
 
 async function guardarProveedor(){
@@ -2603,7 +2608,7 @@ function rCV(){
     <td>${c.cae?`<span class="badge b-success" title="Vto ${fD(c.cae_vto)}">${esc(c.cae)}</span>`:(esFiscal(c)&&vigente(c)?badge('Sin CAE','b-warning'):'—')}</td>
     <td>${estadoCbteBadge(c)} ${saldoBadge(c)}</td>
     <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="verCbte('${c.id}')">👁 Ver</button><button class="btn btn-outline btn-xs btn-icon" onclick="printCbte('${c.id}')" title="Imprimir / PDF">🖨</button>
-      ${c.estado==='borrador'?`<button class="btn btn-gold btn-xs" onclick="editarBorrador('${c.id}')">✏️ Emitir</button>`:''}
+      ${c.estado==='borrador'?`<button class="btn btn-gold btn-xs" onclick="editarBorrador('${c.id}')">✏️ Emitir</button>`:''}${puedeEditarCbte(c)?`<button class="btn btn-outline btn-xs" title="Editar (todavía no tiene CAE)" onclick="editarCbte('${c.id}')">✏️</button>`:''}
       ${c.estado==='pendiente_cae'?(puedeArca(c)?`<button class="btn btn-gold btn-xs" title="${esc(c.arca_obs?'Último rechazo: '+c.arca_obs:'Pedir el CAE a ARCA')}" onclick="solicitarCAE('${c.id}')">🏛 CAE${c.arca_obs?' ⚠':''}</button>`:`<button class="btn btn-gold btn-xs" onclick="caeManual('${c.id}')">CAE</button>`):''}</div></td></tr>`; }).join(''):emptyRow(13,'Sin comprobantes en el período. Usá <b>＋ Nueva Factura</b> o facturá remitos desde la pestaña Remitos.');
   el('cv-foot').textContent='Mostrando '+shown.length+' de '+rows.length+' comprobantes';
   el('cv-foot2').innerHTML='Total período: <b>'+m$(sumBy(vig,c=>(c.clase==='nc'?-1:1)*num(c.total)))+'</b>';
@@ -2703,9 +2708,9 @@ function letraPara(cli){
 function nuevoCbte(clase, o={}){
   if(!D.cfg) return;
   CB={clase, fceTouched:o.fce!=null, editId:o.editId||null, entrega_ids:o.entrega_ids||null, presupuesto_id:o.presupuesto_id||null, pedido:o.pedido||null};
-  buildItemsDatalist(); renderSelects(); fillPV('cb-pv');
+  buildItemsDatalist(); renderSelects(); fillPV('cb-pv'); cbCliDL();
   const titles={factura:'Nueva factura',nc:'Nueva nota de crédito',nd:'Nueva nota de débito',presupuesto:'Nuevo presupuesto',saldo_inicial:'Saldo inicial de cuenta corriente'};
-  el('cb-title').textContent=o.editId?'Editar borrador':titles[clase];
+  el('cb-title').textContent=o.editTitle||(o.editId?'Editar borrador':titles[clase]);
   el('cb-sub').textContent={factura:'Al emitir se pide el CAE a ARCA (si el punto de venta es Web Service)',nc:'Anula o ajusta total o parcialmente un comprobante',nd:'Cargos adicionales sobre un comprobante',presupuesto:'No es comprobante fiscal · se puede convertir en factura o pedido',saldo_inicial:'Deuda del cliente al empezar a usar CONTROL PLUS (no es comprobante fiscal)'}[clase];
   el('cb-origen').innerHTML=o.origen?`<div class="alert alert-info">${o.origen}</div>`:'';
   setV('cb-fecha',o.fecha||hoy()); setV('cb-cli',o.cliente_id||''); setV('cb-oc',o.oc||''); setV('cb-obs',o.obs||''); setV('cb-trib',o.tributos||'');
@@ -2719,7 +2724,7 @@ function nuevoCbte(clase, o={}){
   el('cb-letra').disabled=clase==='saldo_inicial';
   el('cb-btn-borr').style.display=clase==='saldo_inicial'?'none':'';
   el('cb-btn-emit').innerHTML=clase==='presupuesto'?'💾 Guardar presupuesto':clase==='saldo_inicial'?'💾 Registrar saldo':'🚀 Emitir';
-  cbCliente(true, o);
+  cbCliente(true, o); cbCliSync();
   if(o.letra) setV('cb-letra',o.letra);
   if(o.fecha_vto) setV('cb-vto',o.fecha_vto);
   if(o.cbte_asoc_id){ setV('cb-asoc',o.cbte_asoc_id); }
@@ -2730,6 +2735,35 @@ function nuevoCbte(clase, o={}){
   cbRefresh();
   openM('m-cbte');
 }
+// ── v9.2: buscar cliente por código o nombre, editar / crear cliente sin salir de la factura ──
+const normCod=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+function cliLabel(c){ return (c.codigo?c.codigo+' · ':'')+(c.razon_social||'')+(c.cuit?' · '+c.cuit:''); }
+function cbCliDL(){ const dl=el('dl-cli'); if(!dl) return; dl.innerHTML=(S.clientes||[]).filter(c=>c.activo!==false).map(c=>`<option value="${esc(cliLabel(c))}">`).join(''); }
+function buscarCliente(v){ v=String(v||'').trim(); if(!v) return null; const L=(S.clientes||[]).filter(c=>c.activo!==false);
+  let c=L.find(x=>cliLabel(x)===v); if(c) return c;
+  const n=normCod(v); c=L.find(x=>x.codigo&&normCod(x.codigo)===n); if(c) return c;
+  const d=v.replace(/\D/g,''); if(d.length>=7){ c=L.find(x=>String(x.cuit||'').replace(/\D/g,'')===d); if(c) return c; }
+  const lo=v.toLowerCase(); const m=L.filter(x=>(x.razon_social||'').toLowerCase().includes(lo)); return m.length===1?m[0]:null; }
+function cbCliBuscar(inp,final){ const c=buscarCliente(inp.value); if(c){ if(V('cb-cli')!==c.id){ setV('cb-cli',c.id); cbCliente(); } if(final) inp.value=cliLabel(c); inp.style.borderColor=''; }
+  else if(final&&inp.value.trim()){ inp.style.borderColor='var(--danger,#b4453a)'; toast('No encontré un cliente con "'+inp.value.trim()+'". Podés crearlo con ＋','warn'); } }
+function cbCliSync(){ const q=el('cb-cli-q'); if(!q||document.activeElement===q) return; const c=cliById(V('cb-cli')); q.value=c?cliLabel(c):''; q.style.borderColor=''; }
+function cbEditCli(){ const id=V('cb-cli'); if(!id){ toast('Primero elegí el cliente','warn'); return; } S._cbCliHook=true; abrirEntidad('cliente',id); }
+function cbNuevoCli(){ S._cbCliHook=true; abrirEntidad('cliente',null); }
+function cbCliVuelta(id){ if(!S._cbCliHook) return; S._cbCliHook=false; if(!el('m-cbte').classList.contains('open')) return;
+  renderSelects(); cbCliDL(); if(id) setV('cb-cli',id); cbCliente(); cbCliSync(); toast('Volviste a la factura con los datos del cliente actualizados','ok'); }
+// ── v9.2: editar un comprobante emitido sin CAE (pendiente) o un comprobante X ──
+function puedeEditarCbte(c){ if(!c||c.cae||c.estado==='anulada') return false;
+  if(!['factura','nd'].includes(c.clase)) return false;
+  if(c.estado==='pendiente_cae') return true;
+  return c.estado==='emitida'&&String(c.letra||'').toUpperCase()==='X'; }
+function editarCbte(id){ const c=(D.cv||[]).find(x=>x.id===id); if(!c) return;
+  if(!puedeEditarCbte(c)){ toast(c.cae?'Tiene CAE: no se puede editar. Emití una nota de crédito.':'Este comprobante no se puede editar','warn'); return; }
+  if((D.cobi||[]).some(i=>i.comprobante_id===id&&((D.cob||[]).find(r=>r.id===i.cobranza_id)||{}).estado!=='anulada')){ toast('Tiene cobranzas aplicadas: anulá primero el recibo','warn'); return; }
+  if((D.cv||[]).some(x=>x.cbte_asoc_id===id&&vigente(x))){ toast('Tiene notas de crédito/débito asociadas','warn'); return; }
+  autorizar('Editar '+tipoLargo(c)+' <b>'+nroCbte(c)+'</b> de '+esc(c.cliente_nombre||'')+' ('+m$(c.total)+')', ()=>{ window._pinAutorizo=null;
+    nuevoCbte(c.clase,{editId:c.id, editTitle:'Editar '+tipoLargo(c)+' '+nroCbte(c), cliente_id:c.cliente_id, fecha:c.fecha, fecha_vto:c.fecha_vto, letra:c.letra, fce:!!c.es_fce, items:cbAItems(c), oc:c.orden_compra, obs:c.observaciones, tributos:num(c.tributos)||'',
+      cpago:c.condicion_pago, vendedor_id:c.vendedor_id, concepto:String(c.concepto||1), serv_desde:c.serv_desde, serv_hasta:c.serv_hasta, cbte_asoc_id:c.cbte_asoc_id, entrega_ids:c.entrega_ids, pedido:c.pedido_codigo, fce_cbu:c.fce_cbu, fce_modalidad:c.fce_modalidad});
+    if(c.punto_venta) setV('cb-pv',c.punto_venta); }); }
 function cbCliente(init, o){
   const cli=cliById(V('cb-cli'));
   setV('cb-cuit',cli?cli.cuit||'':''); setV('cb-iva',cli?cli.iva||'Consumidor Final':''); setV('cb-dom',cli?[cli.domicilio,cli.localidad,cli.provincia].filter(Boolean).join(', '):'');
@@ -2764,7 +2798,7 @@ function cbAddItem(it){
   const alic=a.alic!=null&&a.alic!==''?num(a.alic):num(CFG().alicuota_default!=null?CFG().alicuota_default:10.5);
   if(a.id){ tr.dataset.id=a.id; tr.dataset.tipo=a.tipo||'producto'; tr.dataset.pbase=a.precio||0; } if(a.codigo) tr.dataset.codigo=a.codigo; if(a.entrega_id) tr.dataset.entrega=a.entrega_id;
   const pick=a.id?((a.tipo==='servicio'?'SERV ':'')+(a.codigo?a.codigo+' · ':'')+(a.nombre||a.descripcion||'')):'';
-  tr.innerHTML=`<td><input class="fctl it-pick" list="dl-items" placeholder="Buscar artículo o servicio…" value="${esc(pick)}" onchange="cbPick(this)"></td>
+  tr.innerHTML=`<td><input class="fctl it-pick" list="dl-items" placeholder="Código o nombre del artículo…" value="${esc(pick)}" onchange="cbPick(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();cbPick(this)}"></td>
     <td><input class="fctl it-desc" value="${esc(a.descripcion||a.nombre||'')}" placeholder="Descripción"></td>
     <td><input type="number" step="0.001" class="fctl it-cant" value="${a.cantidad!=null?a.cantidad:1}" oninput="cbCalc()"></td>
     <td><input class="fctl it-uni" value="${esc(a.unidad||'u')}"></td>
@@ -2775,6 +2809,8 @@ function cbAddItem(it){
   el('cb-items').appendChild(tr); cbCalc();
 }
 function cbPick(inp){
+  if(!ITEMS_MAP[inp.value]&&inp.value.trim()){ const v=inp.value.trim(), n=normCod(v), lo=v.toLowerCase(); const ks=Object.keys(ITEMS_MAP);
+    const k=ks.find(k=>ITEMS_MAP[k].codigo&&normCod(ITEMS_MAP[k].codigo)===n)||(()=>{ const m=ks.filter(k=>k.toLowerCase().includes(lo)); return m.length===1?m[0]:null; })(); if(k) inp.value=k; else toast('No encontré un artículo con "'+v+'"','warn'); }
   const it=ITEMS_MAP[inp.value]; const tr=inp.closest('tr'); if(!it){ delete tr.dataset.id; return; }
   tr.dataset.id=it.id; tr.dataset.tipo=it.tipo; tr.dataset.codigo=it.codigo||''; tr.dataset.pbase=it.precio||0;
   tr.querySelector('.it-desc').value=it.nombre; tr.querySelector('.it-uni').value=it.unidad||'u';
@@ -2868,7 +2904,8 @@ async function doGuardarCbte(modo,t,cli,letra,fce,retry){
   const clase=CB.clase; const pv=parseInt(V('cb-pv'),10)||pvDefault(); const cbt=cbteTipo(clase,letra,fce);
   const borrador=modo==='borrador';
   const estado=borrador?'borrador':clase==='presupuesto'?'abierto':(clase==='saldo_inicial'||letra==='X')?'emitida':'pendiente_cae';
-  const numero=borrador?null:nextNum(D.cv,c=>+c.cbte_tipo===cbt&&+c.punto_venta===pv&&c.estado!=='borrador'&&c.id!==CB.editId);
+  const prevC=CB.editId?(D.cv||[]).find(x=>x.id===CB.editId):null;
+  const numero=borrador?null:(prevC&&prevC.estado!=='borrador'&&prevC.numero!=null&&+prevC.punto_venta===pv&&+prevC.cbte_tipo===cbt)?prevC.numero:nextNum(D.cv,c=>+c.cbte_tipo===cbt&&+c.punto_venta===pv&&c.estado!=='borrador'&&c.id!==CB.editId);
   const cuitD=String(cli.cuit||'').replace(/\D/g,'');
   const obj={ clase, letra, tipo:TIPO_CORTO[cbt], cbte_tipo:cbt, es_fce:!!fce, punto_venta:pv, numero, fecha:V('cb-fecha'), fecha_vto:V('cb-vto')||null,
     concepto:+V('cb-concepto')||1, serv_desde:V('cb-sdesde')||null, serv_hasta:V('cb-shasta')||null,
@@ -2886,6 +2923,7 @@ async function doGuardarCbte(modo,t,cli,letra,fce,retry){
   await lockBtn('cb-btn-emit',true); await lockBtn('cb-btn-borr',true);
   try{
     let row;
+    if(CB.editId&&prevC&&prevC.arca_obs) obj.arca_obs=null;
     if(CB.editId){ await dbUpd(TBL.cv, CB.editId, obj); row={...obj,id:CB.editId}; const { error } = await sb.from(TBL.cvi).delete().eq('comprobante_id',CB.editId).eq('empresa_id',S.empresaId); if(error) throw error; }
     else row=await dbIns(TBL.cv, obj);
     if(t.items.length) await dbIns(TBL.cvi, t.items.map(i=>({comprobante_id:row.id, producto_id:i.producto_id, codigo:i.codigo, descripcion:i.descripcion, cantidad:i.cantidad, unidad:i.unidad, precio_unit:i.precio_unit, bonif_pct:i.bonif_pct, alicuota_iva:i.alicuota_iva, neto:i.neto, iva:i.iva, entrega_id:i.entrega_id, orden:i.orden})));
@@ -2954,6 +2992,7 @@ function verCbte(id){
    ${c.observaciones?`<div class="small muted" style="margin-top:8px">📝 ${esc(c.observaciones)}</div>`:''}`;
   const b=[{label:'🖨️ Imprimir / PDF',fn:()=>printCbte(id)},{label:'📧 Email',fn:()=>emailCbte(id)}];
   if(c.estado==='borrador') b.unshift({label:'✏️ Editar y emitir',cls:'btn-gold',fn:()=>{closeM('m-view');editarBorrador(id);}});
+  if(puedeEditarCbte(c)) b.push({label:'✏️ Editar',fn:()=>{closeM('m-view');editarCbte(id);}});
   if(c.estado==='pendiente_cae'){ b.unshift({label:'🧾 Registrar CAE manual',fn:()=>{closeM('m-view');caeManual(id);}}); if(puedeArca(c)) b.unshift({label:arcaProd()?'🏛 Solicitar CAE a ARCA':'🧪 Probar envío a ARCA (homologación)',cls:'btn-gold',fn:()=>{closeM('m-view');solicitarCAE(id);}}); }
   if(vigente(c)&&['factura','nd'].includes(c.clase)&&num(c.saldo)>0.01) b.push({label:'💰 Cobrar',cls:'btn-success',fn:()=>{closeM('m-view');abrirCobranza(c.cliente_id,[id]);}});
   if(vigente(c)&&['factura','nd'].includes(c.clase)) b.push({label:'↩ Nota de crédito',fn:()=>{closeM('m-view');nuevoCbte('nc',{cliente_id:c.cliente_id,cbte_asoc_id:id,letra:c.letra,fce:!!c.es_fce,items:cbAItems(c),obs:'Anula/ajusta '+tipoCorto(c)+' '+nroCbte(c)});}});
