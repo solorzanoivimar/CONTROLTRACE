@@ -324,7 +324,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v8.4 · remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.0 · factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -1214,16 +1214,19 @@ textarea.fctl{resize:vertical}
       </div>
     </div>
     <div class="fsec">
-      <div class="fsec-title">Integración ARCA (próxima etapa)</div>
-      <div class="alert alert-warn">⏳ <div>Mientras no esté conectada, las facturas se guardan como <b>“Pendiente de CAE”</b>. Si emitís el comprobante por otro medio (por ejemplo, Comprobantes en línea de ARCA), podés registrar el CAE a mano desde el listado.</div></div>
+      <div class="fsec-title">Integración ARCA · factura electrónica</div>
+      <div class="alert alert-info">🏛 <div>PLUS pide el CAE a ARCA a través de la función <b>facturar</b> de Supabase y del servicio <b>Afip SDK</b>. Solo se envían los comprobantes de puntos de venta marcados como <b>Web Service</b>; los de otros sistemas se siguen registrando con CAE manual.</div></div>
+      <div id="arca-estado" style="margin-bottom:12px"><span class="muted">Consultando…</span></div>
       <div class="fgrid fgrid-3">
-        <div class="fgroup"><label class="flabel">Proveedor de conexión</label><select class="fctl" id="cfg-arcaprov"><option>TusFacturasAPP</option><option>WSFE directo (certificado propio)</option></select></div>
-        <div class="fgroup"><label class="flabel">Ambiente</label><select class="fctl" id="cfg-arcamodo"><option value="homologacion">Homologación (pruebas)</option><option value="produccion">Producción</option></select></div>
-        <div class="fgroup"><label class="flabel">Estado</label><input class="fctl" readonly value="⚪ No conectado — se habilita en la etapa ARCA"></div>
-        <div class="fgroup"><label class="flabel">API token</label><input class="fctl" type="password" id="cfg-apitoken" autocomplete="off"></div>
-        <div class="fgroup"><label class="flabel">API key</label><input class="fctl" type="password" id="cfg-apikey" autocomplete="off"></div>
-        <div class="fgroup"><label class="flabel">User token</label><input class="fctl" type="password" id="cfg-usertoken" autocomplete="off"></div>
+        <div class="fgroup"><label class="flabel">Ambiente</label><select class="fctl" id="arca-amb"><option value="dev">🧪 Homologación (pruebas)</option><option value="prod">🟢 Producción</option></select></div>
+        <div class="fgroup"><label class="flabel">CUIT emisor (11 dígitos)</label><input class="fctl mono" id="arca-cuit" maxlength="13"></div>
+        <div class="fgroup" style="display:flex;align-items:flex-end;gap:6px"><button class="btn btn-gold btn-sm" onclick="arcaGuardar()">💾 Guardar</button><button class="btn btn-outline btn-sm" id="arca-btn-probar" onclick="arcaProbar()">🧪 Probar conexión</button></div>
       </div>
+      <div class="fgrid fgrid-2" style="margin-top:8px">
+        <div class="fgroup"><label class="flabel">1 · Pedido de certificado para producción</label><button class="btn btn-outline btn-sm" onclick="arcaCSR()">📝 Generar y descargar pedido (.csr)</button><div style="font-size:10px;color:var(--text-muted);margin-top:2px">La clave privada se genera y queda guardada en Supabase: nunca pasa por tu computadora.</div></div>
+        <div class="fgroup"><label class="flabel">2 · Certificado que te da ARCA (.crt)</label><input type="file" class="fctl" accept=".crt,.pem,.cer,.txt" onchange="arcaCert(this)"><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Después autorizá el servicio "Facturación electrónica" (wsfe) para ese certificado en el Administrador de Relaciones de ARCA.</div></div>
+      </div>
+      <input type="hidden" id="cfg-arcaprov" value="Afip SDK"><input type="hidden" id="cfg-arcamodo"><input type="hidden" id="cfg-apitoken"><input type="hidden" id="cfg-apikey"><input type="hidden" id="cfg-usertoken">
     </div>
     <div class="fsec">
       <div class="fsec-title">Seguridad — Autorizaciones</div>
@@ -1911,7 +1914,7 @@ function autorizar(motivo, cb){
 // v8.0: auditoría — cada autorización queda registrada en la tabla novedades (se ve en CONTROL TOTAL → Auditoría)
 function tipoAutorizacion(t,sub){ t=String(t||'');
   if(/Facturación bloqueada/i.test(sub||'')) return 'plus_credito_excedido';
-  if(/^Marcar como list/.test(t)) return 'plus_omitir_pendientes'; if(/^Volver a pendiente/.test(t)) return 'plus_revertir_omitido';
+  if(/PRODUCCIÓN/.test(t)) return 'plus_arca_produccion'; if(/^Marcar como list/.test(t)) return 'plus_omitir_pendientes'; if(/^Volver a pendiente/.test(t)) return 'plus_revertir_omitido';
   const R=[[/^Anular <b>/,'plus_anular_factura'],[/^Anular el recibo/,'plus_anular_cobranza'],[/^Anular el comprobante/,'plus_anular_compra'],[/^Anular la orden de pago/,'plus_anular_pago'],[/^Anular el remito de compra/,'plus_anular_remito_compra'],[/^Anular el movimiento de caja/,'plus_anular_mov_caja'],[/^Anular el movimiento bancario/,'plus_anular_mov_banco'],[/^Eliminar el pedido/,'plus_eliminar_pedido'],[/rechazado/i,'plus_cheque_rechazado'],[/^Marcar el cheque/,'plus_cheque_estado'],[/^Egreso manual/,'plus_egreso_caja'],[/^Modificar el ajuste/,'plus_editar_ajuste'],[/^Anular el ajuste/,'plus_anular_ajuste'],[/ajust/i,'plus_ajuste_stock']];
   const f=R.find(x=>x[0].test(t)); return f?f[1]:'plus_autorizacion'; }
 function logAutorizacion(motivos,quien,sub){ try{ const html=(motivos||[]).join(' · '); const txt=html.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim(); const ref=((html.match(/<b>(.*?)<\/b>/)||[])[1]||'').replace(/<[^>]+>/g,'');
@@ -1959,6 +1962,65 @@ function printTbl(tid, title){
   printHTML(`<h1>${esc(e.razon)}</h1><h2>${esc(title)} · emitido ${fD(hoy())}</h2>${t.outerHTML}`, title);
 }
 
+// ══════════════ v9.0 · FACTURA ELECTRÓNICA ARCA (función "facturar" en Supabase → Afip SDK → ARCA) ══════════════
+S.arca=null; // estado de la conexión (se completa al iniciar)
+async function arcaFn(body){ const { data, error } = await sb.functions.invoke('facturar',{body});
+  if(error){ let m=error.message||'Error'; try{ const j=await error.context.json(); m=j.error||m; if(j&&!j.error) return j; }catch(_){}
+    if(/Failed to send|not found|404|FunctionsFetch|Relay/i.test(m)) m='La función "facturar" no está instalada en Supabase todavía.'; throw new Error(m); }
+  if(data&&data.error) throw new Error(data.error); return data; }
+async function arcaEstado(){ try{ S.arca=await arcaFn({accion:'estado'}); }catch(e){ S.arca={error:e.message}; } try{ rArcaCfg(); }catch(_){} try{ if(CUR==='ventas') renderMod('ventas'); }catch(_){} return S.arca; }
+function arcaListo(){ return !!(S.arca&&!S.arca.error&&S.arca.token_configurado); }
+function arcaProd(){ return arcaListo()&&S.arca.ambiente==='prod'; }
+function pvEsWS(n){ const p=(D.pv||[]).find(x=>+x.numero===+n); return !!(p&&/web/i.test(p.sistema||'')); }
+function puedeArca(c){ return c&&c.estado==='pendiente_cae'&&arcaListo()&&pvEsWS(c.punto_venta); }
+function arcaMsgs(r){ return [...(r.errs||[]),...(r.obs||[])]; }
+function arcaAyuda(lst){ const t=lst.join(' ');
+  const tips=[[/10016|10017|fecha/i,'La fecha del comprobante está fuera del rango que acepta ARCA (hasta 5 días antes o después de hoy para productos). Editá la fecha y volvé a pedir el CAE.'],
+    [/10013|10015|DocNro|documento/i,'Revisá el CUIT/DNI del cliente en Entidades → Clientes.'],[/CondicionIVAReceptor|10242|10243|10246/i,'Revisá la condición frente al IVA del cliente: tiene que coincidir con lo que ARCA tiene registrado.'],
+    [/certific|token|sign|cms|wsaa|computador/i,'Problema con el certificado o la autorización del servicio "wsfe" en ARCA. Revisá Configuración → Integración ARCA.'],
+    [/punto de venta|PtoVta|10004|10005/i,'El punto de venta no está habilitado para Web Services en ARCA o no corresponde a este CUIT.'],
+    [/1530|1520|CBU|2101|FchVtoPago/i,'Datos de FCE MiPyME incompletos o inválidos (CBU, vencimiento de pago o monto mínimo).']];
+  return tips.filter(([re])=>re.test(t)).map(x=>x[1]); }
+async function solicitarCAE(id,opts){ opts=opts||{}; const c=(D.cv||[]).find(x=>x.id===id); if(!c) return;
+  if(!arcaListo()){ toast(S.arca&&S.arca.error?S.arca.error:'La conexión con ARCA no está configurada (Configuración → Integración ARCA)','warn'); return; }
+  if(!pvEsWS(c.punto_venta)){ toast('El punto de venta '+c.punto_venta+' no es "Web Service": registrá el CAE a mano','warn'); return; }
+  viewModal('🏛 Enviando a ARCA…', tipoLargo(c)+' · '+(c.cliente_nombre||''), '<div style="padding:24px;text-align:center"><div class="spin" style="display:inline-block;width:22px;height:22px;border:3px solid #ddd;border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite"></div><div class="small muted" style="margin-top:10px">Pidiendo el CAE… no cierres esta ventana.</div></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>', []);
+  let r; try{ r=await arcaFn({accion:'emitir',comprobante_id:id}); }catch(e){ closeM('m-view'); await reload(['cv']); refresh();
+    viewModal('⚠️ No se pudo pedir el CAE', tipoLargo(c), `<div class="alert alert-warn">⚠️ <div>${esc(e.message)}</div></div><p class="small muted">El comprobante sigue <b>pendiente de CAE</b>. Podés volver a intentarlo: si ARCA ya lo había autorizado, el sistema lo detecta y lo recupera sin duplicarlo.</p>`,[{label:'🔄 Reintentar',cls:'btn-gold',fn:()=>{closeM('m-view');solicitarCAE(id);}}]); return; }
+  closeM('m-view');
+  if(r.simulacion){ const msgs=arcaMsgs(r);
+    viewModal(r.ok?'🧪 Prueba en homologación: OK':'🧪 Prueba en homologación', 'Ambiente de PRUEBAS · no se guardó nada en el comprobante',
+      (r.aviso?`<div class="alert alert-info">ℹ️ <div>${esc(r.aviso)}</div></div>`:r.ok?`<div class="alert alert-ok">✅ <div>ARCA (homologación) autorizó una copia de prueba de este comprobante con el CAE <b>${esc(r.cae)}</b>. En <b>producción</b> esta factura saldría bien. Mientras estés en homologación, el comprobante real queda <b>pendiente de CAE</b>.</div></div>`
+      :`<div class="alert alert-warn">⚠️ <div>ARCA (homologación) <b>rechazó</b> la prueba. En producción pasaría lo mismo:</div></div><ul>${msgs.map(m=>'<li>'+esc(m)+'</li>').join('')}</ul>${arcaAyuda(msgs).map(t=>'<div class="small" style="margin-top:6px">💡 '+esc(t)+'</div>').join('')}`),[]); return; }
+  await reload(['cv','cvi']); refresh();
+  if(r.ok){ toast('✅ CAE '+r.cae+' · '+tipoCorto(c)+' '+pad(c.punto_venta,5)+'-'+pad(r.nro,8)+(r.recuperado?' (recuperado)':''),'ok'); if(opts.alTerminar) opts.alTerminar(); else verCbte(id); return; }
+  const msgs=arcaMsgs(r);
+  viewModal('❌ ARCA rechazó el comprobante', tipoLargo(c)+' · '+(c.cliente_nombre||''),
+    `<div class="alert alert-warn">⚠️ <div>El comprobante <b>no</b> fue autorizado y sigue <b>pendiente de CAE</b>${r.previo?' (no se llegó a enviar: faltan datos)':''}.</div></div><ul>${msgs.map(m=>'<li>'+esc(m)+'</li>').join('')}</ul>${arcaAyuda(msgs).map(t=>'<div class="small" style="margin-top:6px">💡 '+esc(t)+'</div>').join('')}`,
+    [{label:'🔄 Reintentar',cls:'btn-gold',fn:()=>{closeM('m-view');solicitarCAE(id);}},{label:'👁 Ver comprobante',fn:()=>{closeM('m-view');verCbte(id);}}]); }
+// ── Configuración → Integración ARCA ──
+function rArcaCfg(){ const box=el('arca-estado'); if(!box) return; const a=S.arca;
+  if(!a){ box.innerHTML='<span class="muted">Consultando…</span>'; return; }
+  if(a.error){ box.innerHTML=`<span class="badge b-neutral">⚪ No conectado</span> <span class="small muted">${esc(a.error)}</span>`; return; }
+  const amb=a.ambiente==='prod'?'<span class="badge b-success">🟢 PRODUCCIÓN</span>':'<span class="badge b-gold">🧪 HOMOLOGACIÓN (pruebas)</span>';
+  box.innerHTML=`${amb} ${a.token_configurado?'':'<span class="badge b-danger">Falta el secreto AFIPSDK_TOKEN</span>'} ${a.tiene_certificado?`<span class="badge b-info">Certificado OK${a.cert_vence?' · vence '+fD(String(a.cert_vence).slice(0,10)):''}</span>`:a.csr_pendiente?'<span class="badge b-warning">Pedido de certificado generado · falta cargar el .crt de ARCA</span>':'<span class="badge b-neutral">Sin certificado</span>'}
+    <div class="small muted" style="margin-top:6px">${a.ambiente==='prod'?'Las facturas de puntos de venta "Web Service" se envían a ARCA al emitirlas.':'En homologación se usa el CUIT de pruebas '+a.test_cuit+': "Solicitar CAE" hace una <b>prueba</b> y no guarda nada en el comprobante.'}</div>`;
+  if(el('arca-amb')) el('arca-amb').value=a.ambiente||'dev'; if(el('arca-cuit')&&!V('arca-cuit')) setV('arca-cuit',a.cuit||a.cuit_empresa||(CFG().cuit||'').replace(/\D/g,'')); }
+async function arcaGuardar(extra){ try{ const amb=V('arca-amb'); const go=async()=>{ await arcaFn({accion:'guardar_config',ambiente:amb,cuit:V('arca-cuit'),...(extra||{})}); toast('Configuración ARCA guardada','ok'); await arcaEstado(); };
+    if(amb==='prod'&&S.arca&&S.arca.ambiente!=='prod'&&!extra){ autorizar('Pasar la facturación a <b>PRODUCCIÓN</b>: desde ahora las facturas de puntos de venta "Web Service" se envían a ARCA y tienen validez fiscal.', go); } else await go();
+  }catch(e){ toast(e.message,'err'); } }
+async function arcaProbar(){ const b=el('arca-btn-probar'); if(b){ b.disabled=true; b.textContent='⏳ Probando…'; }
+  try{ const r=await arcaFn({accion:'probar'}); const msgs=arcaMsgs(r);
+    viewModal(r.ok?'✅ Conexión con ARCA funcionando':'⚠️ La prueba no salió bien','Factura B de prueba por $121 en HOMOLOGACIÓN (CUIT de pruebas '+r.cuit+', PV '+r.pv+')',
+      r.ok?`<div class="alert alert-ok">✅ <div>ARCA autorizó la factura de prueba N° ${pad(r.pv,5)}-${pad(r.nro,8)} con CAE <b>${esc(r.cae)}</b> (vence ${fD(r.vto)}). Plus → Supabase → Afip SDK → ARCA está funcionando.</div></div>`:`<ul>${msgs.map(m=>'<li>'+esc(m)+'</li>').join('')}</ul>`,[]);
+  }catch(e){ viewModal('⚠️ No se pudo probar','',`<div class="alert alert-warn">⚠️ <div>${esc(e.message)}</div></div>`,[]); }
+  if(b){ b.disabled=false; b.textContent='🧪 Probar conexión'; } }
+async function arcaCSR(){ const go=async()=>{ try{ const r=await arcaFn({accion:'generar_csr',cuit:V('arca-cuit'),organizacion:(CFG().razon_social||(S.empresa&&S.empresa.razon_social)||'Empresa'),alias:'controlmax'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([r.csr],{type:'application/pkcs10'})); a.download='pedido_certificado_controlmax.csr'; a.click();
+      toast('Pedido de certificado descargado. Subilo en ARCA → Administración de Certificados Digitales','ok'); await arcaEstado(); }catch(e){ toast(e.message,'err'); } };
+  if(S.arca&&S.arca.tiene_certificado) autorizar('Generar un <b>nuevo</b> pedido de certificado. El certificado actual deja de usarse hasta que cargues el nuevo .crt de ARCA.', go); else go(); }
+function arcaCert(inp){ const f=inp.files&&inp.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ inp.value=''; arcaGuardar({cert:String(rd.result)}); }; rd.readAsText(f); }
+
 // ── Badges del menú ──
 function badges(){
   const pc=(D.cv||[]).filter(c=>c.estado==='pendiente_cae').length;
@@ -1988,6 +2050,7 @@ async function initPlus(){
   const sp=el('splash'); if(sp) sp.style.display='none';
   if(typeof setEntidad==='function') setEntidad('cliente');
   go(MODS.find(secPermitida)||'dashboard');
+  arcaEstado();
   // v7.9 (recuperada en v8.0): acceso directo desde otros módulos: #modulo  o  #modulo/pestaña (ej. #inventario/ti-aj)
   try{ const h=(location.hash||'').replace('#','').split('/'); if(h[0]&&MODS.includes(h[0])&&secPermitida(h[0])){ if(h[1]) openTab(h[0],h[1]); else go(h[0]); } }catch(_){}
 }
@@ -2433,7 +2496,7 @@ function cbteTipo(clase,letra,fce){
 }
 const tipoCorto = c => TIPO_CORTO[c.cbte_tipo] || (c.tipo||'—');
 const tipoLargo = c => TIPO_LBL[c.cbte_tipo] || (c.tipo||'—');
-function nroCbte(c){ if(c.numero==null||c.numero==='') return 'Borrador'; return pad(c.punto_venta||1,5)+'-'+pad(c.numero,8); }
+function nroCbte(c){ if(c.numero==null||c.numero==='') return c.estado==='pendiente_cae'?pad(c.punto_venta||1,5)+'-(a asignar)':'Borrador'; return pad(c.punto_venta||1,5)+'-'+pad(c.numero,8); }
 const esFiscal = c => [1,2,3,6,7,8,11,12,13,201,202,203,206,207,208,211,212,213].includes(+c.cbte_tipo);
 const vigente = c => c.estado!=='anulada' && c.estado!=='borrador' && c.clase!=='presupuesto';
 const esDebito = c => ['factura','nd','saldo_inicial'].includes(c.clase);
@@ -2536,7 +2599,7 @@ function rCV(){
     <td>${estadoCbteBadge(c)} ${saldoBadge(c)}</td>
     <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="verCbte('${c.id}')">👁 Ver</button><button class="btn btn-outline btn-xs btn-icon" onclick="printCbte('${c.id}')" title="Imprimir / PDF">🖨</button>
       ${c.estado==='borrador'?`<button class="btn btn-gold btn-xs" onclick="editarBorrador('${c.id}')">✏️ Emitir</button>`:''}
-      ${c.estado==='pendiente_cae'?`<button class="btn btn-gold btn-xs" onclick="caeManual('${c.id}')">CAE</button>`:''}</div></td></tr>`; }).join(''):emptyRow(13,'Sin comprobantes en el período. Usá <b>＋ Nueva Factura</b> o facturá remitos desde la pestaña Remitos.');
+      ${c.estado==='pendiente_cae'?(puedeArca(c)?`<button class="btn btn-gold btn-xs" title="${esc(c.arca_obs?'Último rechazo: '+c.arca_obs:'Pedir el CAE a ARCA')}" onclick="solicitarCAE('${c.id}')">🏛 CAE${c.arca_obs?' ⚠':''}</button>`:`<button class="btn btn-gold btn-xs" onclick="caeManual('${c.id}')">CAE</button>`):''}</div></td></tr>`; }).join(''):emptyRow(13,'Sin comprobantes en el período. Usá <b>＋ Nueva Factura</b> o facturá remitos desde la pestaña Remitos.');
   el('cv-foot').textContent='Mostrando '+shown.length+' de '+rows.length+' comprobantes';
   el('cv-foot2').innerHTML='Total período: <b>'+m$(sumBy(vig,c=>(c.clase==='nc'?-1:1)*num(c.total)))+'</b>';
 }
@@ -2549,7 +2612,7 @@ function rNCND(k){
   tb.innerHTML=rows.length?rows.map(c=>{ const a=(D.cv||[]).find(x=>x.id===c.cbte_asoc_id); return `<tr style="${c.estado==='anulada'?'opacity:.5':''}"><td class="fw mono">${nroCbte(c)}</td><td><span class="badge ${c.es_fce?'b-gold':'b-navy'}">${tipoCorto(c)}</span></td><td class="wr">${esc(c.cliente_nombre)}</td>
     <td>${a?`<span class="link" onclick="verCbte('${a.id}')">${tipoCorto(a)} ${nroCbte(a)}</span>`:'—'}</td><td>${fD(c.fecha)}</td>${tdM(c.total,'fw')}${tdM(c.saldo)}
     <td>${c.cae?badge(esc(c.cae),'b-success'):(esFiscal(c)&&vigente(c)?badge('Sin CAE','b-warning'):'—')}</td><td>${estadoCbteBadge(c)}</td>
-    <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="verCbte('${c.id}')">👁</button><button class="btn btn-outline btn-xs" onclick="printCbte('${c.id}')">🖨</button>${c.estado==='borrador'?`<button class="btn btn-gold btn-xs" onclick="editarBorrador('${c.id}')">✏️</button>`:''}${c.estado==='pendiente_cae'?`<button class="btn btn-gold btn-xs" onclick="caeManual('${c.id}')">CAE</button>`:''}</div></td></tr>`; }).join(''):emptyRow(10);
+    <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="verCbte('${c.id}')">👁</button><button class="btn btn-outline btn-xs" onclick="printCbte('${c.id}')">🖨</button>${c.estado==='borrador'?`<button class="btn btn-gold btn-xs" onclick="editarBorrador('${c.id}')">✏️</button>`:''}${c.estado==='pendiente_cae'?(puedeArca(c)?`<button class="btn btn-gold btn-xs" title="${esc(c.arca_obs?'Último rechazo: '+c.arca_obs:'Pedir el CAE a ARCA')}" onclick="solicitarCAE('${c.id}')">🏛 CAE${c.arca_obs?' ⚠':''}</button>`:`<button class="btn btn-gold btn-xs" onclick="caeManual('${c.id}')">CAE</button>`):''}</div></td></tr>`; }).join(''):emptyRow(10);
 }
 
 // ══════════════ PRESUPUESTOS ══════════════
@@ -2638,7 +2701,7 @@ function nuevoCbte(clase, o={}){
   buildItemsDatalist(); renderSelects(); fillPV('cb-pv');
   const titles={factura:'Nueva factura',nc:'Nueva nota de crédito',nd:'Nueva nota de débito',presupuesto:'Nuevo presupuesto',saldo_inicial:'Saldo inicial de cuenta corriente'};
   el('cb-title').textContent=o.editId?'Editar borrador':titles[clase];
-  el('cb-sub').textContent={factura:'Se emite como pendiente de CAE hasta conectar ARCA',nc:'Anula o ajusta total o parcialmente un comprobante',nd:'Cargos adicionales sobre un comprobante',presupuesto:'No es comprobante fiscal · se puede convertir en factura o pedido',saldo_inicial:'Deuda del cliente al empezar a usar CONTROL PLUS (no es comprobante fiscal)'}[clase];
+  el('cb-sub').textContent={factura:'Al emitir se pide el CAE a ARCA (si el punto de venta es Web Service)',nc:'Anula o ajusta total o parcialmente un comprobante',nd:'Cargos adicionales sobre un comprobante',presupuesto:'No es comprobante fiscal · se puede convertir en factura o pedido',saldo_inicial:'Deuda del cliente al empezar a usar CONTROL PLUS (no es comprobante fiscal)'}[clase];
   el('cb-origen').innerHTML=o.origen?`<div class="alert alert-info">${o.origen}</div>`:'';
   setV('cb-fecha',o.fecha||hoy()); setV('cb-cli',o.cliente_id||''); setV('cb-oc',o.oc||''); setV('cb-obs',o.obs||''); setV('cb-trib',o.tributos||'');
   setV('cb-concepto',o.concepto||String(CFG().concepto_default||1)); setV('cb-moneda','PES'); setV('cb-cotiz',1); setV('cb-sdesde',o.serv_desde||''); setV('cb-shasta',o.serv_hasta||'');
@@ -2827,7 +2890,7 @@ async function doGuardarCbte(modo,t,cli,letra,fce,retry){
     await reload(['cv','cvi']); refresh();
     closeM('m-cbte');
     toast(borrador?'Borrador guardado':clase==='presupuesto'?'Presupuesto '+nroCbte(obj)+' guardado':estado==='pendiente_cae'?tipoCorto(obj)+' '+nroCbte(obj)+' guardada · pendiente de CAE':'Comprobante registrado','ok');
-    if(!borrador) setTimeout(()=>verCbte(row.id),250);
+    if(!borrador){ if(estado==='pendiente_cae'&&arcaProd()&&pvEsWS(pv)) setTimeout(()=>solicitarCAE(row.id),250); else setTimeout(()=>verCbte(row.id),250); }
   }catch(e){
     const dup=/duplicate|unique|23505/i.test(e.message||'');
     if(dup && !retry){ await reload(['cv']); await lockBtn('cb-btn-emit',false); await lockBtn('cb-btn-borr',false); return doGuardarCbte(modo,t,cli,letra,fce,true); }
@@ -2860,7 +2923,7 @@ function verCbte(id){
   const imps=(D.cobi||[]).filter(i=>i.comprobante_id===id).map(i=>({i,r:(D.cob||[]).find(r=>r.id===i.cobranza_id)})).filter(x=>x.r&&x.r.estado!=='anulada');
   const ncs=(D.cv||[]).filter(x=>x.cbte_asoc_id===id&&vigente(x));
   const iva=num(c.iva_105)+num(c.iva_21)+num(c.iva_27);
-  const html=`${c.estado==='pendiente_cae'?'<div class="alert alert-warn">⏳ <div>Comprobante <b>pendiente de CAE</b>. Cuando conectemos ARCA se envía desde acá; mientras tanto podés registrar el CAE a mano si lo emitiste por otro medio.</div></div>':''}
+  const html=`${c.estado==='pendiente_cae'&&c.arca_obs?'<div class="alert alert-warn">❌ <div><b>Último rechazo de ARCA:</b> '+esc(c.arca_obs)+'</div></div>':''}${c.estado==='pendiente_cae'?'<div class="alert alert-warn">⏳ <div>Comprobante <b>pendiente de CAE</b>. '+(puedeArca(c)?'Usá <b>Solicitar CAE a ARCA</b>.':'Este punto de venta no envía a ARCA desde PLUS;')+' mientras tanto podés registrar el CAE a mano si lo emitiste por otro medio.</div></div>':''}
    ${c.es_fce?`<div class="alert alert-info" style="background:#fffbeb;border-color:var(--gold);color:#78350f">🏛 <div><b>Factura de Crédito Electrónica MiPyME</b> · CBU ${esc(c.fce_cbu||'—')}${c.fce_alias?' · Alias '+esc(c.fce_alias):''} · Transferencia ${esc(c.fce_modalidad||'—')} · Vto. pago ${fD(c.fce_vto_pago||c.fecha_vto)}${c.fce_anulacion?' · Anulación: '+c.fce_anulacion:''}${c.cae?' · Estado aceptación: <b>'+esc(c.fce_estado||'pendiente')+'</b>':''}</div></div>`:''}
    <div class="row"><div class="col">
      <div class="drow"><span class="dkey">Tipo</span><span class="dval">${tipoLargo(c)}</span></div>
@@ -2886,7 +2949,7 @@ function verCbte(id){
    ${c.observaciones?`<div class="small muted" style="margin-top:8px">📝 ${esc(c.observaciones)}</div>`:''}`;
   const b=[{label:'🖨️ Imprimir / PDF',fn:()=>printCbte(id)},{label:'📧 Email',fn:()=>emailCbte(id)}];
   if(c.estado==='borrador') b.unshift({label:'✏️ Editar y emitir',cls:'btn-gold',fn:()=>{closeM('m-view');editarBorrador(id);}});
-  if(c.estado==='pendiente_cae') b.unshift({label:'🧾 Registrar CAE',cls:'btn-gold',fn:()=>{closeM('m-view');caeManual(id);}});
+  if(c.estado==='pendiente_cae'){ b.unshift({label:'🧾 Registrar CAE manual',fn:()=>{closeM('m-view');caeManual(id);}}); if(puedeArca(c)) b.unshift({label:arcaProd()?'🏛 Solicitar CAE a ARCA':'🧪 Probar envío a ARCA (homologación)',cls:'btn-gold',fn:()=>{closeM('m-view');solicitarCAE(id);}}); }
   if(vigente(c)&&['factura','nd'].includes(c.clase)&&num(c.saldo)>0.01) b.push({label:'💰 Cobrar',cls:'btn-success',fn:()=>{closeM('m-view');abrirCobranza(c.cliente_id,[id]);}});
   if(vigente(c)&&['factura','nd'].includes(c.clase)) b.push({label:'↩ Nota de crédito',fn:()=>{closeM('m-view');nuevoCbte('nc',{cliente_id:c.cliente_id,cbte_asoc_id:id,letra:c.letra,fce:!!c.es_fce,items:cbAItems(c),obs:'Anula/ajusta '+tipoCorto(c)+' '+nroCbte(c)});}});
   if(c.es_fce&&c.cae) b.push({label:'🏛 Aceptación FCE',fn:()=>fceEstado(id)});
@@ -4038,7 +4101,7 @@ async function toggleRubro(id){ const r=(D.rub||[]).find(x=>x.id===id); if(!r) r
 function verRubro(id){ const r=(D.rub||[]).find(x=>x.id===id); if(!r) return; const k=String(r.nombre).toUpperCase(); const f=rows=>(rows||[]).filter(x=>String(x.rubro||'').toUpperCase()===k);
   viewModal('Rubro '+r.nombre,'Artículos que lo usan',`<table><thead><tr><th>Tipo</th><th>Código</th><th>Nombre</th></tr></thead><tbody>${[['Producto',f(S.productos)],['Materia prima',f(S.materias)],['Insumo',f(D.ins)]].flatMap(([t,a])=>a.map(x=>`<tr><td>${t}</td><td class="mono small">${esc(x.codigo||'')}</td><td class="fw">${esc(x.nombre)}</td></tr>`)).join('')}</tbody></table>`); }
 function aplicarConfig(){ /* hook para futuros ajustes visuales según la configuración */ }
-function rCFG(){
+function rCFG(){ try{ rArcaCfg(); }catch(_){}
   const c=CFG(), e=S.empresa||{};
   const map={'cfg-razon':c.razon_social||e.razon_social,'cfg-fantasia':c.nombre_fantasia||e.nombre_fantasia,'cfg-cuit':c.cuit||e.cuit,'cfg-iva':c.condicion_iva||'Responsable Inscripto','cfg-iibb':c.iibb,'cfg-inicio':c.inicio_actividades,'cfg-dom':c.domicilio_fiscal,'cfg-loc':c.localidad,'cfg-prov':c.provincia,'cfg-tel':c.telefono,'cfg-email':c.email,
     'cfg-alic':String(c.alicuota_default!=null?num(c.alicuota_default):10.5),'cfg-concepto':String(c.concepto_default||1),'cfg-diasvto':c.dias_vto_default!=null?c.dias_vto_default:30,'cfg-pie':c.leyenda_pie,
