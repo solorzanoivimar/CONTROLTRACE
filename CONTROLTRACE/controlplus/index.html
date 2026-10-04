@@ -325,7 +325,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.4 · buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.5 · saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -2535,7 +2535,10 @@ function cbteTipo(clase,letra,fce){
 }
 const tipoCorto = c => TIPO_CORTO[c.cbte_tipo] || (c.tipo||'—');
 const tipoLargo = c => TIPO_LBL[c.cbte_tipo] || (c.tipo||'—');
-function nroCbte(c){ if(c.numero==null||c.numero==='') return c.estado==='pendiente_cae'?pad(c.punto_venta||1,5)+'-(a asignar)':'Borrador'; return pad(c.punto_venta||1,5)+'-'+pad(c.numero,8); }
+// v9.5: el saldo inicial se identifica con el comprobante del sistema anterior (no con un punto de venta propio)
+function siRef(c){ const m=/^Ref\.: (.+?)\.(?:\s|$)/.exec(String((c&&c.observaciones)||'')); return m?m[1].trim():''; }
+function siObs(c){ return String((c&&c.observaciones)||'').replace(/^Ref\.: .+?\.(?:\s|$)/,'').trim(); }
+function nroCbte(c){ if(c&&c.clase==='saldo_inicial') return siRef(c)||('SI-'+pad(c.numero||0,6)); if(c.numero==null||c.numero==='') return c.estado==='pendiente_cae'?pad(c.punto_venta||1,5)+'-(a asignar)':'Borrador'; return pad(c.punto_venta||1,5)+'-'+pad(c.numero,8); }
 const esFiscal = c => [1,2,3,6,7,8,11,12,13,201,202,203,206,207,208,211,212,213].includes(+c.cbte_tipo);
 const vigente = c => c.estado!=='anulada' && c.estado!=='borrador' && c.clase!=='presupuesto';
 const esDebito = c => ['factura','nd','saldo_inicial'].includes(c.clase);
@@ -2782,6 +2785,7 @@ function cbCliVuelta(id){ if(!S._cbCliHook) return; S._cbCliHook=false; if(!el('
   renderSelects(); cbCliDL(); if(id) setV('cb-cli',id); cbCliente(); cbCliSync(); toast('Volviste a la factura con los datos del cliente actualizados','ok'); }
 // ── v9.2: editar un comprobante emitido sin CAE (pendiente) o un comprobante X ──
 function puedeEditarCbte(c){ if(!c||c.cae||c.estado==='anulada') return false;
+  if(c.clase==='saldo_inicial') return true;
   if(!['factura','nd'].includes(c.clase)) return false;
   if(c.estado==='pendiente_cae') return true;
   return c.estado==='emitida'&&String(c.letra||'').toUpperCase()==='X'; }
@@ -2790,7 +2794,7 @@ function editarCbte(id){ const c=(D.cv||[]).find(x=>x.id===id); if(!c) return;
   if((D.cobi||[]).some(i=>i.comprobante_id===id&&((D.cob||[]).find(r=>r.id===i.cobranza_id)||{}).estado!=='anulada')){ toast('Tiene cobranzas aplicadas: anulá primero el recibo','warn'); return; }
   if((D.cv||[]).some(x=>x.cbte_asoc_id===id&&vigente(x))){ toast('Tiene notas de crédito/débito asociadas','warn'); return; }
   autorizar('Editar '+tipoLargo(c)+' <b>'+nroCbte(c)+'</b> de '+esc(c.cliente_nombre||'')+' ('+m$(c.total)+')', ()=>{ window._pinAutorizo=null;
-    nuevoCbte(c.clase,{editId:c.id, editTitle:'Editar '+tipoLargo(c)+' '+nroCbte(c), cliente_id:c.cliente_id, fecha:c.fecha, fecha_vto:c.fecha_vto, letra:c.letra, fce:!!c.es_fce, items:cbAItems(c), oc:c.orden_compra, obs:c.observaciones, tributos:num(c.tributos)||'',
+    nuevoCbte(c.clase,{editId:c.id, editTitle:'Editar '+tipoLargo(c)+' '+nroCbte(c), cliente_id:c.cliente_id, fecha:c.fecha, fecha_vto:c.fecha_vto, letra:c.letra, fce:!!c.es_fce, items:cbAItems(c), oc:c.orden_compra, obs:c.clase==='saldo_inicial'?siObs(c):c.observaciones, total:c.clase==='saldo_inicial'?num(c.total):undefined, si_ref:siRef(c), tributos:num(c.tributos)||'',
       cpago:c.condicion_pago, vendedor_id:c.vendedor_id, concepto:String(c.concepto||1), serv_desde:c.serv_desde, serv_hasta:c.serv_hasta, cbte_asoc_id:c.cbte_asoc_id, entrega_ids:c.entrega_ids, pedido:c.pedido_codigo, fce_cbu:c.fce_cbu, fce_modalidad:c.fce_modalidad});
     if(c.punto_venta) setV('cb-pv',c.punto_venta); }); }
 function cbCliente(init, o){
@@ -3082,7 +3086,7 @@ function printCbte(id){
     <div class="emi">${logo}<div><div style="font-size:15px;font-weight:900">${esc(e.razon)}</div>${e.fantasia?`<div>${esc(e.fantasia)}</div>`:''}<div style="margin-top:5px">${esc(e.dom||'')}</div>${e.tel?`<div>Tel: ${esc(e.tel)}</div>`:''}${e.email?`<div>${esc(e.email)}</div>`:''}<div style="margin-top:4px;font-weight:700">${esc(e.iva)}</div></div></div>
     <div class="lt"><b>${letraBox}</b>${esFiscal(c)?'<div style="font-size:9px">COD. '+pad(c.cbte_tipo,3)+'</div>':''}</div>
     <div><div style="font-size:14px;font-weight:900;margin-bottom:5px">${titulo}</div>
-     <div class="kv"><span>Punto de venta</span><b>${pad(c.punto_venta,5)}</b><span>Comp. N°</span><b>${c.numero!=null?pad(c.numero,8):'—'}</b><span>Fecha de emisión</span><b>${fD(c.fecha)}</b>${c.clase!=='presupuesto'&&c.fecha_vto?`<span>Fecha de vencimiento</span><b>${fD(c.fecha_vto)}</b>`:''}</div>
+     <div class="kv">${c.clase==='saldo_inicial'?`<span>Comprobante</span><b>${esc(nroCbte(c))}</b>`:`<span>Punto de venta</span><b>${pad(c.punto_venta,5)}</b><span>Comp. N°</span><b>${c.numero!=null?pad(c.numero,8):'—'}</b>`}<span>Fecha de emisión</span><b>${fD(c.fecha)}</b>${c.clase!=='presupuesto'&&c.fecha_vto?`<span>Fecha de vencimiento</span><b>${fD(c.fecha_vto)}</b>`:''}</div>
      <div class="kv" style="margin-top:6px"><span>CUIT</span><b>${esc(cuitFmt(e.cuit))}</b><span>Ingresos Brutos</span><b>${esc(e.iibb||'—')}</b><span>Inicio de actividades</span><b>${e.inicio?fD(e.inicio):'—'}</b></div></div></div>
    ${c.concepto>1?`<div class="sec">Período facturado desde <b>${fD(c.serv_desde)}</b> hasta <b>${fD(c.serv_hasta)}</b> · Vto. para el pago <b>${fD(c.fecha_vto)}</b></div>`:''}
    <div class="sec g2"><div><span>Razón social:</span> <b>${esc(c.cliente_nombre)}</b>${cli.codigo?` <span style="margin-left:6px">Código:</span> <b>${esc(cli.codigo)}</b>`:''}</div><div><span>CUIT/DNI:</span> <b>${esc(c.cliente_cuit||'—')}</b></div>
@@ -3093,7 +3097,7 @@ function printCbte(id){
    <div class="items"><table><thead><tr><th>Código</th><th>Producto / Servicio</th><th class="tr">Cantidad</th><th>U. medida</th><th class="tr">Precio unit.</th><th class="tr">% Bonif</th>${disc?'<th class="tr">Alícuota IVA</th>':''}<th class="tr">Subtotal</th></tr></thead>
    <tbody>${it.map(i=>`<tr><td>${esc(i.codigo||'')}</td><td>${esc(i.descripcion)}</td><td class="tr">${num(i.cantidad).toLocaleString('es-AR')}</td><td>${esc(i.unidad||'')}</td><td class="tr">${m$(precioShow(i))}</td><td class="tr">${num(i.bonif_pct)||''}</td>${disc?`<td class="tr">${num(i.alicuota_iva)>0?String(num(i.alicuota_iva)).replace('.',',')+'%':'Exento'}</td>`:''}<td class="tr">${m$(subShow(i))}</td></tr>`).join('')||`<tr><td colspan="8">${esc(c.observaciones||'Saldo inicial')}</td></tr>`}</tbody></table></div>
    <div class="pie">
-    <div class="tots"><div>${c.observaciones?`<div><b>Observaciones:</b> ${esc(c.observaciones)}</div>`:''}<div class="letras">Son: ${esc(importeLetras(c.total,c.moneda))}</div></div><div class="tot">${totHTML}</div></div>
+    <div class="tots"><div>${(c.clase==='saldo_inicial'?siObs(c):c.observaciones)?`<div><b>Observaciones:</b> ${esc(c.clase==='saldo_inicial'?siObs(c):c.observaciones)}</div>`:''}<div class="letras">Son: ${esc(importeLetras(c.total,c.moneda))}</div></div><div class="tot">${totHTML}</div></div>
     ${c.letra==='B'&&ivaTot>0?`<div class="sec small">Régimen de Transparencia Fiscal al Consumidor (Ley 27.743) — IVA contenido: ${m$(ivaTot)}</div>`:''}
     ${monoRec?`<div class="sec small">Receptor del comprobante – Responsable Monotributo. El crédito fiscal discriminado en el presente comprobante sólo podrá ser computado a efectos del Régimen de Sostenimiento e Inclusión Fiscal para Pequeños Contribuyentes de la Ley N° 27.618.</div>`:''}
     ${c.es_fce?`<div class="sec"><b>FCE MiPyME</b> · CBU del emisor: <b>${esc(c.fce_cbu||'')}</b>${c.fce_alias?' · Alias: '+esc(c.fce_alias):''} · Vencimiento del pago: <b>${fD(c.fce_vto_pago||c.fecha_vto)}</b> · Transferencia: <b>${esc(c.fce_modalidad||'')}</b>${c.fce_anulacion?' · Anulación: '+c.fce_anulacion:''}${CFG().fce_leyenda?'<br>'+esc(CFG().fce_leyenda):''}</div>`:''}
@@ -3396,7 +3400,7 @@ function rCXC(){
 TAB_R['tv-cc']=rCCC;
 function movsCliente(id){
   const mv=[];
-  (D.cv||[]).filter(c=>c.cliente_id===id&&vigente(c)).forEach(c=>{ const deb=esDebito(c); mv.push({fecha:c.fecha,tipo:tipoCorto(c),doc:nroCbte(c),concepto:c.clase==='saldo_inicial'?(c.observaciones||'Saldo inicial'):(c.observaciones||tipoLargo(c)).slice(0,60),vto:c.fecha_vto,d:deb?num(c.total):0,h:deb?0:num(c.total),id:c.id,k:'cv'}); });
+  (D.cv||[]).filter(c=>c.cliente_id===id&&vigente(c)).forEach(c=>{ const deb=esDebito(c); mv.push({fecha:c.fecha,tipo:tipoCorto(c),doc:nroCbte(c),concepto:c.clase==='saldo_inicial'?('Saldo inicial'+(siObs(c)?' · '+siObs(c):'')):(c.observaciones||tipoLargo(c)).slice(0,60),vto:c.fecha_vto,d:deb?num(c.total):0,h:deb?0:num(c.total),id:c.id,k:'cv'}); });
   (D.cob||[]).filter(r=>r.cliente_id===id&&r.estado!=='anulada').forEach(r=>mv.push({fecha:r.fecha,tipo:'RECIBO',doc:pad(r.punto_venta||1,5)+'-'+pad(r.numero,8),concepto:'Cobranza'+(num(r.total_retenciones)?' (incl. retenciones '+m$(r.total_retenciones)+')':''),vto:null,d:0,h:num(r.total_bruto),id:r.id,k:'cob'}));
   return mv.sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')||(a.k==='cv'?-1:1));
 }
