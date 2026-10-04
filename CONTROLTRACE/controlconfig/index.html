@@ -317,7 +317,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('seguridad')" id="n-seguridad"><span class="nav-icon">🔐</span>PIN y autorizadores</div>
   <div class="nav-sec">Suscripción</div>
   <div class="nav-item" onclick="go('plan')" id="n-plan"><span class="nav-icon">🧩</span>Plan y módulos</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build cfg 1.1</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build cfg 1.2 · integración ARCA</div>
 </nav>
 
 <main class="main">
@@ -342,7 +342,7 @@ textarea.fctl{resize:vertical}
 </div>
 <script>
 // ══════════════════════════════════════════════════════════════
-// CONTROL MAX · Configuración unificada — build cfg 1.1
+// CONTROL MAX · Configuración unificada — build cfg 1.2 · integración ARCA
 // Misma base (Supabase) que TRACE / PLUS / AGRO. Escribe en las MISMAS
 // columnas que usa CONTROL TRACE (empresas.*, operarios, permisos) y en
 // plus_config / puntos_venta de CONTROL PLUS: no hay nada que sincronizar.
@@ -568,9 +568,49 @@ R.facturacion=function(){const c=S.cfg||{};
      ${fg('Monto mínimo FCE vigente ($)',inp('f-min',c.fce_monto_minimo,{type:'number',ph:'Según ARCA'}))}
      ${fg('Leyenda adicional FCE',inp('f-ley',c.fce_leyenda),{span:2})}
     </div></div>
-   <div class="fsec"><div class="fsec-title">Integración ARCA</div>
-    <div class="alert alert-warn">⏳ <div>La conexión con ARCA se habilita en la <b>última etapa</b>. Mientras tanto las facturas quedan “Pendiente de CAE” y se puede registrar el CAE a mano desde CONTROL PLUS.</div></div></div>
-  </div>`;};
+   <div class="fsec"><div class="fsec-title">Integración ARCA · factura electrónica</div>
+    <div class="alert alert-info">🏛 <div>CONTROL PLUS pide el CAE a ARCA a través de la función <b>facturar</b> de Supabase y del servicio <b>Afip SDK</b>. Solo se envían los comprobantes de puntos de venta con sistema <b>Web Service</b>; los demás siguen con CAE manual.</div></div>
+    <div id="arca-estado" style="margin-bottom:12px"><span class="muted">Consultando…</span></div>
+    <div class="fgrid fgrid-3">
+     ${fg('Ambiente',sel('arca-amb','dev',[['dev','🧪 Homologación (pruebas)'],['prod','🟢 Producción']]))}
+     ${fg('CUIT emisor (11 dígitos)',inp('arca-cuit','',{mono:1,max:13}))}
+     <div class="fgroup" style="display:flex;align-items:flex-end;gap:6px"><button class="btn btn-gold btn-sm" onclick="arcaGuardar()">💾 Guardar ARCA</button><button class="btn btn-outline btn-sm" id="arca-btn-probar" onclick="arcaProbar()">🧪 Probar conexión</button></div>
+    </div>
+    <div class="fgrid fgrid-2" style="margin-top:8px">
+     <div class="fgroup"><label class="flabel">1 · Pedido de certificado para producción</label><button class="btn btn-outline btn-sm" onclick="arcaCSR()">📝 Generar y descargar pedido (.csr)</button><div style="font-size:10px;color:var(--text-muted);margin-top:2px">La clave privada se genera y queda guardada en Supabase: nunca pasa por tu computadora.</div></div>
+     <div class="fgroup"><label class="flabel">2 · Certificado que te da ARCA (.crt)</label><input type="file" class="fctl" accept=".crt,.pem,.cer,.txt" onchange="arcaCert(this)"><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Después autorizá "Facturación electrónica" (wsfe) para ese certificado en el Administrador de Relaciones de ARCA.</div></div>
+    </div>
+    <div id="arca-res" style="margin-top:12px"></div></div>
+  </div>`;arcaEstado();};
+// ── v1.2: Integración ARCA (función "facturar" → Afip SDK → ARCA) ──
+let ARCA=null;
+async function arcaFn(body){const {data,error}=await sb.functions.invoke('facturar',{body});
+  if(error){let m=error.message||'Error';try{const j=await error.context.json();m=j.error||m;}catch(_){ }
+    if(/Failed to send|not found|404|FunctionsFetch|Relay/i.test(m))m='La función "facturar" no está instalada en Supabase (o tiene otro nombre).';throw new Error(m);}
+  if(data&&data.error)throw new Error(data.error);return data;}
+async function arcaEstado(){const box=el('arca-estado');try{ARCA=await arcaFn({accion:'estado'});}catch(e){ARCA={error:e.message};}
+  if(!el('arca-estado'))return;const a=ARCA;
+  if(a.error){el('arca-estado').innerHTML=`<span class="badge b-neutral">⚪ No conectado</span> <span class="small muted">${esc(a.error)}</span>`;return;}
+  const amb=a.ambiente==='prod'?'<span class="badge b-success">🟢 PRODUCCIÓN</span>':'<span class="badge b-warning">🧪 HOMOLOGACIÓN (pruebas)</span>';
+  el('arca-estado').innerHTML=`${amb} ${a.token_configurado?'':'<span class="badge b-danger">Falta el secreto AFIPSDK_TOKEN</span>'} ${a.tiene_certificado?`<span class="badge b-info">Certificado OK${a.cert_vence?' · vence '+String(a.cert_vence).slice(0,10).split('-').reverse().join('/'):''}</span>`:a.csr_pendiente?'<span class="badge b-warning">Pedido generado · falta cargar el .crt de ARCA</span>':'<span class="badge b-neutral">Sin certificado</span>'}
+   <div class="small muted" style="margin-top:6px">${a.ambiente==='prod'?'Las facturas de puntos de venta "Web Service" se envían a ARCA al emitirlas en CONTROL PLUS.':'En homologación se usa el CUIT de pruebas '+a.test_cuit+': en CONTROL PLUS el botón "🏛 CAE" hace una <b>prueba</b> y no guarda nada en el comprobante.'}</div>`;
+  if(el('arca-amb'))el('arca-amb').value=a.ambiente||'dev';
+  if(el('arca-cuit')&&!V('arca-cuit'))el('arca-cuit').value=a.cuit||a.cuit_empresa||String((S.cfg&&S.cfg.cuit)||S.empresa.cuit||'').replace(/\D/g,'');}
+function arcaRes(html){const r=el('arca-res');if(r)r.innerHTML=html;}
+async function arcaGuardar(extra){const amb=V('arca-amb');
+  if(amb==='prod'&&ARCA&&ARCA.ambiente!=='prod'&&!extra&&!confirm('Pasar la facturación a PRODUCCIÓN: desde ahora las facturas de puntos de venta "Web Service" se envían a ARCA y tienen validez fiscal. ¿Confirmás?'))return;
+  try{await arcaFn({accion:'guardar_config',ambiente:amb,cuit:V('arca-cuit').replace(/\D/g,''),...(extra||{})});toast('Configuración ARCA guardada','ok');await arcaEstado();}catch(e){toast(e.message,'err');}}
+async function arcaProbar(){const b=el('arca-btn-probar');if(b){b.disabled=true;b.textContent='⏳ Probando…';}arcaRes('');
+  try{const r=await arcaFn({accion:'probar'});const msgs=[...(r.errs||[]),...(r.obs||[])];
+    arcaRes(r.ok?`<div class="alert alert-ok">✅ <div><b>Conexión funcionando.</b> ARCA (homologación) autorizó la factura B de prueba N° ${pad(r.pv,5)}-${pad(r.nro,8)} por $121 con CAE <b>${esc(r.cae)}</b>. CONTROL PLUS → Supabase → Afip SDK → ARCA anda.</div></div>`
+      :`<div class="alert alert-warn">⚠️ <div>La prueba no salió bien:<ul>${msgs.map(m=>'<li>'+esc(m)+'</li>').join('')}</ul></div></div>`);
+  }catch(e){arcaRes(`<div class="alert alert-warn">⚠️ <div>${esc(e.message)}</div></div>`);}
+  if(b){b.disabled=false;b.textContent='🧪 Probar conexión';}}
+async function arcaCSR(){if(ARCA&&ARCA.tiene_certificado&&!confirm('Generar un NUEVO pedido de certificado: el certificado actual deja de usarse hasta que cargues el nuevo .crt. ¿Continuar?'))return;
+  try{const r=await arcaFn({accion:'generar_csr',cuit:V('arca-cuit').replace(/\D/g,''),organizacion:(S.cfg&&S.cfg.razon_social)||S.empresa.razon_social||'Empresa',alias:'controlmax'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.csr],{type:'application/pkcs10'}));a.download='pedido_certificado_controlmax.csr';a.click();
+    toast('Pedido descargado: subilo en ARCA → Administración de Certificados Digitales','ok');await arcaEstado();}catch(e){toast(e.message,'err');}}
+function arcaCert(inp){const f=inp.files&&inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{inp.value='';arcaGuardar({cert:String(rd.result)});};rd.readAsText(f);}
 async function guardarFacturacion(){
   const cbu=V('f-cbu').replace(/\D/g,'');if(cbu&&cbu.length!==22){toast('El CBU tiene 22 dígitos','warn');return;}
   await lockBtn('bt-fac',true);
