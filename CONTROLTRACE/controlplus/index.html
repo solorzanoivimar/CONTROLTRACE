@@ -325,7 +325,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.3 · nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.4 · buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -1824,6 +1824,35 @@ function renderSelects(){
   const cl=el('clm-lista'); if(cl){ const keep=cl.value; const names=[...new Set([...(D.lp||[]).filter(l=>l.activo!==false).map(l=>l.nombre),'Lista General'])]; cl.innerHTML='<option value="">— Sin lista —</option>'+names.map(n=>`<option>${esc(n)}</option>`).join(''); if(keep) cl.value=keep; }
 }
 function ctaLabel(c){ return (c.banco||'Banco')+' — '+({corriente:'CC',ahorro:'CA',sueldo:'CS'}[c.tipo]||c.tipo||'')+' '+(c.numero||'')+(c.moneda&&c.moneda!=='ARS'?' ('+c.moneda+')':''); }
+// ── v9.4: buscador por código, nombre o CUIT en TODOS los selectores de cliente y proveedor ──
+//    Se agrega solo a cada desplegable de clientes/proveedores (filtros, formularios, cobranzas, saldos, etc.).
+function ssNorm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function ssEnt(sel){ const ids=[...sel.options].map(o=>o.value).filter(Boolean); if(ids.length<2) return null;
+  const C={},P={}; (S.clientes||[]).forEach(c=>C[c.id]=c); (S.proveedores||[]).forEach(p=>P[p.id]=p);
+  const nc=ids.filter(i=>C[i]).length, np=ids.filter(i=>P[i]).length;
+  if(nc>=ids.length*0.8) return {tipo:'cliente',map:C}; if(np>=ids.length*0.8) return {tipo:'proveedor',map:P}; return null; }
+function ssTexto(r){ return ssNorm([r.codigo,r.razon_social||r.nombre,r.nombre_fantasia,r.cuit,String(r.cuit||'').replace(/\D/g,'')].filter(Boolean).join(' ')); }
+function ssFiltrar(inp,sel,elegir){ const ent=ssEnt(sel); if(!ent) return; const q=ssNorm(inp.value.trim()); const qc=normCod(inp.value);
+  let vis=[], exacto=null;
+  [...sel.options].forEach(o=>{ if(!o.value){ o.hidden=false; return; } const r=ent.map[o.value]; const t=r?ssTexto(r):ssNorm(o.textContent);
+    const ok=!q||q.split(/\s+/).every(w=>t.includes(w)); o.hidden=!ok; if(ok) vis.push(o);
+    if(r&&qc&&r.codigo&&normCod(r.codigo)===qc) exacto=o; });
+  const pick=exacto||(vis.length===1?vis[0]:(elegir&&vis.length?vis[0]:null));
+  if(pick&&q&&sel.value!==pick.value){ sel.value=pick.value; sel.dispatchEvent(new Event('change',{bubbles:true})); }
+  inp.style.borderColor=q&&!vis.length?'var(--danger,#b4453a)':'';
+  inp.title=q?(vis.length+' coincidencia(s)'):''; }
+function ssUpgrade(sel){ if(sel.dataset.ss||sel.id==='cb-cli'||sel.multiple) return; const ent=ssEnt(sel); if(!ent) return;
+  sel.dataset.ss='1'; const inp=document.createElement('input'); inp.type='search'; inp.className='fctl ss-q'; inp.autocomplete='off';
+  const enFiltro=!!sel.closest('.fbar');
+  inp.placeholder=enFiltro?'🔎 Código o nombre':'🔎 Buscar por código, nombre o CUIT'; inp.title='Escribí el código, parte del nombre o el CUIT del '+ent.tipo;
+  inp.style.cssText=enFiltro?'width:130px;flex:0 0 130px':'width:100%;margin-bottom:4px';
+  inp.addEventListener('input',()=>ssFiltrar(inp,sel,false));
+  inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); ssFiltrar(inp,sel,true); } if(ev.key==='Escape'){ inp.value=''; ssFiltrar(inp,sel,false); } });
+  if(enFiltro){ const w=document.createElement('span'); w.style.cssText='display:flex;gap:4px;align-items:center'; sel.parentNode.insertBefore(w,sel); w.appendChild(inp); w.appendChild(sel); }
+  else sel.parentNode.insertBefore(inp,sel); }
+let _ssT=null; function ssScan(){ clearTimeout(_ssT); _ssT=setTimeout(()=>document.querySelectorAll('select:not([data-ss])').forEach(s=>{ try{ ssUpgrade(s); }catch(_){} }),80); }
+(function(){ const go=()=>{ try{ new MutationObserver(ssScan).observe(document.body,{childList:true,subtree:true}); ssScan(); }catch(_){} };
+  if(document.body) go(); else document.addEventListener('DOMContentLoaded',go); })();
 function cliById(id){ return (S.clientes||[]).find(c=>c.id===id)||null; }
 function prvById(id){ return (S.proveedores||[]).find(p=>p.id===id)||null; }
 function prvByName(n){ const u=String(n||'').trim().toUpperCase(); return (S.proveedores||[]).find(p=>(p.nombre||'').trim().toUpperCase()===u)||null; }
