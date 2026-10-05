@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CONTROL MAX — Control Total</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230D1B2A'/%3E%3Ctext x='32' y='46' font-family='Segoe UI,Arial,sans-serif' font-size='40' font-weight='800' text-anchor='middle' fill='%23C9A84C'%3E%CE%A3%3C/text%3E%3C/svg%3E">
-<!-- CONTROL TOTAL · build tot 2.3 · etiqueta auditoría ARCA · tot 2.2: etiquetas de auditoría de remitos/recepciones listos · tot 2.1: ícono de pestaña · tot 2.0: reportes ERP (comercial, compras, finanzas) + auditoría de todos los módulos · tot 1.3: reportes de TRACE dentro de Producción, Compras y Finanzas · tot 1.2: filtro de período aplica al cambiar · reportes de Producción, Comercial y Finanzas + informes con IA. Solo lectura sobre la base compartida. -->
+<!-- CONTROL TOTAL · build tot 2.5 · reporte de cheques con recorrido (entrada → salida) · tot 2.4 · tot 2.3: etiqueta auditoría ARCA · tot 2.2: etiquetas de auditoría de remitos/recepciones listos · tot 2.1: ícono de pestaña · tot 2.0: reportes ERP (comercial, compras, finanzas) + auditoría de todos los módulos · tot 1.3: reportes de TRACE dentro de Producción, Compras y Finanzas · tot 1.2: filtro de período aplica al cambiar · reportes de Producción, Comercial y Finanzas + informes con IA. Solo lectura sobre la base compartida. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#0D1B2A;--navy-mid:#1A2E45;--gold:#C9A84C;--ice:#F0F4F8;--line:#DDE4EC;--white:#fff;--text:#1A2E45;--muted:#6B7A8D;--ok:#2D7D46;--okbg:#E8F5ED;--bad:#B3261E;--badbg:#FDECEA;--warn:#9A6700;--warnbg:#FFF4D6}
@@ -58,7 +58,7 @@ tr.rw-bad td{background:#FDECEA}tr.rw-warn td{background:#FFF8E1}tfoot td{border
 <div class="tabs" id="tabs"></div>
 <div id="body"></div>
 <div id="repWrap" style="display:none"></div>
-<div class="sk noprint" style="text-align:center;margin:18px 0 6px">build tot 2.4</div>
+<div class="sk noprint" style="text-align:center;margin:18px 0 6px">build tot 2.5</div>
 </main>
 <script>
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
@@ -132,7 +132,10 @@ async function cargar(a,b){S.faltan=[];const R=S.raw;
     fetchIn('cobranza_medios','cobranza_id',cob.map(c=>c.id)),fetchIn('cobranza_retenciones','cobranza_id',cob.map(c=>c.id)),fetchIn('pago_medios','pago_id',pag.map(p=>p.id)),
     fetchAll('cheques'),fetchAll('cajas'),fetchAll('cuentas_bancarias'),fetchAll('vendedores'),fetchAll('productos'),fetchAll('caja_movimientos'),fetchAll('banco_movimientos'),fetchAll('novedades',fd('fecha'))]);
   const fxm={};cv.forEach(c=>fxm[c.id]=c._fx||1);cvi.forEach(i=>{const f=fxm[i.comprobante_id]||1;if(f!==1)['neto','iva','precio_unit'].forEach(k=>{if(i[k]!=null)i[k]=num(i[k])*f})});
-  Object.assign(R,{cvi,cci,cobm,cobr,pagm,chq,cajas,ctas,vends,cjmAll,bmAll,nov});R.prods={};prods.forEach(p=>R.prods[p.id]=p);
+  Object.assign(R,{cvi,cci,cobm,cobr,pagm,chq,cajas,ctas,vends,cjmAll,bmAll,nov});
+  // tot 2.5: recibo de entrada y orden de pago de salida de cada cheque (aunque sean de otro período)
+  const [chqCob,chqPag]=await Promise.all([fetchIn('cobranzas','id',chq.map(c=>c.cobranza_id)),fetchIn('pagos','id',chq.map(c=>c.pago_id))]);
+  R.chqCob={};chqCob.forEach(x=>R.chqCob[x.id]=x);R.chqPag={};chqPag.forEach(x=>R.chqPag[x.id]=x);R.prods={};prods.forEach(p=>R.prods[p.id]=p);
   R.caja=cjmAll.filter(m=>inR(String(m.fecha_hora).slice(0,10),a,b));R.banco=bmAll.filter(m=>inR(m.fecha,a,b));
   S.faltan=[...new Set(S.faltan)];}
 // ───────── cálculo ─────────
@@ -448,13 +451,24 @@ const R_FIN={
   const pm=[['Efectivo','ef'],['Transferencia','tr'],['Cheque propio','chp'],['Cheque de terceros','cht'],['Otros','otr']].map(([l,k])=>({k:l,v:sumBy(rows,r=>r[k])})).filter(x=>x.v);
   return rpt({id:'pagos',titulo:'Pagos (órdenes de pago)',desc:'Pagos a proveedores y de gastos del período, desglosados por medio de pago.',sort:0,dir:1,rows,filters:[{k:'tipo',l:'Tipo'}],pre:kpis([['Total pagado',m$(sumBy(rows,r=>r.tot)),rows.length+' órdenes'],['A proveedores',m$(sumBy(rows.filter(r=>r.tipo==='Proveedor'),r=>r.tot)),''],['Gastos',m$(sumBy(rows.filter(r=>r.tipo==='Gasto'),r=>r.tot)),''],['Pagado a cuenta',m$(sumBy(rows,r=>r.acta)),'']])+`<div class="g2" style="margin-top:4px"><div>${bars(pm,m$)}</div><div>${bars(group(pag,x=>x.proveedor_nombre,x=>x.total),m$,6)}</div></div>`+faltaAviso(['pagos','pago_medios']),
    cols:[{k:'f',l:'Fecha',t:TD},{k:'nro',l:'Orden',t:TX},{k:'prv',l:'Proveedor / concepto',t:TX},{k:'tipo',l:'Tipo',t:TX},{k:'ef',l:'Efectivo',t:T$},{k:'tr',l:'Transferencia',t:T$},{k:'chp',l:'Cheque propio',t:T$},{k:'cht',l:'Cheque terceros',t:T$},{k:'otr',l:'Otros',t:T$},{k:'tot',l:'Total',t:T$}]})},
- cheques(){const t=hoy(),in7=addD(t,7),in30=addD(t,30);const EL={cartera:'En cartera',depositado:'Depositado',entregado:'Entregado',rechazado:'Rechazado',debitado:'Debitado',emitido:'Emitido'};
+ cheques(){const t=hoy(),in7=addD(t,7),in30=addD(t,30);const EL={cartera:'En cartera',depositado:'Depositado',entregado:'Entregado',cobrado:'Cobrado (a caja)',rechazado:'Rechazado',debitado:'Debitado',emitido:'Emitido'};
+  const RW=S.raw,CB=RW.chqCob||{},PG=RW.chqPag||{};
+  const ctaL=id=>{const c=(RW.ctas||[]).find(x=>x.id===id);return c?(c.banco||'Banco')+' '+(c.numero||''):''};const cajL=id=>{const c=(RW.cajas||[]).find(x=>x.id===id);return c?c.nombre:''};
+  const mvB=(id,tp)=>(RW.bmAll||[]).find(m=>m.origen==='cheque'&&m.origen_id===id&&m.tipo===tp),mvC=(id,tp)=>(RW.cjmAll||[]).find(m=>m.origen==='cheque'&&m.origen_id===id&&m.tipo===tp&&m.estado!=='anulado');
+  const traza=c=>{const r=CB[c.cobranza_id];const o={fe:r?r.fecha:'',de:c.origen==='tercero'?(r?(r.cliente_nombre||(RW.cli||{})[r.cliente_id]||(RW.cli||{})[c.cliente_id]||'')+' · Rec. '+pad(r.numero||0,8):''):'',fs:'',ds:''};
+    if(c.estado==='depositado'){const m=mvB(c.id,'credito');o.fs=m?m.fecha:'';o.ds='Depósito · '+ctaL(c.cuenta_id)}
+    else if(c.estado==='entregado'&&c.origen==='tercero'){const pg=PG[c.pago_id];o.fs=pg?pg.fecha:'';o.ds='A '+(c.beneficiario||(pg&&pg.proveedor_nombre)||'')+(pg?' · OP '+pad(pg.numero||0,6):'')}
+    else if(c.estado==='cobrado'){const m=mvC(c.id,'ingreso');o.fs=m?String(m.fecha_hora).slice(0,10):'';o.ds='Caja · '+(m?cajL(m.caja_id):'')}
+    else if(c.estado==='rechazado'){const m=mvB(c.id,'debito')||mvC(c.id,'egreso');o.fs=m?String(m.fecha||m.fecha_hora).slice(0,10):'';o.ds='Rechazado'}
+    else if(c.origen==='propio'){o.ds=c.beneficiario||''}
+    return o};
   const all=chqVivos();const cart=all.filter(c=>c.origen==='tercero'&&c.estado==='cartera');const prop=all.filter(c=>c.origen==='propio'&&['entregado','emitido'].includes(c.estado));
   const rows=all.map(c=>{const f=String(c.fecha_cobro||'').slice(0,10);const d=f?days(t,f)-1:null;const pend=(c.origen==='tercero'&&c.estado==='cartera')||(c.origen==='propio'&&['entregado','emitido'].includes(c.estado));
-    return {org:c.origen==='propio'?'Propio (emitido)':'De terceros (recibido)',nro:c.numero||'',banco:c.banco||'',quien:c.origen==='propio'?(c.beneficiario||''):(c.librador||''),cuit:c.cuit_librador||'',mod:c.modalidad||'',em:c.fecha_emision,fc:f,dias:pend?d:null,imp:num(c.importe),est:EL[c.estado]||c.estado,sit:!pend?'—':d<0?'Vencido':d<=7?'Próximos 7 días':d<=30?'8 a 30 días':'Más de 30 días',_cls:pend&&d<0?'rw-bad':pend&&d<=7?'rw-warn':''}});
-  return rpt({id:'cheques',titulo:'Cheques',desc:'Cartera de cheques de terceros y cheques propios emitidos, con su estado y fecha de cobro/pago. Muestra la situación de hoy (no depende del período).',sort:6,dir:1,rows,filters:[{k:'org',l:'Origen'},{k:'est',l:'Estado'},{k:'sit',l:'Vencimiento'}],
+    const tz=traza(c);
+    return {fe:tz.fe,de:tz.de,fs:tz.fs,ds:tz.ds,org:c.origen==='propio'?'Propio (emitido)':'De terceros (recibido)',nro:c.numero||'',banco:c.banco||'',quien:c.origen==='propio'?(c.beneficiario||''):(c.librador||''),cuit:c.cuit_librador||'',mod:c.modalidad||'',em:c.fecha_emision,fc:f,dias:pend?d:null,imp:num(c.importe),est:EL[c.estado]||c.estado,sit:!pend?'—':d<0?'Vencido':d<=7?'Próximos 7 días':d<=30?'8 a 30 días':'Más de 30 días',_cls:pend&&d<0?'rw-bad':pend&&d<=7?'rw-warn':''}});
+  return rpt({id:'cheques',titulo:'Cheques',desc:'Cartera de cheques de terceros y cheques propios emitidos, con su estado, fecha de cobro/pago y su recorrido: de quién entró (recibo) y a dónde salió (depósito, proveedor y orden de pago, o caja). Muestra la situación de hoy (no depende del período).',sort:6,dir:1,rows,filters:[{k:'org',l:'Origen'},{k:'est',l:'Estado'},{k:'sit',l:'Vencimiento'}],
    pre:kpis([['Terceros en cartera',m$(sumBy(cart,c=>c.importe)),cart.length+' cheques'],['En cartera vencidos',m$(sumBy(cart.filter(c=>String(c.fecha_cobro)<t),c=>c.importe)),'depositar ya'],['A cobrar próximos 7 días',m$(sumBy(cart.filter(c=>String(c.fecha_cobro)>=t&&String(c.fecha_cobro)<=in7),c=>c.importe)),''],['A cobrar próximos 30 días',m$(sumBy(cart.filter(c=>String(c.fecha_cobro)>=t&&String(c.fecha_cobro)<=in30),c=>c.importe)),''],['Propios pendientes de débito',m$(sumBy(prop,c=>c.importe)),prop.length+' cheques'],['Propios a debitar en 7 días',m$(sumBy(prop.filter(c=>String(c.fecha_cobro)<=in7),c=>c.importe)),'tener fondos en el banco'],['Rechazados',m$(sumBy(all.filter(c=>c.estado==='rechazado'),c=>c.importe)),all.filter(c=>c.estado==='rechazado').length+' cheques']])+faltaAviso(['cheques']),
-   cols:[{k:'org',l:'Origen',t:TX},{k:'nro',l:'Número',t:TX},{k:'banco',l:'Banco',t:TX},{k:'quien',l:'Librador / beneficiario',t:TX},{k:'mod',l:'Modalidad',t:TX},{k:'em',l:'Emisión',t:TD},{k:'fc',l:'Fecha cobro/pago',t:TD},{k:'dias',l:'Días',t:TN,tot:false},{k:'imp',l:'Importe',t:T$},{k:'est',l:'Estado',t:TX},{k:'sit',l:'Vencimiento',t:TX}]})},
+   cols:[{k:'org',l:'Origen',t:TX},{k:'nro',l:'Número',t:TX},{k:'banco',l:'Banco',t:TX},{k:'quien',l:'Librador / beneficiario',t:TX},{k:'mod',l:'Modalidad',t:TX},{k:'em',l:'Emisión',t:TD},{k:'fc',l:'Fecha cobro/pago',t:TD},{k:'dias',l:'Días',t:TN,tot:false},{k:'imp',l:'Importe',t:T$},{k:'est',l:'Estado',t:TX},{k:'sit',l:'Vencimiento',t:TX},{k:'fe',l:'Entró',t:TD},{k:'de',l:'Recibido de',t:TX},{k:'fs',l:'Salió',t:TD},{k:'ds',l:'Destino',t:TX}]})},
  retenc(){const p=per();const cob=S.raw.cob.filter(c=>c.estado!=='anulada'&&inR(c.fecha,p[0],p[1]));const cm={};cob.forEach(c=>cm[c.id]=c);
   const rows=(S.raw.cobr||[]).filter(r=>cm[r.cobranza_id]).map(r=>{const c=cm[r.cobranza_id];return {f:c.fecha,nro:'Rec. '+pad(c.punto_venta||0,5)+'-'+pad(c.numero||0,8),cli:c.cliente_nombre,cuit:(cliOf(c.cliente_id).cuit)||'',tipo:String(r.tipo||'').toUpperCase(),cert:r.numero_cert||'',ali:num(r.alicuota)/100,imp:num(r.importe)}});
   return rpt({id:'retenc',titulo:'Retenciones sufridas',desc:'Retenciones que nos hicieron los clientes al pagar (IVA, Ganancias, IIBB, SUSS…). Sirve para computarlas en las declaraciones juradas.',sort:0,dir:1,rows,filters:[{k:'tipo',l:'Tipo'}],pre:`<div style="margin-top:8px">${bars(group(rows,r=>r.tipo,r=>r.imp),m$)}</div>`+faltaAviso(['cobranza_retenciones']),
