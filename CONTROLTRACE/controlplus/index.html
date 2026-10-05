@@ -245,6 +245,9 @@ textarea.fctl{resize:vertical}
 .mono{font-family:ui-monospace,Consolas,monospace}
 .tscroll{overflow-x:auto}
 .tscroll table{min-width:760px}
+/* v9.6: las tablas largas scrollean dentro de la pantalla → la barra horizontal queda siempre visible abajo y los títulos fijos arriba */
+.tcard .tscroll{overflow:auto;max-height:calc(100vh - 150px)}
+.tscroll thead th{position:sticky;top:0;z-index:2}
 .chk{width:15px;height:15px;cursor:pointer}
 .row-sel{background:#fffbeb !important}
 .alert{border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;display:flex;gap:10px;align-items:flex-start}
@@ -325,7 +328,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.5 · saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.6 · descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -1408,7 +1411,9 @@ textarea.fctl{resize:vertical}
       <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start">
         <div>
           <div class="fgroup"><label class="flabel">Observaciones (se imprimen)</label><textarea class="fctl" rows="3" id="cb-obs"></textarea></div>
-          <div class="fgroup" style="margin-top:8px" id="cb-trib-wrap"><label class="flabel">Percepciones / otros tributos ($)</label><input type="number" step="0.01" class="fctl" id="cb-trib" style="max-width:200px" oninput="cbCalc()"></div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px">
+          <div class="fgroup" id="cb-dto-wrap"><label class="flabel">Descuento global (%)</label><input type="number" step="0.01" min="0" max="100" class="fctl" id="cb-dto" style="max-width:140px" placeholder="Ej: 7" oninput="cbCalc()"><div class="small muted" style="margin-top:3px">Se aplica a toda la factura, antes del IVA</div></div>
+          <div class="fgroup" id="cb-trib-wrap"><label class="flabel">Percepciones / otros tributos ($)</label><input type="number" step="0.01" class="fctl" id="cb-trib" style="max-width:200px" oninput="cbCalc()"></div></div>
         </div>
         <div class="sum-box" id="cb-totales"></div>
       </div>
@@ -1465,7 +1470,7 @@ textarea.fctl{resize:vertical}
       <div id="cp-origen"></div>
       <div class="fsec"><div class="fsec-title">Comprobante del proveedor</div>
         <div class="fgrid fgrid-4">
-          <div class="fgroup"><label class="flabel">Tipo <span class="req">*</span></label><select class="fctl" id="cp-tipo" onchange="cpCalc()"><option>Factura A</option><option>Factura B</option><option>Factura C</option><option>Factura M</option><option>Ticket</option><option>Recibo</option><option>Sin comprobante</option></select></div>
+          <div class="fgroup"><label class="flabel">Tipo <span class="req">*</span></label><select class="fctl" id="cp-tipo" onchange="cpTipoX();cpCalc()"><option>Factura A</option><option>Factura B</option><option>Factura C</option><option>Factura M</option><option>Comprobante X</option><option>Ticket</option><option>Recibo</option><option>Sin comprobante</option></select></div>
           <div class="fgroup"><label class="flabel">N° comprobante</label><input class="fctl mono" id="cp-nro" placeholder="0001-00001234"></div>
           <div class="fgroup"><label class="flabel">Fecha <span class="req">*</span></label><input type="date" class="fctl" id="cp-fecha" onchange="cpVto()"></div>
           <div class="fgroup"><label class="flabel">Vencimiento de pago</label><input type="date" class="fctl" id="cp-vto"></div>
@@ -2745,7 +2750,7 @@ function nuevoCbte(clase, o={}){
   el('cb-title').textContent=o.editTitle||(o.editId?'Editar borrador':titles[clase]);
   el('cb-sub').textContent={factura:'Al emitir se pide el CAE a ARCA (si el punto de venta es Web Service)',nc:'Anula o ajusta total o parcialmente un comprobante',nd:'Cargos adicionales sobre un comprobante',presupuesto:'No es comprobante fiscal · se puede convertir en factura o pedido',saldo_inicial:'Deuda del cliente al empezar a usar CONTROL PLUS (no es comprobante fiscal)'}[clase];
   el('cb-origen').innerHTML=o.origen?`<div class="alert alert-info">${o.origen}</div>`:'';
-  setV('cb-fecha',o.fecha||hoy()); setV('cb-cli',o.cliente_id||''); setV('cb-oc',o.oc||''); setV('cb-obs',o.obs||''); setV('cb-trib',o.tributos||'');
+  setV('cb-fecha',o.fecha||hoy()); setV('cb-cli',o.cliente_id||''); setV('cb-oc',o.oc||''); setV('cb-obs',o.obs||''); setV('cb-trib',o.tributos||''); setV('cb-dto',o.dto||'');
   setV('cb-concepto',o.concepto||String(CFG().concepto_default||1)); setV('cb-moneda','PES'); setV('cb-cotiz',1); setV('cb-sdesde',o.serv_desde||''); setV('cb-shasta',o.serv_hasta||'');
   setV('cb-cpago',o.cpago||'Cuenta corriente'); setV('cb-vend',o.vendedor_id||'');
   el('cb-fce').checked=!!o.fce; el('cb-fce').disabled=false;
@@ -2794,7 +2799,7 @@ function editarCbte(id){ const c=(D.cv||[]).find(x=>x.id===id); if(!c) return;
   if((D.cobi||[]).some(i=>i.comprobante_id===id&&((D.cob||[]).find(r=>r.id===i.cobranza_id)||{}).estado!=='anulada')){ toast('Tiene cobranzas aplicadas: anulá primero el recibo','warn'); return; }
   if((D.cv||[]).some(x=>x.cbte_asoc_id===id&&vigente(x))){ toast('Tiene notas de crédito/débito asociadas','warn'); return; }
   autorizar('Editar '+tipoLargo(c)+' <b>'+nroCbte(c)+'</b> de '+esc(c.cliente_nombre||'')+' ('+m$(c.total)+')', ()=>{ window._pinAutorizo=null;
-    nuevoCbte(c.clase,{editId:c.id, editTitle:'Editar '+tipoLargo(c)+' '+nroCbte(c), cliente_id:c.cliente_id, fecha:c.fecha, fecha_vto:c.fecha_vto, letra:c.letra, fce:!!c.es_fce, items:cbAItems(c), oc:c.orden_compra, obs:c.clase==='saldo_inicial'?siObs(c):c.observaciones, total:c.clase==='saldo_inicial'?num(c.total):undefined, si_ref:siRef(c), tributos:num(c.tributos)||'',
+    nuevoCbte(c.clase,{editId:c.id, editTitle:'Editar '+tipoLargo(c)+' '+nroCbte(c), cliente_id:c.cliente_id, fecha:c.fecha, fecha_vto:c.fecha_vto, letra:c.letra, fce:!!c.es_fce, items:cbAItems(c), dto:dtoGlobal(c).pct||'', oc:c.orden_compra, obs:c.clase==='saldo_inicial'?siObs(c):c.observaciones, total:c.clase==='saldo_inicial'?num(c.total):undefined, si_ref:siRef(c), tributos:num(c.tributos)||'',
       cpago:c.condicion_pago, vendedor_id:c.vendedor_id, concepto:String(c.concepto||1), serv_desde:c.serv_desde, serv_hasta:c.serv_hasta, cbte_asoc_id:c.cbte_asoc_id, entrega_ids:c.entrega_ids, pedido:c.pedido_codigo, fce_cbu:c.fce_cbu, fce_modalidad:c.fce_modalidad});
     if(c.punto_venta) setV('cb-pv',c.punto_venta); }); }
 function cbCliente(init, o){
@@ -2862,7 +2867,7 @@ function cbRefresh(){
   const sinIva=(letra==='C'||letra==='X');
   document.querySelectorAll('#cb-items .it-alic').forEach(s=>s.disabled=sinIva);
   el('cb-precio-hint').textContent=sinIva?'precios finales (sin discriminar IVA)':'precios netos, sin IVA';
-  el('cb-trib-wrap').style.display=clase==='saldo_inicial'?'none':'';
+  el('cb-trib-wrap').style.display=clase==='saldo_inicial'?'none':''; el('cb-dto-wrap').style.display=clase==='saldo_inicial'?'none':'';
   cbCalc();
 }
 // Decide y muestra lo relativo a FCE + número provisorio (se llama en cada recálculo)
@@ -2886,23 +2891,26 @@ function cbFce(total){
     h.innerHTML=msg; }
 }
 function cbCalc(){
-  const letra=V('cb-letra'); const sinIva=(letra==='C'||letra==='X'); const out={items:[],neto_gravado:0,neto_no_gravado:0,exento:0,iva_105:0,iva_21:0,iva_27:0,tributos:num(V('cb-trib')),total:0};
+  const letra=V('cb-letra'); const sinIva=(letra==='C'||letra==='X'); const dto=Math.min(100,Math.max(0,num(V('cb-dto')))); let bruto=0, brutoShow=0;
+  const out={dto,bruto:0,descuento:0,items:[],neto_gravado:0,neto_no_gravado:0,exento:0,iva_105:0,iva_21:0,iva_27:0,tributos:num(V('cb-trib')),total:0};
   if(CB.clase==='saldo_inicial'){ const t=num(V('cb-si-imp')); out.neto_no_gravado=t; out.total=t; }
   else document.querySelectorAll('#cb-items tr').forEach((tr,i)=>{
     const cant=num(tr.querySelector('.it-cant').value), pre=num(tr.querySelector('.it-pre').value), bon=num(tr.querySelector('.it-bon').value);
     let alic=num(tr.querySelector('.it-alic').value); if(sinIva) alic=0;
-    const neto=r2(cant*pre*(1-bon/100)); const iva=alic>0?r2(neto*alic/100):0;
-    tr.querySelector('.it-sub').textContent=m$(neto+(sinIva?0:0));
+    const netoL=r2(cant*pre*(1-bon/100)); const neto=dto?r2(netoL*(1-dto/100)):netoL; const iva=alic>0?r2(neto*alic/100):0;
+    tr.querySelector('.it-sub').textContent=m$(netoL);
     const desc=tr.querySelector('.it-desc').value.trim();
     if(cant!==0&&desc) out.items.push({producto_id:tr.dataset.tipo==='producto'?tr.dataset.id||null:null, servicio:tr.dataset.tipo==='servicio', codigo:tr.dataset.codigo||null, descripcion:desc, cantidad:cant, unidad:tr.querySelector('.it-uni').value.trim(), precio_unit:pre, bonif_pct:bon, alicuota_iva:sinIva?0:num(tr.querySelector('.it-alic').value), neto, iva, entrega_id:tr.dataset.entrega||null, orden:i});
+    if(cant!==0&&desc){ bruto+=netoL; brutoShow+=netoL*(letra==='B'&&alic>0?1+alic/100:1); }
     if(sinIva) out.neto_gravado+=neto;
     else if(alic>0){ out.neto_gravado+=neto; if(alic===10.5) out.iva_105+=iva; else if(alic===27) out.iva_27+=iva; else out.iva_21+=iva; }
     else if(alic===0) out.exento+=neto; else out.neto_no_gravado+=neto;
   });
   ['neto_gravado','neto_no_gravado','exento','iva_105','iva_21','iva_27'].forEach(k=>out[k]=r2(out[k]));
   if(CB.clase!=='saldo_inicial') out.total=r2(out.neto_gravado+out.neto_no_gravado+out.exento+out.iva_105+out.iva_21+out.iva_27+out.tributos);
+  out.bruto=r2(bruto); out.descuento=dto?r2(bruto-(out.neto_gravado+out.neto_no_gravado+out.exento)):0;
   const box=el('cb-totales'); if(box){ const row=(l,v,c='')=>v?`<div class="drow"><span class="dkey">${l}</span><span class="dval ${c}">${m$(v)}</span></div>`:'';
-    box.innerHTML=(sinIva?row('Subtotal',out.neto_gravado):row('Neto gravado',out.neto_gravado)+row('IVA 10,5%',out.iva_105)+row('IVA 21%',out.iva_21)+row('IVA 27%',out.iva_27))+row('No gravado',out.neto_no_gravado)+row('Exento',out.exento)+row('Percepciones / tributos',out.tributos)
+    box.innerHTML=(out.descuento>0?row('Subtotal sin descuento',out.bruto)+row('Descuento global ('+String(dto).replace('.',',')+'%)',-out.descuento,'cd'):'')+(sinIva?row('Subtotal',out.neto_gravado):row('Neto gravado',out.neto_gravado)+row('IVA 10,5%',out.iva_105)+row('IVA 21%',out.iva_21)+row('IVA 27%',out.iva_27))+row('No gravado',out.neto_no_gravado)+row('Exento',out.exento)+row('Percepciones / tributos',out.tributos)
       +`<div class="divider"></div><div class="drow"><span class="dkey fw" style="font-size:14px">TOTAL</span><span class="dval fw cn" style="font-size:18px">${m$(out.total)}</span></div>`; }
   if(el('m-cbte').classList.contains('open')||CB.clase) cbFce(out.total);
   return out;
@@ -2974,16 +2982,21 @@ async function doGuardarCbte(modo,t,cli,letra,fce,retry){
   }
   await lockBtn('cb-btn-emit',false); await lockBtn('cb-btn-borr',false);
 }
+// v9.6: descuento global. Los ítems se guardan con el descuento ya prorrateado (así ARCA y los reportes ven el neto real);
+//      el % se reconstruye comparando precio × cantidad contra el neto guardado.
+function dtoGlobal(c,items){ items=items||itemsDe(c.id); if(!items.length) return {pct:0,bruto:0,desc:0};
+  const bruto=r2(sumBy(items,i=>r2(num(i.cantidad)*num(i.precio_unit)*(1-num(i.bonif_pct)/100)))); const neto=r2(sumBy(items,i=>num(i.neto)));
+  const desc=r2(bruto-neto); if(!(bruto>0)||desc<0.05) return {pct:0,bruto,desc:0}; return {pct:Math.round(desc/bruto*10000)/100,bruto,desc}; }
 function itemsDe(id){ return (D.cvi||[]).filter(i=>i.comprobante_id===id).sort((a,b)=>num(a.orden)-num(b.orden)); }
 function cbAItems(c){ return itemsDe(c.id).map(i=>{ const srv=!i.producto_id&&(D.srv||[]).find(s=>s.nombre===i.descripcion); return {tipo:i.producto_id?'producto':(srv?'servicio':''), id:i.producto_id||(srv&&srv.id)||null, codigo:i.codigo, descripcion:i.descripcion, nombre:i.descripcion, cantidad:num(i.cantidad), unidad:i.unidad, precio:num(i.precio_unit), bonif:num(i.bonif_pct), alic:num(i.alicuota_iva), entrega_id:i.entrega_id}; }); }
 function editarBorrador(id){
   const c=(D.cv||[]).find(x=>x.id===id); if(!c) return;
-  nuevoCbte(c.clase,{editId:c.id, cliente_id:c.cliente_id, fecha:hoy(), fecha_vto:c.fecha_vto, letra:c.letra, fce:!!c.es_fce, items:cbAItems(c), oc:c.orden_compra, obs:c.observaciones, tributos:num(c.tributos)||'',
+  nuevoCbte(c.clase,{editId:c.id, cliente_id:c.cliente_id, fecha:hoy(), fecha_vto:c.fecha_vto, letra:c.letra, fce:!!c.es_fce, items:cbAItems(c), dto:dtoGlobal(c).pct||'', oc:c.orden_compra, obs:c.observaciones, tributos:num(c.tributos)||'',
     cpago:c.condicion_pago, vendedor_id:c.vendedor_id, concepto:String(c.concepto||1), cbte_asoc_id:c.cbte_asoc_id, entrega_ids:c.entrega_ids, pedido:c.pedido_codigo, fce_cbu:c.fce_cbu, fce_modalidad:c.fce_modalidad});
 }
 function presupuestoAFactura(id){
   const c=(D.cv||[]).find(x=>x.id===id); if(!c) return;
-  nuevoCbte('factura',{cliente_id:c.cliente_id, items:cbAItems(c), obs:c.observaciones, presupuesto_id:c.id, origen:'📝 Facturando el presupuesto <b>'+nroCbte(c)+'</b>'});
+  nuevoCbte('factura',{cliente_id:c.cliente_id, items:cbAItems(c), dto:dtoGlobal(c).pct||'', obs:c.observaciones, presupuesto_id:c.id, origen:'📝 Facturando el presupuesto <b>'+nroCbte(c)+'</b>'});
 }
 function presupuestoAPedido(id){
   const c=(D.cv||[]).find(x=>x.id===id); if(!c) return;
@@ -3017,6 +3030,7 @@ function verCbte(id){
    ${a?`<div class="small" style="margin-top:6px">Asociado a: <span class="link" onclick="verCbte('${a.id}')">${tipoCorto(a)} ${nroCbte(a)}</span></div>`:''}
    ${it.length?`<table style="margin-top:12px"><thead><tr><th>Descripción</th><th class="tr">Cant.</th><th>U.</th><th class="tr">Precio</th><th class="tr">Bonif.</th><th class="tr">IVA</th><th class="tr">Subtotal</th></tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.descripcion)}</td><td class="tr">${num(i.cantidad).toLocaleString('es-AR')}</td><td>${esc(i.unidad||'')}</td>${tdM(i.precio_unit)}<td class="tr">${num(i.bonif_pct)?num(i.bonif_pct)+'%':'—'}</td><td class="tr">${num(i.alicuota_iva)>0?String(num(i.alicuota_iva)).replace('.',',')+'%':(num(i.alicuota_iva)===0?'Ex.':'N/G')}</td>${tdM(i.neto)}</tr>`).join('')}</tbody></table>`:''}
    <div style="display:flex;justify-content:flex-end;margin-top:10px"><div style="width:280px">
+     ${(()=>{ const g=dtoGlobal(c); return g.desc?`<div class="drow"><span class="dkey">Descuento global (${String(g.pct).replace('.',',')}%)</span><span class="dval cd">-${m$(g.desc)}</span></div>`:''; })()}
      ${c.letra==='A'||c.letra==='B'?`<div class="drow"><span class="dkey">Neto gravado</span><span class="dval">${m$(c.neto_gravado)}</span></div>${num(c.iva_105)?`<div class="drow"><span class="dkey">IVA 10,5%</span><span class="dval">${m$(c.iva_105)}</span></div>`:''}${num(c.iva_21)?`<div class="drow"><span class="dkey">IVA 21%</span><span class="dval">${m$(c.iva_21)}</span></div>`:''}${num(c.iva_27)?`<div class="drow"><span class="dkey">IVA 27%</span><span class="dval">${m$(c.iva_27)}</span></div>`:''}`:''}
      ${num(c.exento)?`<div class="drow"><span class="dkey">Exento</span><span class="dval">${m$(c.exento)}</span></div>`:''}${num(c.tributos)?`<div class="drow"><span class="dkey">Percepciones</span><span class="dval">${m$(c.tributos)}</span></div>`:''}
      <div class="drow"><span class="dkey fw">TOTAL</span><span class="dval fw" style="font-size:15px">${m$(c.total)}</span></div>
@@ -3028,7 +3042,7 @@ function verCbte(id){
   if(puedeEditarCbte(c)) b.push({label:'✏️ Editar',fn:()=>{closeM('m-view');editarCbte(id);}});
   if(c.estado==='pendiente_cae'){ b.unshift({label:'🧾 Registrar CAE manual',fn:()=>{closeM('m-view');caeManual(id);}}); if(puedeArca(c)) b.unshift({label:arcaProd()?'🏛 Solicitar CAE a ARCA':'🧪 Probar envío a ARCA (homologación)',cls:'btn-gold',fn:()=>{closeM('m-view');solicitarCAE(id);}}); }
   if(vigente(c)&&['factura','nd'].includes(c.clase)&&num(c.saldo)>0.01) b.push({label:'💰 Cobrar',cls:'btn-success',fn:()=>{closeM('m-view');abrirCobranza(c.cliente_id,[id]);}});
-  if(vigente(c)&&['factura','nd'].includes(c.clase)) b.push({label:'↩ Nota de crédito',fn:()=>{closeM('m-view');nuevoCbte('nc',{cliente_id:c.cliente_id,cbte_asoc_id:id,letra:c.letra,fce:!!c.es_fce,items:cbAItems(c),obs:'Anula/ajusta '+tipoCorto(c)+' '+nroCbte(c)});}});
+  if(vigente(c)&&['factura','nd'].includes(c.clase)) b.push({label:'↩ Nota de crédito',fn:()=>{closeM('m-view');nuevoCbte('nc',{cliente_id:c.cliente_id,cbte_asoc_id:id,letra:c.letra,fce:!!c.es_fce,items:cbAItems(c),dto:dtoGlobal(c).pct||'',obs:'Anula/ajusta '+tipoCorto(c)+' '+nroCbte(c)});}});
   if(c.es_fce&&c.cae) b.push({label:'🏛 Aceptación FCE',fn:()=>fceEstado(id)});
   if(c.clase==='presupuesto'&&c.estado==='abierto'){ b.unshift({label:'🧾 Facturar',cls:'btn-gold',fn:()=>{closeM('m-view');presupuestoAFactura(id);}}); }
   if(c.estado!=='anulada') b.push({label:'✕ Anular',cls:'btn-danger',fn:()=>anularCbte(id)});
@@ -3056,9 +3070,13 @@ function printCbte(id){
   const letraBox=c.clase==='presupuesto'?'P':c.clase==='saldo_inicial'?'S':(c.letra||'X');
   const titulo=c.clase==='presupuesto'?'PRESUPUESTO':c.clase==='saldo_inicial'?'SALDO INICIAL':(c.es_fce?(c.clase==='factura'?'FACTURA DE CRÉDITO ELECTRÓNICA MiPyMEs (FCE)':c.clase==='nc'?'NOTA DE CRÉDITO ELECTRÓNICA MiPyMEs (FCE)':'NOTA DE DÉBITO ELECTRÓNICA MiPyMEs (FCE)'):({factura:'FACTURA',nc:'NOTA DE CRÉDITO',nd:'NOTA DE DÉBITO'}[c.clase]||''));
   const precioShow=i=>disc?num(i.precio_unit):num(i.precio_unit)*(1+Math.max(0,num(i.alicuota_iva))/100*(c.letra==='B'?1:0));
-  const subShow=i=>disc?num(i.neto):num(i.neto)+(c.letra==='B'?num(i.iva):0);
+  const dg=dtoGlobal(c,it);
+  const lineNeto=i=>dg.desc?r2(num(i.cantidad)*num(i.precio_unit)*(1-num(i.bonif_pct)/100)):num(i.neto);
+  const subShow=i=>disc?lineNeto(i):lineNeto(i)*(c.letra==='B'&&num(i.alicuota_iva)>0?1+num(i.alicuota_iva)/100:1);
   const asoc=c.cbte_asoc_id&&(D.cv||[]).find(x=>x.id===c.cbte_asoc_id);
   const usd=c.moneda==='DOL';
+  const pctTxt=String(dg.pct).replace('.',',')+'%';
+  const subSD=r2(sumBy(it,subShow)), dtoShow=disc?dg.desc:r2(subSD-(num(c.total)-num(c.tributos)));
   const ivaTot=num(c.iva_105)+num(c.iva_21)+num(c.iva_27);
   const monoRec=/monotrib/i.test(c.cliente_iva||'')&&disc;
   const css=`body{margin:0!important}@page{size:A4;margin:9mm}
@@ -3077,7 +3095,7 @@ function printCbte(id){
   .wm{color:#B91C1C;font-weight:800;text-align:center;padding:6px;border:2px dashed #B91C1C;margin:8px 12px}
   .small{font-size:9px}`;
   const logo=e.logo?`<img src="${e.logo}" alt="">`:'';
-  const totHTML=(disc?`<div><span>Importe neto gravado</span><b>${m$(c.neto_gravado)}</b></div>${num(c.neto_no_gravado)?`<div><span>Importe no gravado</span><b>${m$(c.neto_no_gravado)}</b></div>`:''}${num(c.exento)?`<div><span>Importe exento</span><b>${m$(c.exento)}</b></div>`:''}${num(c.iva_27)?`<div><span>IVA 27%</span><b>${m$(c.iva_27)}</b></div>`:''}${num(c.iva_21)?`<div><span>IVA 21%</span><b>${m$(c.iva_21)}</b></div>`:''}${num(c.iva_105)?`<div><span>IVA 10,5%</span><b>${m$(c.iva_105)}</b></div>`:''}`
+  const totHTML=(dg.desc?(disc?`<div><span>Importe neto</span><b>${m$(dg.bruto)}</b></div>`:`<div><span>Subtotal sin descuento</span><b>${m$(subSD)}</b></div>`)+`<div><span>Descuento global (${pctTxt})</span><b>-${m$(dtoShow)}</b></div>`:'')+(disc?`<div><span>Importe neto gravado</span><b>${m$(c.neto_gravado)}</b></div>${num(c.neto_no_gravado)?`<div><span>Importe no gravado</span><b>${m$(c.neto_no_gravado)}</b></div>`:''}${num(c.exento)?`<div><span>Importe exento</span><b>${m$(c.exento)}</b></div>`:''}${num(c.iva_27)?`<div><span>IVA 27%</span><b>${m$(c.iva_27)}</b></div>`:''}${num(c.iva_21)?`<div><span>IVA 21%</span><b>${m$(c.iva_21)}</b></div>`:''}${num(c.iva_105)?`<div><span>IVA 10,5%</span><b>${m$(c.iva_105)}</b></div>`:''}`
       :`<div><span>Subtotal</span><b>${m$(num(c.total)-num(c.tributos))}</b></div>`)
     +(num(c.tributos)?`<div><span>Importe otros tributos</span><b>${m$(c.tributos)}</b></div>`:'')
     +`<div class="big"><span>Importe total${usd?' (USD)':''}</span><span>${m$(c.total)}</span></div>`;
@@ -3545,6 +3563,12 @@ async function guardarPreciosCliente(){
 const vigC = c => c.estado!=='anulada';
 const debC = c => c.clase!=='nc';
 const discIVA = t => ['Factura A','Factura M'].includes(t);
+// v9.6: compras en X (comprobante interno, sin IVA) con numeración propia, automática y correlativa: X-00000001, X-00000002…
+const CPA_X='Comprobante X';
+function cpNextX(){ let mx=0; (D.cpa||[]).forEach(c=>{ if(c.tipo!==CPA_X) return; const m=/(\d+)\s*$/.exec(String(c.nro_comprobante||'')); if(m) mx=Math.max(mx,+m[1]); }); return 'X-'+pad(mx+1,8); }
+function cpTipoX(){ const n=el('cp-nro'); if(!n) return; const x=V('cp-tipo')===CPA_X;
+  if(x){ n.value=cpNextX(); n.readOnly=true; n.dataset.auto='1'; n.title='Numeración automática de comprobantes X'; }
+  else if(n.dataset.auto){ n.value=''; n.readOnly=false; delete n.dataset.auto; n.title=''; } }
 function nroInt(c){ return c.numero_interno!=null?'C-'+pad(c.numero_interno,6):'—'; }
 function tipoCpa(c){ return (c.clase==='nc'?'NC ':c.clase==='nd'?'ND ':'')+(c.tipo||''); }
 function ivaC(c){ return num(c.iva_105)+num(c.iva_21)+num(c.iva_27); }
@@ -3648,6 +3672,7 @@ function nuevaCompra(subtipo, clase='factura', o={}){
   const modo=o.saldoIni||(subtipo==='gasto'&&!(o.items||[]).length)?'importes':'items';
   document.querySelector(`input[name=cp-modo][value=${modo}]`).checked=true; cpModo();
   if(o.saldoIni){ setV('cp-tipo','Sin comprobante'); }
+  cpTipoX();
   if(modo==='items'&&!(o.items||[]).length) cpAddItem();
   cpProveedor(true); cpCalc(); openM('m-cpa');
 }
@@ -3655,7 +3680,7 @@ function cpModo(){ const m=document.querySelector('input[name=cp-modo]:checked')
 function cpProveedor(init){
   const p=prvById(V('cp-prv')); setV('cp-cuit',p?p.cuit||'':'');
   setV('cp-cpago', p&&p.condicion_pago ? p.condicion_pago : (CP.subtipo==='gasto'&&!p?'Contado':'Cuenta corriente'));
-  if(p&&!init){ if(p.iva==='Monotributista') setV('cp-tipo','Factura C'); else if(p.iva==='Responsable Inscripto') setV('cp-tipo','Factura A'); }
+  if(p&&!init&&V('cp-tipo')!==CPA_X){ if(p.iva==='Monotributista') setV('cp-tipo','Factura C'); else if(p.iva==='Responsable Inscripto') setV('cp-tipo','Factura A'); cpTipoX(); }
   const as=el('cp-asoc'); if(as){ const l=(D.cpa||[]).filter(c=>p&&c.proveedor_id===p.id&&vigC(c)&&c.clase!=='nc').sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')); as.innerHTML='<option value="">— Ninguno —</option>'+l.map(c=>`<option value="${c.id}">${esc(c.tipo)} ${esc(c.nro_comprobante||nroInt(c))} · ${fD(c.fecha)} · ${m$(c.total)}</option>`).join(''); }
   cpVto();
 }
@@ -3695,11 +3720,12 @@ async function guardarCompra(){
   if(gasto && !CP.saldoIni && (!V('cp-cat')||!V('cp-concepto'))){ toast('Completá categoría y concepto del gasto','warn'); return; }
   if(!(t.total>0)){ toast('El total tiene que ser mayor a cero','warn'); return; }
   if(!V('cp-fecha')){ toast('Falta la fecha','warn'); return; }
+  if(V('cp-tipo')===CPA_X&&!CP.saldoIni){ await reload(['cpa']); setV('cp-nro',cpNextX()); }
   const nro=V('cp-nro'); if(nro && p && (D.cpa||[]).some(c=>vigC(c)&&c.proveedor_id===p.id&&c.tipo===V('cp-tipo')&&c.clase===CP.clase&&c.nro_comprobante===nro)){ toast('Ese comprobante del proveedor ya está registrado','warn'); return; }
   const pagado=V('cp-pagado'); if(pagado==='efectivo'&&!V('cp-pag-caja')){ toast('Elegí la caja','warn'); return; } if(pagado==='transferencia'&&!V('cp-pag-cta')){ toast('Elegí la cuenta bancaria','warn'); return; }
   await lockBtn('cp-save',true);
   try{
-    const obj={numero_interno:nextNum(D.cpa,null,'numero_interno'), subtipo:CP.subtipo, clase:CP.clase, tipo:CP.saldoIni?'Saldo inicial':V('cp-tipo'), letra:(V('cp-tipo').match(/Factura ([ABCM])/)||[])[1]||null, nro_comprobante:nro||null,
+    const obj={numero_interno:nextNum(D.cpa,null,'numero_interno'), subtipo:CP.subtipo, clase:CP.clase, tipo:CP.saldoIni?'Saldo inicial':V('cp-tipo'), letra:V('cp-tipo')===CPA_X?'X':((V('cp-tipo').match(/Factura ([ABCM])/)||[])[1]||null), nro_comprobante:nro||null,
       fecha:V('cp-fecha'), fecha_vto:V('cp-vto')||null, proveedor_id:p?p.id:null, proveedor_nombre:p?p.nombre:(V('cp-concepto')||null), proveedor_cuit:p?p.cuit||null:null,
       categoria:gasto?V('cp-cat')||null:null, concepto:gasto?V('cp-concepto')||null:null, condicion_pago:V('cp-cpago'),
       neto_gravado:t.neto_gravado, neto_no_gravado:t.neto_no_gravado, exento:t.exento, iva_105:t.iva_105, iva_21:t.iva_21, iva_27:t.iva_27, perc_iva:t.perc_iva, perc_iibb:t.perc_iibb, otros_tributos:t.otros_tributos,
@@ -3763,7 +3789,7 @@ function anularCompra(id){ const c=(D.cpa||[]).find(x=>x.id===id);
 function libroIvaCompras(){
   const d=V('cpa-f-d')||mesIni(), h=V('cpa-f-h')||hoy();
   const rows=[['Fecha','Tipo','N° comprobante','Proveedor','CUIT','Neto gravado','No gravado','Exento','IVA 10,5%','IVA 21%','IVA 27%','Perc. IVA','Perc. IIBB','Otros','Total','Subtipo','Categoría']];
-  (D.cpa||[]).filter(c=>vigC(c)&&c.tipo!=='Saldo inicial'&&c.tipo!=='Sin comprobante'&&inRange(c.fecha,d,h)).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).forEach(c=>{ const s=c.clase==='nc'?-1:1;
+  (D.cpa||[]).filter(c=>vigC(c)&&c.tipo!=='Saldo inicial'&&c.tipo!=='Sin comprobante'&&c.tipo!==CPA_X&&inRange(c.fecha,d,h)).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')).forEach(c=>{ const s=c.clase==='nc'?-1:1;
     rows.push([fD(c.fecha),tipoCpa(c),c.nro_comprobante||'',c.proveedor_nombre||'',c.proveedor_cuit||'',s*num(c.neto_gravado),s*num(c.neto_no_gravado),s*num(c.exento),s*num(c.iva_105),s*num(c.iva_21),s*num(c.iva_27),s*num(c.perc_iva),s*num(c.perc_iibb),s*num(c.otros_tributos),s*num(c.total),c.subtipo,c.categoria||'']); });
   if(rows.length===1){ toast('No hay comprobantes en el período','warn'); return; } xlsRows(rows,'Libro_IVA_Compras_'+d+'_'+h);
 }
