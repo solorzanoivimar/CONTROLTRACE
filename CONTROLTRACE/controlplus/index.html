@@ -328,7 +328,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.7 · remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v10.0 · cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -555,14 +555,17 @@ textarea.fctl{resize:vertical}
       </div>
       <div class="fbar">
         <div class="fg"><div class="fg-lbl">Cliente (librador)</div><select class="fs sel-cliente" id="chq-f-cli" onchange="rCHQ()"></select></div>
-        <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="chq-f-est" onchange="rCHQ()"><option value="cartera" selected>En cartera</option><option value="">Todos</option><option value="depositado">Depositado</option><option value="entregado">Entregado a proveedor</option><option value="cobrado">Cobrado</option><option value="rechazado">Rechazado</option><option value="anulado">Anulado</option></select></div>
+        <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="chq-f-est" onchange="rCHQ()"><option value="cartera" selected>En cartera</option><option value="">Todos</option><option value="depositado">Depositado</option><option value="entregado">Entregado a proveedor</option><option value="cobrado">Cobrado (a caja)</option><option value="rechazado">Rechazado</option><option value="anulado">Anulado</option></select></div>
+        <div class="fg"><div class="fg-lbl">Buscar</div><input class="fi" id="chq-f-q" placeholder="N°, librador, banco, proveedor…" oninput="rCHQ()"></div>
         <div class="fg"><div class="fg-lbl">Cobro desde</div><input type="date" class="fi" id="chq-f-d" onchange="rCHQ()"></div>
         <div class="fg"><div class="fg-lbl">Cobro hasta</div><input type="date" class="fi" id="chq-f-h" onchange="rCHQ()"></div>
         <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-chq','Cheques_terceros')">📥 Excel</button></div>
       </div>
+      <div id="chq-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 10px"></div>
       <div class="tcard">
         <div class="tbar"><div class="tbar-title">Cheques de terceros</div><div class="tbar-actions"><span class="small muted">Los que están en cartera se pueden usar en Pagos a proveedores</span></div></div>
-        <div class="tscroll"><table id="tbl-chq"><thead><tr><th>N° Cheque</th><th>Tipo</th><th>Banco</th><th>Librador</th><th>F. emisión</th><th>F. cobro</th><th class="tr">Importe</th><th>Recibo</th><th>Destino</th><th>Estado</th><th class="noprint">Acciones</th></tr></thead><tbody id="chq-body"></tbody></table></div>
+        <div class="tscroll"><table id="tbl-chq"><thead><tr><th>N° Cheque</th><th>Tipo</th><th>Banco</th><th>Librador</th><th>F. emisión</th><th>F. cobro</th><th class="tr">Importe</th><th>Recibido</th><th>Recibo</th><th>Salida</th><th>Destino</th><th>Estado</th><th class="noprint">Acciones</th></tr></thead><tbody id="chq-body"></tbody></table></div>
+        <div class="tfooter"><span id="chq-foot">—</span><span class="fw" id="chq-foot2"></span></div>
       </div>
     </div>
   </div>
@@ -3247,27 +3250,68 @@ function rCOB(){
     <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="verRecibo('${r.id}')">👁</button><button class="btn btn-outline btn-xs" onclick="printRecibo('${r.id}')">🖨</button>${r.estado!=='anulada'?`<button class="btn btn-danger btn-xs" onclick="anularCobranza('${r.id}')">✕</button>`:''}</div></td></tr>`; }).join(''):emptyRow(11,'Sin cobranzas en el período');
   el('cob-foot').textContent=rows.length+' recibos'; el('cob-foot2').textContent='Total cobrado: '+m$(sumBy(act,'total_bruto'));
 }
+// v10.0: trazabilidad del cheque de tercero: entrada (recibo del cliente) → salida (depósito, entrega a proveedor, caja) / rechazo
+const CHQ_EST={cartera:'En cartera',depositado:'Depositado',entregado:'Entregado a proveedor',cobrado:'Cobrado (a caja)',rechazado:'Rechazado',anulado:'Anulado'};
+function chqEntrada(c){ const r=(D.cob||[]).find(x=>x.id===c.cobranza_id); return {fecha:r?r.fecha:String(c.created_at||'').slice(0,10), rec:r, cli:r?(cliById(r.cliente_id)||{}).razon_social||r.cliente_nombre:(cliById(c.cliente_id)||{}).razon_social}; }
+function chqSalida(c){
+  if(c.estado==='depositado'){ const m=(D.bm||[]).find(x=>x.origen==='cheque'&&x.origen_id===c.id&&x.tipo==='credito'); return {fecha:m?m.fecha:'', txt:'Depositado en '+ctaLabel((D.cta||[]).find(x=>x.id===c.cuenta_id)||{})}; }
+  if(c.estado==='entregado'){ const pg=(D.pag||[]).find(x=>x.id===c.pago_id); return {fecha:pg?pg.fecha:'', txt:'Entregado a '+((prvById(c.proveedor_id)||{}).nombre||c.beneficiario||'—')+(pg?' · OP '+pad(pg.numero,6):''), pg}; }
+  if(c.estado==='cobrado'){ const m=chqMovCaja(c.id); return {fecha:m?String(m.fecha_hora||'').slice(0,10):'', txt:chqCajaNombre(c.id)}; }
+  if(c.estado==='rechazado'){ const m=(D.bm||[]).find(x=>x.origen==='cheque'&&x.origen_id===c.id&&x.tipo==='debito')||(D.cjm||[]).find(x=>x.origen==='cheque'&&x.origen_id===c.id&&x.tipo==='egreso'); return {fecha:m?String(m.fecha||m.fecha_hora||'').slice(0,10):'', txt:'Rechazado'}; }
+  return {fecha:'',txt:''}; }
+function chqFiltroEst(v){ setV('chq-f-est',v); rCHQ(); }
+function chqHistoria(id){ const c=(D.chq||[]).find(x=>x.id===id); if(!c) return; const en=chqEntrada(c);
+  const ev=[[en.fecha,'📥 Ingresó',`Recibido de <b>${esc(en.cli||'—')}</b>${en.rec?' · Recibo N° '+pad(en.rec.numero,8):''}`]];
+  const bmD=(D.bm||[]).find(x=>x.origen==='cheque'&&x.origen_id===id&&x.tipo==='credito'); if(bmD) ev.push([bmD.fecha,'🏦 Depositado',esc(ctaLabel((D.cta||[]).find(x=>x.id===bmD.cuenta_id)||{}))]);
+  if(c.pago_id){ const pg=(D.pag||[]).find(x=>x.id===c.pago_id); ev.push([pg?pg.fecha:'','🤝 Entregado',`A <b>${esc((prvById(c.proveedor_id)||{}).nombre||c.beneficiario||'—')}</b>${pg?' · Orden de pago N° '+pad(pg.numero,6):''}`]); }
+  const mc=chqMovCaja(id); if(mc) ev.push([String(mc.fecha_hora||'').slice(0,10),'💵 Ingresó a caja',esc(chqCajaNombre(id).replace(/^Caja: /,''))]);
+  const rj=(D.bm||[]).find(x=>x.origen==='cheque'&&x.origen_id===id&&x.tipo==='debito')||(D.cjm||[]).find(x=>x.origen==='cheque'&&x.origen_id===id&&x.tipo==='egreso');
+  if(c.estado==='rechazado') ev.push([rj?String(rj.fecha||rj.fecha_hora||'').slice(0,10):'','⛔ Rechazado',rj?'Se revirtió el importe':'']);
+  if(c.estado==='cartera') ev.push(['','⏳ En cartera','Disponible para depositar, entregar o pasar a caja'+(c.fecha_cobro&&c.fecha_cobro<=hoy()?' · <b class="cd">ya se puede cobrar</b>':'')]);
+  viewModal('Cheque N° '+c.numero, m$(c.importe)+' · '+(c.banco||'')+' · '+(c.librador||''),
+    `<div class="row"><div class="col"><div class="drow"><span class="dkey">Librador</span><span class="dval">${esc(c.librador||'—')}${c.cuit_librador?' · '+esc(c.cuit_librador):''}</span></div><div class="drow"><span class="dkey">Banco / tipo</span><span class="dval">${esc(c.banco||'—')} · ${esc(c.modalidad||'')}</span></div></div>
+     <div class="col"><div class="drow"><span class="dkey">Emisión / cobro</span><span class="dval">${fD(c.fecha_emision)} / <b>${fD(c.fecha_cobro)}</b></span></div><div class="drow"><span class="dkey">Estado</span><span class="dval">${esc(CHQ_EST[c.estado]||c.estado)}</span></div></div></div>
+     <div style="margin-top:14px;border-left:3px solid var(--gold);padding-left:14px">${ev.map(([f,t,d])=>`<div style="margin-bottom:12px"><div class="fw">${t} <span class="small muted" style="font-weight:400">${f?fD(f):''}</span></div><div class="small">${d}</div></div>`).join('')}</div>`,
+    c.estado==='cartera'?[{label:'🏦 Depositar',fn:()=>{closeM('m-view');depositarCheque(id);}},{label:'💵 A caja',fn:()=>{closeM('m-view');chequeACaja(id);}}]:[]); }
 function rCHQ(){
-  const tb=el('chq-body'); if(!tb) return; const fc=V('chq-f-cli'), fe=V('chq-f-est'), fd=V('chq-f-d'), fh=V('chq-f-h');
+  const tb=el('chq-body'); if(!tb) return; const fc=V('chq-f-cli'), fe=V('chq-f-est'), fd=V('chq-f-d'), fh=V('chq-f-h'), fq=ssNorm(V('chq-f-q')||'');
   const all=(D.chq||[]).filter(c=>c.origen==='tercero');
-  const rows=all.filter(c=>(!fc||c.cliente_id===fc)&&(!fe||c.estado===fe)&&inRange(c.fecha_cobro,fd,fh)).sort((a,b)=>(a.fecha_cobro||'').localeCompare(b.fecha_cobro||''));
+  const txt=c=>ssNorm([c.numero,c.librador,c.banco,c.beneficiario,(prvById(c.proveedor_id)||{}).nombre,(cliById(c.cliente_id)||{}).razon_social].filter(Boolean).join(' '));
+  const rows=all.filter(c=>(!fc||c.cliente_id===fc)&&(!fe||c.estado===fe)&&inRange(c.fecha_cobro,fd,fh)&&(!fq||txt(c).includes(fq))).sort((a,b)=>(a.fecha_cobro||'').localeCompare(b.fecha_cobro||''));
+  const ch=el('chq-chips'); if(ch){ const cnt=k=>all.filter(c=>!k||c.estado===k).length;
+    ch.innerHTML=[['cartera','En cartera'],['entregado','Entregados'],['depositado','Depositados'],['cobrado','A caja'],['rechazado','Rechazados'],['','Todos']].map(([k,l])=>`<button class="btn btn-xs ${fe===k?'btn-gold':'btn-outline'}" onclick="chqFiltroEst('${k}')">${l} (${cnt(k)})</button>`).join(''); }
+  if(el('chq-foot')){ el('chq-foot').textContent=rows.length+' cheque(s)'; el('chq-foot2').textContent='Total '+m$(sumBy(rows,'importe')); }
   const cart=all.filter(c=>c.estado==='cartera'); el('chq-k1').textContent=k$(sumBy(cart,'importe')); el('chq-k1s').textContent=cart.length+' cheques';
   el('chq-k2').textContent=k$(sumBy(cart.filter(c=>c.fecha_cobro&&c.fecha_cobro<=addDays(hoy(),30)),'importe'));
   el('chq-k3').textContent=k$(sumBy(all.filter(c=>['depositado','entregado','cobrado'].includes(c.estado)&&inRange(c.fecha_cobro,mesIni(),mesFin())),'importe'));
   el('chq-k4').textContent=k$(sumBy(all.filter(c=>c.estado==='rechazado'),'importe'));
-  tb.innerHTML=rows.length?rows.map(c=>{ const r=(D.cob||[]).find(x=>x.id===c.cobranza_id); const dest=c.estado==='entregado'?(prvById(c.proveedor_id)||{}).nombre||c.beneficiario:c.estado==='depositado'?ctaLabel((D.cta||[]).find(x=>x.id===c.cuenta_id)||{}):'';
-    return `<tr><td class="fw mono">${esc(c.numero)}</td><td>${esc(c.modalidad||'')}</td><td>${esc(c.banco||'')}</td><td>${esc(c.librador||'')}</td><td>${fD(c.fecha_emision)}</td><td class="${c.estado==='cartera'&&c.fecha_cobro<=hoy()?'cd fw':''}">${fD(c.fecha_cobro)}</td>${tdM(c.importe,'fw')}<td class="mono">${r?pad(r.numero,8):'—'}</td><td class="small">${esc(dest||'—')}</td>
+  tb.innerHTML=rows.length?rows.map(c=>{ const r=(D.cob||[]).find(x=>x.id===c.cobranza_id); const dest=c.estado==='entregado'?(prvById(c.proveedor_id)||{}).nombre||c.beneficiario:c.estado==='depositado'?ctaLabel((D.cta||[]).find(x=>x.id===c.cuenta_id)||{}):c.estado==='cobrado'?chqCajaNombre(c.id):'';
+    const _en=chqEntrada(c), _sa=chqSalida(c);
+    return `<tr><td class="fw mono"><a class="link" onclick="chqHistoria('${c.id}')" title="Ver el recorrido del cheque">${esc(c.numero)}</a></td><td>${esc(c.modalidad||'')}</td><td>${esc(c.banco||'')}</td><td>${esc(c.librador||'')}</td><td>${fD(c.fecha_emision)}</td><td class="${c.estado==='cartera'&&c.fecha_cobro<=hoy()?'cd fw':''}">${fD(c.fecha_cobro)}</td>${tdM(c.importe,'fw')}<td>${_en.fecha?fD(_en.fecha):'—'}</td><td class="mono">${r?pad(r.numero,8):'—'}</td><td>${_sa.fecha?fD(_sa.fecha):'—'}</td><td class="small">${esc(dest||'—')}</td>
     <td>${{cartera:badge('En cartera','b-info'),depositado:badge('Depositado','b-success'),entregado:badge('Entregado','b-navy'),cobrado:badge('Cobrado','b-success'),rechazado:badge('Rechazado','b-danger'),anulado:badge('Anulado','b-neutral')}[c.estado]||c.estado}</td>
-    <td class="noprint"><div class="act-btns">${c.estado==='cartera'?`<button class="btn btn-outline btn-xs" onclick="depositarCheque('${c.id}')">🏦 Depositar</button>`:''}${['cartera','depositado'].includes(c.estado)?`<button class="btn btn-danger btn-xs" onclick="rechazarCheque('${c.id}')">Rechazado</button>`:''}</div></td></tr>`; }).join(''):emptyRow(11,'Sin cheques');
+    <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" title="Recorrido del cheque" onclick="chqHistoria('${c.id}')">🔎</button>${c.estado==='cartera'?`<button class="btn btn-outline btn-xs" onclick="depositarCheque('${c.id}')">🏦 Depositar</button><button class="btn btn-outline btn-xs" title="Cobrado en efectivo / cambiado: ingresa a una caja" onclick="chequeACaja('${c.id}')">💵 A caja</button>`:''}${['cartera','depositado','cobrado'].includes(c.estado)?`<button class="btn btn-danger btn-xs" onclick="rechazarCheque('${c.id}')">Rechazado</button>`:''}</div></td></tr>`; }).join(''):emptyRow(13,'Sin cheques con esos filtros');
 }
 function depositarCheque(id){ const c=(D.chq||[]).find(x=>x.id===id); if(!(D.cta||[]).length){ toast('Primero cargá una cuenta bancaria en Banco','warn'); return; }
   formModal({title:'Depositar cheque '+c.numero, sub:m$(c.importe)+' · '+(c.librador||''), fields:[{id:'cta',label:'Cuenta bancaria',type:'select',req:true,options:(D.cta||[]).filter(x=>x.activo!==false).map(x=>[x.id,ctaLabel(x)])},{id:'f',label:'Fecha de depósito',type:'date',value:hoy(),req:true}],
     onSave:async v=>{ await dbUpd(TBL.chq,id,{estado:'depositado',cuenta_id:v.cta}); await movBancoIns({cuenta_id:v.cta,fecha:v.f,tipo:'credito',categoria:'Depósito de cheques',concepto:'Depósito cheque '+c.numero+' — '+(c.librador||''),importe:num(c.importe),referencia:'CH '+c.numero,origen:'cheque',origen_id:id});
       await reload(['chq','bm']); refresh(); toast('Cheque depositado','ok'); }}); }
+// v9.9: cheque de tercero que se cobra en efectivo (ventanilla / cambio) e ingresa a una caja (caja chica, etc.)
+function chqMovCaja(id){ return (D.cjm||[]).find(m=>m.origen==='cheque'&&m.origen_id===id&&m.tipo==='ingreso'&&m.estado!=='anulado'); }
+function chqCajaNombre(id){ const m=chqMovCaja(id); const cj=m&&(D.caj||[]).find(x=>x.id===m.caja_id); return cj?'Caja: '+cj.nombre:'Caja'; }
+function chequeACaja(id){ const c=(D.chq||[]).find(x=>x.id===id); if(!c) return; const cajas=(D.caj||[]).filter(x=>x.activo!==false);
+  if(!cajas.length){ toast('Primero creá una caja en Caja','warn'); return; }
+  formModal({title:'Ingresar cheque '+c.numero+' a caja', sub:m$(c.importe)+' · '+(c.librador||'')+' · '+(c.banco||''),
+    pre:'<div class="alert alert-info">ℹ️ <div>Usalo cuando el cheque se cobra en efectivo (por ventanilla o cambiado) y la plata entra a una caja. El cheque pasa a <b>Cobrado</b> y se registra el ingreso en la caja elegida.</div></div>',
+    fields:[{id:'caja',label:'Caja',type:'select',req:true,options:cajas.map(x=>[x.id,x.nombre]),value:(cajas.find(x=>/chica/i.test(x.nombre||''))||cajas[0]).id},{id:'f',label:'Fecha',type:'date',value:hoy(),req:true},{id:'obs',label:'Observación (opcional)',full:true,ph:'Ej: cobrado por ventanilla Banco Nación'}],
+    onSave:async v=>{ try{ const fh=v.f===hoy()?new Date().toISOString():v.f+'T12:00:00';
+        await movCajaIns({caja_id:v.caja,tipo:'ingreso',categoria:'Cheque cobrado',concepto:'Cheque '+c.numero+' — '+(c.librador||'')+(v.obs?' · '+v.obs:''),importe:num(c.importe),referencia:'CH '+c.numero,origen:'cheque',origen_id:id,fecha_hora:fh});
+        await dbUpd(TBL.chq,id,{estado:'cobrado'}); await reload(['chq','cjm']); refresh(); toast('Cheque ingresado a la caja','ok');
+      }catch(e){ toast('No se pudo registrar: '+e.message,'err'); return false; } }}); }
 function rechazarCheque(id){ const c=(D.chq||[]).find(x=>x.id===id);
   autorizar('Marcar como <b>rechazado</b> el cheque '+esc(c.numero)+' de '+esc(c.librador||'')+' por '+m$(c.importe)+'. Se recomienda emitir una nota de débito al cliente por el importe y gastos.', async()=>{
-    try{ if(c.estado==='depositado'&&c.cuenta_id) await movBancoIns({cuenta_id:c.cuenta_id,fecha:hoy(),tipo:'debito',categoria:'Otro',concepto:'Cheque rechazado '+c.numero,importe:num(c.importe),referencia:'CH '+c.numero,origen:'cheque',origen_id:id});
-      await dbUpd(TBL.chq,id,{estado:'rechazado'}); await reload(['chq','bm']); refresh(); toast('Cheque marcado como rechazado','ok');
+    try{ if(c.estado==='cobrado'){ const m=chqMovCaja(id); if(m) await movCajaIns({caja_id:m.caja_id,tipo:'egreso',categoria:'Cheque rechazado',concepto:'Cheque rechazado '+c.numero+' — '+(c.librador||''),importe:num(c.importe),referencia:'CH '+c.numero,origen:'cheque',origen_id:id}); }
+      if(c.estado==='depositado'&&c.cuenta_id) await movBancoIns({cuenta_id:c.cuenta_id,fecha:hoy(),tipo:'debito',categoria:'Otro',concepto:'Cheque rechazado '+c.numero,importe:num(c.importe),referencia:'CH '+c.numero,origen:'cheque',origen_id:id});
+      await dbUpd(TBL.chq,id,{estado:'rechazado'}); await reload(['chq','bm','cjm']); refresh(); toast('Cheque marcado como rechazado','ok');
       if(c.cliente_id && confirm('¿Emitir ahora la nota de débito al cliente por el cheque rechazado?')) nuevoCbte('nd',{cliente_id:c.cliente_id, items:[{descripcion:'Cheque rechazado N° '+c.numero+' ('+(c.banco||'')+')',cantidad:1,precio:num(c.importe),alic:-1,unidad:'u'}], obs:'Cheque rechazado N° '+c.numero});
     }catch(e){ toast(e.message,'err'); } }); }
 
@@ -3632,7 +3676,7 @@ function rRC(){
   const used=new Set(); const usedR=new Set(); (D.cpa||[]).filter(vigC).forEach(c=>{ (c.recepcion_ids||[]).forEach(x=>used.add(x)); (c.remito_ids||[]).forEach(x=>usedR.add(x)); });
   const omR=omiMap('recepcion');
   const prvN=fp?(prvById(fp)||{}).nombre:null;
-  let rows=[...(D.rec||[]).filter(r=>r.estado!=='anulada').map(r=>({org:'trace',id:r.id,nro:r.codigo_lote,prv:r.proveedor,prvId:(prvByName(r.proveedor)||{}).id,fecha:r.fecha,det:r.materia_prima,cant:num(r.kilos)+' kg',fact:used.has(r.id),omit:!used.has(r.id)&&!!omR[String(r.id)]})),
+  let rows=[...(D.rec||[]).filter(r=>r.estado!=='anulada').map(r=>({org:'trace',id:r.id,nro:r.codigo_lote,prv:r.proveedor,prvId:(prvByName(r.proveedor)||{}).id,fecha:r.fecha,det:r.materia_prima,cant:num(r.kilos)+' kg'+(recCajasTxt(r)?' · '+recCajasTxt(r):''),fact:used.has(r.id),omit:!used.has(r.id)&&!!omR[String(r.id)]})),
     ...(D.rc||[]).filter(r=>r.estado!=='anulado').map(r=>({org:'manual',id:r.id,nro:r.numero,prv:r.proveedor_nombre,prvId:r.proveedor_id,fecha:r.fecha,det:(r.items||[]).map(i=>i.descripcion).join(', '),cant:(r.items||[]).map(i=>num(i.cantidad)+' '+(i.unidad||'')).join(', '),fact:usedR.has(r.id)}))];
   rows=rows.filter(r=>(!fp||r.prvId===fp||(prvN&&String(r.prv||'').toUpperCase()===prvN.toUpperCase()))&&(!fo||r.org===fo)&&(fe==='omit'?r.omit:(!r.omit&&(!fe||(fe==='fact'?r.fact:!r.fact))))&&inRange(r.fecha,fd,fh)).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   tb.innerHTML=rows.length?rows.slice(0,400).map(r=>{ const f=(D.cpa||[]).find(c=>vigC(c)&&((c.recepcion_ids||[]).includes(r.id)||(c.remito_ids||[]).includes(r.id)));
@@ -3696,7 +3740,8 @@ function cpVto(){ const cp=V('cp-cpago'); const m=cp.match(/(\d+)/); setV('cp-vt
 function cpAddItem(i={}){
   const tr=document.createElement('tr'); if(i.item_id){ tr.dataset.id=i.item_id; tr.dataset.t=i.item_tipo; } if(i.recepcion_id) tr.dataset.rec=i.recepcion_id;
   const alic=i.alic!=null?num(i.alic):num(CFG().alicuota_default!=null?CFG().alicuota_default:10.5);
-  tr.innerHTML=`<td><input class="fctl it-pick" list="dl-cpa" placeholder="Buscar o escribir…" value="${esc(i.descripcion||'')}" onchange="cpPick(this)"></td><td><input type="number" step="0.001" class="fctl it-cant" value="${i.cantidad!=null?i.cantidad:1}" oninput="cpCalc()"></td><td><input class="fctl it-uni" value="${esc(i.unidad||'u')}"></td><td><input type="number" step="0.0001" class="fctl it-pre" value="${i.precio!=null?i.precio:''}" oninput="cpCalc()"></td>
+  const _rc=i.recepcion_id&&(D.rec||[]).find(x=>x.id===i.recepcion_id);
+  tr.innerHTML=`<td><input class="fctl it-pick" list="dl-cpa" placeholder="Buscar o escribir…" value="${esc(i.descripcion||'')}" onchange="cpPick(this)">${_rc?`<div class="small muted" style="margin-top:2px">📦 Lote ${esc(_rc.codigo_lote||'')}${recCajasTxt(_rc)?' · <b>'+recCajasTxt(_rc)+'</b>':''} · ${num(_rc.kilos).toLocaleString('es-AR')} kg</div>`:''}</td><td><input type="number" step="0.001" class="fctl it-cant" value="${i.cantidad!=null?i.cantidad:1}" oninput="cpCalc()"></td><td><input class="fctl it-uni" value="${esc(i.unidad||'u')}"></td><td><input type="number" step="0.0001" class="fctl it-pre" value="${i.precio!=null?i.precio:''}" oninput="cpCalc()"></td>
     <td><select class="fctl it-alic" onchange="cpCalc()">${[[21,'21%'],[10.5,'10,5%'],[27,'27%'],[0,'Exento / NG']].map(([v,l])=>`<option value="${v}"${num(v)===alic?' selected':''}>${l}</option>`).join('')}</select></td><td class="tr fw it-sub">$0</td><td><button class="btn btn-danger btn-xs btn-icon" onclick="this.closest('tr').remove();cpCalc()">✕</button></td>`;
   el('cp-items').appendChild(tr); cpCalc();
 }
@@ -3763,13 +3808,15 @@ async function pagoDirecto(o){
   else await movBancoIns({cuenta_id:o.cuenta_id,fecha:o.fecha,tipo:'debito',categoria:o.gasto?'Débito automático / servicio':'Pago a proveedor',concepto,importe:o.importe,referencia:'OP '+pad(numero,6),ref_banco:o.ref||null,origen:'pago',origen_id:pg.id});
   return pg;
 }
+// v9.8: cajas de la recepción de TRACE (se muestran junto a los kilos en compras)
+function recCajasTxt(r){ const c=num(r&&r.cajas); return c>0?c.toLocaleString('es-AR')+' caja'+(c===1?'':'s'):''; }
 function compraDesdeRecepcionesSel(){ const ids=[...document.querySelectorAll('.rec-chk:checked')].map(c=>c.value); if(!ids.length){ toast('Marcá una o más recepciones','warn'); return; } compraDesdeRecepciones(ids); }
 function compraDesdeRecepciones(ids){
   const recs=ids.map(id=>(D.rec||[]).find(r=>r.id===id)).filter(Boolean);
   const prvs=[...new Set(recs.map(r=>String(r.proveedor||'').trim().toUpperCase()))]; if(prvs.length>1){ toast('Las recepciones son de proveedores distintos','warn'); return; }
   const p=prvByName(recs[0].proveedor);
   const items=recs.map(r=>{ const mp=(S.materias||[]).find(m=>(m.nombre||'').toUpperCase()===String(r.materia_prima||'').toUpperCase()); return {item_tipo:'mp',item_id:mp?mp.id:null,descripcion:r.materia_prima,cantidad:num(r.kilos),unidad:'kg',precio:num(r.precio_kilo)||'',recepcion_id:r.id}; });
-  nuevaCompra('compra','factura',{proveedor_id:p?p.id:'', items, recepcion_ids:ids, fecha:recs[0].fecha, obs:'Recepción TRACE '+recs.map(r=>r.codigo_lote).join(', '),
+  nuevaCompra('compra','factura',{proveedor_id:p?p.id:'', items, recepcion_ids:ids, fecha:recs[0].fecha, obs:'Recepción TRACE '+recs.map(r=>r.codigo_lote+' ('+[recCajasTxt(r),num(r.kilos).toLocaleString('es-AR')+' kg'].filter(Boolean).join(' / ')+')').join(', '),
     origen:`🔄 Desde ${recs.length} recepción(es) de CONTROL TRACE: <b>${recs.map(r=>esc(r.codigo_lote)).join(', ')}</b>. Completá tipo y N° de factura del proveedor y revisá los precios: <b>si cambiás el precio, se actualiza también en la recepción de TRACE</b> (así el costeo y el rinde quedan bien).${p?'':'<br>⚠ El proveedor <b>'+esc(recs[0].proveedor)+'</b> no está en Entidades: elegilo o dalo de alta.'}`});
 }
 function compraDesdeRemito(id){ const r=(D.rc||[]).find(x=>x.id===id);
@@ -3779,7 +3826,7 @@ function verCompra(id){
   const c=(D.cpa||[]).find(x=>x.id===id); const it=itemsCpa(id); const pgs=(D.pagi||[]).filter(i=>i.comprobante_id===id).map(i=>({i,p:(D.pag||[]).find(p=>p.id===i.pago_id)})).filter(x=>x.p&&x.p.estado!=='anulado');
   const html=`<div class="row"><div class="col"><div class="drow"><span class="dkey">N° interno</span><span class="dval mono">${nroInt(c)}</span></div><div class="drow"><span class="dkey">Tipo</span><span class="dval">${esc(tipoCpa(c))}</span></div><div class="drow"><span class="dkey">N° comprobante</span><span class="dval mono">${esc(c.nro_comprobante||'—')}</span></div><div class="drow"><span class="dkey">Fecha / Vto.</span><span class="dval">${fD(c.fecha)} / ${fD(c.fecha_vto)}</span></div></div>
    <div class="col"><div class="drow"><span class="dkey">Proveedor</span><span class="dval">${esc(c.proveedor_nombre||'—')}</span></div><div class="drow"><span class="dkey">CUIT</span><span class="dval mono">${esc(c.proveedor_cuit||'—')}</span></div>${c.subtipo==='gasto'?`<div class="drow"><span class="dkey">Categoría</span><span class="dval">${esc(c.categoria||'')}</span></div><div class="drow"><span class="dkey">Concepto</span><span class="dval">${esc(c.concepto||'')}</span></div>`:''}<div class="drow"><span class="dkey">Estado</span><span class="dval">${estadoCpa(c)}</span></div></div></div>
-   ${it.length?`<table style="margin-top:10px"><thead><tr><th>Artículo</th><th class="tr">Cant.</th><th>U.</th><th class="tr">Precio</th><th class="tr">IVA</th><th class="tr">Subtotal</th></tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.descripcion)}${i.recepcion_id?' <span class="sync-badge" style="font-size:9px">TRACE</span>':''}</td><td class="tr">${num(i.cantidad).toLocaleString('es-AR')}</td><td>${esc(i.unidad||'')}</td>${tdM(i.precio_unit)}<td class="tr">${num(i.alicuota_iva)?num(i.alicuota_iva)+'%':'—'}</td>${tdM(i.neto)}</tr>`).join('')}</tbody></table>`:''}
+   ${it.length?`<table style="margin-top:10px"><thead><tr><th>Artículo</th><th class="tr">Cant.</th><th>U.</th><th class="tr">Precio</th><th class="tr">IVA</th><th class="tr">Subtotal</th></tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.descripcion)}${i.recepcion_id?' <span class="sync-badge" style="font-size:9px">TRACE</span>'+((r=>r?`<div class="small muted">Lote ${esc(r.codigo_lote||'')}${recCajasTxt(r)?' · '+recCajasTxt(r):''}</div>`:'')((D.rec||[]).find(x=>x.id===i.recepcion_id))):''}</td><td class="tr">${num(i.cantidad).toLocaleString('es-AR')}</td><td>${esc(i.unidad||'')}</td>${tdM(i.precio_unit)}<td class="tr">${num(i.alicuota_iva)?num(i.alicuota_iva)+'%':'—'}</td>${tdM(i.neto)}</tr>`).join('')}</tbody></table>`:''}
    <div style="display:flex;justify-content:flex-end;margin-top:10px"><div style="width:280px"><div class="drow"><span class="dkey">Neto gravado</span><span class="dval">${m$(c.neto_gravado)}</span></div><div class="drow"><span class="dkey">IVA</span><span class="dval">${m$(ivaC(c))}</span></div>${num(c.neto_no_gravado)+num(c.exento)?`<div class="drow"><span class="dkey">No gravado / exento</span><span class="dval">${m$(num(c.neto_no_gravado)+num(c.exento))}</span></div>`:''}${num(c.perc_iva)+num(c.perc_iibb)+num(c.otros_tributos)?`<div class="drow"><span class="dkey">Percepciones / otros</span><span class="dval">${m$(num(c.perc_iva)+num(c.perc_iibb)+num(c.otros_tributos))}</span></div>`:''}<div class="drow"><span class="dkey fw">TOTAL</span><span class="dval fw">${m$(c.total)}</span></div><div class="drow"><span class="dkey">Saldo</span><span class="dval ${num(c.saldo)>0.01?'cd':'cs'}">${m$(c.saldo)}</span></div></div></div>
    ${pgs.length?`<div class="small" style="margin-top:6px"><b>Pagos:</b> ${pgs.map(x=>'OP '+pad(x.p.numero,6)+' ('+m$(x.i.importe)+')').join(' · ')}</div>`:''}${c.observaciones?`<div class="small muted" style="margin-top:6px">📝 ${esc(c.observaciones)}</div>`:''}`;
   const b=[]; if(vigC(c)&&debC(c)&&num(c.saldo)>0.01) b.push({label:'💳 Pagar',cls:'btn-gold',fn:()=>{closeM('m-view');c.proveedor_id?abrirPago(c.proveedor_id,[id]):abrirPago(null,[id],id);}});
@@ -3808,7 +3855,7 @@ function rAP(){
   const fp=V('ap-f-prv'), fa=V('ap-f-art').toLowerCase(), fo=V('ap-f-org'), fd=V('ap-f-d'), fh=V('ap-f-h'), vista=V('ap-f-vista'); const prvN=fp?((prvById(fp)||{}).nombre||'').toUpperCase():null;
   let rows=[];
   if(fo!=='trace') (D.cpai||[]).forEach(i=>{ const c=(D.cpa||[]).find(x=>x.id===i.comprobante_id); if(!c||!vigC(c)||c.clase!=='factura') return; rows.push({fecha:c.fecha,prv:c.proveedor_nombre,prvId:c.proveedor_id,art:i.descripcion,cant:num(i.cantidad),u:i.unidad,pu:num(i.precio_unit),sub:num(i.neto),doc:c.tipo+' '+(c.nro_comprobante||nroInt(c)),org:'Comprobante'}); });
-  if(fo!=='cpa') recepcionesPendientes().forEach(r=>rows.push({fecha:r.fecha,prv:r.proveedor,prvId:(prvByName(r.proveedor)||{}).id,art:r.materia_prima,cant:num(r.kilos),u:'kg',pu:num(r.precio_kilo),sub:num(r.total),doc:'Lote '+r.codigo_lote,org:'TRACE s/factura'}));
+  if(fo!=='cpa') recepcionesPendientes().forEach(r=>rows.push({fecha:r.fecha,prv:r.proveedor,prvId:(prvByName(r.proveedor)||{}).id,art:r.materia_prima,cant:num(r.kilos),u:'kg',pu:num(r.precio_kilo),sub:num(r.total),doc:'Lote '+r.codigo_lote+(recCajasTxt(r)?' · '+recCajasTxt(r):''),org:'TRACE s/factura'}));
   rows=rows.filter(r=>(!fp||r.prvId===fp||String(r.prv||'').toUpperCase()===prvN)&&(!fa||String(r.art||'').toLowerCase().includes(fa))&&inRange(r.fecha,fd,fh));
   if(vista==='res'){ const g={}; rows.forEach(r=>{ const k=r.art+'|'+r.u; const x=g[k]||(g[k]={art:r.art,u:r.u,cant:0,sub:0,n:0,prvs:new Set()}); x.cant+=r.cant; x.sub+=r.sub; x.n++; x.prvs.add(r.prv); });
     const l=Object.values(g).sort((a,b)=>b.sub-a.sub);
