@@ -328,7 +328,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.6 · descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v9.7 · remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -2576,7 +2576,15 @@ async function verificarCreditoCliente(cliId, montoNuevo){
 
 // ── Remitos (entregas de TRACE) ──
 function itemsEntrega(eid){ return (D.enti||[]).filter(i=>i.entrega_id===eid); }
-function importeEntrega(e){ const g=sumBy(itemsEntrega(e.id),i=>num(i.precio)*num(i.cantidad)); const d=e.descuento_tipo==='pct'?g*num(e.descuento_valor)/100:(e.descuento_tipo==='monto'?Math.min(num(e.descuento_valor),g):0); return {bruto:g, desc:d, neto:g-d}; }
+// v9.7: si un renglón del remito vino de TRACE con precio 0 (p. ej. producto todavía sin lote), se completa con
+//      el precio del cliente (precios por cliente → lista de precios → último precio facturado o remitido).
+function precioEntItem(e,i){ if(num(i.precio)>0) return num(i.precio); if(e&&e.es_muestra) return 0;
+  const p=(S.productos||[]).find(x=>x.id===i.producto_id)||(S.productos||[]).find(x=>(x.nombre||'').toUpperCase()===(i.producto_nombre||'').toUpperCase());
+  const pid=p?p.id:i.producto_id; if(pid){ const v=precioPara(e.cliente_id,{tipo:'producto',id:pid,precio:0}); if(v>0) return v; }
+  let best=null; const nom=(i.producto_nombre||'').toUpperCase();
+  (D.enti||[]).forEach(x=>{ if(num(x.precio)>0&&(x.producto_nombre||'').toUpperCase()===nom){ const ex=(D.ent||[]).find(y=>y.id===x.entrega_id); if(ex&&ex.cliente_id===e.cliente_id&&ex.estado!=='anulada'&&(!best||(ex.fecha||'')>=best.f)) best={f:ex.fecha||'',p:num(x.precio)}; } });
+  return best?best.p:0; }
+function importeEntrega(e){ const g=sumBy(itemsEntrega(e.id),i=>precioEntItem(e,i)*num(i.cantidad)); const d=e.descuento_tipo==='pct'?g*num(e.descuento_valor)/100:(e.descuento_tipo==='monto'?Math.min(num(e.descuento_valor),g):0); return {bruto:g, desc:d, neto:g-d}; }
 function facturaDeEntrega(eid){ return (D.cv||[]).find(c=>c.estado!=='anulada'&&Array.isArray(c.entrega_ids)&&c.entrega_ids.includes(eid)); }
 // ── v8.4: remitos y recepciones "✓ Listo" — no se cargan en PLUS (ya están en el saldo inicial u otro motivo).
 //    Desaparecen de las listas de pendientes, pero NO se borran: stock, costos, producción y trazabilidad siguen igual.
@@ -2702,7 +2710,7 @@ function verRemito(id){
      <div class="drow"><span class="dkey">Orden de compra</span><span class="dval">${esc(e.orden_compra||'—')}</span></div>
      <div class="drow"><span class="dkey">Pedido</span><span class="dval">${esc(e.pedido_codigo||'—')}</span></div>
      <div class="drow"><span class="dkey">Factura</span><span class="dval">${f?tipoCorto(f)+' '+nroCbte(f):'Pendiente'}</span></div>
-     <table style="margin-top:10px"><thead><tr><th>Producto</th><th>Lote</th><th class="tr">Unid.</th><th class="tr">Cajas</th><th class="tr">Precio</th><th class="tr">Importe</th></tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.producto_nombre)}</td><td class="mono">${esc(i.lote_ref||'—')}</td><td class="tr">${num(i.cantidad)}</td><td class="tr">${num(i.cajas)||'—'}</td>${tdM(i.precio)}${tdM(num(i.precio)*num(i.cantidad))}</tr>`).join('')}</tbody></table>
+     <table style="margin-top:10px"><thead><tr><th>Producto</th><th>Lote</th><th class="tr">Unid.</th><th class="tr">Cajas</th><th class="tr">Precio</th><th class="tr">Importe</th></tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.producto_nombre)}</td><td class="mono">${esc(i.lote_ref||'—')}</td><td class="tr">${num(i.cantidad)}</td><td class="tr">${num(i.cajas)||'—'}</td>${tdM(precioEntItem(e,i))}${tdM(precioEntItem(e,i)*num(i.cantidad))}</tr>`).join('')}</tbody></table>
      <div style="text-align:right;margin-top:8px">${imp.desc?'Descuento: -'+m$(imp.desc)+'<br>':''}<b>Neto: ${m$(imp.neto)}</b></div>`,
     (!f&&e.estado!=='anulada'&&!e.es_muestra)?[{label:'🧾 Facturar',cls:'btn-gold',fn:()=>{closeM('m-view');facturarRemitos([id]);}}]:[]);
 }
@@ -2712,7 +2720,7 @@ function facturarRemitos(ids){
   const clis=[...new Set(ents.map(e=>e.cliente_id))]; if(clis.length>1){ toast('Los remitos seleccionados son de clientes distintos','warn'); return; }
   const items=[]; ents.forEach(e=>{ const it=itemsEntrega(e.id); const imp=importeEntrega(e); const bon=imp.bruto>0?r2(imp.desc/imp.bruto*100):0;
     it.forEach(i=>{ const p=(S.productos||[]).find(x=>x.id===i.producto_id)||(S.productos||[]).find(x=>(x.nombre||'').toUpperCase()===(i.producto_nombre||'').toUpperCase());
-      items.push({tipo:'producto', id:p?p.id:i.producto_id, codigo:p&&p.codigo, descripcion:i.producto_nombre, cantidad:num(i.cantidad), unidad:(p&&p.unidad)||'u', precio:num(i.precio), bonif:bon, alic:p&&p.alicuota_iva!=null?num(p.alicuota_iva):num(CFG().alicuota_default||10.5), entrega_id:e.id}); }); });
+      items.push({tipo:'producto', id:p?p.id:i.producto_id, codigo:p&&p.codigo, descripcion:i.producto_nombre, cantidad:num(i.cantidad), unidad:(p&&p.unidad)||'u', precio:precioEntItem(e,i), bonif:bon, alic:p&&p.alicuota_iva!=null?num(p.alicuota_iva):num(CFG().alicuota_default||10.5), entrega_id:e.id}); }); });
   nuevoCbte('factura',{cliente_id:clis[0], items, entrega_ids:ids, oc:ents.map(e=>e.orden_compra).filter(Boolean).join(' / '), pedido:ents.map(e=>e.pedido_codigo).filter(Boolean).join(' / '),
     obs:'Según remito'+(ents.length>1?'s':'')+' N° '+ents.map(e=>e.numero_remito).join(', '), origen:`🔄 Facturando ${ents.length} remito${ents.length>1?'s':''} de CONTROL TRACE: <b>${ents.map(e=>esc(e.numero_remito)).join(', ')}</b>. Revisá precios y condición de IVA.`});
 }
