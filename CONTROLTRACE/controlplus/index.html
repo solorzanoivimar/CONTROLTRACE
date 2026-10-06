@@ -138,6 +138,7 @@ tbody td{padding:8px 12px;font-size:12px;color:var(--text-main)}
 .moverlay{position:fixed;inset:0;background:rgba(13,27,42,.55);z-index:300;display:none;align-items:center;justify-content:center;padding:16px}
 .moverlay.open{display:flex}
 #m-ncliente{z-index:360}
+#m-nproveedor{z-index:360}
 .modal{background:#fff;border-radius:10px;box-shadow:var(--shadow-lg);width:100%;max-width:760px;max-height:92vh;overflow-y:auto;animation:mIn .18s ease}
 .modal-lg{max-width:960px}
 .modal-xl{max-width:1100px}
@@ -328,7 +329,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v10.0 · cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v10.1 · crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -1482,7 +1483,7 @@ textarea.fctl{resize:vertical}
         </div></div>
       <div class="fsec"><div class="fsec-title">Proveedor</div>
         <div class="fgrid fgrid-4">
-          <div class="fgroup" style="grid-column:span 2"><label class="flabel">Proveedor <span class="req cp-prv-req">*</span></label><select class="fctl sel-proveedor" id="cp-prv" onchange="cpProveedor()"></select></div>
+          <div class="fgroup" style="grid-column:span 2"><label class="flabel">Proveedor <span class="req cp-prv-req">*</span></label><div style="display:flex;gap:6px;align-items:flex-end"><div style="flex:1;min-width:0"><select class="fctl sel-proveedor" id="cp-prv" onchange="cpProveedor()"></select></div><button type="button" class="btn btn-outline btn-sm" title="Editar la ficha de este proveedor (ej. le falta el CUIT)" onclick="cpEditPrv()">✏️</button><button type="button" class="btn btn-outline btn-sm" title="Nuevo proveedor" onclick="cpNuevoPrv()">＋</button></div></div>
           <div class="fgroup"><label class="flabel">CUIT</label><input class="fctl mono" id="cp-cuit" readonly></div>
           <div class="fgroup"><label class="flabel">Condición de pago</label><select class="fctl" id="cp-cpago" onchange="cpVto(true)"><option>Contado</option><option>Cuenta corriente</option><option>15 días</option><option>30 días</option><option>60 días</option><option>90 días</option></select></div>
           <div class="fgroup cp-asoc-wrap" style="display:none;grid-column:span 2"><label class="flabel">Comprobante asociado</label><select class="fctl" id="cp-asoc"></select></div>
@@ -2368,14 +2369,21 @@ async function guardarProveedor(){
     ({ error } = await sb.from('proveedores').update(payload).eq('id',id).eq('empresa_id',S.empresaId));
   } else {
     payload.empresa_id=S.empresaId; payload.activo=true;
-    ({ error } = await sb.from('proveedores').insert(payload));
+    let ins; ({ data:ins, error } = await sb.from('proveedores').insert(payload).select('id')); if(ins&&ins[0]) S._cpPrvNuevo=ins[0].id;
   }
   await _lockBtn('prv-save',false);
   if(error){ toast('Error al guardar: '+error.message,'err'); return; }
   await cargarProveedores();
   toast(id?'Proveedor actualizado':'Proveedor guardado','ok');
   closeM('m-nproveedor');
+  try{ cpPrvVuelta(id||S._cpPrvNuevo); }catch(_){ } S._cpPrvNuevo=null;
 }
+// v10.1: crear / editar proveedor sin salir de la compra o el gasto (igual que clientes en ventas)
+function cpEditPrv(){ const id=V('cp-prv'); if(!id){ toast('Primero elegí el proveedor','warn'); return; } S._cpPrvHook=true; abrirEntidad('proveedor',id); }
+function cpNuevoPrv(){ S._cpPrvHook=true; abrirEntidad('proveedor',null); }
+function cpPrvVuelta(id){ if(!S._cpPrvHook) return; S._cpPrvHook=false; if(!el('m-cpa').classList.contains('open')) return;
+  renderSelects(); if(id) setV('cp-prv',id); cpProveedor(); const q=el('cp-prv').parentNode.querySelector('.ss-q'); if(q) q.value='';
+  toast('Volviste a la compra con los datos del proveedor actualizados','ok'); }
 
 async function guardarVendedor(){
   const nombre=_val('ven-nombre');
