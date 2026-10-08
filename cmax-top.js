@@ -1,10 +1,10 @@
 /* CONTROL MAX — barra flotante común a todos los módulos (y al portal).
    · 🏠 CONTROL MAX: vuelve al portal.
-   · ⧉ Ventana: abre otra ventana de CONTROL MAX (esta misma pantalla, el portal o cualquier módulo)
+   · ⧉ Nueva pestaña: abre otra pestaña de CONTROL MAX (esta misma pantalla, el portal o cualquier módulo)
      sin tener que ir a la barra del navegador. La sesión es la misma, no pide volver a entrar.
    Incluir en cada módulo con:  <script src="/cmax-top.js"></script>
    Cuando el portal pase a ser la raíz del sitio, cambiá PORTAL a '/'.
-   v2 · 2026-10: botón de ventanas nuevas; no se muestra dentro de iframes (reportes embebidos en TOTAL). */
+   v2.1 · 2026-10: abre pestañas nuevas (no ventanas flotantes) · v2: botón de ventanas nuevas; no se muestra dentro de iframes (reportes embebidos en TOTAL). */
 (function(){
   var PORTAL='/portal.html';   // ← destino del portal CONTROL MAX
   var MODS=[
@@ -32,10 +32,8 @@
       '@media print{#cmax-bar,#cmax-home{display:none!important}}';
     document.head.appendChild(css);
     var abrir=function(url){
-      var w=Math.round((screen.availWidth||1280)*0.92), h=Math.round((screen.availHeight||800)*0.9);
-      var l=Math.round(((screen.availWidth||w)-w)/2)+24*(Math.floor(Math.random()*4)), t=Math.round(((screen.availHeight||h)-h)/2)+18;
-      var v=window.open(url,'_blank','popup=yes,width='+w+',height='+h+',left='+l+',top='+t);
-      if(!v){ alert('El navegador bloqueó la ventana nueva. Permití las ventanas emergentes para este sitio (ícono en la barra de direcciones) y volvé a intentar.'); }
+      var v=window.open(url,'_blank');   // pestaña nueva del navegador (no ventana flotante)
+      if(!v){ alert('El navegador bloqueó la pestaña nueva. Permití las ventanas emergentes para este sitio (ícono en la barra de direcciones) y volvé a intentar.'); }
     };
     var mount=function(){
       if(document.getElementById('cmax-bar'))return;
@@ -44,10 +42,10 @@
         var a=document.createElement('a'); a.id='cmax-home'; a.className='cmx'; a.href=PORTAL;
         a.title='Volver al portal CONTROL MAX'; a.innerHTML='🏠 CONTROL <b>MAX</b>'; bar.appendChild(a);
       }
-      var b=document.createElement('div'); b.className='cmx'; b.id='cmax-win'; b.title='Abrir otra ventana de CONTROL MAX';
-      b.innerHTML='⧉ <span>Ventana</span>'; bar.appendChild(b);
+      var b=document.createElement('div'); b.className='cmx'; b.id='cmax-win'; b.title='Abrir otra pestaña de CONTROL MAX';
+      b.innerHTML='⧉ <span>Nueva pestaña</span>'; bar.appendChild(b);
       var m=document.createElement('div'); m.id='cmax-win-menu';
-      var html='<div class="hd">Abrir en otra ventana</div>'+
+      var html='<div class="hd">Abrir en una pestaña nueva</div>'+
         (enPortal?'':'<div class="it" data-u="__aqui">🗗 Esta misma pantalla</div>')+
         '<div class="it" data-u="'+PORTAL+'">🏠 Portal CONTROL MAX</div><div class="sep"></div>';
       MODS.forEach(function(x){ html+='<div class="it" data-u="'+x[2]+'">'+x[0]+' '+x[1]+'</div>'; });
