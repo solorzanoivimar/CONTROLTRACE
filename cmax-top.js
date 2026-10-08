@@ -4,7 +4,7 @@
      sin tener que ir a la barra del navegador. La sesión es la misma, no pide volver a entrar.
    Incluir en cada módulo con:  <script src="/cmax-top.js"></script>
    Cuando el portal pase a ser la raíz del sitio, cambiá PORTAL a '/'.
-   v2.1 · 2026-10: abre pestañas nuevas (no ventanas flotantes) · v2: botón de ventanas nuevas; no se muestra dentro de iframes (reportes embebidos en TOTAL). */
+   v2.2 · 2026-10: no se muestra en el portal · v2.1: abre pestañas nuevas (no ventanas flotantes) · v2: botón de ventanas nuevas; no se muestra dentro de iframes (reportes embebidos en TOTAL). */
 (function(){
   var PORTAL='/portal.html';   // ← destino del portal CONTROL MAX
   var MODS=[
@@ -17,6 +17,7 @@
   try{
     if(window.self!==window.top) return;               // dentro de un iframe (p. ej. reportes de TRACE en TOTAL): nada
     var enPortal=/portal\.html$|^\/$/.test(location.pathname);
+    if(enPortal) return;                                // en el portal no hace falta: ya tiene las tarjetas de cada módulo
     var css=document.createElement('style');
     css.textContent=
       '#cmax-bar{position:fixed;top:9px;left:50%;transform:translateX(-50%);z-index:2147483000;display:flex;gap:6px;align-items:center}'+
