@@ -344,7 +344,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v11.0 · clientes, proveedores y artículos con Cód. + nombre también en los filtros de Ventas y Compras y en todos los formularios de Compras (comprobante, gasto, NC/ND, remito manual, pagos); Enter pasa de campo en campo; Remitos: una sola casilla para seleccionar y facturar varios; Nuevo pedido igual que TRACE (fecha del pedido, fecha de entrega, OC, productos por código o nombre, Enter) · v10.9: números (comprobantes, CUIT, códigos, importes) con la fuente del sistema: se ven nítidos, no pixelados · v10.8: comprobante de venta: cliente y artículos con Cód. + nombre, Enter pasa de campo en campo y al siguiente artículo, sin columna Unidad, descuento % y $ (combinables); Ventas y Compras: listas de 8 por página con selector y barra de acciones arriba; sin columna CAE · v10.7: cantidad por defecto en muestras en la ficha de producto (la usa TRACE para el remito de muestra) · v10.6: sin PIN en PLUS: las operaciones se confirman y quedan registradas en Auditoría con el usuario; imprimir cartera de cheques · v10.5: caja: corregir el saldo de apertura de la caja abierta (con PIN) · v10.4: descuento global por % o por importe; unidades de medida en lista cerrada también en ventas; editar comprobantes de compra/gasto (sin pagos) y NC en X de venta · v10.3: compras: unidades de medida en lista cerrada; recepciones de TRACE pasan por bulto (o kg) respetando lo cargado; al volver a TRACE se recalcula bien el $/kg; reparador de precios de recepciones · v10.2: recepciones de TRACE ordenadas por correlativo de lote; los acondicionamientos (y reingresos por devolución) ya no aparecen en PLUS · v10.1: crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v11.2 · Caja y Banco: la referencia de cada movimiento es un enlace que abre el comprobante de origen (recibo, orden de pago, cheque, factura, compra o el movimiento de la otra cuenta) · v11.1: Inventario: buscadores de artículo con Cód. + nombre (materia prima, productos, insumos, stock, ajustes, movimientos, costos); Costos: costeo de producto con su estructura completa (MP + insumos + gastos op., mano de obra, flete, otros, precio de venta y margen), como tenía TRACE · v11.0: clientes, proveedores y artículos con Cód. + nombre también en los filtros de Ventas y Compras y en todos los formularios de Compras (comprobante, gasto, NC/ND, remito manual, pagos); Enter pasa de campo en campo; Remitos: una sola casilla para seleccionar y facturar varios; Nuevo pedido igual que TRACE (fecha del pedido, fecha de entrega, OC, productos por código o nombre, Enter) · v10.9: números (comprobantes, CUIT, códigos, importes) con la fuente del sistema: se ven nítidos, no pixelados · v10.8: comprobante de venta: cliente y artículos con Cód. + nombre, Enter pasa de campo en campo y al siguiente artículo, sin columna Unidad, descuento % y $ (combinables); Ventas y Compras: listas de 8 por página con selector y barra de acciones arriba; sin columna CAE · v10.7: cantidad por defecto en muestras en la ficha de producto (la usa TRACE para el remito de muestra) · v10.6: sin PIN en PLUS: las operaciones se confirman y quedan registradas en Auditoría con el usuario; imprimir cartera de cheques · v10.5: caja: corregir el saldo de apertura de la caja abierta (con PIN) · v10.4: descuento global por % o por importe; unidades de medida en lista cerrada también en ventas; editar comprobantes de compra/gasto (sin pagos) y NC en X de venta · v10.3: compras: unidades de medida en lista cerrada; recepciones de TRACE pasan por bulto (o kg) respetando lo cargado; al volver a TRACE se recalcula bien el $/kg; reparador de precios de recepciones · v10.2: recepciones de TRACE ordenadas por correlativo de lote; los acondicionamientos (y reingresos por devolución) ya no aparecen en PLUS · v10.1: crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -1004,9 +1004,11 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
   </div>
   <div class="tab-pane" id="ti-cost">
     <div class="alert alert-info">🧮 <div><b>Criterio de costo de materia prima (igual que en TRACE):</b> promedio ponderado por kilo de las <b>últimas 5 compras</b> de cada materia prima, con el <b>descarte y la merma absorbidos</b> en el costo por kilo procesado.</div></div>
+    <div class="tcard" id="cost-card" style="margin-bottom:16px"><div class="tbar"><div class="tbar-title">🧮 Costeo de producto</div><div class="tbar-actions"><span class="small muted">MP e insumos se calculan solos · completá los gastos y el precio de venta para ver el margen</span></div></div>
+      <div style="padding:12px 16px 16px"><label class="flabel">Producto <span style="font-weight:400;text-transform:none;color:var(--text-muted)">· código y Enter, o buscá por nombre</span></label><div id="cost-pick" style="max-width:620px"></div><div id="cost-panel" style="margin-top:14px"></div></div></div>
     <div class="tcard"><div class="tbar"><div class="tbar-title">Costo de materia prima por kilo procesado</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-costmp','Costo MP')">📥 Excel</button></div></div>
       <div class="tscroll"><table id="tbl-costmp"><thead><tr><th>Materia prima</th><th class="tr">Compras usadas</th><th class="tr">Prom. últ. 5 ($/kg)</th><th class="tr">Kg comprados</th><th class="tr">Kg descartados</th><th class="tr">Ajuste descarte</th><th class="tr">$/kg procesado</th><th class="noprint"></th></tr></thead><tbody id="costmp-body"></tbody></table></div></div>
-    <div class="tcard"><div class="tbar"><div class="tbar-title">Costeo por producto</div><div class="tbar-actions"><input class="fctl" id="costprod-q" placeholder="Buscar producto…" oninput="rCostProd()" style="width:200px"><button class="btn btn-outline btn-sm" onclick="xls('tbl-cost','Costos')">📥 Excel</button></div></div>
+    <div class="tcard"><div class="tbar"><div class="tbar-title">Costeo por producto</div><div class="tbar-actions"><span style="min-width:300px;display:inline-block"><input class="fctl" id="costprod-q" placeholder="Buscar producto…" oninput="rCostProd()" style="width:200px"></span><button class="btn btn-outline btn-sm" onclick="xls('tbl-cost','Costos')">📥 Excel</button></div></div>
       <div class="tscroll"><table id="tbl-cost"><thead><tr><th>Producto</th><th class="tr">MP / u</th><th class="tr">Insumos / u</th><th class="tr">Gastos op.</th><th class="tr">Mano de obra</th><th class="tr">Flete</th><th class="tr">Otros</th><th class="tr">Costo total</th><th class="tr">Precio venta</th><th class="tr">Margen</th><th class="noprint"></th></tr></thead><tbody id="costprod-body"></tbody></table></div></div>
   </div>
   <div class="tab-pane" id="ti-rub">
@@ -1018,6 +1020,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
   <div class="tab-pane" id="ti-stock">
     <div class="fbar"><div class="fg"><div class="fg-lbl">Ver</div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-gold" id="stkb-mp" onclick="stkMode('mp')">Materia prima</button><button class="btn btn-sm btn-outline" id="stkb-pt" onclick="stkMode('pt')">Productos</button><button class="btn btn-sm btn-outline" id="stkb-ins" onclick="stkMode('ins')">Insumos</button></div></div>
       <div class="fg"><div class="fg-lbl">Buscar</div><input class="fi" id="stk-q" placeholder="Artículo o lote…" oninput="rSTK()"></div>
+      <div class="fg"><div class="fg-lbl">Lote</div><input class="fi" id="stk-lote" placeholder="L-…" oninput="rSTK()" style="width:110px"></div>
       <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="stkXls()">📥 Excel</button></div></div>
     <div class="alert alert-info">📦 <div>Stock por lote desde la <b>vista única de la base</b> (producción, acondicionamiento, descartes, remitos, devoluciones y ajustes), con la fórmula de CONTROL TRACE. <span class="link" onclick="stockVerificar()">Verificar contra Trace</span></div></div>
     <div class="alert alert-warn" id="stk-warn" style="display:none">⚠️ <div>Todavía no está creada la vista de stock: corré <b>plus_v7_8_stock.sql</b> en Supabase. Mientras tanto se usa el cálculo local (mismo resultado).</div></div>
@@ -1028,7 +1031,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
   <div class="tab-pane" id="ti-aj">
     <div class="tcard" style="margin-bottom:16px"><div class="tbar"><div class="tbar-title">Ajustar stock por lote</div><div class="tbar-actions" style="gap:6px"><button class="btn btn-sm btn-gold" id="ajb-mp" onclick="ajMode('mp')">🥬 Materia prima (kg)</button><button class="btn btn-sm btn-outline" id="ajb-pt" onclick="ajMode('pt')">📦 Productos (u)</button></div></div>
       <div style="padding:10px 14px 0" class="small muted">Escribí el <b>conteo físico</b> (o directamente el <b>ajuste ±</b>) solo en los lotes que no coinciden. Después cargá el motivo y tocá <b>Aplicar ajustes</b>: pide PIN de supervisor y queda registrado.</div>
-      <div class="fbar" style="box-shadow:none;border:0;margin:0"><div class="fg"><div class="fg-lbl">Buscar</div><input class="fi" id="aji-q" placeholder="Código, artículo o lote…" oninput="rAJGrid()" style="min-width:240px"></div>
+      <div class="fbar" style="box-shadow:none;border:0;margin:0"><div class="fg"><div class="fg-lbl">Buscar</div><input class="fi" id="aji-q" placeholder="Código, artículo o lote…" oninput="rAJGrid()" style="min-width:240px"></div><div class="fg"><div class="fg-lbl">Lote</div><input class="fi" id="aji-lote" placeholder="L-…" oninput="rAJGrid()" style="width:110px"></div>
         <div class="fg" style="flex:1"><div class="fg-lbl">Motivo (aplica a todos los cambios)</div><input class="fi" id="aji-mot" placeholder="ej: conteo físico mensual" style="width:100%"></div>
         <div class="fbar-actions"><span class="small muted" id="aji-pend">Sin cambios</span><button class="btn btn-outline btn-sm" onclick="ajiLimpiar()">Limpiar</button><button class="btn btn-gold btn-sm" onclick="ajiAplicar()">✅ Aplicar ajustes</button></div></div>
       <div class="tscroll" style="max-height:58vh;overflow:auto"><table id="tbl-aji"><thead id="aji-head"></thead><tbody id="aji-body"></tbody></table></div></div>
@@ -1872,13 +1875,25 @@ function ssFiltrar(inp,sel,elegir){ const ent=ssEnt(sel); if(!ent) return; const
 // v11.0: filtros de artículo (texto) → par Cód. + nombre. El input queda oculto con el nombre elegido.
 function afSrcVentas(){ return [...(S.productos||[]).filter(p=>p.activo!==false).map(p=>({id:'p'+p.id,cod:p.codigo||'',nombre:p.nombre||''})),...(D.srv||[]).filter(x=>x.activo!==false).map(x=>({id:'s'+x.id,cod:x.codigo||'',nombre:x.nombre||'',sub:'Servicio'}))]; }
 function afSrcCompras(){ return [...(S.materias||[]).filter(m=>m.activo!==false).map(m=>({id:'m'+m.id,cod:m.codigo||'',nombre:m.nombre||'',sub:'MP'})),...(D.ins||[]).filter(m=>m.activo!==false).map(m=>({id:'i'+m.id,cod:m.codigo||'',nombre:m.nombre||'',sub:'Insumo'})),...(S.productos||[]).filter(m=>m.activo!==false).map(m=>({id:'p'+m.id,cod:m.codigo||'',nombre:m.nombre||'',sub:'Producto'}))]; }
-const AF_LIST={'cv-f-art':afSrcVentas,'cpa-f-art':afSrcCompras,'ap-f-art':afSrcCompras};
+function afSrcMP(){ return (S.materias||[]).map(m=>({id:'m'+m.id,cod:m.codigo||'',nombre:m.nombre||'',sub:m.activo===false?'inactiva':''})); }
+function afSrcProd(){ return (S.productos||[]).map(p=>({id:'p'+p.id,cod:p.codigo||'',nombre:p.nombre||'',sub:p.activo===false?'inactivo':''})); }
+function afSrcIns(){ return (D.ins||[]).map(i=>({id:'i'+i.id,cod:i.codigo||'',nombre:i.nombre||'',sub:i.activo===false?'inactivo':''})); }
+function afSrcStock(){ const m=window._stkMode||'mp'; return m==='pt'?afSrcProd():m==='ins'?afSrcIns():afSrcMP(); }
+function afSrcAj(){ const m=window._ajMode||'mp'; return m==='pt'?afSrcProd():afSrcMP(); }
+const AF_LIST={'cv-f-art':afSrcVentas,'cpa-f-art':afSrcCompras,'ap-f-art':afSrcCompras,'mp-q':afSrcMP,'prod-q':afSrcProd,'ins-q':afSrcIns,'costprod-q':afSrcProd,'stk-q':afSrcStock,'aji-q':afSrcAj};
 function afScan(){ Object.keys(AF_LIST).forEach(id=>{ const inp=el(id); if(!inp||inp.dataset.ap) return; const key='af_'+id.replace(/-/g,'_'); inp.dataset.ap=key; inp.type='hidden';
   const w=document.createElement('div'); w.className='af-ap'; const src=AF_LIST[id];
   const fire=()=>{ inp.dispatchEvent(new Event('input',{bubbles:true})); inp.dispatchEvent(new Event('change',{bubbles:true})); };
   w.innerHTML=apHTML(key,{cls:'fs',ph:'Todos — buscar artículo…',clearable:true,src:()=>{ const L=src(); const v=inp.value; if(v&&!L.some(x=>x.nombre===v)) L.unshift({id:'_'+v,cod:'',nombre:v}); return L.map(x=>Object.assign({},x,{id:x.nombre})); },
     pick:x=>{ inp.value=x.nombre; fire(); }, onClear:()=>{ inp.value=''; fire(); }});
   inp.parentNode.insertBefore(w,inp); apSet(key,inp.value); }); }
+// v11.1: selects de artículos de Inventario → Cód. + nombre
+const SEL_PAIR={'mov-ins':v=>{ const i=(D.ins||[]).find(x=>x.id===v); return i?i.codigo||'':''; },'mov-item':v=>artCodPlus(v)};
+function selPairScan(){ Object.keys(SEL_PAIR).forEach(id=>{ const sel=el(id); if(!sel||sel.dataset.ap) return; const key='sp_'+id.replace(/-/g,'_'); sel.dataset.ap=key; sel.dataset.ss='1';
+  const w=document.createElement('div'); w.className='ss-ap'; const blank=()=>[...sel.options].some(o=>!o.value);
+  w.innerHTML=apHTML(key,{cls:'fs',ph:'Buscar por nombre…',clearable:true,src:()=>[...sel.options].filter(o=>o.value).map(o=>({id:o.value,cod:SEL_PAIR[id](o.value),nombre:o.textContent})),
+    pick:x=>{ if(sel.value!==x.id){ sel.value=x.id; sel.dispatchEvent(new Event('change',{bubbles:true})); } }, onClear:()=>{ if(blank()&&sel.value!==''){ sel.value=''; sel.dispatchEvent(new Event('change',{bubbles:true})); } else apSet(key,sel.value); }});
+  sel.style.display='none'; sel.parentNode.insertBefore(w,sel); apSet(key,sel.value); }); }
 // v11.0: todo <select> de clientes o proveedores (filtros y formularios) se muestra como par Cód. + nombre. El select queda oculto y sigue siendo el dato.
 let _ssN=0;
 function ssSrc(sel){ const ent=ssEnt(sel); if(!ent) return []; return [...sel.options].filter(o=>o.value&&!o.disabled).map(o=>{ const r=ent.map[o.value]||{}; return {id:o.value,cod:r.codigo||'',nombre:r.razon_social||r.nombre||o.textContent.replace(/^\[[^\]]*\]\s*/,''),sub:r.cuit||''}; }); }
@@ -1892,7 +1907,7 @@ function ssUpgrade(sel){ if(sel.dataset.ss||sel.id==='cb-cli'||sel.multiple) ret
     next:k=>{ if(sel.dataset.next){ try{ (new Function(sel.dataset.next))(); }catch(e){} return; } apNextField(el(k+'-nom')); }});
   sel.style.display='none'; sel.parentNode.insertBefore(w,sel); apSet(key,sel.value); }
 function ssSync(root){ (root||document).querySelectorAll('select[data-ap],input[data-ap]').forEach(s=>{ const k=s.dataset.ap; const n=el(k+'-nom'); if(n&&document.activeElement===n) return; if(AP[k]) apSet(k,s.value); }); }
-let _ssT=null; function ssScan(){ clearTimeout(_ssT); _ssT=setTimeout(()=>{ document.querySelectorAll('select:not([data-ss])').forEach(s=>{ try{ ssUpgrade(s); }catch(_){} }); try{ afScan(); }catch(_){} },80); }
+let _ssT=null; function ssScan(){ clearTimeout(_ssT); _ssT=setTimeout(()=>{ document.querySelectorAll('select:not([data-ss])').forEach(s=>{ try{ ssUpgrade(s); }catch(_){} }); try{ afScan(); }catch(_){} try{ selPairScan(); }catch(_){} },80); }
 (function(){ const go=()=>{ try{ new MutationObserver(ssScan).observe(document.body,{childList:true,subtree:true}); ssScan(); }catch(_){} };
   if(document.body) go(); else document.addEventListener('DOMContentLoaded',go); })();
 
@@ -2020,7 +2035,7 @@ function switchTab(btn,paneId){
   tabsEl.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
   let host=tabsEl.parentElement; if(!host.querySelector(':scope > #'+CSS.escape(paneId))) host=host.parentElement;
   Array.from(host.children).forEach(e=>{ if(e.classList.contains('tab-pane')) e.classList.remove('active'); });
-  const t=el(paneId); if(t){ t.classList.add('active'); const f=TAB_R[paneId]; if(f) try{ f(); }catch(e){ console.error(e); } t.querySelectorAll('.tab-pane.active').forEach(p=>{ const g=TAB_R[p.id]; if(g) try{ g(); }catch(e){} }); }
+  const t=el(paneId); if(t){ t.classList.add('active'); const f=TAB_R[paneId]; if(f) try{ f(); }catch(e){ console.error(e); } t.querySelectorAll('.tab-pane.active').forEach(p=>{ const g=TAB_R[p.id]; if(g) try{ g(); }catch(e){} }); try{ ssSync(t); }catch(_){} }
 }
 function openTab(modId,paneId){ go(modId); const b=document.querySelector(`#m-${modId} .tab-btn[onclick*="'${paneId}'"]`); if(b) switchTab(b,paneId); }
 function resetF(paneId){ const p=el(paneId); if(!p) return; p.querySelectorAll('.fbar select').forEach(s=>s.selectedIndex=0); p.querySelectorAll('.fbar input[type=text],.fbar input:not([type]),.fbar input[data-ap]').forEach(i=>i.value=''); setDefaultDates(p); try{ ssSync(p); }catch(_){} }
@@ -4341,15 +4356,34 @@ function rCAJA(){
   el('cj-k3').textContent=m$(sumBy(egr,'importe')); el('cj-k3s').textContent=egr.length+' movimientos';
   el('cj-k4').textContent=m$(saldo); el('cj-k4s').textContent=s?'Sin cerrar':'Según sistema';
   el('cjm-title').textContent='Movimientos '+(s?'de la sesión':'de hoy')+' · '+c.nombre;
-  let run=ap; tb.innerHTML=movs.length?movs.map(m=>{ run+=(m.tipo==='ingreso'?1:-1)*num(m.importe); return `<tr><td>${fDT(m.fecha_hora)}</td><td>${m.tipo==='ingreso'?badge('Ingreso','b-success'):badge('Egreso','b-danger')}</td><td>${esc(m.categoria||'')}</td><td class="wr">${esc(m.concepto||'')}</td><td class="mono small">${esc(m.referencia||'')}</td>${m.tipo==='ingreso'?tdM(m.importe,'cs'):'<td></td>'}${m.tipo==='egreso'?tdM(m.importe,'cd'):'<td></td>'}${tdM(run,'fw')}<td class="small">${esc(m.usuario||'')}</td><td class="noprint">${m.origen==='manual'?`<button class="btn btn-danger btn-xs btn-icon" onclick="anularMovCaja('${m.id}')">✕</button>`:''}</td></tr>`; }).join(''):emptyRow(10,'Sin movimientos');
+  let run=ap; tb.innerHTML=movs.length?movs.map(m=>{ run+=(m.tipo==='ingreso'?1:-1)*num(m.importe); return `<tr><td>${fDT(m.fecha_hora)}</td><td>${m.tipo==='ingreso'?badge('Ingreso','b-success'):badge('Egreso','b-danger')}</td><td>${esc(m.categoria||'')}</td><td class="wr">${esc(m.concepto||'')}</td><td class="mono small">${refMovHTML(m,'cjm')}</td>${m.tipo==='ingreso'?tdM(m.importe,'cs'):'<td></td>'}${m.tipo==='egreso'?tdM(m.importe,'cd'):'<td></td>'}${tdM(run,'fw')}<td class="small">${esc(m.usuario||'')}</td><td class="noprint">${m.origen==='manual'?`<button class="btn btn-danger btn-xs btn-icon" onclick="anularMovCaja('${m.id}')">✕</button>`:''}</td></tr>`; }).join(''):emptyRow(10,'Sin movimientos');
   el('cjm-foot').textContent=movs.length+' movimientos · ingresos '+m$(sumBy(ing,'importe'))+' · egresos '+m$(sumBy(egr,'importe'));
 }
+// v11.2: la referencia de un movimiento de caja / banco abre el comprobante de origen
+function origenMov(m){ if(!m) return null; const o=m.origen, id=m.origen_id;
+  if(id&&o==='cobranza'&&(D.cob||[]).some(x=>x.id===id)) return ()=>verRecibo(id);
+  if(id&&o==='pago'&&(D.pag||[]).some(x=>x.id===id)) return ()=>verPago(id);
+  if(id&&o==='cheque'&&(D.chq||[]).some(x=>x.id===id)) return ()=>chqHistoria(id);
+  if(id&&o==='caja'){ const c=(D.cjm||[]).find(x=>x.id===id); if(c) return ()=>verMovOrigen(c,'cjm'); }
+  if(o==='banco'&&m.id){ const b=(D.bm||[]).find(x=>x.origen==='caja'&&x.origen_id===m.id); if(b) return ()=>verMovOrigen(b,'bm'); }
+  // referencia escrita a mano: se busca el comprobante por su número
+  const r=String(m.referencia||'').trim(); if(!r) return null; const d=r.replace(/\D/g,'');
+  let x=/^OP\b/i.test(r)&&(D.pag||[]).find(p=>+p.numero===+d); if(x) return ()=>verPago(x.id);
+  x=/^Recibo\b/i.test(r)&&(D.cob||[]).find(c=>(pad(c.punto_venta||1,5)+pad(c.numero,8))===d.padStart(13,'0')); if(x) return ()=>verRecibo(x.id);
+  x=/^CH\b/i.test(r)&&(D.chq||[]).find(c=>String(c.numero).replace(/\D/g,'')===d); if(x) return ()=>chqHistoria(x.id);
+  if(d.length>=6){ x=(D.cv||[]).find(c=>{ const n=String(nroCbte(c)).replace(/\D/g,''); return n&&(n===d||n.endsWith(d)&&d.length>=8); }); if(x) return ()=>verCbte(x.id);
+    x=(D.cpa||[]).find(c=>{ const n=String(c.nro_comprobante||'').replace(/\D/g,''); return n&&n===d; }); if(x) return ()=>verCompra(x.id); }
+  return null; }
+function refMovHTML(m,tbl){ const t=esc(m.referencia||''); if(!t) return ''; if(!origenMov(m)) return t; return `<span class="link" title="Ver el comprobante de origen" onclick="event.stopPropagation();abrirOrigenMov('${tbl}','${m.id}')">${t} ↗</span>`; }
+function abrirOrigenMov(tbl,id){ const m=(D[tbl]||[]).find(x=>x.id===id); const f=origenMov(m); if(f) f(); else toast('No encontré el comprobante de origen','warn'); }
+function verMovOrigen(m,tbl){ const c=tbl==='cjm'?((D.caj||[]).find(x=>x.id===m.caja_id)||{}).nombre:ctaLabel((D.cta||[]).find(x=>x.id===m.cuenta_id)||{});
+  viewModal((tbl==='cjm'?'Movimiento de caja':'Movimiento bancario'), c||'', `<table><tbody><tr><td>Fecha</td><td class="fw">${tbl==='cjm'?fDT(m.fecha_hora):fD(m.fecha)}</td></tr><tr><td>Tipo</td><td>${esc(m.tipo||'')}</td></tr><tr><td>Categoría</td><td>${esc(m.categoria||'')}</td></tr><tr><td>Concepto</td><td>${esc(m.concepto||'')}</td></tr><tr><td>Referencia</td><td>${esc(m.referencia||'—')}</td></tr><tr><td>Importe</td><td class="fw">${m$(m.importe)}</td></tr><tr><td>Usuario</td><td>${esc(m.usuario||'—')}</td></tr></tbody></table>`); }
 function rCAJAH(){ const tb=el('cjh-body'); if(!tb) return; const d=V('cjh-d'), h=V('cjh-h');
   const rows=(D.cjs||[]).filter(s=>inRange(String(s.apertura_at).slice(0,10),d,h)).sort((a,b)=>String(b.apertura_at).localeCompare(String(a.apertura_at)));
   tb.innerHTML=rows.length?rows.map(s=>{ const c=(D.caj||[]).find(x=>x.id===s.caja_id)||{}; const mv=(D.cjm||[]).filter(m=>m.sesion_id===s.id&&m.estado!=='anulado'); return `<tr><td>${fDT(s.apertura_at)}</td><td>${s.cierre_at?fDT(s.cierre_at):badge('Abierta','b-success')}</td><td>${esc(c.nombre||'')}</td><td class="small">${esc(s.abierta_por||'')}${s.cerrada_por&&s.cerrada_por!==s.abierta_por?' / '+esc(s.cerrada_por):''}</td>${tdM(s.saldo_apertura)}${tdM(sumBy(mv.filter(m=>m.tipo==='ingreso'),'importe'),'cs')}${tdM(sumBy(mv.filter(m=>m.tipo==='egreso'),'importe'),'cd')}${s.cierre_at?tdM(s.saldo_teorico)+tdM(s.saldo_contado)+tdM(s.diferencia,Math.abs(num(s.diferencia))>0.01?'cd fw':'cs'):'<td></td><td></td><td></td>'}<td class="noprint"><button class="btn btn-outline btn-xs" onclick="verSesion('${s.id}')">👁</button></td></tr>`; }).join(''):emptyRow(11,'Sin sesiones de caja en el período'); }
 function rCAJAT(){ const tb=el('cjt-body'); if(!tb) return; const c=cajaSel(); const ft=V('cjt-tipo'), d=V('cjt-d'), h=V('cjt-h');
   const rows=(D.cjm||[]).filter(m=>(!c||m.caja_id===c.id)&&(!ft||m.tipo===ft)&&inRange(String(m.fecha_hora).slice(0,10),d,h)).sort((a,b)=>String(b.fecha_hora).localeCompare(String(a.fecha_hora)));
-  tb.innerHTML=rows.length?rows.map(m=>`<tr style="${m.estado==='anulado'?'opacity:.5':''}"><td>${fDT(m.fecha_hora)}</td><td>${m.tipo==='ingreso'?badge('Ingreso','b-success'):badge('Egreso','b-danger')}</td><td>${esc(m.categoria||'')}</td><td class="wr">${esc(m.concepto||'')}</td><td class="mono small">${esc(m.referencia||'')}</td>${m.tipo==='ingreso'?tdM(m.importe,'cs'):'<td></td>'}${m.tipo==='egreso'?tdM(m.importe,'cd'):'<td></td>'}<td>${m.estado==='anulado'?badge('Anulado','b-neutral'):''}</td></tr>`).join(''):emptyRow(8); }
+  tb.innerHTML=rows.length?rows.map(m=>`<tr style="${m.estado==='anulado'?'opacity:.5':''}"><td>${fDT(m.fecha_hora)}</td><td>${m.tipo==='ingreso'?badge('Ingreso','b-success'):badge('Egreso','b-danger')}</td><td>${esc(m.categoria||'')}</td><td class="wr">${esc(m.concepto||'')}</td><td class="mono small">${refMovHTML(m,'cjm')}</td>${m.tipo==='ingreso'?tdM(m.importe,'cs'):'<td></td>'}${m.tipo==='egreso'?tdM(m.importe,'cd'):'<td></td>'}<td>${m.estado==='anulado'?badge('Anulado','b-neutral'):''}</td></tr>`).join(''):emptyRow(8); }
 function rCAJAS(){ const tb=el('cjs-body'); if(!tb) return;
   tb.innerHTML=(D.caj||[]).length?(D.caj||[]).map(c=>`<tr style="${c.activo===false?'opacity:.5':''}"><td class="fw">${esc(c.nombre)}</td><td>${esc(c.descripcion||'')}</td><td>${esc(c.responsable||'—')}</td><td>${esc(c.moneda||'ARS')}</td>${tdM(saldoCaja(c.id),'fw')}<td>${sesionAbierta(c.id)?badge('Abierta','b-success'):badge('Cerrada','b-neutral')}</td><td>${c.activo===false?badge('Inactiva','b-neutral'):badge('Activa','b-success')}</td><td><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="editCaja('${c.id}')">✏️ Editar</button><button class="btn btn-${c.activo===false?'success':'danger'} btn-xs" onclick="toggleCaja('${c.id}')">${c.activo===false?'Activar':'Desactivar'}</button></div></td></tr>`).join(''):emptyRow(8,'Sin cajas'); }
 function editCaja(id){ const c=id?(D.caj||[]).find(x=>x.id===id):null;
@@ -4442,7 +4476,7 @@ function rBCO(){
   let rows=all.filter(m=>inRange(m.fecha,d,h)); let run=prev; const withRun=rows.map(m=>{ run+=(m.tipo==='credito'?1:-1)*num(m.importe); return {...m,run}; });
   let vis=withRun.filter(m=>(!ft||m.tipo===ft)&&(!fc||m.categoria===fc)&&(!fcc||(fcc==='si')===!!m.conciliado));
   el('bm-title').textContent='Movimientos — '+ctaLabel(c); el('bm-saldoini').textContent='Saldo al inicio del período: '+m$(prev);
-  tb.innerHTML=vis.length?vis.slice().reverse().map(m=>`<tr><td>${fD(m.fecha)}</td><td>${m.tipo==='credito'?badge('Crédito','b-success'):badge('Débito','b-danger')}</td><td class="small">${esc(m.categoria||'')}</td><td class="wr">${esc(m.concepto||'')}</td><td class="mono small">${esc(m.referencia||'')}${m.ref_banco?' · '+esc(m.ref_banco):''}</td>${m.tipo==='credito'?tdM(m.importe,'cs'):'<td></td>'}${m.tipo==='debito'?tdM(m.importe,'cd'):'<td></td>'}${tdM(m.run,'fw')}<td>${m.conciliado?badge('✓','b-success'):'<span class="muted">—</span>'}</td>
+  tb.innerHTML=vis.length?vis.slice().reverse().map(m=>`<tr><td>${fD(m.fecha)}</td><td>${m.tipo==='credito'?badge('Crédito','b-success'):badge('Débito','b-danger')}</td><td class="small">${esc(m.categoria||'')}</td><td class="wr">${esc(m.concepto||'')}</td><td class="mono small">${refMovHTML(m,'bm')}${m.ref_banco?' · '+esc(m.ref_banco):''}</td>${m.tipo==='credito'?tdM(m.importe,'cs'):'<td></td>'}${m.tipo==='debito'?tdM(m.importe,'cd'):'<td></td>'}${tdM(m.run,'fw')}<td>${m.conciliado?badge('✓','b-success'):'<span class="muted">—</span>'}</td>
     <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs btn-icon" title="Conciliado sí/no" onclick="toggleConc('${m.id}')">🔗</button>${m.origen==='manual'?`<button class="btn btn-danger btn-xs btn-icon" onclick="anularMovBanco('${m.id}')">✕</button>`:''}</div></td></tr>`).join(''):emptyRow(10,'Sin movimientos en el período');
   el('bm-foot').textContent=vis.length+' movimientos'; el('bm-foot2').innerHTML=`Créditos <b class="cs">${m$(sumBy(vis.filter(m=>m.tipo==='credito'),'importe'))}</b> · Débitos <b class="cd">${m$(sumBy(vis.filter(m=>m.tipo==='debito'),'importe'))}</b> · Saldo final <b>${m$(run)}</b>`;
   el('bco-k1').textContent=m$(saldoCuenta(c.id));
@@ -4861,7 +4895,44 @@ function cMPUnit(p){
 function cCalc(p){ const mp=cMPUnit(p), ins=cInsUnit(p); const cs=(INV.costos||[]).find(c=>c.producto_id===p.id)||{};
   const go=num(cs.gastos_op), mo=num(cs.mano_obra), fl=num(cs.flete), ot=num(cs.otros), pv=num(cs.precio_venta);
   const total=mp.perUnit+ins.tot+go+mo+fl+ot, margen=pv-total; return {mp,ins,go,mo,fl,ot,pv,total,margen,pct:pv>0?margen/pv*100:0,tiene:!!cs.id}; }
-function rCOST(){ rCostMP(); rCostProd(); }
+function rCOST(){ rCostMP(); rCostProd(); costPickMount(); }
+// v11.1: costeo de un producto con su estructura completa (igual que tenía TRACE)
+function costPickMount(){ const w=el('cost-pick'); if(!w) return; if(!w.dataset.on){ w.dataset.on='1'; w.innerHTML=apHTML('costp',{ph:'Buscar producto por nombre…',src:()=>(S.productos||[]).filter(p=>p.activo!==false).map(p=>({id:p.id,cod:p.codigo||'',nombre:p.nombre||''})),pick:x=>costPanel(x.id),next:()=>{ const f=el('cpn-go'); if(f){ f.focus(); f.select(); } }}); }
+  const cur=AP.costp&&AP.costp.cur; if(cur) costPanel(cur); else if(el('cost-panel')&&!el('cost-panel').innerHTML) el('cost-panel').innerHTML='<div class="small muted">Elegí un producto para ver y armar su estructura de costo.</div>'; }
+function costPanelOpen(pid){ apSet('costp',pid); costPanel(pid); const c=el('cost-card'); if(c) c.scrollIntoView({behavior:'smooth',block:'start'}); }
+function costPanel(pid){ const p=(S.productos||[]).find(x=>x.id===pid); const box=el('cost-panel'); if(!p||!box) return; const c=cCalc(p); window._coAuto={mp:c.mp.perUnit,ins:c.ins.tot,pid};
+  const f=(id,l,v)=>`<div class="fgroup"><label class="flabel">${l}</label><input type="number" step="0.01" class="fctl cpn-in" id="${id}" value="${v||''}" placeholder="0" oninput="costLive()" onkeydown="if(event.key==='Enter'){event.preventDefault();costNext(this)}"></div>`;
+  box.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div class="kpi k-navy" style="padding:12px 14px"><div class="kpi-lbl">🥬 Costo materia prima / unidad</div><div class="kpi-val sm">${m$(c.mp.perUnit)}</div><div class="kpi-sub">${esc(c.mp.metodo)}</div></div>
+      <div class="kpi k-gold" style="padding:12px 14px"><div class="kpi-lbl">📦 Costo insumos / unidad</div><div class="kpi-val sm">${m$(c.ins.tot)}</div><div class="kpi-sub">${c.ins.det.length?c.ins.det.map(d=>esc(d.nombre)+': '+m$(d.cu)).join(' · '):'sin receta de insumos'}</div></div></div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:18px;align-items:start">
+      <div><div class="small fw" style="color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Valores manuales por unidad</div>
+        <div class="fgrid fgrid-2">${f('cpn-go','Gastos operacionales',c.go)}${f('cpn-mo','Mano de obra',c.mo)}${f('cpn-fl','Flete',c.fl)}${f('cpn-ot','Otros gastos',c.ot)}</div>
+        <div class="fgroup" style="margin-top:6px"><label class="flabel">Precio de venta de referencia (por unidad)</label><input type="number" step="0.01" class="fctl cpn-in" id="cpn-pv" value="${c.pv||''}" placeholder="0" oninput="costLive()" onkeydown="if(event.key==='Enter'){event.preventDefault();costGuardar()}"></div>
+        <div class="small muted" style="margin-top:4px">${p.precio_venta?'Precio base de la ficha: '+m$(p.precio_venta)+' · ':''}<span class="link" onclick="setV('cpn-pv',${num(p.precio_venta)||0});costLive()">${p.precio_venta?'usar ese':''}</span></div>
+        <button class="btn btn-gold" id="cpn-save" style="margin-top:12px" onclick="costGuardar()">💾 Guardar costeo</button></div>
+      <div id="cpn-live"></div></div>`;
+  costLive(); }
+function costNext(inp){ const L=[...document.querySelectorAll('#cost-panel .cpn-in')]; const n=L[L.indexOf(inp)+1]; if(n){ n.focus(); n.select(); } }
+function costLive(){ const a=window._coAuto||{mp:0,ins:0}; const g=id=>num(V(id)); const go=g('cpn-go'),mo=g('cpn-mo'),fl=g('cpn-fl'),ot=g('cpn-ot'),pv=g('cpn-pv');
+  const total=a.mp+a.ins+go+mo+fl+ot, mg=pv-total, pc=pv>0?mg/pv*100:0, mk=total>0?mg/total*100:0;
+  const pct=v=>total>0?(v/total*100).toFixed(1).replace('.',',')+'%':'—';
+  const row=(l,v)=>`<tr><td>${l}</td><td class="tr">${m$(v)}</td><td class="tr small muted">${pct(v)}</td></tr>`;
+  const b=el('cpn-live'); if(!b) return;
+  b.innerHTML=`<div class="small fw" style="color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Estructura de costo por unidad</div>
+   <table style="width:100%"><thead><tr><th>Concepto</th><th class="tr">$ / unidad</th><th class="tr">% del costo</th></tr></thead><tbody>
+   ${row('🥬 Materia prima',a.mp)}${row('📦 Insumos',a.ins)}${row('Gastos operacionales',go)}${row('Mano de obra',mo)}${row('Flete',fl)}${row('Otros gastos',ot)}
+   <tr style="border-top:2px solid var(--navy)"><td class="fw">Costo total / unidad</td><td class="tr fw">${m$(total)}</td><td class="tr small muted">100%</td></tr>
+   <tr><td>Precio de venta</td><td class="tr">${pv>0?m$(pv):'—'}</td><td></td></tr>
+   <tr><td class="fw">Margen de utilidad</td><td class="tr fw ${mg>=0?'cs':'cd'}">${pv>0?m$(mg):'—'}</td><td class="tr fw ${mg>=0?'cs':'cd'}">${pv>0?pc.toFixed(1).replace('.',',')+'% s/ venta':''}</td></tr>
+   ${pv>0?`<tr><td class="small muted">Recargo sobre costo (markup)</td><td></td><td class="tr small muted">${mk.toFixed(1).replace('.',',')}%</td></tr>`:''}</tbody></table>
+   ${pv>0&&mg<0?'<div class="alert alert-warn" style="margin-top:10px">⚠️ <div>Con este precio el producto <b>da pérdida</b>.</div></div>':''}`; }
+async function costGuardar(){ const a=window._coAuto||{}; const pid=a.pid; if(!pid) return; const g=id=>num(V(id));
+  const obj={empresa_id:S.empresaId,producto_id:pid,gastos_op:g('cpn-go'),mano_obra:g('cpn-mo'),flete:g('cpn-fl'),otros:g('cpn-ot'),precio_venta:g('cpn-pv')};
+  await lockBtn('cpn-save',true);
+  try{ const { error } = await sb.from('costos_producto').upsert(obj,{onConflict:'producto_id'}); if(error) throw error;
+    INV.costos=await fetchAll('costos_producto'); rCostProd(); toast('Costeo guardado','ok'); }catch(e){ toast('No se pudo guardar: '+(e.message||e),'err'); }
+  await lockBtn('cpn-save',false); }
 function rCostMP(){ const tb=el('costmp-body'); if(!tb) return;
   const mps=[...new Set([...(S.materias||[]).filter(m=>m.activo!==false).map(m=>m.nombre),...cRecepciones().filter(r=>r.origen!=='reventa'&&r.materia_prima).map(r=>r.materia_prima)].map(cKey).filter(Boolean))].sort();
   const rows=mps.map(k=>({k,n:cRecientes(k).length,avg:cAvgKg(k),all:cKgComprados(k),de:cDescartado(k),f:cFactor(k),adj:cAdjKg(k)})).filter(x=>x.all>0);
@@ -4874,7 +4945,7 @@ function verCostoMP(mp){ const rs=cRecientes(mp);
 function rCostProd(){ const tb=el('costprod-body'); if(!tb) return; const q=V('costprod-q').toLowerCase();
   const ps=(S.productos||[]).filter(p=>p.activo!==false&&(!q||((p.codigo||'')+' '+p.nombre).toLowerCase().includes(q))).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
   tb.innerHTML=ps.length?ps.map(p=>{ const c=cCalc(p);
-    return `<tr><td class="fw">${esc(p.nombre)}</td>${tdM(c.mp.perUnit)}${tdM(c.ins.tot)}${tdM(c.go)}${tdM(c.mo)}${tdM(c.fl)}${tdM(c.ot)}${tdM(c.total,'fw')}${c.pv>0?tdM(c.pv):'<td class="tr muted">—</td>'}${c.pv>0?`<td class="tr ${c.margen>=0?'cs':'cd'} fw" data-v="${r2(c.margen)}">${m$(c.margen)} <span class="small">(${c.pct.toFixed(1)}%)</span></td>`:'<td class="tr muted">—</td>'}<td class="noprint"><button class="btn btn-outline btn-xs" onclick="editCosto('${p.id}')">✏️</button></td></tr>`; }).join(''):emptyRow(11,INV.loaded?'Sin productos':'Cargando…'); }
+    return `<tr style="cursor:pointer" onclick="if(!event.target.closest('button'))costPanelOpen('${p.id}')"><td class="fw">${p.codigo?`<span class="small muted">${esc(p.codigo)}</span> `:''}${esc(p.nombre)}</td>${tdM(c.mp.perUnit)}${tdM(c.ins.tot)}${tdM(c.go)}${tdM(c.mo)}${tdM(c.fl)}${tdM(c.ot)}${tdM(c.total,'fw')}${c.pv>0?tdM(c.pv):'<td class="tr muted">—</td>'}${c.pv>0?`<td class="tr ${c.margen>=0?'cs':'cd'} fw" data-v="${r2(c.margen)}">${m$(c.margen)} <span class="small">(${c.pct.toFixed(1)}%)</span></td>`:'<td class="tr muted">—</td>'}<td class="noprint"><button class="btn btn-outline btn-xs" title="Ver / editar el costeo" onclick="costPanelOpen('${p.id}')">✏️</button></td></tr>`; }).join(''):emptyRow(11,INV.loaded?'Sin productos':'Cargando…'); }
 function cCostoHtml(p){ const a=window._coAuto||{mp:0,ins:0}; const g=id=>num(el('mf-'+id)&&el('mf-'+id).value);
   const go=g('gastos_op'),mo=g('mano_obra'),fl=g('flete'),ot=g('otros'),pv=g('precio_venta'); const total=a.mp+a.ins+go+mo+fl+ot, mg=pv-total, pc=pv>0?mg/pv*100:0;
   const row=(l,v,b)=>`<tr${b?' style="border-top:2px solid var(--navy)"':''}><td>${b?'<b>'+l+'</b>':l}</td><td class="tr">${b?'<b>'+m$(v)+'</b>':m$(v)}</td></tr>`;
@@ -4939,12 +5010,12 @@ function kGrid(tipo,neg){ const out=[]; const keep=x=>x.stock>0.001||(neg&&x.sto
   return out; }
 // ── Stock (solapa) ──
 window._stkMode=window._stkMode||'mp';
-function stkMode(m){ window._stkMode=m; rSTK(); }
+function stkMode(m){ window._stkMode=m; const i=el('stk-q'); if(i&&i.value){ i.value=''; if(i.dataset.ap) apSet(i.dataset.ap,''); } rSTK(); }
 function rSTK(){ const m=window._stkMode||'mp'; const w0=el('stk-warn'); if(w0) w0.style.display=(INV.loaded&&!stockVistas())?'':'none';
   ['mp','pt','ins'].forEach(k=>{ const b=el('stkb-'+k); if(b) b.className='btn btn-sm '+(k===m?'btn-gold':'btn-outline'); const w=el('stkw-'+k); if(w) w.style.display=k===m?'':'none'; });
   if(m==='ins') return rSTKIns();
-  const tb=el('stk'+m+'-body'); if(!tb) return; const q=(V('stk-q')||'').toLowerCase();
-  const grid=kGrid(m).filter(g=>!q||(g.item+' '+artCodPlus(g.item)).toLowerCase().includes(q)||g.lotes.some(l=>String(l.lote).toLowerCase().includes(q)));
+  const tb=el('stk'+m+'-body'); if(!tb) return; const q=(V('stk-q')||'').toLowerCase(), lq=(V('stk-lote')||'').toLowerCase();
+  const grid=kGrid(m).filter(g=>(!q||(g.item+' '+artCodPlus(g.item)).toLowerCase().includes(q)||g.lotes.some(l=>String(l.lote).toLowerCase().includes(q)))&&(!lq||g.lotes.some(l=>String(l.lote).toLowerCase().includes(lq))));
   let html='', ncol=m==='mp'?7:5;
   grid.forEach(g=>{ const tot=g.lotes.reduce((s,l)=>s+l.stock,0); const fmt=n=>n.toLocaleString('es-AR',{maximumFractionDigits:g.dec});
     html+=`<tr style="background:var(--ice)"><td class="mono small">${esc(artCodPlus(g.item))}</td><td class="fw" colspan="${ncol-2}">${esc(g.item)}</td><td class="tr fw" data-v="${r2(tot)}">${fmt(tot)} ${g.un}</td></tr>`;
@@ -4961,16 +5032,16 @@ function rAJ(){ const tb=el('aj-body'); if(!tb) return; const d=V('aj-d'), h=V('
 window._ajRows=[];
 // ── v8.1: ajuste directo en la pestaña (MP / productos, stock por lote, conteo físico) ──
 window._ajMode=window._ajMode||'mp'; window._ajiD=window._ajiD||{}; window._ajiR=[];
-function ajMode(m){ window._ajMode=m; rAJGrid(); }
+function ajMode(m){ window._ajMode=m; const i=el('aji-q'); if(i&&i.value){ i.value=''; if(i.dataset.ap) apSet(i.dataset.ap,''); } rAJGrid(); }
 function ajiKey(r){ return r.tipo+'|'+r.item+'|'+r.lote; }
 function rAJGrid(){ const tb=el('aji-body'); if(!tb) return; const m=window._ajMode||'mp';
   ['mp','pt'].forEach(k=>{ const b=el('ajb-'+k); if(b) b.className='btn btn-sm '+(k===m?'btn-gold':'btn-outline'); });
   const mp=m==='mp'; el('aji-head').innerHTML=`<tr><th>Cód.</th><th>${mp?'Materia prima':'Producto'}</th><th>Lote</th><th>Fecha</th><th class="tr">Stock actual</th><th>Conteo físico</th><th>Ajuste ±</th><th class="tr">Queda</th></tr>`;
   if(!INV.loaded){ tb.innerHTML=emptyRow(8,'⏳ Cargando stock…'); return; }
-  const q=(V('aji-q')||'').toLowerCase(); window._ajiR=[]; let html='';
+  const q=(V('aji-q')||'').toLowerCase(), lq=(V('aji-lote')||'').toLowerCase(); window._ajiR=[]; let html='';
   kGrid(m,true).forEach(g=>{
     const itemOk=!q||(g.item+' '+artCodPlus(g.item)).toLowerCase().includes(q);
-    const lotes=itemOk?g.lotes:g.lotes.filter(l=>String(l.lote).toLowerCase().includes(q)); if(!lotes.length) return;
+    let lotes=itemOk?g.lotes:g.lotes.filter(l=>String(l.lote).toLowerCase().includes(q)); if(lq) lotes=lotes.filter(l=>String(l.lote).toLowerCase().includes(lq)); if(!lotes.length) return;
     lotes.forEach((l,j)=>{ const i=window._ajiR.length; const kgc=(mp&&l.cajas>0&&l.kilos>0)?l.kilos/l.cajas:0; const r={tipo:m,item:g.item,lote:l.lote,un:g.un,dec:g.dec,stock:l.stock,kgCaja:kgc}; window._ajiR.push(r);
       const d=window._ajiD[ajiKey(r)]; const has=d!=null&&Math.abs(d)>0.0001; const fmt=n=>n.toLocaleString('es-AR',{maximumFractionDigits:g.dec}); const bt=j===0?'border-top:2px solid var(--ice-dark);':'';
       const st=mp?'0.01':'1'; const cont=has?+(l.stock+d).toFixed(g.dec):''; const neg=l.stock<-0.001;
@@ -5032,7 +5103,7 @@ function anularAjuste(id){ const a=(INV.ajustes||[]).find(x=>x.id===id); if(!a||
     try{ const { data, error } = await sb.from('ajustes_stock').update({estado:'anulada'}).eq('id',id).eq('empresa_id',S.empresaId).select('id'); if(error) throw error; if(!data||!data.length) throw new Error('No se pudo anular'); INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rAJGrid(); rSTK(); toast('Ajuste anulado','ok'); }catch(e){ toast(e.message,'err'); } }); }
 // ── Movimientos (insumos + kardex por lote de MP / productos) ──
 window._movSrc=window._movSrc||'ins';
-function movSrc(s){ window._movSrc=s; const ins=s==='ins'; el('mov-ins-wrap').style.display=ins?'':'none'; el('mov-kx-wrap').style.display=ins?'none':''; if(!ins){ const sel=el('mov-item'); const items=s==='mp'?kMPItems():kPTItems(); sel.innerHTML=items.map(i=>`<option>${esc(i)}</option>`).join(''); } rMOV(); }
+function movSrc(s){ window._movSrc=s; const ins=s==='ins'; el('mov-ins-wrap').style.display=ins?'':'none'; el('mov-kx-wrap').style.display=ins?'none':''; if(!ins){ const sel=el('mov-item'); const items=s==='mp'?kMPItems():kPTItems(); sel.innerHTML=items.map(i=>`<option>${esc(i)}</option>`).join(''); } rMOV(); try{ ssSync(); }catch(_){} }
 function movEventos(tipo,item){ const evs=[];
   if(tipo==='mp'){ const set=new Set(), uu={};
     (INV.rec||[]).filter(r=>r.estado!=='anulada'&&r.materia_prima===item).forEach(r=>{ set.add(r.codigo_lote); uu[r.codigo_lote]=r.id; evs.push({lote:r.codigo_lote,fecha:r.fecha,rank:0,tipo:r.origen==='acondicionamiento'?'Ingreso (acondic.)':r.origen==='reventa'?'Ingreso (reventa)':'Recepción',ref:r.codigo_lote,cant:num(r.kilos)}); });
