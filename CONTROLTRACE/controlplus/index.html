@@ -243,7 +243,7 @@ textarea.fctl{resize:vertical}
 .kpi-val.sm{font-size:16px}
 .muted{color:var(--text-muted)}
 .small{font-size:11px}
-.mono{font-family:ui-monospace,Consolas,monospace}
+.mono{font-family:inherit;font-variant-numeric:tabular-nums;font-feature-settings:"tnum";letter-spacing:.2px} /* v10.9: números con la fuente del sistema (nítidos), ancho fijo por dígito */
 .tscroll{overflow-x:auto}
 .tscroll table{min-width:760px}
 /* v9.6: las tablas largas scrollean dentro de la pantalla → la barra horizontal queda siempre visible abajo y los títulos fijos arriba */
@@ -282,18 +282,20 @@ textarea.fctl{resize:vertical}
   .medio-row{grid-template-columns:1fr}
 }
 /* v10.8: par Código + Nombre y listas paginadas con barra de acciones (mismo esquema que TRACE) */
-.ap{display:flex;gap:6px;align-items:center;min-width:0}.ap .ap-cod{width:92px;flex:0 0 92px;font-family:ui-monospace,monospace;text-transform:uppercase}
+.ap{display:flex;gap:6px;align-items:center;min-width:0}.ap .ap-cod{width:92px;flex:0 0 92px;font-family:inherit;font-variant-numeric:tabular-nums;text-transform:uppercase}
 .ap .ap-nw{position:relative;flex:1;min-width:0}.ap .ap-nom{width:100%}
 .ap-list{display:none;position:fixed;z-index:5000;background:#fff;border:1px solid #cfd8e3;border-radius:8px;box-shadow:0 10px 28px rgba(13,27,42,.18);max-height:260px;overflow:auto;padding:4px}
-.ap-it{padding:7px 9px;border-radius:6px;cursor:pointer;font-size:12.5px;display:flex;gap:8px;align-items:baseline;white-space:nowrap}.ap-it b{font-family:ui-monospace,monospace;color:#8a6412;min-width:58px}
+.ap-it{padding:7px 9px;border-radius:6px;cursor:pointer;font-size:12.5px;display:flex;gap:8px;align-items:baseline;white-space:nowrap}.ap-it b{font-family:inherit;font-variant-numeric:tabular-nums;color:#8a6412;min-width:58px}
 .ap-it .ap-sub{margin-left:auto;color:#8592a3;font-size:11px}.ap-it.on,.ap-it:hover{background:#eef3f8}.ap-none{color:#8592a3;cursor:default}
 .gx-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:#f7f3ea;border:1px solid #e6dcc6;border-radius:10px;padding:8px 10px;margin:8px 10px}
 .gx-pager{display:flex;align-items:center;gap:8px;font-size:13px;color:#1A2E45}.gx-pager .btn[disabled]{opacity:.35;cursor:default}
 .gx-n{font-size:12px;color:#8592a3}.gx-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.gx-btn{padding:8px 13px!important;font-size:13px!important}
-.gx-who{font-family:ui-monospace,monospace;font-weight:700;color:#1A2E45;margin-right:4px}.gx-hint{font-size:12px;color:#8592a3}
+.gx-who{font-family:inherit;font-variant-numeric:tabular-nums;font-weight:700;color:#1A2E45;margin-right:4px}.gx-hint{font-size:12px;color:#8592a3}
 td.gx-act,th.gx-act{display:none}td.gx-sel,th.gx-sel{width:34px;text-align:center}td.gx-sel input{width:17px;height:17px;cursor:pointer;accent-color:#b8862b}
 table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{background:#fdf3d9!important}
 @media print{.gx-bar,td.gx-sel,th.gx-sel{display:none!important}}
+.ss-ap{min-width:0}.fbar .ss-ap .ap,.fbar .af-ap .ap{min-width:250px}.fbar .ap .ap-cod{width:70px;flex:0 0 70px;min-width:0}.fbar .ap .ap-nom{min-width:0}
+.ap .ap-cod.fs,.ap .ap-nom.fs{min-width:0;width:100%}.ap .ap-cod.fs{width:70px}
 </style>
 </head>
 <body>
@@ -342,7 +344,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v10.8 · comprobante de venta: cliente y artículos con Cód. + nombre, Enter pasa de campo en campo y al siguiente artículo, sin columna Unidad, descuento % y $ (combinables); Ventas y Compras: listas de 8 por página con selector y barra de acciones arriba; sin columna CAE · v10.7: cantidad por defecto en muestras en la ficha de producto (la usa TRACE para el remito de muestra) · v10.6: sin PIN en PLUS: las operaciones se confirman y quedan registradas en Auditoría con el usuario; imprimir cartera de cheques · v10.5: caja: corregir el saldo de apertura de la caja abierta (con PIN) · v10.4: descuento global por % o por importe; unidades de medida en lista cerrada también en ventas; editar comprobantes de compra/gasto (sin pagos) y NC en X de venta · v10.3: compras: unidades de medida en lista cerrada; recepciones de TRACE pasan por bulto (o kg) respetando lo cargado; al volver a TRACE se recalcula bien el $/kg; reparador de precios de recepciones · v10.2: recepciones de TRACE ordenadas por correlativo de lote; los acondicionamientos (y reingresos por devolución) ya no aparecen en PLUS · v10.1: crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v11.0 · clientes, proveedores y artículos con Cód. + nombre también en los filtros de Ventas y Compras y en todos los formularios de Compras (comprobante, gasto, NC/ND, remito manual, pagos); Enter pasa de campo en campo; Remitos: una sola casilla para seleccionar y facturar varios; Nuevo pedido igual que TRACE (fecha del pedido, fecha de entrega, OC, productos por código o nombre, Enter) · v10.9: números (comprobantes, CUIT, códigos, importes) con la fuente del sistema: se ven nítidos, no pixelados · v10.8: comprobante de venta: cliente y artículos con Cód. + nombre, Enter pasa de campo en campo y al siguiente artículo, sin columna Unidad, descuento % y $ (combinables); Ventas y Compras: listas de 8 por página con selector y barra de acciones arriba; sin columna CAE · v10.7: cantidad por defecto en muestras en la ficha de producto (la usa TRACE para el remito de muestra) · v10.6: sin PIN en PLUS: las operaciones se confirman y quedan registradas en Auditoría con el usuario; imprimir cartera de cheques · v10.5: caja: corregir el saldo de apertura de la caja abierta (con PIN) · v10.4: descuento global por % o por importe; unidades de medida en lista cerrada también en ventas; editar comprobantes de compra/gasto (sin pagos) y NC en X de venta · v10.3: compras: unidades de medida en lista cerrada; recepciones de TRACE pasan por bulto (o kg) respetando lo cargado; al volver a TRACE se recalcula bien el $/kg; reparador de precios de recepciones · v10.2: recepciones de TRACE ordenadas por correlativo de lote; los acondicionamientos (y reingresos por devolución) ya no aparecen en PLUS · v10.1: crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -732,7 +734,8 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
       <div class="kpi k-red"><div class="kpi-lbl">Pendientes</div><div class="kpi-val sm" id="gas-k4">—</div></div>
     </div>
     <div class="fbar">
-      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="gas-f-q" placeholder="Concepto, proveedor…" oninput="rGAS()"></div>
+      <div class="fg"><div class="fg-lbl">Proveedor</div><select class="fs sel-proveedor" id="gas-f-prv" onchange="rGAS()"></select></div>
+      <div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="gas-f-q" placeholder="Concepto, comprobante…" oninput="rGAS()"></div>
       <div class="fg"><div class="fg-lbl">Categoría</div><select class="fs sel-catgasto" id="gas-f-cat" onchange="rGAS()"></select></div>
       <div class="fg"><div class="fg-lbl">Desde</div><input type="date" class="fi f-desde" id="gas-f-d" onchange="rGAS()"></div>
       <div class="fg"><div class="fg-lbl">Hasta</div><input type="date" class="fi f-hasta" id="gas-f-h" onchange="rGAS()"></div>
@@ -1568,11 +1571,13 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
     <div class="mhdr"><div><div class="mhdr-title">Nuevo pedido</div><div class="mhdr-sub">Se guarda en la tabla de pedidos que usa CONTROL TRACE</div></div><button class="mclose" onclick="closeM('m-ped')">✕</button></div>
     <div class="mbody">
       <div class="fgrid fgrid-3">
-        <div class="fgroup" style="grid-column:span 2"><label class="flabel">Cliente <span class="req">*</span></label><select class="fctl sel-cliente" id="pd-cli" onchange="pdCliente()"></select></div>
-        <div class="fgroup"><label class="flabel">Fecha de entrega <span class="req">*</span></label><input type="date" class="fctl" id="pd-fecha"></div>
+        <div class="fgroup" style="grid-column:1/-1"><label class="flabel">Cliente <span class="req">*</span> <span style="font-weight:400;text-transform:none;color:var(--text-muted)">· código y Enter, o buscá por nombre</span></label><select class="fctl sel-cliente" id="pd-cli" onchange="pdCliente()" data-next="pdFocusItem(0)"></select></div>
+        <div class="fgroup"><label class="flabel">Fecha del pedido <span class="req">*</span></label><input type="date" class="fctl" id="pd-fecha"></div>
+        <div class="fgroup"><label class="flabel">Fecha de entrega <span class="req">*</span></label><input type="date" class="fctl" id="pd-entrega"></div>
+        <div class="fgroup"><label class="flabel">N° de orden de compra (OC)</label><input class="fctl" id="pd-oc" placeholder="opcional · pasa al remito"></div>
       </div>
       <datalist id="dl-prod"></datalist>
-      <div class="tscroll" style="margin-top:12px"><table class="lines-tbl" style="width:100%"><thead><tr><th style="min-width:240px">Producto</th><th style="width:110px">Unidades</th><th style="width:120px">Precio unit.</th><th class="tr" style="width:120px">Importe</th><th></th></tr></thead><tbody id="pd-items"></tbody></table></div>
+      <div class="tscroll" style="margin-top:12px"><table class="lines-tbl" style="width:100%"><thead><tr><th style="min-width:340px">Producto <span style="font-weight:400;text-transform:none">· código y Enter, o buscá por nombre</span></th><th style="width:110px">Unidades</th><th style="width:120px">Precio unit.</th><th class="tr" style="width:120px">Importe</th><th></th></tr></thead><tbody id="pd-items"></tbody></table></div>
       <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="pdAddItem()">＋ Agregar producto</button>
       <div style="text-align:right;margin-top:10px;font-size:14px" class="fw">Total estimado: <span id="pd-total">$0</span></div>
     </div>
@@ -1690,7 +1695,7 @@ const esc = v => (v==null?'':String(v)).replace(/&/g,'&amp;').replace(/</g,'&lt;
 const num = v => { const n=parseFloat(v); return isFinite(n)?n:0; };
 const r2 = n => Math.round((num(n)+Number.EPSILON)*100)/100;
 const V = id => { const e=el(id); return e ? String(e.value==null?'':e.value).trim() : ''; };
-const setV = (id,v) => { const e=el(id); if(e) e.value=(v==null?'':v); };
+const setV = (id,v) => { const e=el(id); if(e){ e.value=(v==null?'':v); if(e.dataset&&e.dataset.ap&&typeof apSet==='function'&&AP[e.dataset.ap]) apSet(e.dataset.ap,e.value); } };
 const m$ = (n,dec=2) => (num(n)<0?'-':'')+'$'+Math.abs(num(n)).toLocaleString('es-AR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
 const k$ = n => m$(n,0);
 const tdM = (n,cls='') => `<td class="tr ${cls}" data-v="${r2(n)}">${m$(n)}</td>`;
@@ -1844,12 +1849,13 @@ function renderSelects(){
   fill('select.sel-catbanco',CAT_BANCO.map(c=>`<option>${c}</option>`).join(''),'Todas',null);
   // listas de precios en ficha de cliente
   const cl=el('clm-lista'); if(cl){ const keep=cl.value; const names=[...new Set([...(D.lp||[]).filter(l=>l.activo!==false).map(l=>l.nombre),'Lista General'])]; cl.innerHTML='<option value="">— Sin lista —</option>'+names.map(n=>`<option>${esc(n)}</option>`).join(''); if(keep) cl.value=keep; }
+  try{ ssSync(); }catch(_){}
 }
 function ctaLabel(c){ return (c.banco||'Banco')+' — '+({corriente:'CC',ahorro:'CA',sueldo:'CS'}[c.tipo]||c.tipo||'')+' '+(c.numero||'')+(c.moneda&&c.moneda!=='ARS'?' ('+c.moneda+')':''); }
 // ── v9.4: buscador por código, nombre o CUIT en TODOS los selectores de cliente y proveedor ──
 //    Se agrega solo a cada desplegable de clientes/proveedores (filtros, formularios, cobranzas, saldos, etc.).
 function ssNorm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
-function ssEnt(sel){ const ids=[...sel.options].map(o=>o.value).filter(Boolean); if(ids.length<2) return null;
+function ssEnt(sel){ const ids=[...sel.options].map(o=>o.value).filter(Boolean); if(ids.length<1) return null;
   const C={},P={}; (S.clientes||[]).forEach(c=>C[c.id]=c); (S.proveedores||[]).forEach(p=>P[p.id]=p);
   const nc=ids.filter(i=>C[i]).length, np=ids.filter(i=>P[i]).length;
   if(nc>=ids.length*0.8) return {tipo:'cliente',map:C}; if(np>=ids.length*0.8) return {tipo:'proveedor',map:P}; return null; }
@@ -1863,26 +1869,40 @@ function ssFiltrar(inp,sel,elegir){ const ent=ssEnt(sel); if(!ent) return; const
   if(pick&&q&&sel.value!==pick.value){ sel.value=pick.value; sel.dispatchEvent(new Event('change',{bubbles:true})); }
   inp.style.borderColor=q&&!vis.length?'var(--danger,#b4453a)':'';
   inp.title=q?(vis.length+' coincidencia(s)'):''; }
+// v11.0: filtros de artículo (texto) → par Cód. + nombre. El input queda oculto con el nombre elegido.
+function afSrcVentas(){ return [...(S.productos||[]).filter(p=>p.activo!==false).map(p=>({id:'p'+p.id,cod:p.codigo||'',nombre:p.nombre||''})),...(D.srv||[]).filter(x=>x.activo!==false).map(x=>({id:'s'+x.id,cod:x.codigo||'',nombre:x.nombre||'',sub:'Servicio'}))]; }
+function afSrcCompras(){ return [...(S.materias||[]).filter(m=>m.activo!==false).map(m=>({id:'m'+m.id,cod:m.codigo||'',nombre:m.nombre||'',sub:'MP'})),...(D.ins||[]).filter(m=>m.activo!==false).map(m=>({id:'i'+m.id,cod:m.codigo||'',nombre:m.nombre||'',sub:'Insumo'})),...(S.productos||[]).filter(m=>m.activo!==false).map(m=>({id:'p'+m.id,cod:m.codigo||'',nombre:m.nombre||'',sub:'Producto'}))]; }
+const AF_LIST={'cv-f-art':afSrcVentas,'cpa-f-art':afSrcCompras,'ap-f-art':afSrcCompras};
+function afScan(){ Object.keys(AF_LIST).forEach(id=>{ const inp=el(id); if(!inp||inp.dataset.ap) return; const key='af_'+id.replace(/-/g,'_'); inp.dataset.ap=key; inp.type='hidden';
+  const w=document.createElement('div'); w.className='af-ap'; const src=AF_LIST[id];
+  const fire=()=>{ inp.dispatchEvent(new Event('input',{bubbles:true})); inp.dispatchEvent(new Event('change',{bubbles:true})); };
+  w.innerHTML=apHTML(key,{cls:'fs',ph:'Todos — buscar artículo…',clearable:true,src:()=>{ const L=src(); const v=inp.value; if(v&&!L.some(x=>x.nombre===v)) L.unshift({id:'_'+v,cod:'',nombre:v}); return L.map(x=>Object.assign({},x,{id:x.nombre})); },
+    pick:x=>{ inp.value=x.nombre; fire(); }, onClear:()=>{ inp.value=''; fire(); }});
+  inp.parentNode.insertBefore(w,inp); apSet(key,inp.value); }); }
+// v11.0: todo <select> de clientes o proveedores (filtros y formularios) se muestra como par Cód. + nombre. El select queda oculto y sigue siendo el dato.
+let _ssN=0;
+function ssSrc(sel){ const ent=ssEnt(sel); if(!ent) return []; return [...sel.options].filter(o=>o.value&&!o.disabled).map(o=>{ const r=ent.map[o.value]||{}; return {id:o.value,cod:r.codigo||'',nombre:r.razon_social||r.nombre||o.textContent.replace(/^\[[^\]]*\]\s*/,''),sub:r.cuit||''}; }); }
 function ssUpgrade(sel){ if(sel.dataset.ss||sel.id==='cb-cli'||sel.multiple) return; const ent=ssEnt(sel); if(!ent) return;
-  sel.dataset.ss='1'; const inp=document.createElement('input'); inp.type='search'; inp.className='fctl ss-q'; inp.autocomplete='off';
-  const enFiltro=!!sel.closest('.fbar');
-  inp.placeholder=enFiltro?'🔎 Código o nombre':'🔎 Buscar por código, nombre o CUIT'; inp.title='Escribí el código, parte del nombre o el CUIT del '+ent.tipo;
-  inp.style.cssText=enFiltro?'width:130px;flex:0 0 130px':'width:100%;margin-bottom:4px';
-  inp.addEventListener('input',()=>ssFiltrar(inp,sel,false));
-  inp.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); ssFiltrar(inp,sel,true); } if(ev.key==='Escape'){ inp.value=''; ssFiltrar(inp,sel,false); } });
-  if(enFiltro){ const w=document.createElement('span'); w.style.cssText='display:flex;gap:4px;align-items:center'; sel.parentNode.insertBefore(w,sel); w.appendChild(inp); w.appendChild(sel); }
-  else sel.parentNode.insertBefore(inp,sel); }
-let _ssT=null; function ssScan(){ clearTimeout(_ssT); _ssT=setTimeout(()=>document.querySelectorAll('select:not([data-ss])').forEach(s=>{ try{ ssUpgrade(s); }catch(_){} }),80); }
+  sel.dataset.ss='1'; const key='ss_'+(sel.id||('x'+(++_ssN))).replace(/[^\w-]/g,'_'); sel.dataset.ap=key;
+  const enFiltro=!!sel.closest('.fbar'); const blank=[...sel.options].find(o=>!o.value);
+  const w=document.createElement('div'); w.className='ss-ap';
+  w.innerHTML=apHTML(key,{cls:enFiltro?'fs':'fctl', ph:enFiltro?((blank&&blank.textContent.trim())||'Todos')+' — buscar por nombre…':'Buscar '+ent.tipo+' por nombre o CUIT…', src:()=>ssSrc(sel), clearable:!!blank,
+    pick:x=>{ if(sel.value!==x.id){ sel.value=x.id; sel.dispatchEvent(new Event('change',{bubbles:true})); } },
+    onClear:()=>{ if(sel.value!==''){ sel.value=''; sel.dispatchEvent(new Event('change',{bubbles:true})); } },
+    next:k=>{ if(sel.dataset.next){ try{ (new Function(sel.dataset.next))(); }catch(e){} return; } apNextField(el(k+'-nom')); }});
+  sel.style.display='none'; sel.parentNode.insertBefore(w,sel); apSet(key,sel.value); }
+function ssSync(root){ (root||document).querySelectorAll('select[data-ap],input[data-ap]').forEach(s=>{ const k=s.dataset.ap; const n=el(k+'-nom'); if(n&&document.activeElement===n) return; if(AP[k]) apSet(k,s.value); }); }
+let _ssT=null; function ssScan(){ clearTimeout(_ssT); _ssT=setTimeout(()=>{ document.querySelectorAll('select:not([data-ss])').forEach(s=>{ try{ ssUpgrade(s); }catch(_){} }); try{ afScan(); }catch(_){} },80); }
 (function(){ const go=()=>{ try{ new MutationObserver(ssScan).observe(document.body,{childList:true,subtree:true}); ssScan(); }catch(_){} };
   if(document.body) go(); else document.addEventListener('DOMContentLoaded',go); })();
 
 // ══ v10.8 · PAR Código + Nombre (mismo criterio que TRACE): el código se escribe y Enter; el nombre busca y se elige de la lista ══
 const AP={};
-function apHTML(key,cfg){ AP[key]=cfg; return `<div class="ap" data-ap="${key}"><input class="fctl ap-cod" id="${key}-cod" placeholder="Cód." autocomplete="off" title="Escribí el código y Enter" onkeydown="apKeyCod(event,'${key}')" onchange="apCodChg('${key}')"><div class="ap-nw"><input class="fctl ap-nom" id="${key}-nom" placeholder="${esc(cfg.ph||'Buscar por nombre…')}" autocomplete="off" oninput="apList('${key}')" onfocus="apList('${key}')" onkeydown="apKeyNom(event,'${key}')" onblur="setTimeout(()=>apBlur('${key}'),180)"><div class="ap-list" id="${key}-l"></div></div></div>`; }
+function apHTML(key,cfg){ AP[key]=cfg; const _c=cfg.cls||'fctl'; return `<div class="ap" data-ap="${key}"><input class="${_c} ap-cod" id="${key}-cod" placeholder="Cód." autocomplete="off" title="Escribí el código y Enter" onkeydown="apKeyCod(event,'${key}')" onchange="apCodChg('${key}')"><div class="ap-nw"><input class="${_c} ap-nom${cfg.nomCls?' '+cfg.nomCls:''}" id="${key}-nom" placeholder="${esc(cfg.ph||'Buscar por nombre…')}" autocomplete="off" oninput="apList('${key}')" onfocus="apList('${key}')" onkeydown="apKeyNom(event,'${key}')" onblur="setTimeout(()=>apBlur('${key}'),180)"><div class="ap-list" id="${key}-l"></div></div></div>`; }
 function apItems(key){ const c=AP[key]; try{ return c&&c.src?c.src():[]; }catch(e){ return []; } }
 function apSet(key,id){ const it=(id==null||id==='')?null:apItems(key).find(x=>String(x.id)===String(id)); const c=el(key+'-cod'), n=el(key+'-nom');
   if(c){ c.value=it?(it.cod||''):''; c.style.borderColor=''; } if(n){ n.value=it?it.nombre:''; n.style.borderColor=''; } if(AP[key]) AP[key].cur=it?it.id:null; return it; }
-function apChoose(key,it,go){ const cfg=AP[key]; if(!cfg||!it) return; apSet(key,it.id); apClose(key); if(cfg.pick) cfg.pick(it.ref||it); if(go&&cfg.next) setTimeout(()=>cfg.next(key),0); }
+function apChoose(key,it,go){ const cfg=AP[key]; if(!cfg||!it) return; apSet(key,it.id); apClose(key); if(cfg.pick) cfg.pick(it.ref||it); if(go&&cfg.next) cfg.next(key); }
 function apByCod(key,v){ const n=normCod(v); if(!n) return null; return apItems(key).find(x=>x.cod&&normCod(x.cod)===n)||null; }
 function apKeyCod(ev,key){ if(ev.key!=='Enter') return; ev.preventDefault(); const v=ev.target.value.trim();
   if(!v){ if((AP[key]||{}).cur&&AP[key].next){ AP[key].next(key); return; } const n=el(key+'-nom'); if(n) n.focus(); return; }
@@ -1903,36 +1923,55 @@ function apKeyNom(ev,key){ const c=AP[key]; if(!c) return;
   if(ev.key==='Escape'){ apClose(key); return; }
   if(ev.key==='Enter'){ ev.preventDefault(); if(apOpen(key)&&c._m&&c._m.length){ apChoose(key,c._m[c._i||0],true); return; } if(c.cur&&c.next) c.next(key); } }
 function apBlur(key){ apClose(key); const n=el(key+'-nom'), c=AP[key]; if(!n||!c) return; const cur=apItems(key).find(x=>String(x.id)===String(c.cur));
-  if(cur){ if(n.value!==cur.nombre) n.value=cur.nombre; n.style.borderColor=''; } else if(n.value.trim()&&!c.libre){ n.style.borderColor='var(--danger,#b4453a)'; } }
+  if(!n.value.trim()){ if(c.clearable){ if(c.cur!=null&&c.cur!==''){ apSet(key,null); if(c.onClear) c.onClear(); } return; } if(cur&&!c.libre){ n.value=cur.nombre; } else if(c.libre&&c.free){ c.cur=null; const cd=el(key+'-cod'); if(cd) cd.value=''; c.free(''); } return; }
+  if(cur&&n.value===cur.nombre){ n.style.borderColor=''; return; }
+  if(c.libre){ if(c._init!=null&&n.value===c._init&&!c.cur) return; c.cur=null; c._init=n.value; const cd=el(key+'-cod'); if(cd) cd.value=''; n.style.borderColor=''; if(c.free) c.free(n.value); return; }
+  if(cur){ n.value=cur.nombre; n.style.borderColor=''; } else n.style.borderColor='var(--danger,#b4453a)'; }
+// Enter después de elegir: pasa al siguiente campo del formulario
+function apNextField(from){ if(!from) return; const scope=from.closest('.modal,.mbody,.fbar,form')||document; const L=[...scope.querySelectorAll('input:not([type=hidden]):not([readonly]):not([disabled]),select:not([disabled]),textarea')].filter(x=>x.offsetParent!==null&&x.style.display!=='none');
+  const i=L.indexOf(from); const nx=L[i+1]; if(nx){ nx.focus(); if(nx.select) try{ nx.select(); }catch(_){} } }
 document.addEventListener('scroll',ev=>{ if(ev.target&&ev.target.classList&&ev.target.classList.contains('ap-list')) return; document.querySelectorAll('.ap-list').forEach(l=>{ if(l.style.display==='block') l.style.display='none'; }); },true);
 
 // ══ v10.8 · LISTAS PAGINADAS (8 por página) con selector y barra de acciones arriba — Ventas y Compras (mismo esquema que TRACE) ══
 const GX_POR_PAG=8; const GX={pag:{},sel:{},n:{}};
-const GX_LBL={'👁':'Ver','🖨':'Imprimir','✏️':'Editar','✕':'Anular','🧾':'Facturar','📋':'Pedido','🏛':'CAE','💵':'A caja','💰':'Cobrar','📄':'Comprobante','↩':'Revertir','♻️':'Reactivar'};
+const GX_LBL={'✓':'Marcar como listo','⧉':'Copiar','↺':'Volver a pendiente','💳':'Pagar','👁':'Ver','🖨':'Imprimir','✏️':'Editar','✕':'Anular','🧾':'Facturar','📋':'Pedido','🏛':'CAE','💵':'A caja','💰':'Cobrar','📄':'Comprobante','↩':'Revertir','♻️':'Reactivar'};
 function gxRows(tb){ return [...tb.rows].filter(r=>r.cells.length>1); }
+const GX_MULTI={'tbl-rem':[['🧾 Facturar seleccionados','facturarRemitosSel()','btn-gold'],['✓ Marcar como listos','omiRemitos()','btn-outline']]};
+function gxChecked(tbl){ return gxRows(tbl.tBodies[0]).filter(r=>{ const c=r.cells[0]&&r.cells[0].querySelector('input[type=checkbox]'); return c&&c.checked; }); }
 function gxActs(tr){ const c=tr.querySelector('td.gx-act'); return c?[...c.querySelectorAll('button')].filter(b=>b.style.display!=='none'):[]; }
 function gxKeyRow(tr){ const c=[...tr.cells].find(x=>!x.classList.contains('gx-sel')&&!x.classList.contains('gx-act')&&!x.querySelector('input')&&x.textContent.trim()); return c?c.textContent.trim():''; }
 function gxLabel(b){ const t=(b.textContent||'').replace(/\s+/g,' ').trim(); const ic=Object.keys(GX_LBL).find(k=>t.startsWith(k)); const ti=(b.getAttribute('title')||'').split(/[(·:]/)[0].trim();
   const rest=ic?t.slice(ic.length).trim():t; return (ic?ic+' ':'')+(rest||ti||GX_LBL[ic]||t); }
 function gxEnhance(tbl){ const key=tbl.dataset.grid; const tb=tbl.tBodies[0]; if(!tb) return;
-  const th=tbl.tHead&&tbl.tHead.rows[0]; if(th&&!th.dataset.gx){ th.dataset.gx=1; const h=document.createElement('th'); h.className='gx-sel noprint'; th.insertBefore(h,th.firstChild); const last=th.cells[th.cells.length-1]; if(last) last.classList.add('gx-act'); }
+  const th=tbl.tHead&&tbl.tHead.rows[0]; if(th&&!th.dataset.gx){ th.dataset.gx=1;
+    if(th.cells[0]&&th.cells[0].querySelector('input[type=checkbox]')){ tbl.dataset.chk='1'; th.cells[0].classList.add('gx-sel'); th.cells[0].querySelector('input').addEventListener('change',()=>setTimeout(()=>{ if(!th.cells[0].querySelector('input').checked) GX.sel[key]=null; gxPaint(tbl); },0)); }
+    else { const h=document.createElement('th'); h.className='gx-sel noprint'; th.insertBefore(h,th.firstChild); }
+    const last=th.cells[th.cells.length-1]; if(last) last.classList.add('gx-act'); }
+  const chk=tbl.dataset.chk==='1';
   let nuevas=0; [...tb.rows].forEach(tr=>{ if(tr.dataset.gx) return; tr.dataset.gx=1; nuevas++;
     if(tr.cells.length<=1){ const e=tr.cells[0]; if(e) e.colSpan=(+e.colSpan||1)+1; return; }
     const lastTd=tr.cells[tr.cells.length-1]; if(lastTd&&lastTd.querySelector('button')) lastTd.classList.add('gx-act');
-    const td=document.createElement('td'); td.className='gx-sel noprint'; td.innerHTML=`<input type="radio" name="gx_${key}" aria-label="Seleccionar">`; tr.insertBefore(td,tr.firstChild);
-    tr.addEventListener('click',ev=>{ if(ev.target.closest('a,button,select,.link,input:not([type=radio])')) return; GX.sel[key]=gxKeyRow(tr); gxPaint(tbl); }); });
+    if(chk){ const c0=tr.cells[0]; c0.classList.add('gx-sel'); if(!c0.querySelector('input')) c0.innerHTML=`<input type="radio" name="gx_${key}" aria-label="Seleccionar">`; }
+    else { const td=document.createElement('td'); td.className='gx-sel noprint'; td.innerHTML=`<input type="radio" name="gx_${key}" aria-label="Seleccionar">`; tr.insertBefore(td,tr.firstChild); }
+    tr.addEventListener('click',ev=>{ if(ev.target.closest('a,button,select,.link')) return; const t=ev.target; if(t.tagName==='INPUT'&&t.type!=='radio'&&t.type!=='checkbox') return;
+      const cb=tr.cells[0]&&tr.cells[0].querySelector('input[type=checkbox]');
+      if(cb){ if(t!==cb) cb.checked=!cb.checked; if(cb.checked) GX.sel[key]=gxKeyRow(tr); else { const o=gxChecked(tbl).pop(); GX.sel[key]=o?gxKeyRow(o):null; } }
+      else GX.sel[key]=gxKeyRow(tr);
+      gxPaint(tbl); }); });
   if(nuevas){ const n=gxRows(tb).length; if(GX.n[key]!==n){ GX.pag[key]=1; GX.n[key]=n; } }
   gxPaint(tbl); }
 function gxPaint(tbl){ const key=tbl.dataset.grid; const tb=tbl.tBodies[0]; if(!tb) return; const rows=gxRows(tb);
   const pags=Math.max(1,Math.ceil(rows.length/GX_POR_PAG)); let p=Math.min(Math.max(1,GX.pag[key]||1),pags); GX.pag[key]=p;
   rows.forEach((r,i)=>{ const on=i>=(p-1)*GX_POR_PAG&&i<p*GX_POR_PAG; if(r.style.display!==(on?'':'none')) r.style.display=on?'':'none'; });
   let sel=rows.find(r=>r.style.display!=='none'&&gxKeyRow(r)===GX.sel[key]); if(!sel&&GX.sel[key]) GX.sel[key]=null;
-  rows.forEach(r=>{ const on=r===sel; r.classList.toggle('gx-on',on); const i=r.querySelector('.gx-sel input'); if(i&&i.checked!==on) i.checked=on; });
+  const marc=tbl.dataset.chk==='1'?gxChecked(tbl):[];
+  rows.forEach(r=>{ const on=r===sel; r.classList.toggle('gx-on',on||marc.includes(r)); const i=r.querySelector('.gx-sel input[type=radio]'); if(i&&i.checked!==on) i.checked=on; });
   const wrap=tbl.closest('.tscroll')||tbl; let bar=wrap.previousElementSibling; if(!bar||!bar.classList||!bar.classList.contains('gx-bar')){ bar=document.createElement('div'); bar.className='gx-bar'; wrap.parentNode.insertBefore(bar,wrap); }
-  const acts=sel?gxActs(sel):[]; window['_gxA_'+key]=acts;
+  const acts=sel?gxActs(sel):[]; window['_gxA_'+key]=acts; const multi=marc.length>1&&GX_MULTI[key];
   const html=`<div class="gx-pager"><button class="btn btn-outline btn-sm" ${p<=1?'disabled':''} onclick="gxGo('${key}',-1)">◀</button><b>Pág. ${p} de ${pags}</b><button class="btn btn-outline btn-sm" ${p>=pags?'disabled':''} onclick="gxGo('${key}',1)">▶</button><span class="gx-n">${rows.length} registro${rows.length===1?'':'s'}</span></div>
-    <div class="gx-acts">${sel?`<span class="gx-who">${esc(gxKeyRow(sel))}</span>`+(acts.length?acts.map((b,i)=>`<button class="btn ${/btn-danger/.test(b.className)?'btn-danger':/btn-gold/.test(b.className)?'btn-gold':'btn-outline'} gx-btn" onclick="gxDo('${key}',${i})">${esc(gxLabel(b))}</button>`).join(''):'<span class="gx-hint">Sin acciones disponibles para este registro</span>'):'<span class="gx-hint">☝️ Seleccioná un registro de la lista para ver, imprimir, editar o anular</span>'}</div>`;
+    <div class="gx-acts">${multi?`<span class="gx-who">${marc.length} seleccionados</span>`+GX_MULTI[key].map(m=>`<button class="btn ${m[2]} gx-btn" onclick="${m[1]}">${m[0]}</button>`).join('')+`<button class="btn btn-outline gx-btn" onclick="gxLimpiar('${key}')">✕ Quitar selección</button>`:sel?`<span class="gx-who">${esc(gxKeyRow(sel))}</span>`+(acts.length?acts.map((b,i)=>`<button class="btn ${/btn-danger/.test(b.className)?'btn-danger':/btn-gold/.test(b.className)?'btn-gold':'btn-outline'} gx-btn" onclick="gxDo('${key}',${i})">${esc(gxLabel(b))}</button>`).join(''):'<span class="gx-hint">Sin acciones disponibles para este registro</span>'):'<span class="gx-hint">☝️ Seleccioná un registro de la lista para ver, imprimir, editar o anular</span>'}</div>`;
   if(bar.dataset.h!==html){ bar.dataset.h=html; bar.innerHTML=html; } }
+function gxLimpiar(key){ document.querySelectorAll(`table[data-grid="${key}"]`).forEach(t=>{ t.querySelectorAll('input[type=checkbox]').forEach(c=>c.checked=false); GX.sel[key]=null; gxPaint(t); }); }
 function gxGo(key,d){ GX.pag[key]=(GX.pag[key]||1)+d; GX.sel[key]=null; document.querySelectorAll(`table[data-grid="${key}"]`).forEach(gxPaint); }
 function gxDo(key,i){ const b=(window['_gxA_'+key]||[])[i]; if(b) b.click(); }
 function gxScan(){ ['m-ventas','m-compras'].forEach(m=>{ const root=el(m); if(!root) return; root.querySelectorAll('table').forEach((t,ix)=>{ if(t.closest('.moverlay')) return;
@@ -1984,11 +2023,11 @@ function switchTab(btn,paneId){
   const t=el(paneId); if(t){ t.classList.add('active'); const f=TAB_R[paneId]; if(f) try{ f(); }catch(e){ console.error(e); } t.querySelectorAll('.tab-pane.active').forEach(p=>{ const g=TAB_R[p.id]; if(g) try{ g(); }catch(e){} }); }
 }
 function openTab(modId,paneId){ go(modId); const b=document.querySelector(`#m-${modId} .tab-btn[onclick*="'${paneId}'"]`); if(b) switchTab(b,paneId); }
-function resetF(paneId){ const p=el(paneId); if(!p) return; p.querySelectorAll('.fbar select').forEach(s=>s.selectedIndex=0); p.querySelectorAll('.fbar input[type=text],.fbar input:not([type])').forEach(i=>i.value=''); setDefaultDates(p); }
+function resetF(paneId){ const p=el(paneId); if(!p) return; p.querySelectorAll('.fbar select').forEach(s=>s.selectedIndex=0); p.querySelectorAll('.fbar input[type=text],.fbar input:not([type]),.fbar input[data-ap]').forEach(i=>i.value=''); setDefaultDates(p); try{ ssSync(p); }catch(_){} }
 function setDefaultDates(root){ (root||document).querySelectorAll('input.f-desde').forEach(i=>i.value=mesIni()); (root||document).querySelectorAll('input.f-hasta').forEach(i=>i.value=hoy()); }
 
 // ── Modales / toast ──
-function openM(id){ const e=el(id); if(e) e.classList.add('open'); }
+function openM(id){ const e=el(id); if(e) e.classList.add('open'); try{ ssSync(e); }catch(_){} }
 function closeM(id){ const e=el(id); if(e) e.classList.remove('open'); }
 function toast(msg,type='ok'){
   const c=el('toastWrap'); if(!c) return; const t=document.createElement('div'); t.className='toast '+type;
@@ -2947,7 +2986,7 @@ function cbAddItem(it,focus){
   if(a.id){ tr.dataset.id=a.id; tr.dataset.tipo=a.tipo||'producto'; tr.dataset.pbase=a.precio||0; } if(a.codigo) tr.dataset.codigo=a.codigo; if(a.entrega_id) tr.dataset.entrega=a.entrega_id;
   tr.dataset.uni=a.unidad||'u';
   const key='cbit'+(++_cbItN);
-  tr.innerHTML=`<td>${apHTML(key,{ph:'Buscar artículo por nombre…',libre:true,src:cbItemSrc,pick:x=>cbPickIt(tr,x),next:()=>{ const c=tr.querySelector('.it-cant'); if(c){ c.focus(); c.select(); } }})}</td>
+  tr.innerHTML=`<td>${apHTML(key,{ph:'Buscar artículo por nombre…',libre:true,src:cbItemSrc,pick:x=>cbPickIt(tr,x),free:t=>{ delete tr.dataset.id; delete tr.dataset.codigo; if(t) tr.querySelector('.it-desc').value=t; cbCalc(); },next:()=>{ const c=tr.querySelector('.it-cant'); if(c){ c.focus(); c.select(); } }})}</td>
     <td><input class="fctl it-desc" value="${esc(a.descripcion||a.nombre||'')}" placeholder="Descripción" onkeydown="cbEnter(event,this)"></td>
     <td><input type="number" step="0.001" class="fctl it-cant" value="${a.cantidad!=null?a.cantidad:1}" oninput="cbCalc()" onkeydown="cbEnter(event,this)"></td>
     <td><input type="number" step="0.01" class="fctl it-pre" value="${a.precio!=null?a.precio:''}" oninput="cbCalc()" onkeydown="cbEnter(event,this)"></td>
@@ -2957,6 +2996,7 @@ function cbAddItem(it,focus){
   el('cb-items').appendChild(tr);
   if(a.id){ const k=Object.keys(ITEMS_MAP).find(k=>ITEMS_MAP[k].id===a.id&&ITEMS_MAP[k].tipo===(a.tipo||'producto')); if(k) apSet(key,k); else { const c=el(key+'-cod'), n=el(key+'-nom'); if(c) c.value=a.codigo||''; if(n) n.value=a.nombre||a.descripcion||''; } }
   else if(a.descripcion){ const n=el(key+'-nom'); if(n) n.value=a.descripcion; }
+  { const n=el(key+'-nom'); AP[key]._init=n?n.value:''; }
   cbCalc(); if(focus) setTimeout(()=>{ const c=el(key+'-cod'); if(c) c.focus(); },0);
 }
 // Enter: código → cantidad → precio → siguiente artículo (si no hay, se agrega una línea nueva)
@@ -3299,7 +3339,7 @@ function pedItems(pid){ return (D.pedi||[]).filter(i=>i.pedido_id===pid); }
 function rPED(){
   const tb=el('ped-body'); if(!tb) return; const fc=V('ped-f-cli'), fe=V('ped-f-est'), fd=V('ped-f-d'), fh=V('ped-f-h');
   const rows=(D.ped||[]).filter(p=>(!fc||p.cliente_id===fc)&&(!fe||p.estado===fe)&&inRange(p.fecha,fd,fh)).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||String(b.codigo).localeCompare(String(a.codigo)));
-  tb.innerHTML=rows.length?rows.map(p=>{ const it=pedItems(p.id); const cli=cliById(p.cliente_id); return `<tr><td class="fw mono">${esc(p.codigo)}</td><td class="wr">${esc(cli?cli.razon_social:'—')}</td><td>${fD(p.fecha)}</td><td class="small">${esc(p.dia||'')}</td>
+  tb.innerHTML=rows.length?rows.map(p=>{ const it=pedItems(p.id); const cli=cliById(p.cliente_id); return `<tr><td class="fw mono">${esc(p.codigo)}${p.orden_compra?`<div class="small muted">OC ${esc(p.orden_compra)}</div>`:''}</td><td class="wr">${esc(cli?cli.razon_social:'—')}</td><td>${fD(p.fecha)}${p.fecha_entrega?`<div class="small muted">entrega ${fD(p.fecha_entrega)}</div>`:''}</td><td class="small">${esc(p.dia||'')}</td>
     <td class="small">${it.slice(0,3).map(i=>esc(i.producto_nombre)+' ×'+num(i.paquetes)).join(' · ')}${it.length>3?' …':''}</td><td class="tr">${sumBy(it,'paquetes').toLocaleString('es-AR')}</td>${tdM(sumBy(it,i=>num(i.importe)||num(i.precio)*num(i.paquetes)))}
     <td class="mono">${esc(p.numero_remito||'—')}</td><td>${p.estado==='cumplido'?badge('Cumplido','b-success'):badge('Pendiente','b-warning')}</td>
     <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="verPedido('${p.id}')" title="Ver">👁</button><button class="btn btn-outline btn-xs" onclick="copiarPedido('${p.id}')" title="Copiar como pedido nuevo">⧉</button>${p.estado!=='cumplido'?`<button class="btn btn-outline btn-xs" onclick="editarPedido('${p.id}')" title="Editar">✏️</button><button class="btn btn-success btn-xs" onclick="estadoPedido('${p.id}','cumplido')" title="Marcar cumplido">✓</button><button class="btn btn-danger btn-xs" onclick="eliminarPedido('${p.id}')" title="Eliminar">✕</button>`:(p.numero_remito?'':`<button class="btn btn-outline btn-xs" onclick="estadoPedido('${p.id}','pendiente')" title="Volver a pendiente">↺</button>`)}</div></td></tr>`; }).join(''):emptyRow(10,'Sin pedidos en el período');
@@ -3313,22 +3353,31 @@ function abrirPedido(o={}){
   PD={presupuesto_id:o.presupuesto_id||null, editId:o.editId||null}; renderSelects();
   el('dl-prod').innerHTML=(S.productos||[]).filter(p=>p.activo!==false).map(p=>`<option value="${esc((p.codigo?p.codigo+' · ':'')+p.nombre)}">`).join('');
   const t=document.querySelector('#m-ped .mhdr-title'); if(t) t.textContent=o.editId?'Editar pedido '+(o.codigo||''):(o.copiaDe?'Nuevo pedido (copia de '+o.copiaDe+')':'Nuevo pedido');
-  setV('pd-cli',o.cliente_id||''); setV('pd-fecha',o.fecha||addDays(hoy(),1)); el('pd-items').innerHTML='';
+  setV('pd-cli',o.cliente_id||''); setV('pd-fecha',o.fecha||hoy()); setV('pd-entrega',o.entrega||hoy()); setV('pd-oc',o.oc||''); el('pd-items').innerHTML='';
   (o.items||[]).forEach(i=>pdAddItem(i)); if(!(o.items||[]).length) pdAddItem();
   openM('m-ped');
+  setTimeout(()=>{ if(!V('pd-cli')){ const c=el('ss_pd-cli-cod'); if(c) c.focus(); } else pdFocusItem(0); },120);
 }
 function prodByPick(v){ return (S.productos||[]).find(p=>((p.codigo?p.codigo+' · ':'')+p.nombre)===v); }
-function pdAddItem(i={}){
+let _pdN=0;
+function pdProdSrc(){ return (S.productos||[]).filter(p=>p.activo!==false).map(p=>({id:p.id,cod:p.codigo||'',nombre:p.nombre||''})); }
+function pdAddItem(i={},focus){
   const p=i.producto_id&&(S.productos||[]).find(x=>x.id===i.producto_id);
-  const tr=document.createElement('tr'); if(p) tr.dataset.id=p.id;
-  tr.innerHTML=`<td><input class="fctl" list="dl-prod" value="${p?esc((p.codigo?p.codigo+' · ':'')+p.nombre):''}" onchange="pdPick(this)" placeholder="Buscar producto…"></td><td><input type="number" class="fctl pd-c" value="${i.cantidad||''}" oninput="pdCalc()"></td><td><input type="number" step="0.01" class="fctl pd-p" value="${i.precio||''}" oninput="pdCalc()"></td><td class="tr fw pd-s">$0</td><td><button class="btn btn-danger btn-xs btn-icon" onclick="this.closest('tr').remove();pdCalc()">✕</button></td>`;
-  el('pd-items').appendChild(tr); pdCalc();
+  const tr=document.createElement('tr'); if(p) tr.dataset.id=p.id; const key='pdit'+(++_pdN);
+  tr.innerHTML=`<td>${apHTML(key,{ph:'Buscar producto por nombre…',src:pdProdSrc,pick:x=>pdPickProd(tr,x),next:()=>{ const c=tr.querySelector('.pd-c'); c.focus(); c.select(); }})}</td><td><input type="number" class="fctl pd-c" value="${i.cantidad||''}" oninput="pdCalc()" onkeydown="pdEnter(event,this)"></td><td><input type="number" step="0.01" class="fctl pd-p" value="${i.precio||''}" oninput="pdCalc()" onkeydown="pdEnter(event,this)"></td><td class="tr fw pd-s">$0</td><td><button class="btn btn-danger btn-xs btn-icon" tabindex="-1" onclick="this.closest('tr').remove();pdCalc()">✕</button></td>`;
+  el('pd-items').appendChild(tr); if(p) apSet(key,p.id); pdCalc(); if(focus) setTimeout(()=>{ const c=el(key+'-cod'); if(c) c.focus(); },0);
 }
-function pdPick(inp){ const p=prodByPick(inp.value); const tr=inp.closest('tr'); if(!p){ delete tr.dataset.id; return; } tr.dataset.id=p.id; const pr=precioPara(V('pd-cli'),{tipo:'producto',id:p.id,precio:p.precio_venta}); if(pr) tr.querySelector('.pd-p').value=pr; pdCalc(); }
+function pdFocusItem(i){ const rows=[...document.querySelectorAll('#pd-items tr')]; const tr=rows[i]; if(!tr){ pdAddItem({},true); return; } const c=tr.querySelector('.ap-cod'); if(c){ c.focus(); c.select&&c.select(); } }
+function pdEnter(ev,inp){ if(ev.key!=='Enter') return; ev.preventDefault(); const tr=inp.closest('tr');
+  if(inp.classList.contains('pd-c')){ const p=tr.querySelector('.pd-p'); p.focus(); p.select(); return; }
+  pdCalc(); const rows=[...document.querySelectorAll('#pd-items tr')]; pdFocusItem(rows.indexOf(tr)+1); }
+function pdPickProd(tr,x){ const p=(S.productos||[]).find(q=>q.id===x.id); if(!p){ delete tr.dataset.id; return; } tr.dataset.id=p.id; const pr=precioPara(V('pd-cli'),{tipo:'producto',id:p.id,precio:p.precio_venta}); if(pr) tr.querySelector('.pd-p').value=pr; pdCalc(); }
 function pdCliente(){ document.querySelectorAll('#pd-items tr').forEach(tr=>{ if(tr.dataset.id){ const p=(S.productos||[]).find(x=>x.id===tr.dataset.id); const pr=precioPara(V('pd-cli'),{tipo:'producto',id:p.id,precio:p.precio_venta}); if(pr) tr.querySelector('.pd-p').value=pr; } }); pdCalc(); }
 function pdCalc(){ let t=0; document.querySelectorAll('#pd-items tr').forEach(tr=>{ const s=num(tr.querySelector('.pd-c').value)*num(tr.querySelector('.pd-p').value); tr.querySelector('.pd-s').textContent=m$(s); t+=s; }); el('pd-total').textContent=m$(t); }
 async function guardarPedido(){
-  const cli=cliById(V('pd-cli')); if(!cli){ toast('Elegí el cliente','warn'); return; } const fecha=V('pd-fecha'); if(!fecha){ toast('Indicá la fecha','warn'); return; }
+  const cli=cliById(V('pd-cli')); if(!cli){ toast('Elegí el cliente','warn'); return; } const fecha=V('pd-fecha'); if(!fecha){ toast('Indicá la fecha del pedido','warn'); return; }
+  const entrega=V('pd-entrega')||null, oc=V('pd-oc')||null; if(entrega&&entrega<fecha){ toast('La fecha de entrega no puede ser anterior a la del pedido','warn'); return; }
+  const _xtra={orden_compra:oc, fecha_entrega:entrega}; const _sinCols=e=>/orden_compra|fecha_entrega|column|schema/i.test((e&&e.message)||'');
   const items=[]; let bad=false; document.querySelectorAll('#pd-items tr').forEach(tr=>{ const c=num(tr.querySelector('.pd-c').value); if(!c) return; const p=(S.productos||[]).find(x=>x.id===tr.dataset.id); if(!p){ bad=true; return; } const pr=num(tr.querySelector('.pd-p').value); items.push({p,c,pr}); });
   if(bad){ toast('Hay productos que no están en el maestro (elegilos de la lista)','warn'); return; } if(!items.length){ toast('Agregá al menos un producto con cantidad','warn'); return; }
   await lockBtn('pd-save',true);
@@ -3336,10 +3385,10 @@ async function guardarPedido(){
     const dias=['DOMINGO','LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO']; const dia=dias[new Date(fecha+'T12:00:00').getDay()];
     let row, codigo;
     if(PD.editId){ const ped=(D.ped||[]).find(x=>x.id===PD.editId); if(!ped||ped.estado==='cumplido') throw new Error('El pedido ya fue cumplido (tiene remito): no se puede editar');
-      codigo=ped.codigo; await dbUpd('pedidos',PD.editId,{cliente_id:cli.id, fecha, dia}); row={id:PD.editId};
+      codigo=ped.codigo; try{ await dbUpd('pedidos',PD.editId,Object.assign({cliente_id:cli.id, fecha, dia},_xtra)); }catch(e){ if(!_sinCols(e)) throw e; await dbUpd('pedidos',PD.editId,{cliente_id:cli.id, fecha, dia}); toast('Guardado sin OC ni fecha de entrega: falta correr trace_v170_pedidos_entrega.sql','warn'); } row={id:PD.editId};
       const { error:ed } = await sb.from('pedido_items').delete().eq('pedido_id',PD.editId).eq('empresa_id',S.empresaId); if(ed) throw ed; }
     else { const { data:nro, error:e1 } = await sb.rpc('siguiente_numero',{p_tipo:'pedido'}); if(e1) throw e1;
-      codigo='PED-'+pad(nro,5); row=await dbIns('pedidos',{codigo, cliente_id:cli.id, fecha, dia, estado:'pendiente'}); }
+      codigo='PED-'+pad(nro,5); try{ row=await dbIns('pedidos',Object.assign({codigo, cliente_id:cli.id, fecha, dia, estado:'pendiente'},_xtra)); }catch(e){ if(!_sinCols(e)) throw e; row=await dbIns('pedidos',{codigo, cliente_id:cli.id, fecha, dia, estado:'pendiente'}); toast('Guardado sin OC ni fecha de entrega: falta correr trace_v170_pedidos_entrega.sql','warn'); } }
     await dbIns('pedido_items', items.map(({p,c,pr})=>({pedido_id:row.id, producto_nombre:p.nombre, producto_id:p.id, cajas:0, unidades_por_caja:num(p.unidades_por_caja)||1, paquetes:c, precio:pr, importe:r2(c*pr), mp_requerida:0})));
     if(PD.presupuesto_id){ await dbUpd(TBL.cv,PD.presupuesto_id,{estado:'pedido'}); await reload(['cv']); }
     await reloadTrace(); refresh(); closeM('m-ped'); toast('Pedido '+codigo+(PD.editId?' actualizado':' registrado')+' · ya lo ve CONTROL TRACE','ok');
@@ -3347,8 +3396,8 @@ async function guardarPedido(){
   await lockBtn('pd-save',false);
 }
 function pedAItems(id){ return pedItems(id).map(i=>({producto_id:i.producto_id||((S.productos||[]).find(p=>(p.nombre||'').toUpperCase()===(i.producto_nombre||'').toUpperCase())||{}).id, cantidad:num(i.paquetes), precio:num(i.precio)})); }
-function editarPedido(id){ const p=(D.ped||[]).find(x=>x.id===id); abrirPedido({editId:id, codigo:p.codigo, cliente_id:p.cliente_id, fecha:p.fecha, items:pedAItems(id)}); }
-function copiarPedido(id){ const p=(D.ped||[]).find(x=>x.id===id); abrirPedido({copiaDe:p.codigo, cliente_id:p.cliente_id, fecha:addDays(hoy(),1), items:pedAItems(id)}); }
+function editarPedido(id){ const p=(D.ped||[]).find(x=>x.id===id); abrirPedido({editId:id, codigo:p.codigo, cliente_id:p.cliente_id, fecha:p.fecha, entrega:p.fecha_entrega||'', oc:p.orden_compra||'', items:pedAItems(id)}); }
+function copiarPedido(id){ const p=(D.ped||[]).find(x=>x.id===id); abrirPedido({copiaDe:p.codigo, cliente_id:p.cliente_id, fecha:hoy(), entrega:addDays(hoy(),1), items:pedAItems(id)}); }
 async function estadoPedido(id,est){ try{ await dbUpd('pedidos',id,{estado:est}); await reloadTrace(); rPED(); toast(est==='cumplido'?'Pedido marcado como cumplido':'Pedido vuelto a pendiente','ok'); }catch(e){ toast(e.message,'err'); } }
 function eliminarPedido(id){ const p=(D.ped||[]).find(x=>x.id===id);
   autorizar('Eliminar el pedido <b>'+esc(p.codigo)+'</b> (también desaparece de CONTROL TRACE)', async()=>{ try{ await sb.from('pedido_items').delete().eq('pedido_id',id).eq('empresa_id',S.empresaId); await dbDel('pedidos',id); await reloadTrace(); refresh(); toast('Pedido eliminado','ok'); }catch(e){ toast(e.message,'err'); } }); }
@@ -3783,8 +3832,8 @@ function cpaRow(c){ return `<tr style="${c.estado==='anulada'?'opacity:.5':''}">
 // ══════════════ GASTOS ══════════════
 TAB_R['tc-gas']=rGAS;
 function rGAS(){
-  const tb=el('gas-body'); if(!tb) return; const q=V('gas-f-q').toLowerCase(), fc=V('gas-f-cat'), fd=V('gas-f-d'), fh=V('gas-f-h'), fe=V('gas-f-est');
-  let rows=(D.cpa||[]).filter(c=>c.subtipo==='gasto'&&c.clase==='factura'&&(!fc||c.categoria===fc)&&inRange(c.fecha,fd,fh)&&(!q||((c.concepto||'')+' '+(c.proveedor_nombre||'')+' '+(c.nro_comprobante||'')).toLowerCase().includes(q)));
+  const tb=el('gas-body'); if(!tb) return; const q=V('gas-f-q').toLowerCase(), fpv=V('gas-f-prv'), fc=V('gas-f-cat'), fd=V('gas-f-d'), fh=V('gas-f-h'), fe=V('gas-f-est');
+  let rows=(D.cpa||[]).filter(c=>c.subtipo==='gasto'&&c.clase==='factura'&&(!fpv||c.proveedor_id===fpv)&&(!fc||c.categoria===fc)&&inRange(c.fecha,fd,fh)&&(!q||((c.concepto||'')+' '+(c.proveedor_nombre||'')+' '+(c.nro_comprobante||'')).toLowerCase().includes(q)));
   if(fe==='pendiente') rows=rows.filter(c=>vigC(c)&&num(c.saldo)>0.01); else if(fe==='pagada') rows=rows.filter(c=>vigC(c)&&num(c.saldo)<=0.01); else if(fe) rows=rows.filter(c=>c.estado===fe);
   rows.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   const v=rows.filter(vigC); el('gas-k1').textContent=k$(sumBy(v,'total')); el('gas-k2').textContent=v.length; el('gas-k3').textContent=v.filter(c=>num(c.saldo)<=0.01).length; el('gas-k4').textContent=k$(sumBy(v,'saldo'));
@@ -3811,10 +3860,17 @@ function rRC(){
 function editRemitoCompra(){
   formModal({title:'Remito de compra manual', sub:'Para mercadería que no pasa por CONTROL TRACE', wide:true,
     fields:[{id:'numero',label:'N° de remito del proveedor',req:true},{id:'fecha',label:'Fecha de recepción',type:'date',value:hoy(),req:true},{id:'prv',label:'Proveedor',type:'select',req:true,full:true,options:[['','— Seleccionar —'],...(S.proveedores||[]).filter(p=>p.activo!==false).map(p=>[p.id,p.nombre])]},
-      {id:'det',label:'Detalle (una línea por artículo: cantidad unidad descripción)',type:'textarea',rows:5,full:true,req:true,ph:'100 u Cajas plásticas 60x40\n20 kg Film stretch'},{id:'obs',label:'Observaciones',full:true}],
-    onSave:async v=>{ const items=v.det.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{ const m=l.match(/^([\d.,]+)\s+(\S+)\s+(.+)$/); return m?{cantidad:num(m[1].replace(',','.')),unidad:m[2],descripcion:m[3]}:{cantidad:1,unidad:'u',descripcion:l}; });
+      {id:'det',type:'html',full:true,html:`<label class="flabel">Artículos <span class="req">*</span> <span style="font-weight:400;text-transform:none;color:var(--text-muted)">· código y Enter, o buscá por nombre (o escribí la descripción)</span></label><div class="tscroll"><table class="lines-tbl" style="width:100%"><thead><tr><th style="min-width:320px">Artículo</th><th style="width:100px">Cantidad</th><th style="width:110px">Unidad</th><th></th></tr></thead><tbody id="rcm-items"></tbody></table></div><button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="rcmAdd(true)">＋ Agregar artículo</button>`},{id:'obs',label:'Observaciones',full:true}],
+    onSave:async v=>{ const items=[...document.querySelectorAll('#rcm-items tr')].map(tr=>({cantidad:num(tr.querySelector('.rcm-c').value),unidad:uniNorm(tr.querySelector('.it-uni').value),descripcion:(tr.querySelector('.ap-nom').value||'').trim()})).filter(x=>x.descripcion&&x.cantidad);
+      if(!items.length){ toast('Cargá al menos un artículo con cantidad','warn'); return false; }
       const p=prvById(v.prv); await dbIns(TBL.rc,{numero:v.numero,fecha:v.fecha,proveedor_id:v.prv,proveedor_nombre:p?p.nombre:'',items,estado:'pendiente',observaciones:v.obs||null}); await reload(['rc']); rRC(); toast('Remito registrado','ok'); }});
+  rcmAdd();
 }
+let _rcmN=0;
+function rcmAdd(focus){ const tb=el('rcm-items'); if(!tb) return; buildCpaDatalist(); const tr=document.createElement('tr'); const key='rcm'+(++_rcmN);
+  tr.innerHTML=`<td>${apHTML(key,{ph:'Buscar por nombre o escribir…',libre:true,src:cpItemSrc,pick:x=>{ const us=tr.querySelector('.it-uni'); const nu=uniNorm(x.u); if(![...us.options].some(o=>o.value===nu)) us.insertAdjacentHTML('afterbegin',`<option value="${esc(nu)}">${esc(nu)}</option>`); us.value=nu; },next:()=>{ const c=tr.querySelector('.rcm-c'); c.focus(); c.select(); }})}</td><td><input type="number" step="0.001" class="fctl rcm-c" value="1" onkeydown="if(event.key==='Enter'){event.preventDefault();rcmNext(this)}"></td><td><select class="fctl it-uni" tabindex="-1">${uniOpts('u')}</select></td><td><button class="btn btn-danger btn-xs btn-icon" tabindex="-1" onclick="this.closest('tr').remove()">✕</button></td>`;
+  tb.appendChild(tr); if(focus) setTimeout(()=>{ const c=el(key+'-cod'); if(c) c.focus(); },0); }
+function rcmNext(inp){ const rows=[...document.querySelectorAll('#rcm-items tr')]; const i=rows.indexOf(inp.closest('tr')); const nx=rows[i+1]; if(nx){ const c=nx.querySelector('.ap-cod'); c.focus(); } else rcmAdd(true); }
 function anularRemitoCompra(id){ autorizar('Anular el remito de compra', async()=>{ await dbUpd(TBL.rc,id,{estado:'anulado'}); await reload(['rc']); rRC(); }); }
 
 // ══════════════ NC / ND COMPRAS ══════════════
@@ -3829,9 +3885,9 @@ function rCNCND(k){
 let CP={}; let CPA_MAP={};
 function buildCpaDatalist(){
   CPA_MAP={}; const o=[];
-  (S.materias||[]).filter(m=>m.activo!==false).forEach(m=>{ const k='MP '+(m.codigo?m.codigo+' · ':'')+m.nombre; CPA_MAP[k]={t:'mp',id:m.id,n:m.nombre,u:m.unidad||'kg'}; o.push(k); });
-  (D.ins||[]).filter(m=>m.activo!==false).forEach(m=>{ const k='INS '+(m.codigo?m.codigo+' · ':'')+m.nombre; CPA_MAP[k]={t:'insumo',id:m.id,n:m.nombre,u:m.unidad||'u'}; o.push(k); });
-  (S.productos||[]).filter(m=>m.activo!==false).forEach(m=>{ const k='PROD '+(m.codigo?m.codigo+' · ':'')+m.nombre; CPA_MAP[k]={t:'producto',id:m.id,n:m.nombre,u:m.unidad||'u'}; o.push(k); });
+  (S.materias||[]).filter(m=>m.activo!==false).forEach(m=>{ const k='MP '+(m.codigo?m.codigo+' · ':'')+m.nombre; CPA_MAP[k]={t:'mp',id:m.id,n:m.nombre,u:m.unidad||'kg',c:m.codigo||''}; o.push(k); });
+  (D.ins||[]).filter(m=>m.activo!==false).forEach(m=>{ const k='INS '+(m.codigo?m.codigo+' · ':'')+m.nombre; CPA_MAP[k]={t:'insumo',id:m.id,n:m.nombre,u:m.unidad||'u',c:m.codigo||''}; o.push(k); });
+  (S.productos||[]).filter(m=>m.activo!==false).forEach(m=>{ const k='PROD '+(m.codigo?m.codigo+' · ':'')+m.nombre; CPA_MAP[k]={t:'producto',id:m.id,n:m.nombre,u:m.unidad||'u',c:m.codigo||''}; o.push(k); });
   el('dl-cpa').innerHTML=o.map(x=>`<option value="${esc(x)}">`).join('');
 }
 function nuevaCompra(subtipo, clase='factura', o={}){
@@ -3887,14 +3943,25 @@ function cpRecUni(sel){ const tr=sel.closest('tr'); const r=tr&&tr.dataset.rec&&
   if(sel.value==='kg'){ tr.querySelector('.it-cant').value=num(r.kilos); tr.querySelector('.it-pre').value=num(r.kilos)>0?r2(tot/num(r.kilos)*10000)/10000:''; }
   else if(num(r.cajas)>0){ tr.querySelector('.it-cant').value=num(r.cajas); tr.querySelector('.it-pre').value=r2(tot/num(r.cajas)*10000)/10000; }
   cpCalc(); }
-function cpAddItem(i={}){
+function cpAddItem(i={},focus){
   const tr=document.createElement('tr'); if(i.item_id){ tr.dataset.id=i.item_id; tr.dataset.t=i.item_tipo; } if(i.recepcion_id) tr.dataset.rec=i.recepcion_id;
   const alic=i.alic!=null?num(i.alic):num(CFG().alicuota_default!=null?CFG().alicuota_default:10.5);
   const _rc=i.recepcion_id&&(D.rec||[]).find(x=>x.id===i.recepcion_id);
-  tr.innerHTML=`<td><input class="fctl it-pick" list="dl-cpa" placeholder="Buscar o escribir…" value="${esc(i.descripcion||'')}" onchange="cpPick(this)">${_rc?`<div class="small muted" style="margin-top:2px">📦 Lote ${esc(_rc.codigo_lote||'')}${recCajasTxt(_rc)?' · <b>'+recCajasTxt(_rc)+'</b>':''} · ${num(_rc.kilos).toLocaleString('es-AR')} kg</div>`:''}</td><td><input type="number" step="0.001" class="fctl it-cant" value="${i.cantidad!=null?i.cantidad:1}" oninput="cpCalc()"></td><td><select class="fctl it-uni" onchange="${i.recepcion_id?'cpRecUni(this)':'cpCalc()'}" style="min-width:92px">${uniOpts(i.unidad||'u')}</select></td><td><input type="number" step="0.0001" class="fctl it-pre" value="${i.precio!=null?i.precio:''}" oninput="cpCalc()"></td>
+  const key='cpit'+(++_cpN);
+  tr.innerHTML=`<td>${apHTML(key,{ph:'Buscar por nombre o escribir…',libre:true,nomCls:'it-pick',src:cpItemSrc,pick:x=>cpPickIt(tr,x),free:()=>{ delete tr.dataset.id; tr.dataset.t='libre'; cpCalc(); },next:()=>{ const c=tr.querySelector('.it-cant'); c.focus(); c.select(); }})}${_rc?`<div class="small muted" style="margin-top:2px">📦 Lote ${esc(_rc.codigo_lote||'')}${recCajasTxt(_rc)?' · <b>'+recCajasTxt(_rc)+'</b>':''} · ${num(_rc.kilos).toLocaleString('es-AR')} kg</div>`:''}</td><td><input type="number" step="0.001" class="fctl it-cant" value="${i.cantidad!=null?i.cantidad:1}" oninput="cpCalc()" onkeydown="cpEnter(event,this)"></td><td><select class="fctl it-uni" tabindex="-1" onchange="${i.recepcion_id?'cpRecUni(this)':'cpCalc()'}" style="min-width:92px">${uniOpts(i.unidad||'u')}</select></td><td><input type="number" step="0.0001" class="fctl it-pre" value="${i.precio!=null?i.precio:''}" oninput="cpCalc()" onkeydown="cpEnter(event,this)"></td>
     <td><select class="fctl it-alic" onchange="cpCalc()">${[[21,'21%'],[10.5,'10,5%'],[27,'27%'],[0,'Exento / NG']].map(([v,l])=>`<option value="${v}"${num(v)===alic?' selected':''}>${l}</option>`).join('')}</select></td><td class="tr fw it-sub">$0</td><td><button class="btn btn-danger btn-xs btn-icon" onclick="this.closest('tr').remove();cpCalc()">✕</button></td>`;
-  el('cp-items').appendChild(tr); cpCalc();
+  el('cp-items').appendChild(tr);
+  { const n=el(key+'-nom'); if(n) n.value=i.descripcion||''; AP[key]._init=i.descripcion||''; if(i.item_id){ const k=Object.keys(CPA_MAP).find(k=>CPA_MAP[k].id===i.item_id&&CPA_MAP[k].t===i.item_tipo); if(k){ AP[key].cur=k; const c=el(key+'-cod'); if(c) c.value=CPA_MAP[k].c||''; } } }
+  cpCalc(); if(focus) setTimeout(()=>{ const c=el(key+'-cod'); if(c) c.focus(); },0);
 }
+let _cpN=0;
+function cpItemSrc(){ const T={mp:'MP',insumo:'Insumo',producto:'Producto'}; return Object.keys(CPA_MAP).map(k=>{ const it=CPA_MAP[k]; return {id:k,cod:it.c||'',nombre:it.n,sub:T[it.t]||'',ref:it}; }); }
+function cpPickIt(tr,it){ if(!it) return; tr.dataset.id=it.id; tr.dataset.t=it.t; const us=tr.querySelector('.it-uni'); const nu=uniNorm(it.u); if(![...us.options].some(o=>o.value===nu)) us.insertAdjacentHTML('afterbegin',`<option value="${esc(nu)}">${esc(nu)}</option>`); us.value=nu; cpCalc(); }
+function cpFocusItem(i){ const rows=[...document.querySelectorAll('#cp-items tr')]; const tr=rows[i]; if(!tr){ cpAddItem({},true); return; } const c=tr.querySelector('.ap-cod'); if(c){ c.focus(); c.select&&c.select(); } }
+// Enter: código → cantidad → precio → siguiente artículo
+function cpEnter(ev,inp){ if(ev.key!=='Enter') return; ev.preventDefault(); const tr=inp.closest('tr');
+  if(inp.classList.contains('it-cant')){ const p=tr.querySelector('.it-pre'); p.focus(); p.select(); return; }
+  cpCalc(); const rows=[...document.querySelectorAll('#cp-items tr')]; cpFocusItem(rows.indexOf(tr)+1); }
 function cpPick(inp){ const it=CPA_MAP[inp.value]; const tr=inp.closest('tr'); if(it){ tr.dataset.id=it.id; tr.dataset.t=it.t; inp.value=it.n; const us=tr.querySelector('.it-uni'); const nu=uniNorm(it.u); if(![...us.options].some(o=>o.value===nu)) us.insertAdjacentHTML('afterbegin',`<option value="${esc(nu)}">${esc(nu)}</option>`); us.value=nu; } else { delete tr.dataset.id; tr.dataset.t='libre'; } }
 function cpCalc(){
   const tipo=V('cp-tipo'); const disc=discIVA(tipo); const modo=(document.querySelector('input[name=cp-modo]:checked')||{}).value||'items';
