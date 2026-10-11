@@ -329,7 +329,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v10.4 · descuento global por % o por importe; unidades de medida en lista cerrada también en ventas; editar comprobantes de compra/gasto (sin pagos) y NC en X de venta · v10.3: compras: unidades de medida en lista cerrada; recepciones de TRACE pasan por bulto (o kg) respetando lo cargado; al volver a TRACE se recalcula bien el $/kg; reparador de precios de recepciones · v10.2: recepciones de TRACE ordenadas por correlativo de lote; los acondicionamientos (y reingresos por devolución) ya no aparecen en PLUS · v10.1: crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v10.6 · sin PIN en PLUS: las operaciones se confirman y quedan registradas en Auditoría con el usuario; imprimir cartera de cheques · v10.5: caja: corregir el saldo de apertura de la caja abierta (con PIN) · v10.4: descuento global por % o por importe; unidades de medida en lista cerrada también en ventas; editar comprobantes de compra/gasto (sin pagos) y NC en X de venta · v10.3: compras: unidades de medida en lista cerrada; recepciones de TRACE pasan por bulto (o kg) respetando lo cargado; al volver a TRACE se recalcula bien el $/kg; reparador de precios de recepciones · v10.2: recepciones de TRACE ordenadas por correlativo de lote; los acondicionamientos (y reingresos por devolución) ya no aparecen en PLUS · v10.1: crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -560,7 +560,7 @@ textarea.fctl{resize:vertical}
         <div class="fg"><div class="fg-lbl">Buscar</div><input class="fi" id="chq-f-q" placeholder="N°, librador, banco, proveedor…" oninput="rCHQ()"></div>
         <div class="fg"><div class="fg-lbl">Cobro desde</div><input type="date" class="fi" id="chq-f-d" onchange="rCHQ()"></div>
         <div class="fg"><div class="fg-lbl">Cobro hasta</div><input type="date" class="fi" id="chq-f-h" onchange="rCHQ()"></div>
-        <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-chq','Cheques_terceros')">📥 Excel</button></div>
+        <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-chq','Cheques_terceros')">📥 Excel</button><button class="btn btn-outline btn-sm" onclick="printCheques()">🖨️ Imprimir</button></div>
       </div>
       <div id="chq-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 10px"></div>
       <div class="tcard">
@@ -1620,7 +1620,7 @@ textarea.fctl{resize:vertical}
         </div>
       </div>
       <div id="pin-nopin-note" style="display:none;background:var(--warning-bg);border:1px solid #fcd34d;border-radius:6px;padding:10px;font-size:12px;color:var(--warning)">
-        No hay un PIN de supervisor configurado. Podés continuar igual, pero para <b>exigir autorización</b> cargá el PIN en <b>Configuración → Seguridad</b> (es el mismo de CONTROL TRACE).
+        Queda registrado en <b>Auditoría</b> (CONTROL TOTAL) que lo hiciste vos, con fecha y detalle.
       </div>
     </div>
     <div class="mfooter">
@@ -1954,9 +1954,12 @@ function viewModal(title, sub, html, buttons){
   openM('m-view');
 }
 // Confirmación con PIN (si hay PIN configurado); si no, confirm() simple
+// v10.6: en PLUS ya no se pide PIN. Se muestra la confirmación y queda registrado quién lo hizo (CONTROL TOTAL → Auditoría).
+//   Para volver a exigir PIN alcanza con poner PLUS_PIN=true.
+const PLUS_PIN=false;
+function pinRequerido(){ return PLUS_PIN&&pinConfigurado(); }
 function autorizar(motivo, cb){
-  if(pinConfigurado()){ pedirPinSupervisor([motivo], cb, {titulo:'Autorización requerida', sub:'Operación protegida con PIN de supervisor', head:'Para continuar se necesita autorización:', btn:'✅ Autorizar'}); }
-  else if(confirm(motivo.replace(/<[^>]+>/g,'')+'\n\n¿Confirmás?')){ logAutorizacion([motivo],null,''); cb(); }
+  pedirPinSupervisor([motivo], cb, {titulo:'Confirmar operación', sub:'Operación registrada en auditoría', head:'Vas a realizar:', btn:'✅ Confirmar'});
 }
 // v8.0: auditoría — cada autorización queda registrada en la tabla novedades (se ve en CONTROL TOTAL → Auditoría)
 function tipoAutorizacion(t,sub){ t=String(t||'');
@@ -2488,13 +2491,13 @@ async function verificarCreditoCliente(cliId, montoNuevo){
 
 function pedirPinSupervisor(motivos, onOK, opts){
   opts=opts||{};
-  const _t=document.getElementById('pin-title'); if(_t) _t.textContent='🔒 '+(opts.titulo||'Autorización de supervisor');
+  const _t=document.getElementById('pin-title'); if(_t) _t.textContent=(pinRequerido()?'🔒 ':'')+(opts.titulo||'Autorización de supervisor');
   const _s=document.getElementById('pin-sub'); if(_s) _s.textContent=opts.sub||'Facturación bloqueada por control de crédito';
   const _h=document.getElementById('pin-head'); if(_h) _h.textContent=opts.head||'No se puede facturar automáticamente:';
   const _b=document.getElementById('pin-btn'); if(_b) _b.textContent=opts.btn||'✅ Autorizar y facturar';
   const cont=document.getElementById('pin-motivos');
   if(cont) cont.innerHTML=(motivos||[]).map(m=>'<li>'+m+'</li>').join('');
-  const hasPin=pinConfigurado();
+  const hasPin=pinRequerido();
   const wrap=document.getElementById('pin-input-wrap');
   const note=document.getElementById('pin-nopin-note');
   const inp=document.getElementById('pin-input');
@@ -3288,6 +3291,9 @@ function chqSalida(c){
   if(c.estado==='cobrado'){ const m=chqMovCaja(c.id); return {fecha:m?String(m.fecha_hora||'').slice(0,10):'', txt:chqCajaNombre(c.id)}; }
   if(c.estado==='rechazado'){ const m=(D.bm||[]).find(x=>x.origen==='cheque'&&x.origen_id===c.id&&x.tipo==='debito')||(D.cjm||[]).find(x=>x.origen==='cheque'&&x.origen_id===c.id&&x.tipo==='egreso'); return {fecha:m?String(m.fecha||m.fecha_hora||'').slice(0,10):'', txt:'Rechazado'}; }
   return {fecha:'',txt:''}; }
+function printCheques(){ const t=cleanTable('tbl-chq'); if(!t) return; const e=emisor(); const fe=V('chq-f-est'), fd=V('chq-f-d'), fh=V('chq-f-h'), fc=V('chq-f-cli'), fq=V('chq-f-q');
+  const filtros=[fe?'Estado: '+(CHQ_EST[fe]||fe):'Todos los estados', fc?'Cliente: '+((cliById(fc)||{}).razon_social||''):'', (fd||fh)?'Cobro '+(fd?'desde '+fD(fd):'')+(fh?' hasta '+fD(fh):''):'', fq?'Búsqueda: '+fq:''].filter(Boolean).join(' · ');
+  printHTML(`<h1>${esc(e.razon)}</h1><h2>${fe==='cartera'?'Cartera de cheques de terceros':'Cheques de terceros'} · ${esc(filtros)} · emitido ${fD(hoy())}</h2>${t.outerHTML}<div style="text-align:right;margin-top:10px;font-weight:700">${esc(el('chq-foot').textContent)} · ${esc(el('chq-foot2').textContent)}</div>`, 'Cheques'); }
 function chqFiltroEst(v){ setV('chq-f-est',v); rCHQ(); }
 function chqHistoria(id){ const c=(D.chq||[]).find(x=>x.id===id); if(!c) return; const en=chqEntrada(c);
   const ev=[[en.fecha,'📥 Ingresó',`Recibido de <b>${esc(en.cli||'—')}</b>${en.rec?' · Recibo N° '+pad(en.rec.numero,8):''}`]];
@@ -4168,7 +4174,7 @@ function rCAJA(){
   if(!c){ ban.innerHTML='<div class="alert alert-warn">💵 <div>No hay cajas configuradas. Creá la primera en <b>Administrar cajas</b> (por ejemplo: Caja Administración, Caja Galpón).</div><button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="editCaja()">＋ Nueva caja</button></div>'; tb.innerHTML=emptyRow(10,'—'); ['cj-k1','cj-k2','cj-k3','cj-k4'].forEach(k=>el(k).textContent='—'); return; }
   const s=sesionAbierta(c.id); const saldo=saldoCaja(c.id);
   const ult=(D.cjs||[]).filter(x=>x.caja_id===c.id&&x.estado==='cerrada').sort((a,b)=>String(b.cierre_at).localeCompare(String(a.cierre_at)))[0];
-  ban.innerHTML=s?`<div class="alert alert-ok" style="align-items:center">🔓 <div><b>Caja ABIERTA</b> desde ${fDT(s.apertura_at)} por ${esc(s.abierta_por||'')} · Saldo actual <b>${m$(saldo)}</b></div><button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="abrirCierreCaja()">🔒 Cerrar caja</button></div>`
+  ban.innerHTML=s?`<div class="alert alert-ok" style="align-items:center">🔓 <div><b>Caja ABIERTA</b> desde ${fDT(s.apertura_at)} por ${esc(s.abierta_por||'')} · Apertura <b>${m$(s.saldo_apertura)}</b> · Saldo actual <b>${m$(saldo)}</b></div><button class="btn btn-outline btn-sm" style="margin-left:auto" title="Corregir el efectivo con que se abrió la caja" onclick="editarApertura()">✏️ Corregir apertura</button><button class="btn btn-danger btn-sm" style="margin-left:6px" onclick="abrirCierreCaja()">🔒 Cerrar caja</button></div>`
     :`<div class="alert alert-err" style="align-items:center">🔒 <div><b>Caja CERRADA</b>${ult?' · Último cierre '+fDT(ult.cierre_at)+' — fondo '+m$(ult.fondo_siguiente):''} · Saldo según sistema <b>${m$(saldo)}</b><br><span class="small">Podés registrar movimientos igual, pero conviene abrirla para hacer el arqueo del día.</span></div><button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="abrirCaja()">🔓 Abrir caja</button></div>`;
   const movs=(D.cjm||[]).filter(m=>m.caja_id===c.id&&m.estado!=='anulado'&&(s?m.sesion_id===s.id:String(m.fecha_hora).slice(0,10)===hoy())).sort((a,b)=>String(a.fecha_hora).localeCompare(String(b.fecha_hora)));
   const ap=s?num(s.saldo_apertura):r2(saldo-sumBy(movs,m=>(m.tipo==='ingreso'?1:-1)*num(m.importe)));
@@ -4216,6 +4222,19 @@ function abrirCaja(){ const c=cajaSel(); if(!c) return; if(sesionAbierta(c.id)){
   AQ={modo:'apertura',caja:c,teorico:saldoCaja(c.id)}; el('aq-title').textContent='Abrir caja'; el('aq-sub').textContent=c.nombre+' — '+fD(hoy());
   el('aq-resumen').innerHTML=`<div class="drow"><span class="dkey">Saldo según sistema</span><span class="dval fw">${m$(AQ.teorico)}</span></div><div class="small muted">Contá el efectivo y cargalo. Si hay diferencia, se registra un ajuste.</div>`;
   document.querySelectorAll('.aq-cierre').forEach(x=>x.style.display='none'); el('aq-lbl-ef').innerHTML='Efectivo contado <span class="req">*</span>'; aqBilletes(); setV('aq-ef',AQ.teorico); setV('aq-obs',''); aqCalc(); el('aq-save').innerHTML='🔓 Confirmar apertura'; openM('m-arqueo'); }
+// v10.5: corregir el saldo de apertura de la caja abierta (con PIN). Rehace el ajuste "Diferencia de apertura" para que el saldo cuadre.
+function editarApertura(){ const c=cajaSel(); const s=c&&sesionAbierta(c.id); if(!s){ toast('La caja no está abierta','warn'); return; }
+  const adj=(D.cjm||[]).filter(m=>m.sesion_id===s.id&&m.estado!=='anulado'&&m.categoria==='Ajuste de diferencia'&&m.concepto==='Diferencia de apertura');
+  const base=r2(num(s.saldo_apertura)-sumBy(adj,m=>(m.tipo==='ingreso'?1:-1)*num(m.importe)));
+  formModal({title:'Corregir apertura de caja', sub:c.nombre+' · abierta '+fDT(s.apertura_at)+' por '+(s.abierta_por||''),
+    pre:`<div class="alert alert-info">ℹ️ <div>Apertura registrada: <b>${m$(s.saldo_apertura)}</b> · saldo que tenía el sistema al abrir: <b>${m$(base)}</b>. Al corregir, el ajuste por diferencia de apertura se rehace con el nuevo importe y el saldo de la caja se actualiza.</div></div>`,
+    fields:[{id:'ap',label:'Efectivo real al abrir',type:'number',step:'0.01',req:true,value:num(s.saldo_apertura)},{id:'mot',label:'Motivo de la corrección',req:true,full:true,ph:'Ej: se contó mal un fajo de $10.000'}],
+    onSave:async v=>{ const nv=r2(num(v.ap)); if(Math.abs(nv-num(s.saldo_apertura))<0.01){ toast('Es el mismo importe','warn'); return false; }
+      setTimeout(()=>autorizar('Corregir la apertura de <b>'+esc(c.nombre)+'</b> de '+m$(s.saldo_apertura)+' a <b>'+m$(nv)+'</b> ('+esc(v.mot)+')', async()=>{ window._pinAutorizo=null;
+        try{ for(const m of adj) await dbUpd(TBL.cjm,m.id,{estado:'anulado'});
+          const dif=r2(nv-base); if(Math.abs(dif)>=0.01) await dbIns(TBL.cjm,{caja_id:c.id,sesion_id:s.id,fecha_hora:s.apertura_at,tipo:dif>0?'ingreso':'egreso',categoria:'Ajuste de diferencia',concepto:'Diferencia de apertura',importe:Math.abs(dif),origen:'manual',usuario:S.nombre,estado:'activo',observaciones:'Corrección: '+v.mot});
+          await dbUpd(TBL.cjs,s.id,{saldo_apertura:nv,observaciones:[s.observaciones,'Apertura corregida de '+m$(s.saldo_apertura)+' a '+m$(nv)+' ('+v.mot+') por '+S.nombre].filter(Boolean).join(' · ')});
+          await reload(['cjs','cjm']); rCAJA(); toast('Apertura corregida a '+m$(nv),'ok'); }catch(e){ toast(e.message,'err'); } }),50); return true; }}); }
 function abrirCierreCaja(){ const c=cajaSel(); if(!c){ toast('Elegí una caja','warn'); return; } const s=sesionAbierta(c.id); if(!s){ toast('La caja no está abierta','warn'); return; }
   const mv=(D.cjm||[]).filter(m=>m.sesion_id===s.id&&m.estado!=='anulado');
   AQ={modo:'cierre',caja:c,ses:s,teorico:saldoCaja(c.id)}; el('aq-title').textContent='Cerrar caja'; el('aq-sub').textContent=c.nombre+' — arqueo de cierre';
