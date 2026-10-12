@@ -4,7 +4,7 @@
      sin tener que ir a la barra del navegador. La sesión es la misma, no pide volver a entrar.
    Incluir en cada módulo con:  <script src="/cmax-top.js"></script>
    Cuando el portal pase a ser la raíz del sitio, cambiá PORTAL a '/'.
-   v2.2 · 2026-10: no se muestra en el portal · v2.1: abre pestañas nuevas (no ventanas flotantes) · v2: botón de ventanas nuevas; no se muestra dentro de iframes (reportes embebidos en TOTAL). */
+   v2.3 · 2026-10: suma CONTROL DOCS al menú de pestañas · v2.2: no se muestra en el portal · v2.1: abre pestañas nuevas (no ventanas flotantes) · v2: botón de ventanas nuevas; no se muestra dentro de iframes (reportes embebidos en TOTAL). */
 (function(){
   var PORTAL='/portal.html';   // ← destino del portal CONTROL MAX
   var MODS=[
@@ -12,6 +12,7 @@
     ['🧾','CONTROL PLUS','/CONTROLTRACE/controlplus/index.html'],
     ['📊','CONTROL TOTAL','/CONTROLTRACE/controltotal/index.html'],
     ['🌿','CONTROLAGRO','/CONTROLTRACE/controlagro/index.html'],
+    ['📄','CONTROL DOCS','/CONTROLTRACE/controldocs/index.html'],
     ['⚙️','Configuración','/CONTROLTRACE/controlconfig/index.html']
   ];
   try{
