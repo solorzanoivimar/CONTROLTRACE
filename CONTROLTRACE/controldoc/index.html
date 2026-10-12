@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CONTROL MAX — Control Docs</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111D35'/%3E%3Ctext x='32' y='46' font-family='Segoe UI,Arial,sans-serif' font-size='40' font-weight='800' text-anchor='middle' fill='%23C9A84C'%3ED%3C/text%3E%3C/svg%3E">
-<!-- CONTROL DOCS · build v1 · Requiere docs_etapa1_setup.sql -->
+<!-- CONTROL DOCS · build v2 · Requiere docs_etapa1_setup.sql y docs_etapa2_setup.sql -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#111D35;--navy2:#1B2A4A;--gold:#C9A84C;--gold-d:#A9842F;--cream:#F5F2EA;--ink:#1C2536;--muted:#6B7689;--line:#E7E2D6;--sage:#4F7D6A;--sage-bg:#E9F1EC;--clay:#B5654A;--clay-bg:#F6EBE6;--amber:#86571A;--amber-bg:#FAF3E2;--steel:#3D5A80;
@@ -114,6 +114,33 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
 .vz tr:nth-child(even) td{background:#f7f5ef}
 .vz tfoot td{border-top:3px solid var(--navy);border-bottom:0;font-weight:900;background:#fff!important}
 .vz-foot{margin-top:18px;font-size:.55em;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+/* LECTURA */
+.vz-read{margin-top:22px;border-top:2px dashed var(--line);padding-top:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:.7em}
+.vz-read .btn{font-size:1em;padding:.6em 1.1em}
+.vz-read .ok{color:var(--sage);font-weight:800}
+.dcard.nuevo{box-shadow:0 0 0 2px var(--gold) inset}
+/* MODO PANTALLA (TV) */
+#pant{position:fixed;inset:0;background:#fff;z-index:97;display:none;flex-direction:column;cursor:none}
+#pant.show{display:flex}
+#pant.mouse{cursor:default}
+.pt-strip{height:58px;flex-shrink:0;background:var(--navy);color:#fff;display:flex;align-items:center;gap:16px;padding:0 20px}
+.pt-strip .pt-t{font-weight:900;color:var(--gold);letter-spacing:1px;font-size:18px}
+.pt-strip .pt-e{color:#cdd6e4;font-size:15px}
+.pt-strip .sp{flex:1}
+.pt-strip .pt-n{font-size:16px;color:#fff;font-weight:700}
+.pt-strip .pt-clk{font-size:26px;font-weight:800;color:#fff;min-width:96px;text-align:right}
+.pt-strip .pt-d{font-size:13px;color:#9fb0c8;text-align:right;line-height:1.1}
+.pt-strip .btn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);opacity:0;transition:opacity .2s}
+#pant.mouse .pt-strip .btn{opacity:1}
+.pt-prog{height:5px;background:#e7e2d6;flex-shrink:0}
+.pt-prog i{display:block;height:100%;width:0;background:var(--gold)}
+#pantStage{flex:1;overflow:hidden;position:relative;--vz:28px}
+#pantStage .vz{max-width:none;padding:18px 36px 10px}
+.pt-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);text-align:center;padding:20px}
+.pt-empty .big{font-size:42px;font-weight:900;color:var(--navy)}
+.pt-pag{display:inline-block;background:var(--navy);color:#fff;font-size:.55em;font-weight:800;padding:.25em .7em;border-radius:20px;margin-left:.6em;vertical-align:middle}
+.pt-hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(17,29,53,.85);color:#fff;padding:8px 16px;border-radius:10px;font-size:14px;cursor:pointer}
+.urlbox{display:flex;gap:8px;align-items:center;background:#f7f3ea;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:12px;word-break:break-all}
 /* MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(17,29,53,.5);display:none;align-items:center;justify-content:center;z-index:95;padding:16px}
 .modal-bg.show{display:flex}
@@ -153,6 +180,7 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
 }
 @media print{
   body>*:not(#visor){display:none!important}
+  .vz-read{display:none!important}
   #visor{position:static;display:block!important;overflow:visible}
   .vz-bar,.vz-prev{display:none!important}
   .vz{max-width:none;padding:0}
@@ -196,7 +224,7 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
 // Lee solo docs_publicaciones (fotos sin valores). Publicar, republicar
 // y retirar se hacen con funciones del servidor (docs_etapa1_setup.sql).
 // ══════════════════════════════════════════════════════════════
-const BUILD='build v1 · v1: muro de documentos (pedidos sin valores y órdenes de producción), visor grande con A+/A−, pantalla completa e impresión; publicar, republicar y retirar con control por rol; aviso cuando el origen cambió; historial de versiones; todo queda en Novedades';
+const BUILD='build v2 · v2: confirmación de lectura (Nuevo / Actualizado / Visto en el muro, botón Leí este documento, quién leyó y quién falta en Publicaciones) y modo pantalla para la TV del galpón (rotación automática, páginas automáticas si el documento es largo, refresco cada minuto, pantalla siempre encendida, dirección para guardar en la TV) · v1: muro de documentos (pedidos sin valores y órdenes de producción), visor grande con A+/A−, pantalla completa e impresión; publicar, republicar y retirar con control por rol; aviso cuando el origen cambió; historial de versiones; todo queda en Novedades';
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
@@ -207,7 +235,7 @@ const ADMINS=['admin','administrador','dueno','dueño'];
 const TIPO_LBL={pedido:'Pedido',orden_produccion:'Orden de producción'};
 const PP=8;
 
-const S={uid:null,empresaId:null,rol:'',nombre:'',empresa:{},puede:false,sqlOk:true,pubs:[],cambios:{},pedidos:null,pedItems:{},clientes:[],planes:null};
+const S={leidas:{},lectCnt:{},lectOk:true,uid:null,empresaId:null,rol:'',nombre:'',empresa:{},puede:false,sqlOk:true,pubs:[],cambios:{},pedidos:null,pedItems:{},clientes:[],planes:null};
 let cur='muro';
 const F={muroTipo:'todos',muroCuando:'proximos',pubEstado:'activas',pubTipo:'todos',pedTab:'pedido',pedCli:'',pedEntregados:false,pedQ:''};
 
@@ -288,14 +316,15 @@ function rolesTxt(roles){return (!roles||!roles.length)?'Todos':roles.map(r=>ROL
 function pubDeOrigen(tipo,id){return S.pubs.find(p=>p.tipo===tipo&&p.origen_id===id);}
 
 // ══════════════ NAVEGACIÓN ══════════════
-const META={muro:['DOCUMENTOS','Muro de documentos'],publicar:['PUBLICAR','Publicar documentos'],publicaciones:['GESTIÓN','Publicaciones']};
-function buildNav(){const vig=S.pubs.filter(p=>estadoPub(p)==='publicado').length;const ch=Object.values(S.cambios).filter(c=>c.cambiado).length;
-  let h=`<div class="gl">Documentos</div><button class="nb" data-v="muro" onclick="go('muro')"><span class="ico">📌</span><span>Muro</span>${vig?`<span class="cnt">${vig}</span>`:''}</button>`;
+const META={pantalla:['DOCUMENTOS','Modo pantalla'],muro:['DOCUMENTOS','Muro de documentos'],publicar:['PUBLICAR','Publicar documentos'],publicaciones:['GESTIÓN','Publicaciones']};
+function noLeidas(){return S.lectOk?S.pubs.filter(p=>estadoPub(p)==='publicado'&&!leidaActual(p)).length:0;}
+function buildNav(){const vig=S.lectOk?noLeidas():S.pubs.filter(p=>estadoPub(p)==='publicado').length;const ch=Object.values(S.cambios).filter(c=>c.cambiado).length;
+  let h=`<div class="gl">Documentos</div><button class="nb" data-v="muro" onclick="go('muro')"><span class="ico">📌</span><span>Muro</span>${vig?`<span class="cnt" title="${S.lectOk?'Sin leer':'Publicados'}">${vig}</span>`:''}</button><button class="nb" data-v="pantalla" onclick="go('pantalla')"><span class="ico">📺</span><span>Modo pantalla</span></button>`;
   if(S.puede)h+=`<div class="gl">Administración</div><button class="nb" data-v="publicar" onclick="go('publicar')"><span class="ico">📤</span><span>Publicar</span></button><button class="nb" data-v="publicaciones" onclick="go('publicaciones')"><span class="ico">🗂️</span><span>Publicaciones</span>${ch?`<span class="cnt" title="Con cambios en el origen">⚠ ${ch}</span>`:''}</button>`;
   $('nav').innerHTML=h;document.querySelectorAll('#nav .nb').forEach(b=>b.classList.toggle('on',b.dataset.v===cur));}
-function go(v){if(v!=='muro'&&!S.puede)v='muro';cur=v;document.body.classList.remove('nav-open');buildNav();$('crumb').textContent=META[v][0];$('title').textContent=META[v][1];
-  try{history.replaceState(null,'','#'+v);}catch(e){}
-  if(v==='muro')viewMuro();else if(v==='publicar')viewPublicar();else viewPubs();window.scrollTo(0,0);}
+function go(v){if(!['muro','pantalla'].includes(v)&&!S.puede)v='muro';cur=v;document.body.classList.remove('nav-open');buildNav();$('crumb').textContent=META[v][0];$('title').textContent=META[v][1];
+  try{if(v!=='pantalla')history.replaceState(null,'','#'+v);}catch(e){}
+  if(v==='muro')viewMuro();else if(v==='pantalla')viewPantalla();else if(v==='publicar')viewPublicar();else viewPubs();window.scrollTo(0,0);}
 async function refreshNow(){const b=$('btnRefresh');b.textContent='⏳ Actualizando…';try{await loadPubs();if(cur==='publicar'){S.pedidos=null;S.planes=null;}go(cur);banner('Datos actualizados ✓');}catch(e){banner('No se pudo actualizar: '+errMsg(e),'err');}b.textContent='🔄 Actualizar';}
 
 // ══════════════ CARGA ══════════════
@@ -304,7 +333,18 @@ async function loadPubs(){
   if(error){if(/docs_publicaciones|PGRST205|does not exist/i.test(error.message||''))S.sqlOk=false;else throw error;S.pubs=[];}else{S.pubs=data||[];}
   S.cambios={};
   if(S.puede&&S.sqlOk){const r=await sb.rpc('docs_cambios');if(!r.error)(r.data||[]).forEach(c=>S.cambios[c.id]=c);}
+  await loadLecturas();
 }
+async function loadLecturas(){
+  S.leidas={};S.lectCnt={};if(!S.sqlOk){S.lectOk=false;return;}
+  const {data,error}=await sb.from('docs_lecturas').select('publicacion_id,version,leido_at').eq('empresa_id',S.empresaId).eq('usuario_id',S.uid);
+  if(error){S.lectOk=false;return;}S.lectOk=true;
+  (data||[]).forEach(l=>{const x=S.leidas[l.publicacion_id];if(!x||l.version>x.v)S.leidas[l.publicacion_id]={v:l.version,at:l.leido_at};});
+  if(S.puede){try{const all=await sbAll(()=>sb.from('docs_lecturas').select('publicacion_id,version,usuario_id').eq('empresa_id',S.empresaId));
+    const ver={};S.pubs.forEach(p=>ver[p.id]=p.version);all.forEach(l=>{if(ver[l.publicacion_id]===l.version)S.lectCnt[l.publicacion_id]=(S.lectCnt[l.publicacion_id]||0)+1;});}catch(e){}}
+}
+function leidaActual(p){const x=S.leidas[p.id];return !!(x&&x.v>=p.version);}
+function lectTag(p){if(!S.lectOk)return '';const x=S.leidas[p.id];if(x&&x.v>=p.version)return '<span class="tag t-ok">✅ Visto</span>';if(x)return '<span class="tag t-warn" title="Se publicó una versión nueva desde que lo leíste">🔄 Actualizado</span>';return '<span class="tag t-nav">🆕 Nuevo</span>';}
 async function sbAll(build){const out=[];for(let from=0;;from+=1000){const {data,error}=await build().range(from,from+999);if(error)throw error;out.push(...(data||[]));if(!data||data.length<1000)break;}return out;}
 async function loadOrigenes(){
   if(!S.clientes.length){const {data}=await sb.from('clientes').select('id,codigo,razon_social').eq('empresa_id',S.empresaId).order('razon_social');S.clientes=data||[];}
@@ -322,7 +362,7 @@ async function loadOrigenes(){
 
 // ══════════════ MURO ══════════════
 let _muroT=null;
-function setupNote(){return S.sqlOk?'':`<div class="note">⚠️ Para empezar a usar CONTROL DOCS hay que correr <b>docs_etapa1_setup.sql</b> en Supabase → SQL Editor (una sola vez) y recargar esta página.</div>`;}
+function setupNote(){if(S.sqlOk&&!S.lectOk&&S.puede)return `<div class="note">ℹ️ Para activar la <b>confirmación de lectura</b> corré <b>docs_etapa2_setup.sql</b> en Supabase → SQL Editor y recargá. Todo lo demás ya funciona.</div>`;return S.sqlOk?'':`<div class="note">⚠️ Para empezar a usar CONTROL DOCS hay que correr <b>docs_etapa1_setup.sql</b> en Supabase → SQL Editor (una sola vez) y recargar esta página.</div>`;}
 function viewMuro(){
   const t=today();
   let L=S.pubs.filter(p=>estadoPub(p)==='publicado');
@@ -335,45 +375,61 @@ function viewMuro(){
   const seg=(k,v,l)=>`<button class="btn btn-sm ${F[k]===v?'btn-gold':'btn-ghost'}" onclick="F.${k}='${v}';viewMuro()">${l}</button>`;
   $('view').innerHTML=setupNote()+`<div class="filters">
     <div class="seg">${seg('muroTipo','todos','Todos')}${seg('muroTipo','pedido','📋 Pedidos')}${seg('muroTipo','orden_produccion','🗓️ Órdenes de producción')}</div>
-    <div class="seg">${seg('muroCuando','hoy','Hoy')}${seg('muroCuando','manana','Mañana')}${seg('muroCuando','proximos','Próximos')}${seg('muroCuando','todas','Todas')}</div></div>
+    <div class="seg">${seg('muroCuando','hoy','Hoy')}${seg('muroCuando','manana','Mañana')}${seg('muroCuando','proximos','Próximos')}${seg('muroCuando','todas','Todas')}</div>
+    <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="go('pantalla')">📺 Modo pantalla</button></div>
    ${L.length?`<div class="wall">${L.map(cardHTML).join('')}</div>`:`<div class="card"><div class="empty">📭 No hay documentos publicados para este filtro.${S.puede?'<br><br><button class="btn btn-gold" onclick="go(\'publicar\')">📤 Publicar un documento</button>':''}</div></div>`}`;
   clearInterval(_muroT);_muroT=setInterval(async()=>{if(cur!=='muro'||document.hidden||$('visor').classList.contains('show')||$('modalBg').classList.contains('show'))return;try{await loadPubs();buildNav();viewMuro();}catch(e){}},60000);
 }
 function cardHTML(p){const c=p.contenido||{};const op=p.tipo==='orden_produccion';const fr=String(p.fecha_ref||'').slice(0,10);
   const tot=op?`<span><b>${nf(c.total)}</b> a producir</span><span><b>${(c.items||[]).length}</b> productos</span>`:`<span><b>${nf(c.total_unidades)}</b> unidades</span><span><b>${nf(c.total_cajas)}</b> cajas</span>`;
   const ch=S.puede&&S.cambios[p.id]&&S.cambios[p.id].cambiado?' <span class="tag t-warn">⚠ cambió</span>':'';
-  return `<div class="dcard${op?' op':''}" onclick="verPub('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')verPub('${p.id}')">
+  const nuevo=S.lectOk&&!leidaActual(p);
+  return `<div class="dcard${op?' op':''}${nuevo?' nuevo':''}" onclick="verPub('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')verPub('${p.id}')">
    <div class="k">${op?'🗓️ Orden de producción':'📋 Pedido'}</div>
    <div class="tt">${esc(c.codigo||p.origen_codigo||'')}</div>
    ${op?`<div class="cl">Producir el ${esc(fechaLarga(c.fecha_produccion))}</div>`:`<div class="cl">${esc((c.cliente&&c.cliente.nombre)||'—')}</div>`}
    <div class="when">Entrega: <b>${esc(fechaLarga(fr))}</b>${!op&&c.orden_compra?' · OC '+esc(c.orden_compra):''}</div>
    <div class="tot">${tot}</div>
-   <div class="meta"><span>v${p.version} · ${fmtTs(p.publicado_at)}</span>${S.puede?`<span class="tag t-nav">Para: ${esc(rolesTxt(p.roles))}</span>`:''}${ch}</div></div>`;}
+   <div class="meta">${lectTag(p)}<span>v${p.version} · ${fmtTs(p.publicado_at)}</span>${S.puede?`<span class="tag t-nav">Para: ${esc(rolesTxt(p.roles))}</span>`:''}${ch}</div></div>`;}
 
 // ══════════════ VISOR GRANDE ══════════════
-function verPub(id){const p=S.pubs.find(x=>x.id===id);if(!p)return;abrirVisor(p.contenido||{},{version:p.version,publicado_at:p.publicado_at,por:p.publicado_por_nombre});}
-function abrirVisor(c,meta){meta=meta||{};const v=$('visor');v.style.setProperty('--vz',lsGet('docs_vz','22')+'px');
-  const e=S.empresa||{};const logo=(e.etiqueta_config&&e.etiqueta_config.logo)||'';const op=c.tipo==='orden_produccion';
+function verPub(id){const p=S.pubs.find(x=>x.id===id);if(!p)return;abrirVisor(p.contenido||{},{version:p.version,publicado_at:p.publicado_at,por:p.publicado_por_nombre,pubId:p.id});}
+// Arma el documento (lo usan el visor y el modo pantalla). o.items = renglones a mostrar, o.pag/o.pags = página
+function docHTML(c,o){o=o||{};const e=S.empresa||{};const logo=(e.etiqueta_config&&e.etiqueta_config.logo)||'';const op=c.tipo==='orden_produccion';
+  const items=o.items||c.items||[];const ultima=!o.pags||o.pag===o.pags;
+  const pg=o.pags>1?`<span class="pt-pag">Pág. ${o.pag} de ${o.pags}</span>`:'';
   const head=`<div class="vz-h"><div class="vz-emp">${logo?`<img src="${logo}" alt="">`:''}<div><b>${esc(e.razon_social||'')}</b><br>CONTROL DOCS</div></div>
-   <div class="vz-type"><div class="k">${op?'Orden de producción':'Pedido'}</div><div class="c">${esc(c.codigo||'')}</div></div></div>`;
+   <div class="vz-type"><div class="k">${op?'Orden de producción':'Pedido'}</div><div class="c">${esc(c.codigo||'')}${pg}</div></div></div>`;
   let info,tabla;
   if(op){
     info=`<div class="vz-info"><div><div class="l">Producir el</div><div class="v big">${esc(fechaLarga(c.fecha_produccion))}</div></div><div><div class="l">Entrega</div><div class="v">${esc(fechaLarga(c.fecha_entrega))}</div></div></div>`;
-    tabla=`<div class="tscroll"><table><thead><tr><th class="cdh">Cód.</th><th>Producto</th><th class="num">Cantidad a producir</th></tr></thead><tbody>${(c.items||[]).map(it=>`<tr><td class="cd">${esc(it.codigo||'')}</td><td>${esc(it.producto)}</td><td class="q">${nf(it.producir)}</td></tr>`).join('')||'<tr><td colspan="3">Sin productos</td></tr>'}</tbody>
-     <tfoot><tr><td class="cd"></td><td>TOTAL</td><td class="q">${nf(c.total)}</td></tr></tfoot></table></div>`;
+    tabla=`<div class="tscroll"><table><thead><tr><th class="cdh">Cód.</th><th>Producto</th><th class="num">Cantidad a producir</th></tr></thead><tbody>${items.map(it=>`<tr><td class="cd">${esc(it.codigo||'')}</td><td>${esc(it.producto)}</td><td class="q">${nf(it.producir)}</td></tr>`).join('')||'<tr><td colspan="3">Sin productos</td></tr>'}</tbody>
+     <tfoot>${ultima?`<tr><td class="cd"></td><td>TOTAL</td><td class="q">${nf(c.total)}</td></tr>`:`<tr><td class="cd"></td><td colspan="2" style="color:var(--muted)">Continúa en la página siguiente…</td></tr>`}</tfoot></table></div>`;
   }else{
     const cl=c.cliente||{};
     info=`<div class="vz-info"><div style="grid-column:span 2"><div class="l">Cliente</div><div class="v big">${esc(cl.nombre||'—')}</div>${cl.codigo||cl.localidad?`<div style="font-size:.6em;color:var(--muted)">${esc([cl.codigo,cl.localidad].filter(Boolean).join(' · '))}</div>`:''}</div>
      <div><div class="l">Entrega</div><div class="v big">${esc(fechaLarga(c.fecha_entrega))}</div></div>${c.orden_compra?`<div><div class="l">Orden de compra</div><div class="v">${esc(c.orden_compra)}</div></div>`:''}</div>`;
-    tabla=`<div class="tscroll"><table><thead><tr><th class="cdh">Cód.</th><th>Producto</th><th class="num">Unidades</th><th class="num">Cajas</th></tr></thead><tbody>${(c.items||[]).map(it=>`<tr><td class="cd">${esc(it.codigo||'')}</td><td>${esc(it.producto)}</td><td class="q">${nf(it.unidades)}</td><td class="q">${nf(it.cajas)}</td></tr>`).join('')||'<tr><td colspan="4">Sin artículos</td></tr>'}</tbody>
-     <tfoot><tr><td class="cd"></td><td>TOTAL</td><td class="q">${nf(c.total_unidades)}</td><td class="q">${nf(c.total_cajas)}</td></tr></tfoot></table></div>`;
+    tabla=`<div class="tscroll"><table><thead><tr><th class="cdh">Cód.</th><th>Producto</th><th class="num">Unidades</th><th class="num">Cajas</th></tr></thead><tbody>${items.map(it=>`<tr><td class="cd">${esc(it.codigo||'')}</td><td>${esc(it.producto)}</td><td class="q">${nf(it.unidades)}</td><td class="q">${nf(it.cajas)}</td></tr>`).join('')||'<tr><td colspan="4">Sin artículos</td></tr>'}</tbody>
+     <tfoot>${ultima?`<tr><td class="cd"></td><td>TOTAL</td><td class="q">${nf(c.total_unidades)}</td><td class="q">${nf(c.total_cajas)}</td></tr>`:`<tr><td class="cd"></td><td colspan="3" style="color:var(--muted)">Continúa en la página siguiente…</td></tr>`}</tfoot></table></div>`;
   }
+  const meta=o.meta||{};
   const pie=meta.preview?'<span>Vista previa · todavía no publicado</span>':`<span>Versión ${meta.version||1}${meta.anterior?' (anterior)':''} · publicado ${fmtTs(meta.publicado_at)}${meta.por?' por '+esc(meta.por):''}</span>`;
+  return `<div class="vz">${head}${info}${tabla}<div class="vz-foot">${pie}<span>${op?'':'Documento sin valores · '}${esc(fmtD(today()))}</span></div>${o.extra||''}</div>`;}
+function readBarHTML(pubId){const p=S.pubs.find(x=>x.id===pubId);if(!p||!S.lectOk||estadoPub(p)!=='publicado')return '';
+  const x=S.leidas[p.id];
+  if(x&&x.v>=p.version)return `<div class="vz-read" id="vzRead"><span class="ok">✅ Leíste este documento</span><span style="color:var(--muted)">${fmtTs(x.at)} · versión ${p.version}</span></div>`;
+  return `<div class="vz-read" id="vzRead"><button class="btn btn-gold" onclick="doLeido('${p.id}')">✅ Leí este documento</button><span style="color:var(--muted)">${x?'🔄 Hay una versión nueva desde que lo leíste: revisala y confirmá.':'Confirmá que lo leíste para que quede registrado.'}</span></div>`;}
+async function doLeido(id){const b=document.querySelector('#vzRead .btn');if(b){b.disabled=true;b.textContent='⏳ Guardando…';}
+  const {data,error}=await sb.rpc('docs_marcar_leido',{p_pub:id});
+  if(error){if(b){b.disabled=false;b.textContent='✅ Leí este documento';}return banner('No se pudo registrar la lectura: '+errMsg(error),'err');}
+  S.leidas[id]={v:(data&&data.version)||((S.pubs.find(x=>x.id===id)||{}).version||1),at:(data&&data.leido_at)||new Date().toISOString()};
+  const r=$('vzRead');if(r)r.outerHTML=readBarHTML(id);buildNav();if(cur==='muro')viewMuro();banner('Lectura registrada ✓');}
+function abrirVisor(c,meta){meta=meta||{};const v=$('visor');v.style.setProperty('--vz',lsGet('docs_vz','22')+'px');const op=c.tipo==='orden_produccion';
   v.innerHTML=`<div class="vz-bar"><button class="btn" onclick="cerrarVisor()">✕ Cerrar</button><span class="lbl">${op?'Orden de producción':'Pedido'} ${esc(c.codigo||'')}</span><span class="sp"></span>
    <button class="btn" onclick="vzFont(-2)" title="Letra más chica">A−</button><button class="btn" onclick="vzFont(2)" title="Letra más grande">A+</button>
    <button class="btn" onclick="vzFull()">⛶ Pantalla completa</button><button class="btn" onclick="window.print()">🖨️ Imprimir</button>${meta.preview&&meta.onPub?'<button class="btn btn-gold" onclick="vzPub()">📤 Publicar</button>':''}</div>
    ${meta.preview?'<div class="vz-prev">VISTA PREVIA — así lo va a ver la gente cuando lo publiques</div>':''}
-   <div class="vz">${head}${info}${tabla}<div class="vz-foot">${pie}<span>${op?'':'Documento sin valores · '}${esc(fmtD(today()))}</span></div></div>`;
+   ${docHTML(c,{meta,extra:(meta.pubId&&!meta.anterior)?readBarHTML(meta.pubId):''})}`;
   window._vzPub=meta.onPub||null;v.classList.add('show');v.scrollTop=0;document.body.style.overflow='hidden';}
 function vzPub(){const f=window._vzPub;cerrarVisor();if(f)f();}
 function cerrarVisor(){$('visor').classList.remove('show');document.body.style.overflow='';try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}}
@@ -479,12 +535,21 @@ function viewPubs(){
     {h:'Versión',cls:'num',f:r=>'v'+r.version},
     {h:'Estado',f:r=>estadoTag(r)+(r.estado==='retirado'&&r.motivo_retiro?`<br><span class="cod">${esc(r.motivo_retiro)}</span>`:'')},
     {h:'Para',f:r=>esc(rolesTxt(r.roles))},
+    ...(S.lectOk?[{h:'Leído',cls:'num',f:r=>`<b>${nf(S.lectCnt[r.id]||0)}</b><br><span class="cod">v${r.version}</span>`}]:[]),
     {h:'Publicó',f:r=>`${esc(r.publicado_por_nombre||'—')}<br><span class="cod">${fmtTs(r.publicado_at)}</span>`}],rows,r=>{const c=S.cambios[r.id];const borrado=c&&c.existe===false;const e=estadoPub(r);return [
       {lbl:'👁 Ver',fn:()=>verPub(r.id)},
       {lbl:(c&&c.cambiado&&!borrado)?'🔁 Republicar (cambió)':'🔁 Republicar',cls:(c&&c.cambiado&&!borrado)?'btn-gold':'btn-ghost',dis:borrado,fn:()=>{loadOrigenesQuiet();pubModal(r.tipo,r.origen_id,r);}},
       ...(e!=='retirado'?[{lbl:'✕ Retirar',cls:'btn-danger',fn:()=>retirarModal(r)}]:[]),
+      ...(S.lectOk?[{lbl:'👥 Lecturas',fn:()=>lecturas(r)}]:[]),
       ...(r.version>1?[{lbl:'🕘 Historial',fn:()=>historial(r)}]:[])];});
 }
+async function lecturas(p){const {data,error}=await sb.rpc('docs_lecturas_pub',{p_pub:p.id});
+  if(error)return banner('No se pudieron leer las lecturas: '+errMsg(error),'err');
+  const L=data||[];const ok=L.filter(x=>x.al_dia).length;
+  modal(`<h3>👥 Lecturas · ${esc(p.titulo)}</h3><p class="hint">Versión actual: <b>v${p.version}</b> · para <b>${esc(rolesTxt(p.roles))}</b>. Leyeron <b>${ok}</b> de ${L.length}.</p>
+   <div class="tscroll"><table><thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th></tr></thead><tbody>
+   ${L.map(x=>`<tr><td>${esc(x.nombre||'—')}</td><td>${esc(ROL_LABEL[x.rol]||x.rol||'—')}</td><td>${x.al_dia?`<span class="tag t-ok">✅ Leyó</span> <span class="cod">${fmtTs(x.leido_at)}</span>`:x.version?`<span class="tag t-warn">🔄 Leyó la v${x.version}</span> <span class="cod">${fmtTs(x.leido_at)}</span>`:'<span class="tag t-mut">⏳ Pendiente</span>'}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Sin usuarios en la audiencia</td></tr>'}
+   </tbody></table></div><div class="row"><button class="btn btn-gold" onclick="closeModal()">Cerrar</button></div>`);}
 function loadOrigenesQuiet(){if(S.pedidos==null||S.planes==null)loadOrigenes().catch(()=>{});}
 function retirarModal(p){modal(`<h3>✕ Retirar del muro</h3><p class="hint"><b>${esc(p.titulo)}</b><br>Deja de verse en el muro. No se borra: queda en <b>Retiradas</b> y en Novedades.</p>
    <div class="frm"><label class="lb">Motivo</label><input class="in" id="rt_mot" placeholder="ej: el pedido se reprogramó"></div>
@@ -499,6 +564,91 @@ async function historial(p){const {data,error}=await sb.from('docs_versiones').s
    ${window._hist.map((h,i)=>`<tr><td>v${h.version}</td><td>${fmtTs(h.publicado_at)}</td><td>${esc(h.publicado_por_nombre||'—')}</td><td><button class="btn btn-ghost btn-sm" onclick="verHist(${i})">👁 Ver</button></td></tr>`).join('')}</tbody></table></div>
    <div class="row"><button class="btn btn-gold" onclick="closeModal()">Cerrar</button></div>`);}
 function verHist(i){const h=window._hist[i];if(!h)return;closeModal();abrirVisor(h.contenido||{},{version:h.version,publicado_at:h.publicado_at,por:h.publicado_por_nombre,anterior:true});}
+
+// ══════════════ MODO PANTALLA (TV del galpón) ══════════════
+const PT={cfg:null,slides:[],i:0,t:null,clk:null,poll:null,lock:null,paused:false,mouseT:null,dirty:false};
+function ptCfgDef(){return {tipo:'todos',cuando:'hoyman',seg:20,fs:28};}
+function ptParse(q){const c=ptCfgDef();try{const u=new URLSearchParams(q||'');if(u.get('tipo'))c.tipo=u.get('tipo');if(u.get('cuando'))c.cuando=u.get('cuando');if(+u.get('seg'))c.seg=Math.max(5,Math.min(300,+u.get('seg')));if(+u.get('fs'))c.fs=Math.max(16,Math.min(64,+u.get('fs')));}catch(e){}return c;}
+function ptURL(c){return location.origin+location.pathname+'#pantalla?'+new URLSearchParams({tipo:c.tipo,cuando:c.cuando,seg:c.seg,fs:c.fs,auto:1}).toString();}
+function viewPantalla(){const c=PT.cfg||(PT.cfg=Object.assign(ptCfgDef(),JSON.parse(lsGet('docs_pt','{}')||'{}')));
+  const o=(id,list,v)=>`<select class="in" id="${id}">${list.map(([a,b])=>`<option value="${a}"${String(a)===String(v)?' selected':''}>${b}</option>`).join('')}</select>`;
+  $('view').innerHTML=setupNote()+`<div class="card frm"><div class="card-h"><h3>📺 Modo pantalla</h3></div>
+   <p class="hint">Para una TV o monitor en el galpón: muestra los documentos publicados en grande, uno tras otro, sin menú. Si un documento no entra en la pantalla, lo parte en páginas solas. Se actualiza solo cada minuto y la pantalla no se apaga.</p>
+   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+    <div><label class="lb">Qué mostrar</label>${o('pt_tipo',[['todos','Pedidos y órdenes'],['pedido','Solo pedidos'],['orden_produccion','Solo órdenes de producción']],c.tipo)}</div>
+    <div><label class="lb">Entregas de</label>${o('pt_cuando',[['hoy','Hoy'],['hoyman','Hoy y mañana'],['proximos','Hoy en adelante']],c.cuando)}</div>
+    <div><label class="lb">Segundos por página</label>${o('pt_seg',[[10,'10 s'],[15,'15 s'],[20,'20 s'],[30,'30 s'],[45,'45 s'],[60,'1 minuto']],c.seg)}</div>
+    <div><label class="lb">Tamaño de letra</label>${o('pt_fs',[[22,'Normal'],[28,'Grande'],[34,'Muy grande'],[42,'Enorme']],c.fs)}</div>
+   </div>
+   <div class="row" style="justify-content:flex-start"><button class="btn btn-gold" onclick="ptDesdeForm()">▶ Iniciar modo pantalla</button></div></div>
+   <div class="card"><div class="card-h"><h3>Para dejarlo fijo en una TV</h3></div>
+   <ol class="hint" style="padding-left:18px;margin:0 0 12px">
+    <li>En la TV (o la PC conectada a la TV) entrá a CONTROL MAX con un usuario propio para la pantalla. Conviene crearlo en <b>Configuración MAX → Usuarios</b> con rol <b>Preparador</b>: así ve lo mismo que el galpón.</li>
+    <li>Abrí esta dirección y guardala como favorito o página de inicio: arranca sola en modo pantalla con la configuración de arriba.</li>
+    <li>La primera vez tocá la pantalla una vez para que pase a pantalla completa (el navegador lo exige).</li></ol>
+   <div class="urlbox"><span id="pt_url" style="flex:1">${esc(ptURL(c))}</span><button class="btn btn-ghost btn-sm" onclick="ptCopiar()">📋 Copiar</button></div>
+   <p class="hint" style="margin:10px 0 0">En pantalla: <b>→ / ←</b> pasan de documento, <b>espacio</b> pausa, <b>Esc</b> sale. Con el mouse aparece el botón <b>Salir</b>. Lo que se ve en la TV no cuenta como lectura de nadie.</p></div>`;
+  ['pt_tipo','pt_cuando','pt_seg','pt_fs'].forEach(id=>$(id).addEventListener('change',()=>{ptLeerForm();$('pt_url').textContent=ptURL(PT.cfg);}));}
+function ptLeerForm(){PT.cfg={tipo:$('pt_tipo').value,cuando:$('pt_cuando').value,seg:+$('pt_seg').value,fs:+$('pt_fs').value};lsSet('docs_pt',JSON.stringify(PT.cfg));}
+function ptDesdeForm(){ptLeerForm();ptStart(PT.cfg,true);}
+function ptCopiar(){const t=$('pt_url').textContent;try{navigator.clipboard.writeText(t).then(()=>banner('Dirección copiada ✓'),()=>banner('Copiala a mano: seleccioná el texto','warn'));}catch(e){banner('Copiala a mano: seleccioná el texto','warn');}}
+function ptDocs(){const c=PT.cfg,t=today();const fr=p=>String(p.fecha_ref||'').slice(0,10);
+  let L=S.pubs.filter(p=>estadoPub(p)==='publicado');
+  if(c.tipo!=='todos')L=L.filter(p=>p.tipo===c.tipo);
+  if(c.cuando==='hoy')L=L.filter(p=>fr(p)===t);else if(c.cuando==='hoyman')L=L.filter(p=>fr(p)===t||fr(p)===addDays(t,1));else L=L.filter(p=>!fr(p)||fr(p)>=t);
+  return L.sort((a,b)=>fr(a).localeCompare(fr(b))||(a.tipo===b.tipo?0:a.tipo==='orden_produccion'?-1:1)||String(a.titulo).localeCompare(b.titulo));}
+// Parte un documento en páginas que entren en la pantalla
+function ptPaginar(p){const st=$('pantStage');const c=p.contenido||{};const items=c.items||[];
+  st.innerHTML=docHTML(c,{meta:{version:p.version,publicado_at:p.publicado_at,por:p.publicado_por_nombre}});
+  const vz=st.querySelector('.vz');const H=st.clientHeight;
+  if(!items.length||vz.offsetHeight<=H)return [{p,items,pag:1,pags:1}];
+  const rows=[...vz.querySelectorAll('tbody tr')];const top=vz.getBoundingClientRect().top;
+  const r0=rows[0].getBoundingClientRect().top-top;const rl=rows[rows.length-1].getBoundingClientRect().bottom-top;
+  const tail=vz.offsetHeight-rl;const avail=Math.max(40,H-r0-tail-14);
+  const pages=[];let curr=[],h=0;
+  rows.forEach((tr,i)=>{const rh=tr.getBoundingClientRect().height;if(curr.length&&h+rh>avail){pages.push(curr);curr=[];h=0;}curr.push(items[i]);h+=rh;});
+  if(curr.length)pages.push(curr);
+  return pages.map((it,k)=>({p,items:it,pag:k+1,pags:pages.length}));}
+function ptBuild(){PT.slides=[];ptDocs().forEach(p=>{PT.slides.push(...ptPaginar(p));});PT.dirty=false;}
+function ptShow(){clearTimeout(PT.t);const st=$('pantStage');const n=PT.slides.length;
+  if(!n){st.innerHTML=`<div class="pt-empty"><div style="font-size:60px">📭</div><div class="big">Sin documentos para mostrar</div><div style="font-size:20px">${PT.cfg.cuando==='hoy'?'No hay entregas publicadas para hoy.':PT.cfg.cuando==='hoyman'?'No hay entregas publicadas para hoy ni mañana.':'No hay documentos publicados.'}</div><div style="font-size:15px">La pantalla se actualiza sola cada minuto.</div></div>`;$('ptN').textContent='';ptProg(0);return;}
+  if(PT.i>=n)PT.i=0;if(PT.i<0)PT.i=n-1;
+  const s=PT.slides[PT.i];const docs=[...new Set(PT.slides.map(x=>x.p.id))];const di=docs.indexOf(s.p.id)+1;
+  st.innerHTML=docHTML(s.p.contenido||{},{items:s.items,pag:s.pag,pags:s.pags,meta:{version:s.p.version,publicado_at:s.p.publicado_at,por:s.p.publicado_por_nombre}});
+  $('ptN').textContent=`Documento ${di} de ${docs.length}`+(s.pags>1?` · pág. ${s.pag}/${s.pags}`:'')+(PT.paused?' · ⏸ pausa':'');
+  if(PT.paused)return ptProg(0);
+  ptProg(PT.cfg.seg);
+  PT.t=setTimeout(()=>{PT.i++;if(PT.i>=PT.slides.length){PT.i=0;if(PT.dirty)ptBuild();}ptShow();},PT.cfg.seg*1000);}
+function ptProg(seg){const i=$('ptProg');if(!i)return;i.style.transition='none';i.style.width='0';void i.offsetWidth;if(seg){i.style.transition='width '+seg+'s linear';i.style.width='100%';}}
+function ptClock(){const d=new Date();const c=$('ptClk');if(c)c.textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');const f=$('ptFecha');if(f)f.innerHTML=DIAS[d.getDay()].replace(/^./,x=>x.toUpperCase())+'<br>'+fmtD(today());}
+async function ptWake(){try{if('wakeLock' in navigator){PT.lock=await navigator.wakeLock.request('screen');}}catch(e){}}
+async function ptStart(cfg,gesto){PT.cfg=cfg;PT.i=0;PT.paused=false;
+  let el=$('pant');if(!el){el=document.createElement('div');el.id='pant';document.body.appendChild(el);}
+  const e=S.empresa||{};
+  el.innerHTML=`<div class="pt-strip"><span class="pt-t">CONTROL DOCS</span><span class="pt-e">${esc(e.razon_social||'')}</span><span class="sp"></span><span class="pt-n" id="ptN"></span>
+   <button class="btn btn-sm" onclick="ptMove(-1)">◀</button><button class="btn btn-sm" onclick="ptPausa()">⏯</button><button class="btn btn-sm" onclick="ptMove(1)">▶</button><button class="btn btn-sm" onclick="ptStop()">✕ Salir</button>
+   <span class="pt-d" id="ptFecha"></span><span class="pt-clk" id="ptClk"></span></div><div class="pt-prog"><i id="ptProg"></i></div><div id="pantStage"></div>`;
+  $('pantStage').style.setProperty('--vz',cfg.fs+'px');
+  el.classList.add('show');document.body.style.overflow='hidden';
+  el.onmousemove=()=>{el.classList.add('mouse');clearTimeout(PT.mouseT);PT.mouseT=setTimeout(()=>el.classList.remove('mouse'),3000);};
+  if(gesto){try{if(el.requestFullscreen&&!document.fullscreenElement)await el.requestFullscreen();}catch(x){}}
+  else{const h=document.createElement('div');h.className='pt-hint';h.id='ptHint';h.textContent='👆 Tocá la pantalla para verla completa';el.appendChild(h);el.addEventListener('click',ptFsClick);}
+  ptWake();ptClock();clearInterval(PT.clk);PT.clk=setInterval(ptClock,15000);
+  clearInterval(PT.poll);PT.poll=setInterval(ptRefresh,60000);
+  ptBuild();ptShow();}
+async function ptFsClick(){const el=$('pant');const h=$('ptHint');if(h)h.remove();el.removeEventListener('click',ptFsClick);try{if(el.requestFullscreen&&!document.fullscreenElement)await el.requestFullscreen();}catch(e){}}
+async function ptRefresh(){try{const prev=JSON.stringify(ptDocs().map(p=>p.id+':'+p.version));await loadPubs();const now=JSON.stringify(ptDocs().map(p=>p.id+':'+p.version));
+  if(prev!==now){if(!PT.slides.length){ptBuild();PT.i=0;ptShow();}else PT.dirty=true;}}catch(e){}}
+function ptMove(d){if(!PT.slides.length)return;PT.i+=d;if(PT.i>=PT.slides.length){PT.i=0;if(PT.dirty)ptBuild();}ptShow();}
+function ptPausa(){PT.paused=!PT.paused;ptShow();}
+function ptStop(){clearTimeout(PT.t);clearInterval(PT.clk);clearInterval(PT.poll);try{if(PT.lock)PT.lock.release();}catch(e){}PT.lock=null;
+  try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}
+  const el=$('pant');if(el){el.classList.remove('show');el.innerHTML='';}document.body.style.overflow='';
+  try{history.replaceState(null,'','#pantalla');}catch(e){}go('pantalla');}
+document.addEventListener('keydown',ev=>{const el=$('pant');if(!el||!el.classList.contains('show'))return;
+  if(ev.key==='ArrowRight'){ev.preventDefault();ptMove(1);}else if(ev.key==='ArrowLeft'){ev.preventDefault();ptMove(-1);}else if(ev.key===' '){ev.preventDefault();ptPausa();}else if(ev.key==='Escape'){ev.preventDefault();ptStop();}},true);
+document.addEventListener('visibilitychange',()=>{const el=$('pant');if(!document.hidden&&el&&el.classList.contains('show'))ptWake();});
+let _ptRz=null;window.addEventListener('resize',()=>{const el=$('pant');if(!el||!el.classList.contains('show'))return;clearTimeout(_ptRz);_ptRz=setTimeout(()=>{const id=PT.slides[PT.i]&&PT.slides[PT.i].p.id;ptBuild();const k=PT.slides.findIndex(x=>x.p.id===id);PT.i=k<0?0:k;ptShow();},400);});
 
 // ══════════════ INICIO ══════════════
 function lock(msg){$('splash').innerHTML=`<div style="font-size:34px">🔒</div><div style="font-size:17px;font-weight:800">${msg}</div><a href="/portal.html" style="color:var(--gold);margin-top:8px">← Volver al portal CONTROL MAX</a>`;}
@@ -519,9 +669,11 @@ async function init(){
   await loadPubs();
   $('empName').textContent=S.empresa.razon_social||'';$('whoName').textContent=S.nombre;$('whoRole').textContent=(ROL_LABEL[S.rol]||S.rol)+(S.puede?' · publica':'');
   $('splash').style.display='none';$('app').style.display='block';
-  const h=(location.hash||'').slice(1);go(META[h]?h:'muro');
+  const hh=(location.hash||'').slice(1);const h=hh.split('?')[0];
+  if(h==='pantalla'&&/auto=1/.test(hh)){go('pantalla');PT.cfg=ptParse(hh.split('?')[1]);ptStart(PT.cfg,false);return;}
+  go(META[h]?h:'muro');
 }
-document.addEventListener('visibilitychange',async()=>{if(document.hidden||!S.empresaId||$('modalBg').classList.contains('show'))return;try{await loadPubs();buildNav();if(cur!=='publicar'&&!$('visor').classList.contains('show'))go(cur);}catch(e){}});
+document.addEventListener('visibilitychange',async()=>{if(document.hidden||!S.empresaId||$('modalBg').classList.contains('show'))return;try{await loadPubs();buildNav();if(cur!=='publicar'&&cur!=='pantalla'&&!$('visor').classList.contains('show'))go(cur);}catch(e){}});
 init().catch(e=>{console.error(e);$('splash').innerHTML='<div style="padding:20px">No se pudo iniciar CONTROL DOCS: '+esc(errMsg(e))+'</div><a href="/portal.html" style="color:var(--gold)">← Volver al portal</a>';});
 </script>
 <script src="/cmax-top.js"></script>
