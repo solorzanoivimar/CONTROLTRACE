@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CONTROL MAX — Control Docs</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111D35'/%3E%3Ctext x='32' y='46' font-family='Segoe UI,Arial,sans-serif' font-size='40' font-weight='800' text-anchor='middle' fill='%23C9A84C'%3ED%3C/text%3E%3C/svg%3E">
-<!-- CONTROL DOCS · build v2 · Requiere docs_etapa1_setup.sql y docs_etapa2_setup.sql -->
+<!-- CONTROL DOCS · build v3 · Requiere docs_etapa1_setup.sql y docs_etapa2_setup.sql -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#111D35;--navy2:#1B2A4A;--gold:#C9A84C;--gold-d:#A9842F;--cream:#F5F2EA;--ink:#1C2536;--muted:#6B7689;--line:#E7E2D6;--sage:#4F7D6A;--sage-bg:#E9F1EC;--clay:#B5654A;--clay-bg:#F6EBE6;--amber:#86571A;--amber-bg:#FAF3E2;--steel:#3D5A80;
@@ -76,6 +76,8 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
 .dcard{background:#fff;border:1px solid var(--line);border-left:6px solid var(--navy);border-radius:13px;padding:16px 18px;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:box-shadow .15s,transform .15s}
 .dcard:hover{box-shadow:0 8px 24px rgba(17,29,53,.12);transform:translateY(-1px)}
 .dcard.op{border-left-color:var(--gold)}
+.lin-chip{display:inline-block;background:var(--navy);color:#fff;border-radius:7px;padding:3px 10px;font-size:13px;font-weight:800;letter-spacing:.02em;margin-left:6px;vertical-align:middle}
+.vz-lin{display:inline-block;background:var(--navy);color:#fff;border-radius:.35em;padding:.15em .55em;font-weight:800}
 .dcard .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--steel);font-weight:700}
 .dcard .tt{font-size:22px;font-weight:800;color:var(--navy);line-height:1.15}
 .dcard .cl{font-size:17px;font-weight:600;color:var(--ink)}
@@ -224,7 +226,7 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
 // Lee solo docs_publicaciones (fotos sin valores). Publicar, republicar
 // y retirar se hacen con funciones del servidor (docs_etapa1_setup.sql).
 // ══════════════════════════════════════════════════════════════
-const BUILD='build v2 · v2: confirmación de lectura (Nuevo / Actualizado / Visto en el muro, botón Leí este documento, quién leyó y quién falta en Publicaciones) y modo pantalla para la TV del galpón (rotación automática, páginas automáticas si el documento es largo, refresco cada minuto, pantalla siempre encendida, dirección para guardar en la TV) · v1: muro de documentos (pedidos sin valores y órdenes de producción), visor grande con A+/A−, pantalla completa e impresión; publicar, republicar y retirar con control por rol; aviso cuando el origen cambió; historial de versiones; todo queda en Novedades';
+const BUILD='build v3 · v3: órdenes de producción por línea (Trace v175): la línea se ve en el muro, en el documento y en Publicar; filtro por línea en el muro y en el modo pantalla (cada TV puede mostrar solo su línea) · v2: confirmación de lectura (Nuevo / Actualizado / Visto en el muro, botón Leí este documento, quién leyó y quién falta en Publicaciones) y modo pantalla para la TV del galpón (rotación automática, páginas automáticas si el documento es largo, refresco cada minuto, pantalla siempre encendida, dirección para guardar en la TV) · v1: muro de documentos (pedidos sin valores y órdenes de producción), visor grande con A+/A−, pantalla completa e impresión; publicar, republicar y retirar con control por rol; aviso cuando el origen cambió; historial de versiones; todo queda en Novedades';
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
@@ -235,9 +237,9 @@ const ADMINS=['admin','administrador','dueno','dueño'];
 const TIPO_LBL={pedido:'Pedido',orden_produccion:'Orden de producción'};
 const PP=8;
 
-const S={leidas:{},lectCnt:{},lectOk:true,uid:null,empresaId:null,rol:'',nombre:'',empresa:{},puede:false,sqlOk:true,pubs:[],cambios:{},pedidos:null,pedItems:{},clientes:[],planes:null};
+const S={lineas:[],planLin:{},leidas:{},lectCnt:{},lectOk:true,uid:null,empresaId:null,rol:'',nombre:'',empresa:{},puede:false,sqlOk:true,pubs:[],cambios:{},pedidos:null,pedItems:{},clientes:[],planes:null};
 let cur='muro';
-const F={muroTipo:'todos',muroCuando:'proximos',pubEstado:'activas',pubTipo:'todos',pedTab:'pedido',pedCli:'',pedEntregados:false,pedQ:''};
+const F={muroLinea:'',pubLinea:'',muroTipo:'todos',muroCuando:'proximos',pubEstado:'activas',pubTipo:'todos',pedTab:'pedido',pedCli:'',pedEntregados:false,pedQ:''};
 
 // ── utilidades ──
 const $=id=>document.getElementById(id);
@@ -331,10 +333,22 @@ async function refreshNow(){const b=$('btnRefresh');b.textContent='⏳ Actualiza
 async function loadPubs(){
   const {data,error}=await sb.from('docs_publicaciones').select('*').eq('empresa_id',S.empresaId).order('fecha_ref',{ascending:true});
   if(error){if(/docs_publicaciones|PGRST205|does not exist/i.test(error.message||''))S.sqlOk=false;else throw error;S.pubs=[];}else{S.pubs=data||[];}
+  await loadLineas();
   S.cambios={};
   if(S.puede&&S.sqlOk){const r=await sb.rpc('docs_cambios');if(!r.error)(r.data||[]).forEach(c=>S.cambios[c.id]=c);}
   await loadLecturas();
 }
+// v3: líneas de producción (Trace v175). La línea de cada orden se toma de su plan de origen.
+async function loadLineas(){try{const {data,error}=await sb.from('lineas_produccion').select('id,nombre,activo,orden').eq('empresa_id',S.empresaId);S.lineas=error?[]:(data||[]).sort((a,b)=>((+a.orden||0)-(+b.orden||0))||String(a.nombre).localeCompare(b.nombre));}catch(e){S.lineas=[];}
+  const ids=[...new Set(S.pubs.filter(p=>p.tipo==='orden_produccion'&&p.origen_id).map(p=>p.origen_id))];S.planLin={};
+  for(let i=0;i<ids.length;i+=100){try{const {data}=await sb.from('planes_produccion').select('id,linea_id,capacidad').eq('empresa_id',S.empresaId).in('id',ids.slice(i,i+100));(data||[]).forEach(x=>S.planLin[x.id]={id:x.linea_id||'',nombre:(lineaNom(x.linea_id)||(x.capacidad&&x.capacidad.linea)||'')});}catch(e){}}}
+function lineaNom(id){const l=(S.lineas||[]).find(x=>x.id===id);return l?l.nombre:'';}
+function lineasUsadas(){const m={};S.pubs.forEach(p=>{const l=pubLinea(p);if(l.id)m[l.id]=l.nombre;});(S.lineas||[]).filter(l=>l.activo!==false).forEach(l=>m[l.id]=l.nombre);return Object.keys(m).map(id=>({id,nombre:m[id]})).sort((a,b)=>{const ia=(S.lineas||[]).findIndex(x=>x.id===a.id),ib=(S.lineas||[]).findIndex(x=>x.id===b.id);return (ia<0?99:ia)-(ib<0?99:ib)||a.nombre.localeCompare(b.nombre);});}
+function pubLinea(p){if(!p||p.tipo!=='orden_produccion')return {id:'',nombre:''};const c=p.contenido||{};if(c.linea&&(c.linea.id||c.linea.nombre))return {id:c.linea.id||'',nombre:c.linea.nombre||lineaNom(c.linea.id)};const x=S.planLin[p.origen_id];return x?{id:x.id,nombre:x.nombre}:{id:'',nombre:''};}
+function planLineaRow(pl){return pl?{id:pl.linea_id||'',nombre:lineaNom(pl.linea_id)||(pl.capacidad&&pl.capacidad.linea)||''}:{id:'',nombre:''};}
+function conLinea(c,lin){return (lin&&lin.nombre)?Object.assign({},c,{_linea:lin.nombre}):c;}
+function pasaLinea(p,lid){if(!lid)return true;if(p.tipo!=='orden_produccion')return false;return pubLinea(p).id===lid;}
+function linSeg(k,fn){const L=lineasUsadas();if(!L.length)return '';return `<div class="seg"><button class="btn btn-sm ${!F[k]?'btn-gold':'btn-ghost'}" onclick="F.${k}='';${fn}()">Todas las líneas</button>${L.map(l=>`<button class="btn btn-sm ${F[k]===l.id?'btn-gold':'btn-ghost'}" onclick="F.${k}='${l.id}';${fn}()">🏭 ${esc(l.nombre)}</button>`).join('')}</div>`;}
 async function loadLecturas(){
   S.leidas={};S.lectCnt={};if(!S.sqlOk){S.lectOk=false;return;}
   const {data,error}=await sb.from('docs_lecturas').select('publicacion_id,version,leido_at').eq('empresa_id',S.empresaId).eq('usuario_id',S.uid);
@@ -367,15 +381,17 @@ function viewMuro(){
   const t=today();
   let L=S.pubs.filter(p=>estadoPub(p)==='publicado');
   if(F.muroTipo!=='todos')L=L.filter(p=>p.tipo===F.muroTipo);
+  if(F.muroLinea)L=L.filter(p=>pasaLinea(p,F.muroLinea));
   const fr=p=>String(p.fecha_ref||'').slice(0,10);
   if(F.muroCuando==='hoy')L=L.filter(p=>fr(p)===t);
   else if(F.muroCuando==='manana')L=L.filter(p=>fr(p)===addDays(t,1));
   else if(F.muroCuando==='proximos')L=L.filter(p=>!fr(p)||fr(p)>=t);
-  L.sort((a,b)=>fr(a).localeCompare(fr(b))||(a.tipo===b.tipo?0:a.tipo==='orden_produccion'?-1:1)||String(a.titulo).localeCompare(b.titulo));
+  L.sort((a,b)=>fr(a).localeCompare(fr(b))||(a.tipo===b.tipo?0:a.tipo==='orden_produccion'?-1:1)||pubLinea(a).nombre.localeCompare(pubLinea(b).nombre)||String(a.titulo).localeCompare(b.titulo));
   const seg=(k,v,l)=>`<button class="btn btn-sm ${F[k]===v?'btn-gold':'btn-ghost'}" onclick="F.${k}='${v}';viewMuro()">${l}</button>`;
   $('view').innerHTML=setupNote()+`<div class="filters">
     <div class="seg">${seg('muroTipo','todos','Todos')}${seg('muroTipo','pedido','📋 Pedidos')}${seg('muroTipo','orden_produccion','🗓️ Órdenes de producción')}</div>
     <div class="seg">${seg('muroCuando','hoy','Hoy')}${seg('muroCuando','manana','Mañana')}${seg('muroCuando','proximos','Próximos')}${seg('muroCuando','todas','Todas')}</div>
+    ${linSeg('muroLinea','viewMuro')}
     <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="go('pantalla')">📺 Modo pantalla</button></div>
    ${L.length?`<div class="wall">${L.map(cardHTML).join('')}</div>`:`<div class="card"><div class="empty">📭 No hay documentos publicados para este filtro.${S.puede?'<br><br><button class="btn btn-gold" onclick="go(\'publicar\')">📤 Publicar un documento</button>':''}</div></div>`}`;
   clearInterval(_muroT);_muroT=setInterval(async()=>{if(cur!=='muro'||document.hidden||$('visor').classList.contains('show')||$('modalBg').classList.contains('show'))return;try{await loadPubs();buildNav();viewMuro();}catch(e){}},60000);
@@ -385,7 +401,7 @@ function cardHTML(p){const c=p.contenido||{};const op=p.tipo==='orden_produccion
   const ch=S.puede&&S.cambios[p.id]&&S.cambios[p.id].cambiado?' <span class="tag t-warn">⚠ cambió</span>':'';
   const nuevo=S.lectOk&&!leidaActual(p);
   return `<div class="dcard${op?' op':''}${nuevo?' nuevo':''}" onclick="verPub('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')verPub('${p.id}')">
-   <div class="k">${op?'🗓️ Orden de producción':'📋 Pedido'}</div>
+   <div class="k">${op?'🗓️ Orden de producción':'📋 Pedido'}${op&&pubLinea(p).nombre?`<span class="lin-chip">🏭 ${esc(pubLinea(p).nombre)}</span>`:''}</div>
    <div class="tt">${esc(c.codigo||p.origen_codigo||'')}</div>
    ${op?`<div class="cl">Producir el ${esc(fechaLarga(c.fecha_produccion))}</div>`:`<div class="cl">${esc((c.cliente&&c.cliente.nombre)||'—')}</div>`}
    <div class="when">Entrega: <b>${esc(fechaLarga(fr))}</b>${!op&&c.orden_compra?' · OC '+esc(c.orden_compra):''}</div>
@@ -393,16 +409,17 @@ function cardHTML(p){const c=p.contenido||{};const op=p.tipo==='orden_produccion
    <div class="meta">${lectTag(p)}<span>v${p.version} · ${fmtTs(p.publicado_at)}</span>${S.puede?`<span class="tag t-nav">Para: ${esc(rolesTxt(p.roles))}</span>`:''}${ch}</div></div>`;}
 
 // ══════════════ VISOR GRANDE ══════════════
-function verPub(id){const p=S.pubs.find(x=>x.id===id);if(!p)return;abrirVisor(p.contenido||{},{version:p.version,publicado_at:p.publicado_at,por:p.publicado_por_nombre,pubId:p.id});}
+function verPub(id){const p=S.pubs.find(x=>x.id===id);if(!p)return;abrirVisor(conLinea(p.contenido||{},pubLinea(p)),{version:p.version,publicado_at:p.publicado_at,por:p.publicado_por_nombre,pubId:p.id});}
 // Arma el documento (lo usan el visor y el modo pantalla). o.items = renglones a mostrar, o.pag/o.pags = página
 function docHTML(c,o){o=o||{};const e=S.empresa||{};const logo=(e.etiqueta_config&&e.etiqueta_config.logo)||'';const op=c.tipo==='orden_produccion';
   const items=o.items||c.items||[];const ultima=!o.pags||o.pag===o.pags;
   const pg=o.pags>1?`<span class="pt-pag">Pág. ${o.pag} de ${o.pags}</span>`:'';
   const head=`<div class="vz-h"><div class="vz-emp">${logo?`<img src="${logo}" alt="">`:''}<div><b>${esc(e.razon_social||'')}</b><br>CONTROL DOCS</div></div>
    <div class="vz-type"><div class="k">${op?'Orden de producción':'Pedido'}</div><div class="c">${esc(c.codigo||'')}${pg}</div></div></div>`;
+  const _lin=op?(c._linea||(c.linea&&c.linea.nombre)||''):'';
   let info,tabla;
   if(op){
-    info=`<div class="vz-info"><div><div class="l">Producir el</div><div class="v big">${esc(fechaLarga(c.fecha_produccion))}</div></div><div><div class="l">Entrega</div><div class="v">${esc(fechaLarga(c.fecha_entrega))}</div></div></div>`;
+    info=`<div class="vz-info">${_lin?`<div><div class="l">Línea</div><div class="v big"><span class="vz-lin">🏭 ${esc(_lin)}</span></div></div>`:''}<div><div class="l">Producir el</div><div class="v big">${esc(fechaLarga(c.fecha_produccion))}</div></div><div><div class="l">Entrega</div><div class="v">${esc(fechaLarga(c.fecha_entrega))}</div></div></div>`;
     tabla=`<div class="tscroll"><table><thead><tr><th class="cdh">Cód.</th><th>Producto</th><th class="num">Cantidad a producir</th></tr></thead><tbody>${items.map(it=>`<tr><td class="cd">${esc(it.codigo||'')}</td><td>${esc(it.producto)}</td><td class="q">${nf(it.producir)}</td></tr>`).join('')||'<tr><td colspan="3">Sin productos</td></tr>'}</tbody>
      <tfoot>${ultima?`<tr><td class="cd"></td><td>TOTAL</td><td class="q">${nf(c.total)}</td></tr>`:`<tr><td class="cd"></td><td colspan="2" style="color:var(--muted)">Continúa en la página siguiente…</td></tr>`}</tfoot></table></div>`;
   }else{
@@ -425,7 +442,7 @@ async function doLeido(id){const b=document.querySelector('#vzRead .btn');if(b){
   S.leidas[id]={v:(data&&data.version)||((S.pubs.find(x=>x.id===id)||{}).version||1),at:(data&&data.leido_at)||new Date().toISOString()};
   const r=$('vzRead');if(r)r.outerHTML=readBarHTML(id);buildNav();if(cur==='muro')viewMuro();banner('Lectura registrada ✓');}
 function abrirVisor(c,meta){meta=meta||{};const v=$('visor');v.style.setProperty('--vz',lsGet('docs_vz','22')+'px');const op=c.tipo==='orden_produccion';
-  v.innerHTML=`<div class="vz-bar"><button class="btn" onclick="cerrarVisor()">✕ Cerrar</button><span class="lbl">${op?'Orden de producción':'Pedido'} ${esc(c.codigo||'')}</span><span class="sp"></span>
+  v.innerHTML=`<div class="vz-bar"><button class="btn" onclick="cerrarVisor()">✕ Cerrar</button><span class="lbl">${op?'Orden de producción':'Pedido'} ${esc(c.codigo||'')}${op&&c._linea?' · 🏭 '+esc(c._linea):''}</span><span class="sp"></span>
    <button class="btn" onclick="vzFont(-2)" title="Letra más chica">A−</button><button class="btn" onclick="vzFont(2)" title="Letra más grande">A+</button>
    <button class="btn" onclick="vzFull()">⛶ Pantalla completa</button><button class="btn" onclick="window.print()">🖨️ Imprimir</button>${meta.preview&&meta.onPub?'<button class="btn btn-gold" onclick="vzPub()">📤 Publicar</button>':''}</div>
    ${meta.preview?'<div class="vz-prev">VISTA PREVIA — así lo va a ver la gente cuando lo publiques</div>':''}
@@ -447,7 +464,7 @@ async function viewPublicar(){
    <div class="filters frm"><div class="f" style="min-width:300px;flex:1">Cliente${pairHTML('fcli',[{cod:'',nom:'— Todos —',val:''}].concat(cliList),F.pedCli,v=>{F.pedCli=v;drawPedidos();},'Buscar cliente…')}</div>
      <div class="f">N° de pedido<input class="in" id="fq" style="width:150px" placeholder="PED-…" value="${esc(F.pedQ)}" oninput="F.pedQ=this.value;drawPedidos()"></div>
      <label class="chk" style="padding-bottom:9px"><input type="checkbox" ${F.pedEntregados?'checked':''} onchange="F.pedEntregados=this.checked;drawPedidos()"> Incluir entregados</label></div>`
-   :`<p class="hint">Planes de producción guardados en CONTROL TRACE. La orden muestra <b>solo productos y cantidades a producir</b>.</p>${S.planesErr?`<div class="note">${esc(S.planesErr)}</div>`:''}`}
+   :`<p class="hint">Planes de producción guardados en CONTROL TRACE. La orden muestra <b>solo productos y cantidades a producir</b>${(S.lineas||[]).length?' y la <b>línea</b> a la que corresponde':''}.</p>${S.planesErr?`<div class="note">${esc(S.planesErr)}</div>`:''}${(S.lineas||[]).length?`<div class="filters">${linSeg('pubLinea','drawPlanes')}</div>`:''}`}
    <div id="lst"></div></div>`;
   if(F.pedTab==='pedido')drawPedidos();else drawPlanes();
 }
@@ -473,10 +490,12 @@ function drawPedidos(){
 }
 function drawPlanes(){
   const ent=p=>String(p.fecha_entrega||(p.fecha?addDays(String(p.fecha).slice(0,10),1):'')).slice(0,10);
-  const rows=(S.planes||[]).map(p=>{const it=(Array.isArray(p.plan)?p.plan:[]).filter(x=>(+x.producir||0)>0);return Object.assign({_k:p.id,_lbl:p.codigo,_n:it.length,_t:it.reduce((a,x)=>a+(+x.producir||0),0)},p);});
+  if(F.pedTab==='orden_produccion'&&document.querySelector('#view .filters')&&(S.lineas||[]).length){const f=document.querySelector('#view .filters');f.innerHTML=linSeg('pubLinea','drawPlanes');}
+  const rows=(S.planes||[]).filter(p=>!F.pubLinea||(p.linea_id||'')===F.pubLinea).map(p=>{const it=(Array.isArray(p.plan)?p.plan:[]).filter(x=>(+x.producir||0)>0);return Object.assign({_k:p.id,_lbl:p.codigo+(planLineaRow(p).nombre?' · '+planLineaRow(p).nombre:''),_n:it.length,_t:it.reduce((a,x)=>a+(+x.producir||0),0)},p);});
   rows.sort((a,b)=>ent(b).localeCompare(ent(a)));
   grid('lst','plan',[
     {h:'Plan',f:r=>`<b>${esc(r.codigo||'—')}</b>`},
+    ...((S.lineas||[]).length?[{h:'Línea',f:r=>planLineaRow(r).nombre?`<span class="tag t-nav">🏭 ${esc(planLineaRow(r).nombre)}</span>`:'<span class="cod">Todas</span>'}]:[]),
     {h:'Producción',f:r=>`${esc(diaRel(String(r.fecha||'').slice(0,10)))}<br><span class="cod">${fmtD(r.fecha)}</span>`},
     {h:'Entrega',f:r=>`${esc(diaRel(ent(r)))}<br><span class="cod">${fmtD(ent(r))}</span>`},
     {h:'Productos',cls:'num',f:r=>nf(r._n)},
@@ -488,11 +507,11 @@ function drawPlanes(){
       ...(pub?[{lbl:'🗂️ Ver publicación',fn:()=>verPub(pub.id)}]:[])];});
 }
 async function snap(tipo,id){const fn=tipo==='pedido'?'docs_snap_pedido':'docs_snap_plan';const {data,error}=await sb.rpc(fn,{p_id:id});if(error)throw error;return data;}
-async function previa(tipo,id){try{const c=await snap(tipo,id);abrirVisor(c,{preview:true,onPub:()=>pubModal(tipo,id,pubDeOrigen(tipo,id))});}catch(e){banner('No se pudo armar la vista previa: '+errMsg(e),'err');}}
+async function previa(tipo,id){try{let c=await snap(tipo,id);if(tipo==='orden_produccion')c=conLinea(c,planLineaRow((S.planes||[]).find(x=>x.id===id)));abrirVisor(c,{preview:true,onPub:()=>pubModal(tipo,id,pubDeOrigen(tipo,id))});}catch(e){banner('No se pudo armar la vista previa: '+errMsg(e),'err');}}
 function pubModal(tipo,id,pub){
   let def='',titulo='';
   if(tipo==='pedido'){const p=(S.pedidos||[]).find(x=>x.id===id);if(p){titulo='Pedido '+p.codigo+' · '+cliNom(p.cliente_id);def=addDays(String(p.fecha_entrega||p.fecha||'').slice(0,10),1);}}
-  else{const p=(S.planes||[]).find(x=>x.id===id);if(p){titulo='Orden de producción '+(p.codigo||'');def=addDays(String(p.fecha_entrega||(p.fecha?addDays(String(p.fecha).slice(0,10),1):'')).slice(0,10),1);}}
+  else{const p=(S.planes||[]).find(x=>x.id===id);if(p){titulo='Orden de producción '+(p.codigo||'')+(planLineaRow(p).nombre?' · '+planLineaRow(p).nombre:'');def=addDays(String(p.fecha_entrega||(p.fecha?addDays(String(p.fecha).slice(0,10),1):'')).slice(0,10),1);}}
   if(pub&&!titulo)titulo=pub.titulo;
   const roles=pub?(pub.roles||[]):[];const todos=!roles.length;
   modal(`<h3>${pub?'🔁 Republicar':'📤 Publicar'} en el muro</h3><p class="hint"><b>${esc(titulo)}</b>${pub?`<br>Se reemplaza la versión ${pub.version} por una nueva foto actualizada (la anterior queda en el historial).`:''}</p>
@@ -530,7 +549,7 @@ function viewPubs(){
   const rows=L.map(p=>Object.assign({_k:p.id,_lbl:p.origen_codigo||p.titulo},p));
   grid('lst','pubs',[
     {h:'Tipo',f:r=>r.tipo==='pedido'?'📋 Pedido':'🗓️ Orden'},
-    {h:'Documento',f:r=>`<b>${esc(r.titulo)}</b>`},
+    {h:'Documento',f:r=>`<b>${esc(r.titulo)}</b>${pubLinea(r).nombre?` <span class="tag t-nav">🏭 ${esc(pubLinea(r).nombre)}</span>`:''}`},
     {h:'Entrega',f:r=>`${esc(diaRel(String(r.fecha_ref||'').slice(0,10)))}<br><span class="cod">${fmtD(r.fecha_ref)}</span>`},
     {h:'Versión',cls:'num',f:r=>'v'+r.version},
     {h:'Estado',f:r=>estadoTag(r)+(r.estado==='retirado'&&r.motivo_retiro?`<br><span class="cod">${esc(r.motivo_retiro)}</span>`:'')},
@@ -563,19 +582,20 @@ async function historial(p){const {data,error}=await sb.from('docs_versiones').s
    <tr><td><b>v${p.version}</b> <span class="tag t-ok">actual</span></td><td>${fmtTs(p.publicado_at)}</td><td>${esc(p.publicado_por_nombre||'—')}</td><td><button class="btn btn-ghost btn-sm" onclick="closeModal();verPub('${p.id}')">👁 Ver</button></td></tr>
    ${window._hist.map((h,i)=>`<tr><td>v${h.version}</td><td>${fmtTs(h.publicado_at)}</td><td>${esc(h.publicado_por_nombre||'—')}</td><td><button class="btn btn-ghost btn-sm" onclick="verHist(${i})">👁 Ver</button></td></tr>`).join('')}</tbody></table></div>
    <div class="row"><button class="btn btn-gold" onclick="closeModal()">Cerrar</button></div>`);}
-function verHist(i){const h=window._hist[i];if(!h)return;closeModal();abrirVisor(h.contenido||{},{version:h.version,publicado_at:h.publicado_at,por:h.publicado_por_nombre,anterior:true});}
+function verHist(i){const h=window._hist[i];if(!h)return;closeModal();abrirVisor(conLinea(h.contenido||{},S.planLin[(S.pubs.find(x=>x.id===h.publicacion_id)||{}).origen_id]),{version:h.version,publicado_at:h.publicado_at,por:h.publicado_por_nombre,anterior:true});}
 
 // ══════════════ MODO PANTALLA (TV del galpón) ══════════════
 const PT={cfg:null,slides:[],i:0,t:null,clk:null,poll:null,lock:null,paused:false,mouseT:null,dirty:false};
-function ptCfgDef(){return {tipo:'todos',cuando:'hoyman',seg:20,fs:28};}
-function ptParse(q){const c=ptCfgDef();try{const u=new URLSearchParams(q||'');if(u.get('tipo'))c.tipo=u.get('tipo');if(u.get('cuando'))c.cuando=u.get('cuando');if(+u.get('seg'))c.seg=Math.max(5,Math.min(300,+u.get('seg')));if(+u.get('fs'))c.fs=Math.max(16,Math.min(64,+u.get('fs')));}catch(e){}return c;}
-function ptURL(c){return location.origin+location.pathname+'#pantalla?'+new URLSearchParams({tipo:c.tipo,cuando:c.cuando,seg:c.seg,fs:c.fs,auto:1}).toString();}
+function ptCfgDef(){return {tipo:'todos',cuando:'hoyman',seg:20,fs:28,linea:''};}
+function ptParse(q){const c=ptCfgDef();try{const u=new URLSearchParams(q||'');if(u.get('tipo'))c.tipo=u.get('tipo');if(u.get('linea'))c.linea=u.get('linea');if(u.get('cuando'))c.cuando=u.get('cuando');if(+u.get('seg'))c.seg=Math.max(5,Math.min(300,+u.get('seg')));if(+u.get('fs'))c.fs=Math.max(16,Math.min(64,+u.get('fs')));}catch(e){}return c;}
+function ptURL(c){const q={tipo:c.tipo,cuando:c.cuando,seg:c.seg,fs:c.fs,auto:1};if(c.linea)q.linea=c.linea;return location.origin+location.pathname+'#pantalla?'+new URLSearchParams(q).toString();}
 function viewPantalla(){const c=PT.cfg||(PT.cfg=Object.assign(ptCfgDef(),JSON.parse(lsGet('docs_pt','{}')||'{}')));
   const o=(id,list,v)=>`<select class="in" id="${id}">${list.map(([a,b])=>`<option value="${a}"${String(a)===String(v)?' selected':''}>${b}</option>`).join('')}</select>`;
   $('view').innerHTML=setupNote()+`<div class="card frm"><div class="card-h"><h3>📺 Modo pantalla</h3></div>
    <p class="hint">Para una TV o monitor en el galpón: muestra los documentos publicados en grande, uno tras otro, sin menú. Si un documento no entra en la pantalla, lo parte en páginas solas. Se actualiza solo cada minuto y la pantalla no se apaga.</p>
    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
     <div><label class="lb">Qué mostrar</label>${o('pt_tipo',[['todos','Pedidos y órdenes'],['pedido','Solo pedidos'],['orden_produccion','Solo órdenes de producción']],c.tipo)}</div>
+    ${lineasUsadas().length?`<div><label class="lb">Línea de producción</label>${o('pt_linea',[['','Todas las líneas']].concat(lineasUsadas().map(l=>[l.id,'🏭 '+l.nombre+' (solo sus órdenes)'])),c.linea||'')}</div>`:''}
     <div><label class="lb">Entregas de</label>${o('pt_cuando',[['hoy','Hoy'],['hoyman','Hoy y mañana'],['proximos','Hoy en adelante']],c.cuando)}</div>
     <div><label class="lb">Segundos por página</label>${o('pt_seg',[[10,'10 s'],[15,'15 s'],[20,'20 s'],[30,'30 s'],[45,'45 s'],[60,'1 minuto']],c.seg)}</div>
     <div><label class="lb">Tamaño de letra</label>${o('pt_fs',[[22,'Normal'],[28,'Grande'],[34,'Muy grande'],[42,'Enorme']],c.fs)}</div>
@@ -588,17 +608,18 @@ function viewPantalla(){const c=PT.cfg||(PT.cfg=Object.assign(ptCfgDef(),JSON.pa
     <li>La primera vez tocá la pantalla una vez para que pase a pantalla completa (el navegador lo exige).</li></ol>
    <div class="urlbox"><span id="pt_url" style="flex:1">${esc(ptURL(c))}</span><button class="btn btn-ghost btn-sm" onclick="ptCopiar()">📋 Copiar</button></div>
    <p class="hint" style="margin:10px 0 0">En pantalla: <b>→ / ←</b> pasan de documento, <b>espacio</b> pausa, <b>Esc</b> sale. Con el mouse aparece el botón <b>Salir</b>. Lo que se ve en la TV no cuenta como lectura de nadie.</p></div>`;
-  ['pt_tipo','pt_cuando','pt_seg','pt_fs'].forEach(id=>$(id).addEventListener('change',()=>{ptLeerForm();$('pt_url').textContent=ptURL(PT.cfg);}));}
-function ptLeerForm(){PT.cfg={tipo:$('pt_tipo').value,cuando:$('pt_cuando').value,seg:+$('pt_seg').value,fs:+$('pt_fs').value};lsSet('docs_pt',JSON.stringify(PT.cfg));}
+  ['pt_tipo','pt_cuando','pt_seg','pt_fs','pt_linea'].filter(id=>$(id)).forEach(id=>$(id).addEventListener('change',()=>{ptLeerForm();$('pt_url').textContent=ptURL(PT.cfg);}));}
+function ptLeerForm(){PT.cfg={tipo:$('pt_tipo').value,cuando:$('pt_cuando').value,seg:+$('pt_seg').value,fs:+$('pt_fs').value,linea:$('pt_linea')?$('pt_linea').value:''};lsSet('docs_pt',JSON.stringify(PT.cfg));}
 function ptDesdeForm(){ptLeerForm();ptStart(PT.cfg,true);}
 function ptCopiar(){const t=$('pt_url').textContent;try{navigator.clipboard.writeText(t).then(()=>banner('Dirección copiada ✓'),()=>banner('Copiala a mano: seleccioná el texto','warn'));}catch(e){banner('Copiala a mano: seleccioná el texto','warn');}}
 function ptDocs(){const c=PT.cfg,t=today();const fr=p=>String(p.fecha_ref||'').slice(0,10);
   let L=S.pubs.filter(p=>estadoPub(p)==='publicado');
   if(c.tipo!=='todos')L=L.filter(p=>p.tipo===c.tipo);
+  if(c.linea)L=L.filter(p=>pasaLinea(p,c.linea));
   if(c.cuando==='hoy')L=L.filter(p=>fr(p)===t);else if(c.cuando==='hoyman')L=L.filter(p=>fr(p)===t||fr(p)===addDays(t,1));else L=L.filter(p=>!fr(p)||fr(p)>=t);
-  return L.sort((a,b)=>fr(a).localeCompare(fr(b))||(a.tipo===b.tipo?0:a.tipo==='orden_produccion'?-1:1)||String(a.titulo).localeCompare(b.titulo));}
+  return L.sort((a,b)=>fr(a).localeCompare(fr(b))||(a.tipo===b.tipo?0:a.tipo==='orden_produccion'?-1:1)||pubLinea(a).nombre.localeCompare(pubLinea(b).nombre)||String(a.titulo).localeCompare(b.titulo));}
 // Parte un documento en páginas que entren en la pantalla
-function ptPaginar(p){const st=$('pantStage');const c=p.contenido||{};const items=c.items||[];
+function ptPaginar(p){const st=$('pantStage');const c=conLinea(p.contenido||{},pubLinea(p));const items=c.items||[];
   st.innerHTML=docHTML(c,{meta:{version:p.version,publicado_at:p.publicado_at,por:p.publicado_por_nombre}});
   const vz=st.querySelector('.vz');const H=st.clientHeight;
   if(!items.length||vz.offsetHeight<=H)return [{p,items,pag:1,pags:1}];
@@ -614,7 +635,7 @@ function ptShow(){clearTimeout(PT.t);const st=$('pantStage');const n=PT.slides.l
   if(!n){st.innerHTML=`<div class="pt-empty"><div style="font-size:60px">📭</div><div class="big">Sin documentos para mostrar</div><div style="font-size:20px">${PT.cfg.cuando==='hoy'?'No hay entregas publicadas para hoy.':PT.cfg.cuando==='hoyman'?'No hay entregas publicadas para hoy ni mañana.':'No hay documentos publicados.'}</div><div style="font-size:15px">La pantalla se actualiza sola cada minuto.</div></div>`;$('ptN').textContent='';ptProg(0);return;}
   if(PT.i>=n)PT.i=0;if(PT.i<0)PT.i=n-1;
   const s=PT.slides[PT.i];const docs=[...new Set(PT.slides.map(x=>x.p.id))];const di=docs.indexOf(s.p.id)+1;
-  st.innerHTML=docHTML(s.p.contenido||{},{items:s.items,pag:s.pag,pags:s.pags,meta:{version:s.p.version,publicado_at:s.p.publicado_at,por:s.p.publicado_por_nombre}});
+  st.innerHTML=docHTML(conLinea(s.p.contenido||{},pubLinea(s.p)),{items:s.items,pag:s.pag,pags:s.pags,meta:{version:s.p.version,publicado_at:s.p.publicado_at,por:s.p.publicado_por_nombre}});
   $('ptN').textContent=`Documento ${di} de ${docs.length}`+(s.pags>1?` · pág. ${s.pag}/${s.pags}`:'')+(PT.paused?' · ⏸ pausa':'');
   if(PT.paused)return ptProg(0);
   ptProg(PT.cfg.seg);
@@ -625,7 +646,7 @@ async function ptWake(){try{if('wakeLock' in navigator){PT.lock=await navigator.
 async function ptStart(cfg,gesto){PT.cfg=cfg;PT.i=0;PT.paused=false;
   let el=$('pant');if(!el){el=document.createElement('div');el.id='pant';document.body.appendChild(el);}
   const e=S.empresa||{};
-  el.innerHTML=`<div class="pt-strip"><span class="pt-t">CONTROL DOCS</span><span class="pt-e">${esc(e.razon_social||'')}</span><span class="sp"></span><span class="pt-n" id="ptN"></span>
+  el.innerHTML=`<div class="pt-strip"><span class="pt-t">CONTROL DOCS</span><span class="pt-e">${esc(e.razon_social||'')}${cfg.linea&&lineaNom(cfg.linea)?' · 🏭 '+esc(lineaNom(cfg.linea)):''}</span><span class="sp"></span><span class="pt-n" id="ptN"></span>
    <button class="btn btn-sm" onclick="ptMove(-1)">◀</button><button class="btn btn-sm" onclick="ptPausa()">⏯</button><button class="btn btn-sm" onclick="ptMove(1)">▶</button><button class="btn btn-sm" onclick="ptStop()">✕ Salir</button>
    <span class="pt-d" id="ptFecha"></span><span class="pt-clk" id="ptClk"></span></div><div class="pt-prog"><i id="ptProg"></i></div><div id="pantStage"></div>`;
   $('pantStage').style.setProperty('--vz',cfg.fs+'px');
