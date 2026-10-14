@@ -344,7 +344,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v11.2 · Caja y Banco: la referencia de cada movimiento es un enlace que abre el comprobante de origen (recibo, orden de pago, cheque, factura, compra o el movimiento de la otra cuenta) · v11.1: Inventario: buscadores de artículo con Cód. + nombre (materia prima, productos, insumos, stock, ajustes, movimientos, costos); Costos: costeo de producto con su estructura completa (MP + insumos + gastos op., mano de obra, flete, otros, precio de venta y margen), como tenía TRACE · v11.0: clientes, proveedores y artículos con Cód. + nombre también en los filtros de Ventas y Compras y en todos los formularios de Compras (comprobante, gasto, NC/ND, remito manual, pagos); Enter pasa de campo en campo; Remitos: una sola casilla para seleccionar y facturar varios; Nuevo pedido igual que TRACE (fecha del pedido, fecha de entrega, OC, productos por código o nombre, Enter) · v10.9: números (comprobantes, CUIT, códigos, importes) con la fuente del sistema: se ven nítidos, no pixelados · v10.8: comprobante de venta: cliente y artículos con Cód. + nombre, Enter pasa de campo en campo y al siguiente artículo, sin columna Unidad, descuento % y $ (combinables); Ventas y Compras: listas de 8 por página con selector y barra de acciones arriba; sin columna CAE · v10.7: cantidad por defecto en muestras en la ficha de producto (la usa TRACE para el remito de muestra) · v10.6: sin PIN en PLUS: las operaciones se confirman y quedan registradas en Auditoría con el usuario; imprimir cartera de cheques · v10.5: caja: corregir el saldo de apertura de la caja abierta (con PIN) · v10.4: descuento global por % o por importe; unidades de medida en lista cerrada también en ventas; editar comprobantes de compra/gasto (sin pagos) y NC en X de venta · v10.3: compras: unidades de medida en lista cerrada; recepciones de TRACE pasan por bulto (o kg) respetando lo cargado; al volver a TRACE se recalcula bien el $/kg; reparador de precios de recepciones · v10.2: recepciones de TRACE ordenadas por correlativo de lote; los acondicionamientos (y reingresos por devolución) ya no aparecen en PLUS · v10.1: crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build v11.4 · remitos de TRACE: un renglón por artículo (se suman los lotes) en la factura, en el detalle y en la lista; al facturar varios remitos juntos también se unifican · v11.3: Compras y Gastos: carga desde PDF o foto del comprobante (IA): completa tipo, número, fechas, proveedor por CUIT, renglones o importes, percepciones y total; avisa duplicados y diferencias; el archivo queda guardado con la compra · v11.2: Caja y Banco: la referencia de cada movimiento es un enlace que abre el comprobante de origen (recibo, orden de pago, cheque, factura, compra o el movimiento de la otra cuenta) · v11.1: Inventario: buscadores de artículo con Cód. + nombre (materia prima, productos, insumos, stock, ajustes, movimientos, costos); Costos: costeo de producto con su estructura completa (MP + insumos + gastos op., mano de obra, flete, otros, precio de venta y margen), como tenía TRACE · v11.0: clientes, proveedores y artículos con Cód. + nombre también en los filtros de Ventas y Compras y en todos los formularios de Compras (comprobante, gasto, NC/ND, remito manual, pagos); Enter pasa de campo en campo; Remitos: una sola casilla para seleccionar y facturar varios; Nuevo pedido igual que TRACE (fecha del pedido, fecha de entrega, OC, productos por código o nombre, Enter) · v10.9: números (comprobantes, CUIT, códigos, importes) con la fuente del sistema: se ven nítidos, no pixelados · v10.8: comprobante de venta: cliente y artículos con Cód. + nombre, Enter pasa de campo en campo y al siguiente artículo, sin columna Unidad, descuento % y $ (combinables); Ventas y Compras: listas de 8 por página con selector y barra de acciones arriba; sin columna CAE · v10.7: cantidad por defecto en muestras en la ficha de producto (la usa TRACE para el remito de muestra) · v10.6: sin PIN en PLUS: las operaciones se confirman y quedan registradas en Auditoría con el usuario; imprimir cartera de cheques · v10.5: caja: corregir el saldo de apertura de la caja abierta (con PIN) · v10.4: descuento global por % o por importe; unidades de medida en lista cerrada también en ventas; editar comprobantes de compra/gasto (sin pagos) y NC en X de venta · v10.3: compras: unidades de medida en lista cerrada; recepciones de TRACE pasan por bulto (o kg) respetando lo cargado; al volver a TRACE se recalcula bien el $/kg; reparador de precios de recepciones · v10.2: recepciones de TRACE ordenadas por correlativo de lote; los acondicionamientos (y reingresos por devolución) ya no aparecen en PLUS · v10.1: crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9</div>
 </nav>
 
 <!-- MAIN -->
@@ -674,6 +674,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
   <div class="ph">
     <div><div class="ph-title">Compras</div><div class="ph-sub">Comprobantes (con las recepciones de TRACE), gastos, remitos, pagos y cuentas corrientes</div></div>
     <div class="ph-actions">
+      <button class="btn btn-outline btn-sm" onclick="nuevaCompra('compra');cpIaPick()" title="Subí el PDF o una foto del comprobante y se completan los datos solos">📎 Desde PDF / foto</button>
       <button class="btn btn-outline btn-sm" onclick="nuevaCompra('gasto')">＋ Gasto</button>
       <button class="btn btn-outline btn-sm" onclick="abrirPago()">💳 Pago</button>
       <button class="btn btn-gold" onclick="nuevaCompra('compra')">＋ Registrar compra</button>
@@ -725,7 +726,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
   <div class="tab-pane" id="tc-gas">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
       <span class="small muted">Egresos no inventariables: servicios, alquileres, sueldos, combustible, reparaciones, honorarios, fletes, impuestos…</span>
-      <button class="btn btn-gold" onclick="nuevaCompra('gasto')">＋ Registrar gasto</button>
+      <span><button class="btn btn-outline" onclick="nuevaCompra('gasto');cpIaPick()" title="Subí el PDF o una foto del comprobante y se completan los datos solos">📎 Gasto desde PDF / foto</button> <button class="btn btn-gold" onclick="nuevaCompra('gasto')">＋ Registrar gasto</button></span>
     </div>
     <div class="kpi-grid">
       <div class="kpi k-navy"><div class="kpi-lbl">Gastos (período)</div><div class="kpi-val sm" id="gas-k1">—</div></div>
@@ -1491,6 +1492,11 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
     <div class="mhdr"><div><div class="mhdr-title" id="cp-title">Registrar comprobante de compra</div><div class="mhdr-sub" id="cp-sub">—</div></div><button class="mclose" onclick="closeM('m-cpa')">✕</button></div>
     <div class="mbody">
       <div id="cp-origen"></div>
+      <div id="cp-ia-bar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1.5px dashed #c9a24b;background:#fdf8ec;border-radius:8px;padding:10px 12px;margin-bottom:12px" ondragover="event.preventDefault();this.style.background='#f8eccb'" ondragleave="this.style.background='#fdf8ec'" ondrop="event.preventDefault();this.style.background='#fdf8ec';cpIaArchivo(event.dataTransfer.files[0])">
+        <span style="font-size:20px">📎</span><div style="flex:1;min-width:220px"><b>¿Tenés el comprobante en PDF o foto?</b><div class="small muted">Subilo (o arrastralo acá) y los datos se completan solos. Después revisás y registrás.</div></div>
+        <button type="button" class="btn btn-gold btn-sm" onclick="cpIaPick()">📄 Subir PDF / foto</button><button type="button" class="btn btn-outline btn-sm" onclick="cpIaPick(true)" title="Desde el celular: abre la cámara">📷 Sacar foto</button>
+        <input type="file" id="cp-ia-file" accept="application/pdf,image/*" style="display:none" onchange="cpIaArchivo(this.files[0])"></div>
+      <div id="cp-ia-res"></div>
       <div class="fsec"><div class="fsec-title">Comprobante del proveedor</div>
         <div class="fgrid fgrid-4">
           <div class="fgroup"><label class="flabel">Tipo <span class="req">*</span></label><select class="fctl" id="cp-tipo" onchange="cpTipoX();cpCalc()"><option>Factura A</option><option>Factura B</option><option>Factura C</option><option>Factura M</option><option>Comprobante X</option><option>Ticket</option><option>Recibo</option><option>Sin comprobante</option></select></div>
@@ -2731,6 +2737,10 @@ function precioEntItem(e,i){ if(num(i.precio)>0) return num(i.precio); if(e&&e.e
   let best=null; const nom=(i.producto_nombre||'').toUpperCase();
   (D.enti||[]).forEach(x=>{ if(num(x.precio)>0&&(x.producto_nombre||'').toUpperCase()===nom){ const ex=(D.ent||[]).find(y=>y.id===x.entrega_id); if(ex&&ex.cliente_id===e.cliente_id&&ex.estado!=='anulada'&&(!best||(ex.fecha||'')>=best.f)) best={f:ex.fecha||'',p:num(x.precio)}; } });
   return best?best.p:0; }
+// v11.4: un renglón por artículo (los remitos de TRACE vienen con un renglón por lote)
+function itemsEntregaAgrup(e){ const m=new Map(); itemsEntrega(e.id).forEach(i=>{ const pr=precioEntItem(e,i); const k=(i.producto_id||String(i.producto_nombre||'').toUpperCase())+'|'+r2(pr);
+  let g=m.get(k); if(!g){ g={producto_id:i.producto_id, producto_nombre:i.producto_nombre, cantidad:0, cajas:0, precio:pr, lotes:[]}; m.set(k,g); }
+  g.cantidad+=num(i.cantidad); g.cajas+=num(i.cajas); if(i.lote_ref&&!g.lotes.includes(i.lote_ref)) g.lotes.push(i.lote_ref); }); return [...m.values()]; }
 function importeEntrega(e){ const g=sumBy(itemsEntrega(e.id),i=>precioEntItem(e,i)*num(i.cantidad)); const d=e.descuento_tipo==='pct'?g*num(e.descuento_valor)/100:(e.descuento_tipo==='monto'?Math.min(num(e.descuento_valor),g):0); return {bruto:g, desc:d, neto:g-d}; }
 function facturaDeEntrega(eid){ return (D.cv||[]).find(c=>c.estado!=='anulada'&&Array.isArray(c.entrega_ids)&&c.entrega_ids.includes(eid)); }
 // ── v8.4: remitos y recepciones "✓ Listo" — no se cargan en PLUS (ya están en el saldo inicial u otro motivo).
@@ -2845,7 +2855,7 @@ function rREM(){
   el('rem-k1').textContent=all.filter(e=>e.estado!=='anulada').length; const pend=remitosPendientes(); el('rem-k2').textContent=pend.length; el('rem-k2s').textContent=pend.length?k$(sumBy(pend,e=>importeEntrega(e).neto))+' a facturar':'Nada pendiente';
   el('rem-k3').textContent=all.filter(e=>st(e)==='fact').length; el('rem-k4').textContent=Math.round(sumBy(inMes,e=>sumBy(itemsEntrega(e.id),'cantidad'))).toLocaleString('es-AR');
   tb.innerHTML=rows.length?rows.map(e=>{ const it=itemsEntrega(e.id); const imp=importeEntrega(e); const f=facturaDeEntrega(e.id); const s=st(e); const cli=cliById(e.cliente_id);
-    const det=it.slice(0,3).map(i=>esc(i.producto_nombre)+' ×'+num(i.cantidad)).join(' · ')+(it.length>3?' …':'');
+    const _ag=itemsEntregaAgrup(e); const det=_ag.slice(0,3).map(i=>esc(i.producto_nombre)+' ×'+i.cantidad.toLocaleString('es-AR')).join(' · ')+(_ag.length>3?' …':'');
     return `<tr style="${s==='anulada'?'opacity:.5':''}"><td class="noprint">${s==='pend'?`<input type="checkbox" class="chk rem-chk" value="${e.id}" data-cli="${e.cliente_id}">`:''}</td><td class="fw mono">${esc(e.numero_remito)}</td><td class="wr">${esc(cli?cli.razon_social:'—')}</td><td>${fD(e.fecha)}</td><td class="small">${det||'—'}</td>
       <td class="tr" data-v="${sumBy(it,'cantidad')}">${sumBy(it,'cantidad').toLocaleString('es-AR')}</td>${tdM(imp.neto)}<td>${esc(e.orden_compra||'—')}</td>
       <td>${f?`<span class="link" onclick="verCbte('${f.id}')">${tipoCorto(f)} ${nroCbte(f)}</span>`:'—'}</td>
@@ -2860,7 +2870,7 @@ function verRemito(id){
      <div class="drow"><span class="dkey">Orden de compra</span><span class="dval">${esc(e.orden_compra||'—')}</span></div>
      <div class="drow"><span class="dkey">Pedido</span><span class="dval">${esc(e.pedido_codigo||'—')}</span></div>
      <div class="drow"><span class="dkey">Factura</span><span class="dval">${f?tipoCorto(f)+' '+nroCbte(f):'Pendiente'}</span></div>
-     <table style="margin-top:10px"><thead><tr><th>Producto</th><th>Lote</th><th class="tr">Unid.</th><th class="tr">Cajas</th><th class="tr">Precio</th><th class="tr">Importe</th></tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.producto_nombre)}</td><td class="mono">${esc(i.lote_ref||'—')}</td><td class="tr">${num(i.cantidad)}</td><td class="tr">${num(i.cajas)||'—'}</td>${tdM(precioEntItem(e,i))}${tdM(precioEntItem(e,i)*num(i.cantidad))}</tr>`).join('')}</tbody></table>
+     <table style="margin-top:10px"><thead><tr><th>Producto</th><th>Lote(s)</th><th class="tr">Unid.</th><th class="tr">Cajas</th><th class="tr">Precio</th><th class="tr">Importe</th></tr></thead><tbody>${itemsEntregaAgrup(e).map(g=>`<tr><td>${esc(g.producto_nombre)}</td><td class="mono small">${esc(g.lotes.join(' · ')||'—')}</td><td class="tr">${g.cantidad.toLocaleString('es-AR')}</td><td class="tr">${g.cajas||'—'}</td>${tdM(g.precio)}${tdM(g.precio*g.cantidad)}</tr>`).join('')}</tbody></table>
      <div style="text-align:right;margin-top:8px">${imp.desc?'Descuento: -'+m$(imp.desc)+'<br>':''}<b>Neto: ${m$(imp.neto)}</b></div>`,
     (!f&&e.estado!=='anulada'&&!e.es_muestra)?[{label:'🧾 Facturar',cls:'btn-gold',fn:()=>{closeM('m-view');facturarRemitos([id]);}}]:[]);
 }
@@ -2871,6 +2881,10 @@ function facturarRemitos(ids){
   const items=[]; ents.forEach(e=>{ const it=itemsEntrega(e.id); const imp=importeEntrega(e); const bon=imp.bruto>0?r2(imp.desc/imp.bruto*100):0;
     it.forEach(i=>{ const p=(S.productos||[]).find(x=>x.id===i.producto_id)||(S.productos||[]).find(x=>(x.nombre||'').toUpperCase()===(i.producto_nombre||'').toUpperCase());
       items.push({tipo:'producto', id:p?p.id:i.producto_id, codigo:p&&p.codigo, descripcion:i.producto_nombre, cantidad:num(i.cantidad), unidad:(p&&p.unidad)||'u', precio:precioEntItem(e,i), bonif:bon, alic:p&&p.alicuota_iva!=null?num(p.alicuota_iva):num(CFG().alicuota_default||10.5), entrega_id:e.id}); }); });
+  // un renglón por artículo: se suman los lotes (y los remitos) con el mismo producto, precio, bonificación e IVA
+  const uni=[]; const idx=new Map(); items.forEach(x=>{ const k=[x.id||String(x.descripcion||'').toUpperCase(),r2(x.precio),r2(x.bonif),x.alic].join('|'); const j=idx.get(k);
+    if(j==null){ idx.set(k,uni.length); uni.push(Object.assign({},x)); } else { const u=uni[j]; u.cantidad=Math.round((u.cantidad+x.cantidad)*1000)/1000; if(u.entrega_id!==x.entrega_id) u.entrega_id=null; } });
+  items.length=0; uni.forEach(x=>items.push(x));
   nuevoCbte('factura',{cliente_id:clis[0], items, entrega_ids:ids, oc:ents.map(e=>e.orden_compra).filter(Boolean).join(' / '), pedido:ents.map(e=>e.pedido_codigo).filter(Boolean).join(' / '),
     obs:'Según remito'+(ents.length>1?'s':'')+' N° '+ents.map(e=>e.numero_remito).join(', '), origen:`🔄 Facturando ${ents.length} remito${ents.length>1?'s':''} de CONTROL TRACE: <b>${ents.map(e=>esc(e.numero_remito)).join(', ')}</b>. Revisá precios y condición de IVA.`});
 }
@@ -3910,7 +3924,7 @@ function nuevaCompra(subtipo, clase='factura', o={}){
   buildCpaDatalist(); renderSelects();
   el('cp-title').textContent=o.saldoIni?'Saldo inicial con proveedor':(clase==='nc'?'Nota de crédito recibida':clase==='nd'?'Nota de débito recibida':subtipo==='gasto'?'Registrar gasto':'Registrar comprobante de compra');
   el('cp-sub').textContent=o.saldoIni?'Deuda con el proveedor al empezar a usar CONTROL PLUS':subtipo==='gasto'?'Egreso no inventariable':'Mercadería, materia prima, insumos';
-  el('cp-origen').innerHTML=o.origen?`<div class="alert alert-info">${o.origen}</div>`:'';
+  el('cp-origen').innerHTML=o.origen?`<div class="alert alert-info">${o.origen}</div>`:''; CP.archivo=null; el('cp-ia-res').innerHTML=''; el('cp-ia-file').value=''; el('cp-ia-bar').style.display=(o.saldoIni||o.editId||o.recepcion_ids||o.remito_ids)?'none':'flex';
   setV('cp-tipo',o.tipo||(subtipo==='gasto'?'Factura A':'Factura A')); setV('cp-nro',''); setV('cp-fecha',o.fecha||hoy()); setV('cp-prv',o.proveedor_id||''); setV('cp-cat',''); setV('cp-concepto',''); setV('cp-obs',o.obs||'');
   ['cp-n21','cp-n105','cp-n27','cp-nng','cp-piva','cp-piibb','cp-otros'].forEach(i=>setV(i,'')); setV('cp-pagado',''); cpPagoUI();
   document.querySelectorAll('.cp-gasto').forEach(x=>x.style.display=subtipo==='gasto'&&!o.saldoIni?'':'none');
@@ -3924,6 +3938,84 @@ function nuevaCompra(subtipo, clase='factura', o={}){
   if(modo==='items'&&!(o.items||[]).length) cpAddItem();
   cpProveedor(true); cpCalc(); openM('m-cpa');
 }
+// ══ v11.3 · CARGA DE COMPRAS Y GASTOS DESDE PDF O FOTO (IA) ══
+// El archivo se lee con la función "leer-comprobante" de Supabase (Claude). No se guarda nada solo: se completa el formulario y la persona confirma.
+function cpIaPick(foto){ const f=el('cp-ia-file'); if(!f) return; f.value=''; if(foto) f.setAttribute('capture','environment'); else f.removeAttribute('capture'); setTimeout(()=>f.click(),50); }
+function iaB64(buf){ let s=''; const b=new Uint8Array(buf); for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); }
+function iaImagen(file){ return new Promise((ok,ko)=>{ const u=URL.createObjectURL(file); const im=new Image(); im.onload=()=>{ const M=2000; let w=im.naturalWidth, h=im.naturalHeight; const k=Math.min(1,M/Math.max(w,h)); w=Math.round(w*k); h=Math.round(h*k);
+  const cv=document.createElement('canvas'); cv.width=w; cv.height=h; const cx=cv.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,w,h); cx.drawImage(im,0,0,w,h); URL.revokeObjectURL(u); cv.toBlob(b=>b?ok(b):ko(new Error('No se pudo procesar la imagen')),'image/jpeg',0.86); };
+  im.onerror=()=>{ URL.revokeObjectURL(u); ko(new Error('No se pudo abrir la imagen. Si es una foto del iPhone (HEIC), sacala en JPG o subí un PDF.')); }; im.src=u; }); }
+async function iaFn(body){ const { data, error } = await sb.functions.invoke('leer-comprobante',{body});
+  if(error){ let m=error.message||'Error'; try{ const j=await error.context.json(); m=j.error||m; }catch(_){}
+    if(/Failed to send|not found|404|FunctionsFetch|Relay/i.test(m)) m='La función "leer-comprobante" todavía no está instalada en Supabase.'; throw new Error(m); }
+  if(data&&data.error) throw new Error(data.error); return data; }
+async function cpIaArchivo(file){ if(!file) return; const box=el('cp-ia-res');
+  const esPdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name||''); const esImg=/^image\//.test(file.type||'');
+  if(!esPdf&&!esImg){ toast('Subí un PDF o una foto (JPG/PNG)','warn'); return; }
+  if(file.size>15*1024*1024){ toast('El archivo es muy grande (máx. 15 MB)','warn'); return; }
+  box.innerHTML='<div class="alert alert-info">⏳ <div>Leyendo <b>'+esc(file.name||'comprobante')+'</b>… (unos segundos)</div></div>';
+  try{ const blob=esPdf?file:await iaImagen(file); const mime=esPdf?'application/pdf':'image/jpeg';
+    const r=await iaFn({archivo:iaB64(await blob.arrayBuffer()), mime, tipo:CP.subtipo==='gasto'?'gasto':'compra', categorias:CAT_GASTO});
+    const av=cpIaAplicar(r.datos||{});
+    box.innerHTML=cpIaResumen(file.name, r.datos||{}, av);
+    cpIaGuardarArchivo(blob, esPdf?'pdf':'jpg', mime);
+  }catch(e){ box.innerHTML='<div class="alert alert-err">⚠️ <div><b>No se pudo leer el comprobante.</b> '+esc(e.message||String(e))+'<br><span class="small">Podés cargarlo a mano como siempre.</span></div></div>'; } }
+async function cpIaGuardarArchivo(blob,ext,mime){ CP.archivo=null; try{ const path=S.empresaId+'/compras/'+new Date().toISOString().slice(0,10)+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+'.'+ext;
+  const { error } = await sb.storage.from('comprobantes').upload(path, blob, {contentType:mime, upsert:false}); if(error) throw error; CP.archivo=path;
+  const n=el('cp-ia-arch'); if(n) n.innerHTML='📎 El archivo queda guardado con el comprobante.'; }
+  catch(e){ const n=el('cp-ia-arch'); if(n) n.innerHTML='📎 El archivo no se guardó (falta correr <b>plus_v11_3_comprobantes.sql</b>); los datos sí se cargaron.'; } }
+async function verArchivoCpa(id){ const c=(D.cpa||[]).find(x=>x.id===id); if(!c||!c.archivo_path) return;
+  try{ const { data, error } = await sb.storage.from('comprobantes').createSignedUrl(c.archivo_path, 600); if(error) throw error; window.open(data.signedUrl,'_blank'); }catch(e){ toast('No se pudo abrir el archivo: '+(e.message||e),'err'); } }
+const iaDig=s=>String(s||'').replace(/\D/g,'');
+const iaFecha=s=>/^\d{4}-\d{2}-\d{2}$/.test(String(s||''))?s:'';
+function iaCuitFmt(c){ c=iaDig(c); return c.length===11?c.slice(0,2)+'-'+c.slice(2,10)+'-'+c.slice(10):c; }
+function iaNorm(s){ return String(s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
+function iaMatchItem(it){ const L=cpItemSrc(); const c=normCod(it.codigo||''); let m=c?L.find(x=>x.cod&&normCod(x.cod)===c):null; if(m) return m;
+  const d=iaNorm(it.descripcion); if(!d) return null; m=L.find(x=>iaNorm(x.nombre)===d); if(m) return m;
+  const cand=L.filter(x=>{ const n=iaNorm(x.nombre); return n.length>=4&&(d.split(' ').includes(n)||d.startsWith(n+' ')||(' '+d+' ').includes(' '+n+' ')); }); return cand.length===1?cand[0]:null; }
+function cpIaAplicar(d){ const av=[]; if(d.es_comprobante===false) av.push(['err','El archivo no parece un comprobante. Revisá que sea el correcto.']);
+  const L=String(d.letra||'').toUpperCase(); const tipoDoc=String(d.tipo||'');
+  if(/crédito/i.test(tipoDoc)&&CP.clase!=='nc') av.push(['err','Es una <b>Nota de crédito</b>: cargala desde Compras → Notas de crédito.']);
+  if(/débito/i.test(tipoDoc)&&CP.clase!=='nd') av.push(['err','Es una <b>Nota de débito</b>: cargala desde Compras → Notas de débito.']);
+  const tipo=/^Ticket/.test(tipoDoc)?'Ticket':/^Recibo/.test(tipoDoc)?'Recibo':L==='X'?'Comprobante X':['A','B','C','M'].includes(L)?'Factura '+L:'';
+  // proveedor
+  const pr=d.proveedor||{}; const cu=iaDig(pr.cuit); let prv=cu.length>=10?(S.proveedores||[]).find(x=>iaDig(x.cuit)===cu):null;
+  if(!prv&&pr.razon_social){ const n=iaNorm(pr.razon_social); prv=(S.proveedores||[]).find(x=>iaNorm(x.nombre)===n)||null; }
+  if(prv){ if(V('cp-prv')!==prv.id){ setV('cp-prv',prv.id); cpProveedor(); } }
+  else if(pr.razon_social||cu){ window._iaPrv=pr; av.push(['warn',`El proveedor <b>${esc(pr.razon_social||'')}</b>${cu?' (CUIT '+esc(iaCuitFmt(cu))+')':''} no está cargado. <button class="btn btn-gold btn-xs" onclick="cpIaNuevoPrv()">＋ Darlo de alta</button>`]); }
+  if(tipo){ setV('cp-tipo',tipo); cpTipoX(); }
+  const nro=(d.punto_venta||d.numero)?pad(+d.punto_venta||0,5)+'-'+pad(+d.numero||0,8):''; if(nro) setV('cp-nro',nro);
+  if(iaFecha(d.fecha)){ setV('cp-fecha',d.fecha); cpVto(); } if(iaFecha(d.vencimiento)) setV('cp-vto',d.vencimiento);
+  // duplicado
+  if(nro){ const dn=iaDig(nro); const dup=(D.cpa||[]).find(c=>c.estado!=='anulada'&&iaDig(c.nro_comprobante)===dn&&((prv&&c.proveedor_id===prv.id)||(cu&&iaDig(c.proveedor_cuit)===cu)));
+    if(dup) av.push(['err',`⚠️ <b>Este comprobante ya está registrado</b> (${esc(nroInt(dup))} del ${fD(dup.fecha)} por ${m$(dup.total)}). <span class="link" onclick="verCompra('${dup.id}')">Ver</span>`]); }
+  // detalle
+  const disc=discIVA(V('cp-tipo')); const its=(d.items||[]).filter(i=>i&&(i.descripcion||i.importe));
+  const gasto=CP.subtipo==='gasto';
+  if(!gasto&&its.length){ document.querySelector('input[name=cp-modo][value=items]').checked=true; cpModo(); el('cp-items').innerHTML='';
+    let sinMatch=0;
+    its.forEach(i=>{ const cant=num(i.cantidad)||1; const al=i.alicuota_iva!=null&&i.alicuota_iva!==''?num(i.alicuota_iva):21; let pu=num(i.precio_unitario)||(num(i.importe)/cant);
+      if(disc&&d.precios_con_iva&&al>0) pu=pu/(1+al/100);
+      const m=iaMatchItem(i); const it=m&&m.ref;
+      cpAddItem({descripcion:it?it.n:(i.descripcion||''), cantidad:cant, unidad:uniNorm(it?it.u:(i.unidad||'u')), precio:Math.round(pu*10000)/10000, alic:[21,10.5,27,0].includes(al)?al:21, item_id:it?it.id:null, item_tipo:it?it.t:null});
+      if(!it) sinMatch++; });
+    if(sinMatch) av.push(['info',sinMatch+' renglón(es) no coinciden con artículos del maestro: quedan como descripción libre (podés elegirlos en la lista).']); }
+  else { document.querySelector('input[name=cp-modo][value=importes]').checked=true; cpModo();
+    const perc=num(d.percepcion_iva)+num(d.percepcion_iibb)+num(d.otros_tributos);
+    if(disc){ setV('cp-n21',num(d.neto_gravado_21)||''); setV('cp-n105',num(d.neto_gravado_105)||''); setV('cp-n27',num(d.neto_gravado_27)||''); setV('cp-nng',(num(d.no_gravado)+num(d.exento))||'');
+      if(!num(d.neto_gravado_21)&&!num(d.neto_gravado_105)&&!num(d.neto_gravado_27)&&!num(d.no_gravado)&&!num(d.exento)&&num(d.total)) setV('cp-nng',r2(num(d.total)-perc)); }
+    else { setV('cp-n21',''); setV('cp-n105',''); setV('cp-n27',''); setV('cp-nng',r2(num(d.total)-perc)||''); } }
+  setV('cp-piva',num(d.percepcion_iva)||''); setV('cp-piibb',num(d.percepcion_iibb)||''); setV('cp-otros',num(d.otros_tributos)||'');
+  if(gasto){ if(d.categoria_gasto&&CAT_GASTO.includes(d.categoria_gasto)) setV('cp-cat',d.categoria_gasto); if(d.concepto&&!V('cp-concepto')) setV('cp-concepto',d.concepto); }
+  if(d.cae&&!V('cp-obs')) setV('cp-obs','CAE '+iaDig(d.cae)+(iaFecha(d.cae_vto)?' (vto '+fD(d.cae_vto)+')':''));
+  const o=cpCalc(); const tl=num(d.total);
+  if(tl>0){ const dif=r2(o.total-tl); if(Math.abs(dif)>Math.max(1,tl*0.002)) av.push(['warn',`El total calculado (${m$(o.total)}) no coincide con el del comprobante (${m$(tl)}): diferencia ${m$(dif)}. Revisá renglones, alícuotas o percepciones.`]); else av.push(['ok',`El total coincide con el comprobante: <b>${m$(tl)}</b>.`]); }
+  (d.advertencias||[]).forEach(a=>av.push(['info',esc(a)]));
+  return av; }
+function cpIaResumen(nombre,d,av){ const conf={alta:'🟢 alta',media:'🟡 media',baja:'🔴 baja'}[d.confianza]||'—'; const cls={ok:'cs',err:'cd',warn:'',info:'muted'};
+  return `<div class="alert ${av.some(a=>a[0]==='err')?'alert-warn':'alert-ok'}" style="display:block"><div><b>✅ Datos cargados desde ${esc(nombre||'el archivo')}</b> · lectura ${conf} · <b>revisá todo antes de registrar</b></div>
+   ${av.length?`<ul style="margin:6px 0 0 18px;padding:0">${av.map(a=>`<li class="small ${cls[a[0]]||''}" style="margin:2px 0">${a[1]}</li>`).join('')}</ul>`:''}<div class="small muted" id="cp-ia-arch" style="margin-top:4px">📎 Guardando el archivo…</div></div>`; }
+function cpIaNuevoPrv(){ const pr=window._iaPrv||{}; cpNuevoPrv(); setTimeout(()=>{ _setv('prv-razon',pr.razon_social||''); _setv('prv-cuit',iaCuitFmt(pr.cuit)); if(pr.condicion_iva) _setv('prv-iva',pr.condicion_iva); },60); }
 function cpModo(){ const m=document.querySelector('input[name=cp-modo]:checked').value; el('cp-items-wrap').style.display=m==='items'?'':'none'; el('cp-imp-wrap').style.display=m==='importes'?'':'none'; if(m==='importes'&&CP.saldoIni){ /* saldo inicial: todo en no gravado */ } cpCalc(); }
 function cpProveedor(init){
   const p=prvById(V('cp-prv')); setV('cp-cuit',p?p.cuit||'':'');
@@ -4021,7 +4113,7 @@ async function guardarCompra(){
       const { data:quedan } = await sb.from(TBL.cpai).select('id').eq('comprobante_id',_prevC.id).eq('empresa_id',S.empresaId);
       if(quedan&&quedan.length) throw new Error('Supabase no permitió reemplazar los renglones. Corré una vez plus_v10_4_editar.sql en el SQL Editor y volvé a intentar (no se modificó nada).');
       await dbUpd(TBL.cpa,_prevC.id,obj); row={...obj,id:_prevC.id}; }
-    else row=await dbIns(TBL.cpa,obj);
+    else { if(CP.archivo) obj.archivo_path=CP.archivo; try{ row=await dbIns(TBL.cpa,obj); }catch(e){ if(obj.archivo_path&&/archivo_path/i.test(e.message||'')){ delete obj.archivo_path; row=await dbIns(TBL.cpa,obj); } else throw e; } }
     if(t.items.length) await dbIns(TBL.cpai,t.items.map(i=>({...i,comprobante_id:row.id})));
     // precio cargado en PLUS → vuelve a la recepción de TRACE (costeo y rinde siguen andando)
     for(const i of t.items.filter(i=>i.recepcion_id)){ const r=(D.rec||[]).find(x=>x.id===i.recepcion_id); if(!r) continue; const nt=r2(num(i.neto)); const pk=num(r.kilos)>0?r2(nt/num(r.kilos)*10000)/10000:num(i.precio_unit);
@@ -4064,7 +4156,7 @@ function compraDesdeRemito(id){ const r=(D.rc||[]).find(x=>x.id===id);
 function saldoInicialProveedor(){ nuevaCompra('compra','factura',{proveedor_id:V('ccp-prv'),saldoIni:true}); }
 function verCompra(id){
   const c=(D.cpa||[]).find(x=>x.id===id); const it=itemsCpa(id); const pgs=(D.pagi||[]).filter(i=>i.comprobante_id===id).map(i=>({i,p:(D.pag||[]).find(p=>p.id===i.pago_id)})).filter(x=>x.p&&x.p.estado!=='anulado');
-  const html=`<div class="row"><div class="col"><div class="drow"><span class="dkey">N° interno</span><span class="dval mono">${nroInt(c)}</span></div><div class="drow"><span class="dkey">Tipo</span><span class="dval">${esc(tipoCpa(c))}</span></div><div class="drow"><span class="dkey">N° comprobante</span><span class="dval mono">${esc(c.nro_comprobante||'—')}</span></div><div class="drow"><span class="dkey">Fecha / Vto.</span><span class="dval">${fD(c.fecha)} / ${fD(c.fecha_vto)}</span></div></div>
+  const html=(c.archivo_path?`<div style="margin-bottom:8px"><button class="btn btn-outline btn-sm" onclick="verArchivoCpa('${c.id}')">📎 Ver comprobante original</button></div>`:'')+`<div class="row"><div class="col"><div class="drow"><span class="dkey">N° interno</span><span class="dval mono">${nroInt(c)}</span></div><div class="drow"><span class="dkey">Tipo</span><span class="dval">${esc(tipoCpa(c))}</span></div><div class="drow"><span class="dkey">N° comprobante</span><span class="dval mono">${esc(c.nro_comprobante||'—')}</span></div><div class="drow"><span class="dkey">Fecha / Vto.</span><span class="dval">${fD(c.fecha)} / ${fD(c.fecha_vto)}</span></div></div>
    <div class="col"><div class="drow"><span class="dkey">Proveedor</span><span class="dval">${esc(c.proveedor_nombre||'—')}</span></div><div class="drow"><span class="dkey">CUIT</span><span class="dval mono">${esc(c.proveedor_cuit||'—')}</span></div>${c.subtipo==='gasto'?`<div class="drow"><span class="dkey">Categoría</span><span class="dval">${esc(c.categoria||'')}</span></div><div class="drow"><span class="dkey">Concepto</span><span class="dval">${esc(c.concepto||'')}</span></div>`:''}<div class="drow"><span class="dkey">Estado</span><span class="dval">${estadoCpa(c)}</span></div></div></div>
    ${it.length?`<table style="margin-top:10px"><thead><tr><th>Artículo</th><th class="tr">Cant.</th><th>U.</th><th class="tr">Precio</th><th class="tr">IVA</th><th class="tr">Subtotal</th></tr></thead><tbody>${it.map(i=>`<tr><td>${esc(i.descripcion)}${i.recepcion_id?' <span class="sync-badge" style="font-size:9px">TRACE</span>'+((r=>r?`<div class="small muted">Lote ${esc(r.codigo_lote||'')}${recCajasTxt(r)?' · '+recCajasTxt(r):''}</div>`:'')((D.rec||[]).find(x=>x.id===i.recepcion_id))):''}</td><td class="tr">${num(i.cantidad).toLocaleString('es-AR')}</td><td>${esc(i.unidad||'')}</td>${tdM(i.precio_unit)}<td class="tr">${num(i.alicuota_iva)?num(i.alicuota_iva)+'%':'—'}</td>${tdM(i.neto)}</tr>`).join('')}</tbody></table>`:''}
    <div style="display:flex;justify-content:flex-end;margin-top:10px"><div style="width:280px"><div class="drow"><span class="dkey">Neto gravado</span><span class="dval">${m$(c.neto_gravado)}</span></div><div class="drow"><span class="dkey">IVA</span><span class="dval">${m$(ivaC(c))}</span></div>${num(c.neto_no_gravado)+num(c.exento)?`<div class="drow"><span class="dkey">No gravado / exento</span><span class="dval">${m$(num(c.neto_no_gravado)+num(c.exento))}</span></div>`:''}${num(c.perc_iva)+num(c.perc_iibb)+num(c.otros_tributos)?`<div class="drow"><span class="dkey">Percepciones / otros</span><span class="dval">${m$(num(c.perc_iva)+num(c.perc_iibb)+num(c.otros_tributos))}</span></div>`:''}<div class="drow"><span class="dkey fw">TOTAL</span><span class="dval fw">${m$(c.total)}</span></div><div class="drow"><span class="dkey">Saldo</span><span class="dval ${num(c.saldo)>0.01?'cd':'cs'}">${m$(c.saldo)}</span></div></div></div>
