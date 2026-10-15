@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CONTROL MAX — Control Docs</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111D35'/%3E%3Ctext x='32' y='46' font-family='Segoe UI,Arial,sans-serif' font-size='40' font-weight='800' text-anchor='middle' fill='%23C9A84C'%3ED%3C/text%3E%3C/svg%3E">
-<!-- CONTROL DOCS · build v3 · Requiere docs_etapa1_setup.sql y docs_etapa2_setup.sql -->
+<!-- CONTROL DOCS · build v4 · Requiere docs_etapa1_setup.sql y docs_etapa2_setup.sql (y docs_v4_tablero.sql para corregir caritas a mano) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#111D35;--navy2:#1B2A4A;--gold:#C9A84C;--gold-d:#A9842F;--cream:#F5F2EA;--ink:#1C2536;--muted:#6B7689;--line:#E7E2D6;--sage:#4F7D6A;--sage-bg:#E9F1EC;--clay:#B5654A;--clay-bg:#F6EBE6;--amber:#86571A;--amber-bg:#FAF3E2;--steel:#3D5A80;
@@ -143,6 +143,67 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
 .pt-pag{display:inline-block;background:var(--navy);color:#fff;font-size:.55em;font-weight:800;padding:.25em .7em;border-radius:20px;margin-left:.6em;vertical-align:middle}
 .pt-hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(17,29,53,.85);color:#fff;padding:8px 16px;border-radius:10px;font-size:14px;cursor:pointer}
 .urlbox{display:flex;gap:8px;align-items:center;background:#f7f3ea;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:12px;word-break:break-all}
+/* TABLERO DE CUMPLIMIENTO (v4) */
+.tb{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:18px;--tbg:#13653A;--tbz:1}
+.tb-h{background:var(--tbg);color:#fff;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:12px 18px;flex-wrap:wrap}
+.tb-k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#cfe6d6;font-weight:700}
+.tb-t{font-size:24px;font-weight:900;letter-spacing:.02em}
+.tb-fecha{font-size:15px;font-weight:700;background:rgba(255,255,255,.14);padding:5px 12px;border-radius:8px}
+.tb-g{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:0}
+.tb-l{padding:6px 12px 12px;border-right:1px solid var(--line);min-width:0;overflow-x:auto}
+.tb-r{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.tb-tbl{font-size:calc(14px * var(--tbz))}
+.tb-tbl th{color:var(--tbg);font-size:calc(11px * var(--tbz));border-bottom:2px solid var(--tbg);vertical-align:bottom}
+.tb-tbl td{padding:calc(8px * var(--tbz)) 8px}
+.tb-tbl tbody tr:nth-child(even) td{background:#f4f8f5}
+.tb-tbl tfoot td{border-top:2px solid var(--tbg);font-weight:800;border-bottom:0}
+.tb-art{font-weight:800;color:#163a26;text-transform:uppercase}
+.tb-cod{color:var(--muted);font-weight:600;font-size:.78em;margin-right:8px}
+.tb-n{text-align:right;white-space:nowrap}.tb-c{text-align:center;width:1%;white-space:nowrap}
+.tb-hd{display:block;width:12px;height:12px;border-radius:50%;background:var(--c);margin:0 auto 3px}
+.tb-bar{height:5px;background:#e9e5da;border-radius:3px;margin-top:3px;min-width:60px;overflow:hidden}.tb-bar i{display:block;height:100%}
+.tb-dot{display:inline-block;width:calc(26px * var(--tbz));height:calc(26px * var(--tbz));border-radius:50%;border:3px solid var(--c);opacity:.45}
+.tb-dot.on{background:var(--c);opacity:1;box-shadow:0 0 0 3px #fff inset}
+.tb-dot.on.cur{background:transparent;border-style:dashed;animation:tbp 1.6s ease-in-out infinite}
+@keyframes tbp{50%{opacity:.35}}
+.tb-wk{border:2px solid var(--tbg);border-radius:10px;overflow:hidden}
+.tb-wh{background:var(--tbg);color:#fff;text-align:center;font-weight:900;letter-spacing:.06em;padding:6px;font-size:13px;text-transform:uppercase}
+.tb-wg{display:grid;grid-template-columns:repeat(6,1fr)}
+.tb-wd{text-align:center;border-right:1px solid #dfe9e2;padding:4px 0 8px;cursor:pointer;position:relative}
+.tb-wd:last-child{border-right:0}
+.tb-wd.sel{background:#eef6f0}.tb-wd.hoy .tb-wn{color:#fff;background:var(--tbg)}
+.tb-wn{font-size:11px;font-weight:900;color:var(--tbg);margin:0 3px 4px;border-radius:5px;padding:2px 0}
+.tb-wa{position:absolute;top:18px;right:2px;font-size:10px}
+.tb-face{display:inline-block;vertical-align:middle}
+.tb-cnt{display:flex;align-items:center;gap:10px;font-size:15px;color:#163a26}.tb-cnt b{font-size:24px}
+.tb-msg{font-size:17px;font-weight:800;color:var(--navy);line-height:1.3;padding:10px 12px;border-radius:10px;background:#f6f3ec}
+.tb-msg.tb-ok{background:#E6F3EA;color:#14532d}.tb-msg.tb-ko{background:#FBE9E9;color:#8a1c1c}.tb-msg.tb-cur{background:#FFF6DC;color:#7a5600}
+.tb-sem{font-size:13px;color:var(--muted)}
+.tb-aj{font-size:12px;color:#5c3d0c;background:var(--amber-bg);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;gap:3px;line-height:1.35}.tb-aju{color:var(--muted);font-size:11px}.tb-tv .tb-aj{font-size:calc(var(--vz)*.5)}
+.tb-cg{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}@media(max-width:560px){.tb-cg{grid-template-columns:1fr}}
+.tb-val{margin-top:auto;border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;font-weight:700;color:#163a26}
+.tb-vt,.tb-vm{width:100%;font-style:italic;color:#C62828;font-weight:800;font-size:14px}.tb-vm{text-align:right;font-size:16px}
+.tb-vacio{display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--muted);padding:40px 10px;text-align:center}
+.tb-rank{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.tb-rk{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 14px;display:flex;gap:10px;align-items:center;font-size:14px}
+.tb-rk.top{border-color:#C9A84C;box-shadow:0 0 0 2px #f3e3b0 inset}
+.tb-strip{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;background:#fff;border:1px solid var(--line);border-left:6px solid #13653A;border-radius:12px;padding:10px 14px;margin-bottom:14px;cursor:pointer;font-size:14px}
+.tb-strip span{display:inline-flex;align-items:center;gap:6px}.tb-strip small{color:var(--muted)}
+.tb-strip .tb-sv{margin-left:auto;color:var(--steel);font-weight:700;font-size:13px}
+/* tablero en la TV */
+#pantStage .tb-tv{border:0;border-radius:0;margin:0;height:100%;display:flex;flex-direction:column}
+.tb-tv .tb-h{padding:.4em .9em}.tb-tv .tb-k{font-size:calc(var(--vz)*.45)}.tb-tv .tb-t{font-size:calc(var(--vz)*1.25)}.tb-tv .tb-fecha{font-size:calc(var(--vz)*.7)}
+.tb-tv .tb-g{flex:1;min-height:0}
+.tb-tv .tb-tbl{font-size:calc(var(--vz) * .8 * var(--tbz))}.tb-tv .tb-tbl th{font-size:calc(var(--vz) * .42 * var(--tbz))}
+.tb-tv .tb-dot{width:calc(var(--vz) * 1 * var(--tbz));height:calc(var(--vz) * 1 * var(--tbz))}
+.tb-tv .tb-hd{width:calc(var(--vz)*.5);height:calc(var(--vz)*.5)}
+.tb-tv .tb-wh{font-size:calc(var(--vz)*.55)}.tb-tv .tb-wn{font-size:calc(var(--vz)*.5)}
+.tb-tv .tb-cnt{font-size:calc(var(--vz)*.65)}.tb-tv .tb-cnt b{font-size:calc(var(--vz)*1.2)}
+.tb-tv .tb-msg{font-size:calc(var(--vz)*.85)}.tb-tv .tb-sem{font-size:calc(var(--vz)*.55)}
+.tb-tv .tb-val{font-size:calc(var(--vz)*.45)}.tb-tv .tb-vt{font-size:calc(var(--vz)*.6)}.tb-tv .tb-vm{font-size:calc(var(--vz)*.8)}
+.tb-tv .tb-r{gap:.5em}
+@media(max-width:560px){.tb-tbl th.tb-c{font-size:0}.tb-tbl{font-size:12px}.tb-tbl th{font-size:9px}.tb-tbl td{padding:7px 3px}.tb-cod{display:none}.tb-dot{width:17px;height:17px;border-width:2px}.tb-bar{min-width:34px}.tb-l{padding:4px 6px 10px}}
+@media(max-width:860px){.tb-g{grid-template-columns:1fr}.tb-l{border-right:0;border-bottom:1px solid var(--line)}.tb-t{font-size:20px}.tb-tbl th:nth-child(n+4),.tb-tbl td:nth-child(n+4){padding-left:2px;padding-right:2px}}
 /* MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(17,29,53,.5);display:none;align-items:center;justify-content:center;z-index:95;padding:16px}
 .modal-bg.show{display:flex}
@@ -226,7 +287,7 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
 // Lee solo docs_publicaciones (fotos sin valores). Publicar, republicar
 // y retirar se hacen con funciones del servidor (docs_etapa1_setup.sql).
 // ══════════════════════════════════════════════════════════════
-const BUILD='build v3 · v3: órdenes de producción por línea (Trace v175): la línea se ve en el muro, en el documento y en Publicar; filtro por línea en el muro y en el modo pantalla (cada TV puede mostrar solo su línea) · v2: confirmación de lectura (Nuevo / Actualizado / Visto en el muro, botón Leí este documento, quién leyó y quién falta en Publicaciones) y modo pantalla para la TV del galpón (rotación automática, páginas automáticas si el documento es largo, refresco cada minuto, pantalla siempre encendida, dirección para guardar en la TV) · v1: muro de documentos (pedidos sin valores y órdenes de producción), visor grande con A+/A−, pantalla completa e impresión; publicar, republicar y retirar con control por rol; aviso cuando el origen cambió; historial de versiones; todo queda en Novedades';
+const BUILD='build v4.1 · v4.1: tablero sin domingo; observaciones del día cuando el plan no se cumple (causas, detalle y oportunidad de mejora, con quién lo registró) y resumen de observaciones de la semana · v4: 🏆 Tablero de cumplimiento del plan por línea (como el tablero del galpón): plan del día contra lo producido, semáforo por producto (100% / 50–99% / menos de 50%), carita feliz cuando toda la línea cumple, caritas de la semana, ranking entre líneas y mensajes de felicitación o ánimo; se puede ver en el muro y en el modo pantalla de la TV; administración puede corregir la carita de un día con una nota (docs_v4_tablero.sql) · v3: órdenes de producción por línea (Trace v175): la línea se ve en el muro, en el documento y en Publicar; filtro por línea en el muro y en el modo pantalla (cada TV puede mostrar solo su línea) · v2: confirmación de lectura (Nuevo / Actualizado / Visto en el muro, botón Leí este documento, quién leyó y quién falta en Publicaciones) y modo pantalla para la TV del galpón (rotación automática, páginas automáticas si el documento es largo, refresco cada minuto, pantalla siempre encendida, dirección para guardar en la TV) · v1: muro de documentos (pedidos sin valores y órdenes de producción), visor grande con A+/A−, pantalla completa e impresión; publicar, republicar y retirar con control por rol; aviso cuando el origen cambió; historial de versiones; todo queda en Novedades';
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
@@ -239,7 +300,7 @@ const PP=8;
 
 const S={lineas:[],planLin:{},leidas:{},lectCnt:{},lectOk:true,uid:null,empresaId:null,rol:'',nombre:'',empresa:{},puede:false,sqlOk:true,pubs:[],cambios:{},pedidos:null,pedItems:{},clientes:[],planes:null};
 let cur='muro';
-const F={muroLinea:'',pubLinea:'',muroTipo:'todos',muroCuando:'proximos',pubEstado:'activas',pubTipo:'todos',pedTab:'pedido',pedCli:'',pedEntregados:false,pedQ:''};
+const F={tbLinea:'',muroLinea:'',pubLinea:'',muroTipo:'todos',muroCuando:'proximos',pubEstado:'activas',pubTipo:'todos',pedTab:'pedido',pedCli:'',pedEntregados:false,pedQ:''};
 
 // ── utilidades ──
 const $=id=>document.getElementById(id);
@@ -318,15 +379,15 @@ function rolesTxt(roles){return (!roles||!roles.length)?'Todos':roles.map(r=>ROL
 function pubDeOrigen(tipo,id){return S.pubs.find(p=>p.tipo===tipo&&p.origen_id===id);}
 
 // ══════════════ NAVEGACIÓN ══════════════
-const META={pantalla:['DOCUMENTOS','Modo pantalla'],muro:['DOCUMENTOS','Muro de documentos'],publicar:['PUBLICAR','Publicar documentos'],publicaciones:['GESTIÓN','Publicaciones']};
+const META={tablero:['PRODUCCIÓN','Tablero de cumplimiento del plan'],pantalla:['DOCUMENTOS','Modo pantalla'],muro:['DOCUMENTOS','Muro de documentos'],publicar:['PUBLICAR','Publicar documentos'],publicaciones:['GESTIÓN','Publicaciones']};
 function noLeidas(){return S.lectOk?S.pubs.filter(p=>estadoPub(p)==='publicado'&&!leidaActual(p)).length:0;}
 function buildNav(){const vig=S.lectOk?noLeidas():S.pubs.filter(p=>estadoPub(p)==='publicado').length;const ch=Object.values(S.cambios).filter(c=>c.cambiado).length;
-  let h=`<div class="gl">Documentos</div><button class="nb" data-v="muro" onclick="go('muro')"><span class="ico">📌</span><span>Muro</span>${vig?`<span class="cnt" title="${S.lectOk?'Sin leer':'Publicados'}">${vig}</span>`:''}</button><button class="nb" data-v="pantalla" onclick="go('pantalla')"><span class="ico">📺</span><span>Modo pantalla</span></button>`;
+  let h=`<div class="gl">Documentos</div><button class="nb" data-v="muro" onclick="go('muro')"><span class="ico">📌</span><span>Muro</span>${vig?`<span class="cnt" title="${S.lectOk?'Sin leer':'Publicados'}">${vig}</span>`:''}</button><button class="nb" data-v="tablero" onclick="go('tablero')"><span class="ico">🏆</span><span>Tablero del plan</span></button><button class="nb" data-v="pantalla" onclick="go('pantalla')"><span class="ico">📺</span><span>Modo pantalla</span></button>`;
   if(S.puede)h+=`<div class="gl">Administración</div><button class="nb" data-v="publicar" onclick="go('publicar')"><span class="ico">📤</span><span>Publicar</span></button><button class="nb" data-v="publicaciones" onclick="go('publicaciones')"><span class="ico">🗂️</span><span>Publicaciones</span>${ch?`<span class="cnt" title="Con cambios en el origen">⚠ ${ch}</span>`:''}</button>`;
   $('nav').innerHTML=h;document.querySelectorAll('#nav .nb').forEach(b=>b.classList.toggle('on',b.dataset.v===cur));}
-function go(v){if(!['muro','pantalla'].includes(v)&&!S.puede)v='muro';cur=v;document.body.classList.remove('nav-open');buildNav();$('crumb').textContent=META[v][0];$('title').textContent=META[v][1];
+function go(v){if(!['muro','pantalla','tablero'].includes(v)&&!S.puede)v='muro';cur=v;document.body.classList.remove('nav-open');buildNav();$('crumb').textContent=META[v][0];$('title').textContent=META[v][1];
   try{if(v!=='pantalla')history.replaceState(null,'','#'+v);}catch(e){}
-  if(v==='muro')viewMuro();else if(v==='pantalla')viewPantalla();else if(v==='publicar')viewPublicar();else viewPubs();window.scrollTo(0,0);}
+  if(v==='muro')viewMuro();else if(v==='tablero')viewTablero();else if(v==='pantalla')viewPantalla();else if(v==='publicar')viewPublicar();else viewPubs();window.scrollTo(0,0);}
 async function refreshNow(){const b=$('btnRefresh');b.textContent='⏳ Actualizando…';try{await loadPubs();if(cur==='publicar'){S.pedidos=null;S.planes=null;}go(cur);banner('Datos actualizados ✓');}catch(e){banner('No se pudo actualizar: '+errMsg(e),'err');}b.textContent='🔄 Actualizar';}
 
 // ══════════════ CARGA ══════════════
@@ -388,13 +449,14 @@ function viewMuro(){
   else if(F.muroCuando==='proximos')L=L.filter(p=>!fr(p)||fr(p)>=t);
   L.sort((a,b)=>fr(a).localeCompare(fr(b))||(a.tipo===b.tipo?0:a.tipo==='orden_produccion'?-1:1)||pubLinea(a).nombre.localeCompare(pubLinea(b).nombre)||String(a.titulo).localeCompare(b.titulo));
   const seg=(k,v,l)=>`<button class="btn btn-sm ${F[k]===v?'btn-gold':'btn-ghost'}" onclick="F.${k}='${v}';viewMuro()">${l}</button>`;
-  $('view').innerHTML=setupNote()+`<div class="filters">
+  $('view').innerHTML=setupNote()+`<div id="tbStrip">${tbStripMuro()}</div><div class="filters">
     <div class="seg">${seg('muroTipo','todos','Todos')}${seg('muroTipo','pedido','📋 Pedidos')}${seg('muroTipo','orden_produccion','🗓️ Órdenes de producción')}</div>
     <div class="seg">${seg('muroCuando','hoy','Hoy')}${seg('muroCuando','manana','Mañana')}${seg('muroCuando','proximos','Próximos')}${seg('muroCuando','todas','Todas')}</div>
     ${linSeg('muroLinea','viewMuro')}
     <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="go('pantalla')">📺 Modo pantalla</button></div>
    ${L.length?`<div class="wall">${L.map(cardHTML).join('')}</div>`:`<div class="card"><div class="empty">📭 No hay documentos publicados para este filtro.${S.puede?'<br><br><button class="btn btn-gold" onclick="go(\'publicar\')">📤 Publicar un documento</button>':''}</div></div>`}`;
   clearInterval(_muroT);_muroT=setInterval(async()=>{if(cur!=='muro'||document.hidden||$('visor').classList.contains('show')||$('modalBg').classList.contains('show'))return;try{await loadPubs();buildNav();viewMuro();}catch(e){}},60000);
+  tbEnsure().then(()=>{const x=$('tbStrip');if(x&&cur==='muro')x.innerHTML=tbStripMuro();}).catch(()=>{});
 }
 function cardHTML(p){const c=p.contenido||{};const op=p.tipo==='orden_produccion';const fr=String(p.fecha_ref||'').slice(0,10);
   const tot=op?`<span><b>${nf(c.total)}</b> a producir</span><span><b>${(c.items||[]).length}</b> productos</span>`:`<span><b>${nf(c.total_unidades)}</b> unidades</span><span><b>${nf(c.total_cajas)}</b> cajas</span>`;
@@ -584,17 +646,124 @@ async function historial(p){const {data,error}=await sb.from('docs_versiones').s
    <div class="row"><button class="btn btn-gold" onclick="closeModal()">Cerrar</button></div>`);}
 function verHist(i){const h=window._hist[i];if(!h)return;closeModal();abrirVisor(conLinea(h.contenido||{},S.planLin[(S.pubs.find(x=>x.id===h.publicacion_id)||{}).origen_id]),{version:h.version,publicado_at:h.publicado_at,por:h.publicado_por_nombre,anterior:true});}
 
+// ══════════════ TABLERO DE CUMPLIMIENTO DEL PLAN (v4) ══════════════
+// Compara el plan de producción de cada día (Trace) con lo producido ese día, por línea.
+// Verde = 100% o más · Amarillo = 50 a 99% · Rojo = menos de 50%. Carita feliz = todos los productos en verde.
+const TB={ws:null,dia:null,data:null,ok:true,err:'',ajOk:true,aj:{},prods:null,at:0};
+const TB_DIAS=['LUN','MAR','MIÉ','JUE','VIE','SÁB']; // v4.1: el domingo no se trabaja
+const TB_CAUSAS=['MP con mucho descarte o mala calidad','Faltó materia prima','Faltó personal','Faltaron insumos o envases','Falla de máquina o equipo','Corte de luz o servicios','Cambio de prioridades o pedidos urgentes','Otra causa'];
+const tbNorm=s=>String(s||'').trim().toUpperCase();
+function tbLunes(f){const d=new Date(f+'T00:00:00');return addDays(f,-((d.getDay()+6)%7));}
+async function loadTablero(ws){
+  ws=ws||TB.ws||tbLunes(today());const we=addDays(ws,6);
+  if(!TB.prods){const {data}=await sb.from('productos').select('id,codigo,nombre,linea_id').eq('empresa_id',S.empresaId);TB.prods=data||[];}
+  const pl=await sb.from('planes_produccion').select('id,fecha,linea_id,plan').eq('empresa_id',S.empresaId).gte('fecha',ws).lte('fecha',we);
+  if(pl.error){TB.ok=false;TB.err=errMsg(pl.error);TB.data={};TB.ws=ws;return;}
+  const pr=await sb.from('producciones').select('id,fecha,estado').eq('empresa_id',S.empresaId).gte('fecha',ws).lte('fecha',we);
+  const prs=(pr.data||[]).filter(p=>p.estado!=='anulada');const fp={};prs.forEach(p=>fp[p.id]=String(p.fecha).slice(0,10));
+  const outs=[];const ids=prs.map(p=>p.id);
+  for(let i=0;i<ids.length;i+=100){const {data}=await sb.from('produccion_outputs').select('produccion_id,producto_nombre,cantidad').in('produccion_id',ids.slice(i,i+100));outs.push(...(data||[]));}
+  TB.aj={};const a=await sb.from('docs_tablero').select('*').eq('empresa_id',S.empresaId).gte('fecha',ws).lte('fecha',we);
+  if(a.error)TB.ajOk=false;else{TB.ajOk=true;(a.data||[]).forEach(x=>TB.aj[(x.linea_key||'')+'|'+String(x.fecha).slice(0,10)]=x);}
+  const pBy={};TB.prods.forEach(p=>pBy[tbNorm(p.nombre)]=p);
+  const D={};
+  (pl.data||[]).forEach(p=>{const d=String(p.fecha||'').slice(0,10);if(!d)return;(Array.isArray(p.plan)?p.plan:[]).forEach(it=>{const q=+it.producir||0;if(q<=0||!it.prod)return;const pp=pBy[tbNorm(it.prod)];const lk=(pp&&pp.linea_id)||p.linea_id||'';
+    const x=((D[d]=D[d]||{})[lk]=D[d][lk]||{});const k=tbNorm(it.prod);const c=x[k]||(x[k]={nombre:it.prod,cod:(pp&&pp.codigo)||'',plan:0,hecho:0});c.plan+=q;});});
+  outs.forEach(o=>{const d=fp[o.produccion_id];if(!d||!D[d])return;const k=tbNorm(o.producto_nombre);for(const lk of Object.keys(D[d])){if(D[d][lk][k]){D[d][lk][k].hecho+=(+o.cantidad||0);break;}}});
+  TB.data=D;TB.ok=true;TB.ws=ws;TB.at=Date.now();
+}
+async function tbEnsure(force){const ws=tbLunes(today());if(force||!TB.data||TB.ws!==ws&&!TB.manual||Date.now()-TB.at>60000)await loadTablero(TB.manual?TB.ws:ws);}
+function tbLineas(dias){const m={};(dias||Object.keys(TB.data||{})).forEach(d=>Object.keys((TB.data||{})[d]||{}).forEach(lk=>m[lk]=1));
+  const ord=lk=>{if(!lk)return 999;const i=(S.lineas||[]).findIndex(x=>x.id===lk);return i<0?998:i;};
+  return Object.keys(m).sort((a,b)=>ord(a)-ord(b)).map(lk=>({id:lk,nombre:lk?(lineaNom(lk)||'Línea'):'Sin línea asignada'}));}
+function tbEstado(lk,d){const items=((TB.data||{})[d]||{})[lk]||{};const t=today();
+  const L=Object.values(items).map(x=>{const pct=x.plan>0?x.hecho/x.plan*100:0;return Object.assign({},x,{pct,col:pct>=99.95?'v':pct>=50?'a':'r'});}).sort((a,b)=>String(a.cod||'~').localeCompare(String(b.cod||'~'))||a.nombre.localeCompare(b.nombre));
+  const plan=L.reduce((s,x)=>s+x.plan,0),hecho=L.reduce((s,x)=>s+Math.min(x.hecho,x.plan),0);
+  let auto;if(!L.length)auto='sin';else if(L.every(x=>x.col==='v'))auto='feliz';else if(d<t)auto='triste';else if(d===t)auto='curso';else auto='futuro';
+  const aj=TB.aj[lk+'|'+d];const cara=(aj&&aj.cara)||auto;
+  return {L,auto,cara,aj,plan,hecho,pct:plan>0?hecho/plan*100:0};}
+function tbSemana(lk){let f=0,j=0;for(let i=0;i<TB_DIAS.length;i++){const e=tbEstado(lk,addDays(TB.ws,i));if(e.cara==='feliz'){f++;j++;}else if(e.cara==='triste')j++;}return {f,j};}
+function tbFace(k,sz){const C={feliz:'#1B7A3E',triste:'#C62828',curso:'#D99A00',sin:'#B9B4A8',futuro:'#D6D1C4'}[k]||'#ccc';const s=sz||40;
+  const mouth=k==='feliz'?'M14 25 Q20 31 26 25':k==='triste'?'M14 29 Q20 23 26 29':k==='curso'?'M14 27 L26 27':'';
+  const fill=k==='feliz'?'#E6F3EA':k==='triste'?'#FBE9E9':k==='curso'?'#FFF6DC':'none';
+  return `<svg class="tb-face" width="${s}" height="${s}" viewBox="0 0 40 40" aria-label="${k}"><circle cx="20" cy="20" r="17" fill="${fill}" stroke="${C}" stroke-width="2.6"${k==='sin'||k==='futuro'?' stroke-dasharray="4 3"':''}/>${mouth?`<circle cx="14.5" cy="16" r="2.2" fill="${C}"/><circle cx="25.5" cy="16" r="2.2" fill="${C}"/><path d="${mouth}" fill="none" stroke="${C}" stroke-width="2.6" stroke-linecap="round"/>`:''}</svg>`;}
+function tbDot(col,on,curso){const C={v:'#1B7A3E',a:'#E2A400',r:'#C62828'}[col];return `<span class="tb-dot${on?' on':''}${on&&curso?' cur':''}" style="--c:${C}"></span>`;}
+const TB_MSG={feliz:['¡Objetivo cumplido! Felicitaciones, equipo 🎉','¡Excelente trabajo! Plan del día completo 💪','¡Así se hace! Cumplimos con todo lo planificado 🌱','¡Equipo campeón! Salió todo lo planificado 🏆'],
+  curso:['¡Vamos que se puede! Llevamos el {p}% del plan de hoy','Cada paquete cuenta: ¡vamos por el {r}% que falta! 💪','¡Con todo, equipo! Ya llevamos el {p}%','Paso a paso: {p}% hecho, ¡a cerrar el día con todo! 🌱'],
+  triste:['Ese día no llegamos. ¡Hoy vamos por más! 💪','Un día flojo no define la semana: ¡a darlo vuelta! 🌱','Aprendemos y seguimos: ¡vamos por la carita feliz! 😊'],
+  sin:['Sin plan de producción cargado para este día.'],futuro:['Todavía no empezó: ¡que sea un gran día! ☀️']};
+function tbMsg(e,lk,d){const L=TB_MSG[e.cara]||TB_MSG.sin;const n=(+(d||'').replace(/-/g,'').slice(-3)+String(lk).length)%L.length;return L[n].replace('{p}',nf(e.pct)).replace('{r}',nf(Math.max(0,100-e.pct)));}
+function tbMsgSem(lk){const s=tbSemana(lk);if(!s.j&&!s.f)return '¡Arranca la semana! Vamos por todas las caritas felices 😊';if(s.f===s.j)return s.f>1?`¡Semana perfecta hasta ahora: ${s.f} de ${s.j}! Sigan así 🏆`:'¡Primera carita feliz de la semana! Vamos por más 😊';if(s.f/s.j>=.6)return `¡Muy buena semana! ${s.f} caritas felices de ${s.j} días 💪`;if(s.f)return `${s.f} ${s.f>1?'caritas felices':'carita feliz'} de ${s.j}. ¡Vamos por más! 🌱`;return '¡La semana todavía no terminó: vamos por la primera carita feliz! 💪';}
+function tbLineaHTML(lk,d,o){o=o||{};const e=tbEstado(lk,d);const nom=lk?(lineaNom(lk)||'Línea'):'Sin línea asignada';const t=today();const curso=d===t&&e.cara!=='feliz';const sem=tbSemana(lk);
+  const rows=e.L.map(x=>`<tr><td class="tb-art">${x.cod?`<span class="tb-cod">${esc(x.cod)}</span>`:''}${esc(x.nombre)}</td><td class="tb-n">${nf(x.plan)}</td><td class="tb-n"><b>${nf(x.hecho)}</b><div class="tb-bar"><i style="width:${Math.min(100,x.pct).toFixed(0)}%;background:${x.col==='v'?'#1B7A3E':x.col==='a'?'#E2A400':'#C62828'}"></i></div></td><td class="tb-c">${tbDot('v',x.col==='v')}</td><td class="tb-c">${tbDot('a',x.col==='a',curso)}</td><td class="tb-c">${tbDot('r',x.col==='r',curso)}</td></tr>`).join('');
+  const wk=TB_DIAS.map((n,i)=>{const dd=addDays(TB.ws,i);const ee=tbEstado(lk,dd);return `<div class="tb-wd${dd===d?' sel':''}${dd===t?' hoy':''}"${o.tv?'':` onclick="TB.dia='${dd}';viewTablero()" title="${esc(fechaLarga(dd))}"`}><div class="tb-wn">${n}</div><div class="tb-wf">${tbFace(ee.cara,o.tv?54:38)}</div>${ee.aj&&(ee.aj.cara||ee.aj.nota||tbCausas(ee.aj).length||ee.aj.mejora)?`<div class="tb-wa" title="${ee.aj.cara?'Carita corregida a mano':'Tiene observación'}">${ee.aj.cara?'✏️':'📝'}</div>`:''}</div>`;}).join('');
+  const aj=tbObsHTML(e.aj,o.tv);
+  const big=e.cara==='feliz'?'tb-ok':e.cara==='triste'?'tb-ko':e.cara==='curso'?'tb-cur':'';
+  return `<div class="tb${o.tv?' tb-tv':''}"${o.tv&&e.L.length>10?` style="--tbz:${Math.max(.55,10/e.L.length).toFixed(2)}"`:''}>
+   <div class="tb-h"><div><div class="tb-k">Plan de producción · diario</div><div class="tb-t">🏭 ${esc(nom)}</div></div><div class="tb-fecha">${esc(fechaLarga(d))}</div></div>
+   <div class="tb-g"><div class="tb-l">${e.L.length?`<table class="tb-tbl"><thead><tr><th>Artículo</th><th class="tb-n">A producir</th><th class="tb-n">Producido</th><th class="tb-c"><span class="tb-hd" style="--c:#1B7A3E"></span>Cumplido</th><th class="tb-c"><span class="tb-hd" style="--c:#E2A400"></span>+50%</th><th class="tb-c"><span class="tb-hd" style="--c:#C62828"></span>−50%</th></tr></thead><tbody>${rows}</tbody>
+     <tfoot><tr><td>Total de la línea</td><td class="tb-n">${nf(e.plan)}</td><td class="tb-n">${nf(e.hecho)}</td><td colspan="3" class="tb-c"><b>${nf(e.pct)}%</b></td></tr></tfoot></table>`:`<div class="tb-vacio">${tbFace('sin',64)}<div>${d>t?'Todavía no hay plan cargado para este día.':'No hubo plan de producción para esta línea este día.'}</div></div>`}</div>
+    <div class="tb-r"><div class="tb-wk"><div class="tb-wh">Objetivo diario cumplido</div><div class="tb-wg">${wk}</div></div>
+     <div class="tb-cnt">${tbFace('feliz',o.tv?46:30)}<div><b>${sem.f}</b> ${sem.f===1?'carita feliz':'caritas felices'} esta semana</div></div>
+     <div class="tb-msg ${big}">${e.L.length||e.aj?esc(tbMsg(e,lk,d)):esc(tbMsgSem(lk))}</div>
+     ${e.L.length?`<div class="tb-sem">${esc(tbMsgSem(lk))}</div>`:''}${aj}
+     ${!o.tv&&S.puede&&TB.ajOk&&e.cara!=='futuro'?`<button class="btn ${e.L.length&&e.cara!=='feliz'&&!(e.aj&&(tbCausas(e.aj).length||e.aj.nota))?'btn-gold':'btn-ghost'} btn-sm" onclick="tbAjustar('${lk}','${d}')">📝 ${e.aj&&(tbCausas(e.aj).length||e.aj.nota||e.aj.mejora)?'Editar observación':'Registrar observación'}${e.L.length&&e.cara!=='feliz'?' · oportunidad de mejora':''}</button>`:''}
+     <div class="tb-val"><div class="tb-vt">¡Tu esfuerzo también se nota!</div><span>🌿 Calidad</span><span>🤝 Trabajo en equipo</span><span>☀️ Compromiso</span><span>🌱 Crecimiento</span><div class="tb-vm">¡Vamos por más!</div></div></div></div></div>`;}
+function tbRanking(lin){if(lin.length<2)return '';const R=lin.map(l=>Object.assign({},l,tbSemana(l.id))).sort((a,b)=>b.f-a.f);const top=R[0].f>0&&(R.length<2||R[0].f>R[1].f)?R[0].id:null;
+  return `<div class="tb-rank">${R.map(r=>`<div class="tb-rk${r.id===top?' top':''}">${r.id===top?'🏆 ':''}<b>${esc(r.nombre)}</b><span>${tbFace('feliz',22)} ${r.f}${r.j?' de '+r.j:''}</span></div>`).join('')}</div>`;}
+async function viewTablero(){const v=$('view');if(!TB.data)v.innerHTML='<div class="card"><div class="empty">⏳ Cargando tablero…</div></div>';
+  try{await tbEnsure();}catch(e){v.innerHTML=`<div class="card"><div class="empty">No se pudo cargar el tablero: ${esc(errMsg(e))}</div></div>`;return;}
+  if(cur!=='tablero')return;
+  const t=today();const ult=addDays(TB.ws,TB_DIAS.length-1);if(!TB.dia||TB.dia<TB.ws||TB.dia>ult)TB.dia=(t>=TB.ws&&t<=ult)?t:(t>ult&&t<=addDays(TB.ws,6)?ult:TB.ws);
+  const lin=tbLineas();const ver=F.tbLinea&&lin.some(l=>l.id===F.tbLinea)?lin.filter(l=>l.id===F.tbLinea):lin;
+  const dias=TB_DIAS.map((n,i)=>{const dd=addDays(TB.ws,i);return `<button class="btn btn-sm ${dd===TB.dia?'btn-gold':'btn-ghost'}" onclick="TB.dia='${dd}';viewTablero()">${n} ${dd.slice(8)}${dd===t?' · hoy':''}</button>`;}).join('');
+  v.innerHTML=(!TB.ok?`<div class="note">⚠️ No se pudo leer el plan de producción: ${esc(TB.err)}</div>`:'')+(S.puede&&!TB.ajOk?`<div class="note">ℹ️ El tablero ya funciona solo. Para poder <b>corregir a mano</b> la carita de un día, corré <b>docs_v4_tablero.sql</b> en Supabase → SQL Editor (una sola vez).</div>`:'')+
+   `<div class="filters"><div class="seg"><button class="btn btn-ghost btn-sm" onclick="tbSem(-7)">◀</button><button class="btn btn-ghost btn-sm" style="cursor:default"><b>Semana del ${fmtD(TB.ws).slice(0,5)} al ${fmtD(addDays(TB.ws,TB_DIAS.length-1))}</b></button><button class="btn btn-ghost btn-sm" onclick="tbSem(7)">▶</button>${TB.ws!==tbLunes(t)?'<button class="btn btn-ghost btn-sm" onclick="tbSem(0)">Esta semana</button>':''}</div>
+    <div class="seg">${dias}</div>
+    ${lin.length>1?`<div class="seg"><button class="btn btn-sm ${!F.tbLinea?'btn-gold':'btn-ghost'}" onclick="F.tbLinea='';viewTablero()">Todas las líneas</button>${lin.map(l=>`<button class="btn btn-sm ${F.tbLinea===l.id?'btn-gold':'btn-ghost'}" onclick="F.tbLinea='${l.id}';viewTablero()">🏭 ${esc(l.nombre)}</button>`).join('')}</div>`:''}
+    <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="go('pantalla')">📺 Modo pantalla</button></div>
+   <p class="hint">Se arma solo con el <b>plan de producción</b> de cada día (Trace) y lo <b>producido</b> ese día. Verde: 100% o más · Amarillo: 50 a 99% · Rojo: menos de 50%. <b>Carita feliz</b> cuando todos los productos del plan llegan al 100%. Los días sin plan (como el domingo) no cuentan para la semana. Se actualiza cada minuto.</p>
+   ${tbRanking(lin)}
+   ${ver.length?ver.map(l=>tbLineaHTML(l.id,TB.dia)).join(''):`<div class="card"><div class="empty">${tbFace('sin',56)}<br>No hay planes de producción cargados esta semana.</div></div>`}${tbObsSemana(ver)}`;
+  clearInterval(_muroT);_muroT=setInterval(async()=>{if(cur!=='tablero'||document.hidden||$('modalBg').classList.contains('show'))return;try{await loadTablero(TB.ws);viewTablero();}catch(e){}},60000);}
+async function tbSem(n){const ws=n?addDays(TB.ws||tbLunes(today()),n):tbLunes(today());TB.manual=ws!==tbLunes(today());TB.dia=null;$('view').innerHTML='<div class="card"><div class="empty">⏳ Cargando…</div></div>';try{await loadTablero(ws);}catch(e){banner(errMsg(e),'err');}viewTablero();}
+function tbCausas(a){const c=a&&a.causas;return Array.isArray(c)?c:(typeof c==='string'&&c?c.split('|'):[]);}
+function tbObsHTML(a,tv){if(!a)return '';const C=tbCausas(a);if(!a.cara&&!a.nota&&!C.length&&!a.mejora)return '';
+  return `<div class="tb-aj">${a.cara?`<div>✏️ Carita corregida a mano: <b>${a.cara==='feliz'?'😊 cumplido':'☹️ no se cumplió'}</b></div>`:''}${C.length?`<div>📝 <b>Causa${C.length>1?'s':''}:</b> ${C.map(esc).join(' · ')}</div>`:''}${a.nota?`<div>${C.length?'':'📝 '}${esc(a.nota)}</div>`:''}${a.mejora&&!tv?`<div>💡 <b>Oportunidad de mejora:</b> ${esc(a.mejora)}</div>`:''}${a.usuario&&!tv?`<div class="tb-aju">${esc(a.usuario)}${a.updated_at?' · '+fmtTs(a.updated_at):''}</div>`:''}</div>`;}
+function tbAjustar(lk,d){const e=tbEstado(lk,d);const a=e.aj||{};const nom=lk?(lineaNom(lk)||'Línea'):'Sin línea asignada';const C=tbCausas(a);
+  const op=(v,l)=>`<label class="chk"><input type="radio" name="tbaj" value="${v}" ${(a.cara||'')===v?'checked':''}> ${l}</label>`;
+  const flojos=e.L.filter(x=>x.col!=='v').map(x=>`${esc(x.nombre)} ${nf(x.pct)}%`).join(' · ');
+  modal(`<h3>Observación del día · ${esc(nom)}</h3><p class="hint">${esc(fechaLarga(d))} · ${nf(e.pct)}% del plan${flojos?'<br>No llegaron: '+flojos:''}</p>
+   <label class="lb">¿Qué pasó? (podés marcar varias)</label><div class="tb-cg">${TB_CAUSAS.map((c,i)=>`<label class="chk"><input type="checkbox" class="tbcz" value="${esc(c)}" ${C.includes(c)?'checked':''}> ${esc(c)}</label>`).join('')}</div>
+   <label class="lb">Detalle</label><input class="in" id="tbaj_n" maxlength="200" value="${esc(a.nota||'')}" placeholder="Ej.: la acelga del proveedor X vino con 30% de descarte">
+   <label class="lb">💡 Oportunidad de mejora / acción para la próxima</label><input class="in" id="tbaj_m" maxlength="200" value="${esc(a.mejora||'')}" placeholder="Ej.: revisar la MP al recibirla y avisar antes de planificar">
+   <details style="margin-top:12px"${a.cara?' open':''}><summary class="hint" style="cursor:pointer;margin:0">Carita del día · automático: <b>${{feliz:'😊 feliz',triste:'☹️ no se cumplió',curso:'⏳ en curso',sin:'sin plan',futuro:'todavía no empezó'}[e.auto]}</b></summary>
+   ${op('','🤖 Automático (según el plan y lo producido)')}${op('feliz','😊 Carita feliz (se cumplió igual)')}${op('triste','☹️ No se cumplió')}</details>
+   <p class="hint" style="margin-top:10px">Queda registrado con tu nombre y se ve en el tablero y en <b>Observaciones de la semana</b>. En la TV se muestra la causa, no la oportunidad de mejora.</p>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="tbaj_b" onclick="tbAjGuardar('${lk}','${d}')">Guardar</button></div>`);}
+async function tbAjGuardar(lk,d){const r=document.querySelector('input[name=tbaj]:checked');const cara=r?r.value:'';const nota=$('tbaj_n').value.trim(),mejora=$('tbaj_m').value.trim();const causas=[...document.querySelectorAll('.tbcz:checked')].map(x=>x.value);const b=$('tbaj_b');b.disabled=true;
+  try{const {error}=await sb.from('docs_tablero').upsert({empresa_id:S.empresaId,linea_key:lk,fecha:d,cara:cara||null,nota:nota||null,causas,mejora:mejora||null,usuario:S.nombre,updated_at:new Date().toISOString()},{onConflict:'empresa_id,linea_key,fecha'});
+    if(error){if(/causas|mejora/i.test(error.message||''))throw new Error('Falta volver a correr docs_v4_tablero.sql en Supabase (agrega causas y oportunidad de mejora)');throw error;}
+    closeModal();await loadTablero(TB.ws);viewTablero();banner('Observación guardada ✓');}catch(e){b.disabled=false;banner('No se pudo guardar: '+errMsg(e),'err');}}
+function tbObsSemana(lin){const R=[];lin.forEach(l=>{for(let i=0;i<7;i++){const d=addDays(TB.ws,i);const a=TB.aj[l.id+'|'+d];if(a&&(a.nota||tbCausas(a).length||a.mejora||a.cara))R.push({l,d,a,e:tbEstado(l.id,d)});}});
+  if(!R.length)return '';const cnt={};R.forEach(x=>tbCausas(x.a).forEach(c=>cnt[c]=(cnt[c]||0)+1));const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
+  return `<div class="card"><div class="card-h"><h3>📝 Observaciones de la semana</h3>${top.length?`<div class="seg">${top.map(([c,n])=>`<span class="tag t-warn">${esc(c)} · ${n}</span>`).join('')}</div>`:''}</div>
+   <div class="tscroll"><table><thead><tr><th>Día</th><th>Línea</th><th class="num">Plan</th><th>Causas</th><th>Detalle</th><th>Oportunidad de mejora</th><th>Registró</th></tr></thead><tbody>${R.sort((a,b)=>a.d.localeCompare(b.d)).map(x=>`<tr><td style="white-space:nowrap">${esc(fechaLarga(x.d))}</td><td>${esc(x.l.nombre)}</td><td class="num">${x.e.L.length?nf(x.e.pct)+'%':'—'}${x.a.cara?' ✏️':''}</td><td>${tbCausas(x.a).map(esc).join(' · ')||'—'}</td><td>${esc(x.a.nota||'—')}</td><td>${esc(x.a.mejora||'—')}</td><td class="cod">${esc(x.a.usuario||'')}</td></tr>`).join('')}</tbody></table></div></div>`;}
+function tbStripMuro(){if(!TB.data||!TB.ok)return '';const t=today();if(TB.ws!==tbLunes(t))return '';const lin=tbLineas([t]);if(!lin.length)return '';
+  return `<div class="tb-strip" onclick="go('tablero')" role="button" tabindex="0"><b>🏆 Tablero de hoy</b>${lin.map(l=>{const e=tbEstado(l.id,t);return `<span>${tbFace(e.cara,24)} ${esc(l.nombre)} <small>${e.cara==='feliz'?'¡cumplido!':nf(e.pct)+'%'}</small></span>`;}).join('')}<span class="tb-sv">Ver tablero →</span></div>`;}
+
 // ══════════════ MODO PANTALLA (TV del galpón) ══════════════
 const PT={cfg:null,slides:[],i:0,t:null,clk:null,poll:null,lock:null,paused:false,mouseT:null,dirty:false};
-function ptCfgDef(){return {tipo:'todos',cuando:'hoyman',seg:20,fs:28,linea:''};}
-function ptParse(q){const c=ptCfgDef();try{const u=new URLSearchParams(q||'');if(u.get('tipo'))c.tipo=u.get('tipo');if(u.get('linea'))c.linea=u.get('linea');if(u.get('cuando'))c.cuando=u.get('cuando');if(+u.get('seg'))c.seg=Math.max(5,Math.min(300,+u.get('seg')));if(+u.get('fs'))c.fs=Math.max(16,Math.min(64,+u.get('fs')));}catch(e){}return c;}
-function ptURL(c){const q={tipo:c.tipo,cuando:c.cuando,seg:c.seg,fs:c.fs,auto:1};if(c.linea)q.linea=c.linea;return location.origin+location.pathname+'#pantalla?'+new URLSearchParams(q).toString();}
+function ptCfgDef(){return {tipo:'todos',cuando:'hoyman',seg:20,fs:28,linea:'',tab:'docs'};}
+function ptParse(q){const c=ptCfgDef();try{const u=new URLSearchParams(q||'');if(u.get('tipo'))c.tipo=u.get('tipo');if(u.get('linea'))c.linea=u.get('linea');if(['docs','ambos','tablero'].includes(u.get('tab')))c.tab=u.get('tab');if(u.get('cuando'))c.cuando=u.get('cuando');if(+u.get('seg'))c.seg=Math.max(5,Math.min(300,+u.get('seg')));if(+u.get('fs'))c.fs=Math.max(16,Math.min(64,+u.get('fs')));}catch(e){}return c;}
+function ptURL(c){const q={tipo:c.tipo,cuando:c.cuando,seg:c.seg,fs:c.fs,auto:1};if(c.linea)q.linea=c.linea;if(c.tab&&c.tab!=='docs')q.tab=c.tab;return location.origin+location.pathname+'#pantalla?'+new URLSearchParams(q).toString();}
 function viewPantalla(){const c=PT.cfg||(PT.cfg=Object.assign(ptCfgDef(),JSON.parse(lsGet('docs_pt','{}')||'{}')));
   const o=(id,list,v)=>`<select class="in" id="${id}">${list.map(([a,b])=>`<option value="${a}"${String(a)===String(v)?' selected':''}>${b}</option>`).join('')}</select>`;
   $('view').innerHTML=setupNote()+`<div class="card frm"><div class="card-h"><h3>📺 Modo pantalla</h3></div>
    <p class="hint">Para una TV o monitor en el galpón: muestra los documentos publicados en grande, uno tras otro, sin menú. Si un documento no entra en la pantalla, lo parte en páginas solas. Se actualiza solo cada minuto y la pantalla no se apaga.</p>
    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-    <div><label class="lb">Qué mostrar</label>${o('pt_tipo',[['todos','Pedidos y órdenes'],['pedido','Solo pedidos'],['orden_produccion','Solo órdenes de producción']],c.tipo)}</div>
+    <div><label class="lb">Tablero de cumplimiento 🏆</label>${o('pt_tab',[['docs','No, solo documentos'],['ambos','Documentos + tablero'],['tablero','Solo el tablero']],c.tab||'docs')}</div>
+    <div><label class="lb">Qué documentos</label>${o('pt_tipo',[['todos','Pedidos y órdenes'],['pedido','Solo pedidos'],['orden_produccion','Solo órdenes de producción']],c.tipo)}</div>
     ${lineasUsadas().length?`<div><label class="lb">Línea de producción</label>${o('pt_linea',[['','Todas las líneas']].concat(lineasUsadas().map(l=>[l.id,'🏭 '+l.nombre+' (solo sus órdenes)'])),c.linea||'')}</div>`:''}
     <div><label class="lb">Entregas de</label>${o('pt_cuando',[['hoy','Hoy'],['hoyman','Hoy y mañana'],['proximos','Hoy en adelante']],c.cuando)}</div>
     <div><label class="lb">Segundos por página</label>${o('pt_seg',[[10,'10 s'],[15,'15 s'],[20,'20 s'],[30,'30 s'],[45,'45 s'],[60,'1 minuto']],c.seg)}</div>
@@ -608,8 +777,8 @@ function viewPantalla(){const c=PT.cfg||(PT.cfg=Object.assign(ptCfgDef(),JSON.pa
     <li>La primera vez tocá la pantalla una vez para que pase a pantalla completa (el navegador lo exige).</li></ol>
    <div class="urlbox"><span id="pt_url" style="flex:1">${esc(ptURL(c))}</span><button class="btn btn-ghost btn-sm" onclick="ptCopiar()">📋 Copiar</button></div>
    <p class="hint" style="margin:10px 0 0">En pantalla: <b>→ / ←</b> pasan de documento, <b>espacio</b> pausa, <b>Esc</b> sale. Con el mouse aparece el botón <b>Salir</b>. Lo que se ve en la TV no cuenta como lectura de nadie.</p></div>`;
-  ['pt_tipo','pt_cuando','pt_seg','pt_fs','pt_linea'].filter(id=>$(id)).forEach(id=>$(id).addEventListener('change',()=>{ptLeerForm();$('pt_url').textContent=ptURL(PT.cfg);}));}
-function ptLeerForm(){PT.cfg={tipo:$('pt_tipo').value,cuando:$('pt_cuando').value,seg:+$('pt_seg').value,fs:+$('pt_fs').value,linea:$('pt_linea')?$('pt_linea').value:''};lsSet('docs_pt',JSON.stringify(PT.cfg));}
+  ['pt_tab','pt_tipo','pt_cuando','pt_seg','pt_fs','pt_linea'].filter(id=>$(id)).forEach(id=>$(id).addEventListener('change',()=>{ptLeerForm();$('pt_url').textContent=ptURL(PT.cfg);}));}
+function ptLeerForm(){PT.cfg={tipo:$('pt_tipo').value,cuando:$('pt_cuando').value,seg:+$('pt_seg').value,fs:+$('pt_fs').value,linea:$('pt_linea')?$('pt_linea').value:'',tab:$('pt_tab')?$('pt_tab').value:'docs'};lsSet('docs_pt',JSON.stringify(PT.cfg));}
 function ptDesdeForm(){ptLeerForm();ptStart(PT.cfg,true);}
 function ptCopiar(){const t=$('pt_url').textContent;try{navigator.clipboard.writeText(t).then(()=>banner('Dirección copiada ✓'),()=>banner('Copiala a mano: seleccioná el texto','warn'));}catch(e){banner('Copiala a mano: seleccioná el texto','warn');}}
 function ptDocs(){const c=PT.cfg,t=today();const fr=p=>String(p.fecha_ref||'').slice(0,10);
@@ -630,13 +799,15 @@ function ptPaginar(p){const st=$('pantStage');const c=conLinea(p.contenido||{},p
   rows.forEach((tr,i)=>{const rh=tr.getBoundingClientRect().height;if(curr.length&&h+rh>avail){pages.push(curr);curr=[];h=0;}curr.push(items[i]);h+=rh;});
   if(curr.length)pages.push(curr);
   return pages.map((it,k)=>({p,items:it,pag:k+1,pags:pages.length}));}
-function ptBuild(){PT.slides=[];ptDocs().forEach(p=>{PT.slides.push(...ptPaginar(p));});PT.dirty=false;}
+function ptBuild(){PT.slides=[];const c=PT.cfg;if(c.tab&&c.tab!=='docs'&&TB.data)tbLineas([today()]).filter(l=>!c.linea||l.id===c.linea).forEach(l=>PT.slides.push({tb:l.id,p:{id:'tb:'+l.id}}));if(c.tab!=='tablero')ptDocs().forEach(p=>{PT.slides.push(...ptPaginar(p));});PT.dirty=false;}
 function ptShow(){clearTimeout(PT.t);const st=$('pantStage');const n=PT.slides.length;
-  if(!n){st.innerHTML=`<div class="pt-empty"><div style="font-size:60px">📭</div><div class="big">Sin documentos para mostrar</div><div style="font-size:20px">${PT.cfg.cuando==='hoy'?'No hay entregas publicadas para hoy.':PT.cfg.cuando==='hoyman'?'No hay entregas publicadas para hoy ni mañana.':'No hay documentos publicados.'}</div><div style="font-size:15px">La pantalla se actualiza sola cada minuto.</div></div>`;$('ptN').textContent='';ptProg(0);return;}
+  if(!n){st.innerHTML=PT.cfg.tab==='tablero'?`<div class="pt-empty">${tbFace('sin',90)}<div class="big">Sin plan de producción para hoy</div><div style="font-size:20px">Cuando se cargue el plan del día en Trace, el tablero aparece solo.</div><div style="font-size:15px">La pantalla se actualiza sola cada minuto.</div></div>`:`<div class="pt-empty"><div style="font-size:60px">📭</div><div class="big">Sin documentos para mostrar</div><div style="font-size:20px">${PT.cfg.cuando==='hoy'?'No hay entregas publicadas para hoy.':PT.cfg.cuando==='hoyman'?'No hay entregas publicadas para hoy ni mañana.':'No hay documentos publicados.'}</div><div style="font-size:15px">La pantalla se actualiza sola cada minuto.</div></div>`;$('ptN').textContent='';ptProg(0);return;}
   if(PT.i>=n)PT.i=0;if(PT.i<0)PT.i=n-1;
-  const s=PT.slides[PT.i];const docs=[...new Set(PT.slides.map(x=>x.p.id))];const di=docs.indexOf(s.p.id)+1;
+  const s=PT.slides[PT.i];
+  if(s.tb!=null){st.innerHTML=tbLineaHTML(s.tb,today(),{tv:true});$('ptN').textContent='🏆 Tablero del plan'+(PT.paused?' · ⏸ pausa':'');}
+  else{const docs=[...new Set(PT.slides.filter(x=>x.tb==null).map(x=>x.p.id))];const di=docs.indexOf(s.p.id)+1;
   st.innerHTML=docHTML(conLinea(s.p.contenido||{},pubLinea(s.p)),{items:s.items,pag:s.pag,pags:s.pags,meta:{version:s.p.version,publicado_at:s.p.publicado_at,por:s.p.publicado_por_nombre}});
-  $('ptN').textContent=`Documento ${di} de ${docs.length}`+(s.pags>1?` · pág. ${s.pag}/${s.pags}`:'')+(PT.paused?' · ⏸ pausa':'');
+  $('ptN').textContent=`Documento ${di} de ${docs.length}`+(s.pags>1?` · pág. ${s.pag}/${s.pags}`:'')+(PT.paused?' · ⏸ pausa':'');}
   if(PT.paused)return ptProg(0);
   ptProg(PT.cfg.seg);
   PT.t=setTimeout(()=>{PT.i++;if(PT.i>=PT.slides.length){PT.i=0;if(PT.dirty)ptBuild();}ptShow();},PT.cfg.seg*1000);}
@@ -656,9 +827,11 @@ async function ptStart(cfg,gesto){PT.cfg=cfg;PT.i=0;PT.paused=false;
   else{const h=document.createElement('div');h.className='pt-hint';h.id='ptHint';h.textContent='👆 Tocá la pantalla para verla completa';el.appendChild(h);el.addEventListener('click',ptFsClick);}
   ptWake();ptClock();clearInterval(PT.clk);PT.clk=setInterval(ptClock,15000);
   clearInterval(PT.poll);PT.poll=setInterval(ptRefresh,60000);
+  if(cfg.tab&&cfg.tab!=='docs'){TB.manual=false;try{await tbEnsure(true);}catch(e){}}
   ptBuild();ptShow();}
 async function ptFsClick(){const el=$('pant');const h=$('ptHint');if(h)h.remove();el.removeEventListener('click',ptFsClick);try{if(el.requestFullscreen&&!document.fullscreenElement)await el.requestFullscreen();}catch(e){}}
-async function ptRefresh(){try{const prev=JSON.stringify(ptDocs().map(p=>p.id+':'+p.version));await loadPubs();const now=JSON.stringify(ptDocs().map(p=>p.id+':'+p.version));
+function ptSig(){return JSON.stringify(ptDocs().map(p=>p.id+':'+p.version))+'|'+(PT.cfg.tab&&PT.cfg.tab!=='docs'&&TB.data?tbLineas([today()]).map(l=>l.id).join(','):'');}
+async function ptRefresh(){try{const prev=ptSig();await loadPubs();if(PT.cfg.tab&&PT.cfg.tab!=='docs'){TB.manual=false;await tbEnsure(true);}const now=ptSig();
   if(prev!==now){if(!PT.slides.length){ptBuild();PT.i=0;ptShow();}else PT.dirty=true;}}catch(e){}}
 function ptMove(d){if(!PT.slides.length)return;PT.i+=d;if(PT.i>=PT.slides.length){PT.i=0;if(PT.dirty)ptBuild();}ptShow();}
 function ptPausa(){PT.paused=!PT.paused;ptShow();}
