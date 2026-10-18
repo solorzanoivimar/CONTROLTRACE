@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CONTROL MAX — Control RRHH</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111D35'/%3E%3Ctext x='32' y='46' font-family='Segoe UI,Arial,sans-serif' font-size='40' font-weight='800' text-anchor='middle' fill='%23C9A84C'%3ER%3C/text%3E%3C/svg%3E">
+<!-- CONTROL RRHH · build v1 · Requiere rrhh_etapa1_setup.sql -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#111D35;--navy2:#1B2A4A;--gold:#C9A84C;--gold-d:#A9842F;--cream:#F5F2EA;--ink:#1C2536;--muted:#6B7689;--line:#E7E2D6;--sage:#4F7D6A;--sage-bg:#E9F1EC;--clay:#B5654A;--clay-bg:#F6EBE6;--amber:#86571A;--amber-bg:#FAF3E2;--steel:#3D5A80;
+  font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink)}
+button,input,select,textarea{font-family:inherit}
+/* LAYOUT (mismo menú lateral que los demás módulos) */
+#app{display:none}
+.layout{display:flex;min-height:100vh}
+.side{width:230px;background:var(--navy);color:#cdd6e4;padding:18px 0;flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:11px;padding:0 20px 16px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:10px}
+.brand svg{width:34px;height:34px;flex-shrink:0}
+.brand h1{font-size:15px;margin:0;font-weight:800;color:#fff;letter-spacing:.3px}
+.brand .sub{font-size:11px;color:var(--gold);margin-top:2px}
+.gl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#64748b;padding:14px 20px 6px}
+.side .nb{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;color:#cdd6e4;padding:10px 20px;font-size:14px;cursor:pointer;text-align:left}
+.side .nb:hover{background:rgba(255,255,255,.06);color:#fff}
+.side .nb.on{background:rgba(201,168,76,.16);color:#fff;border-right:3px solid var(--gold)}
+.side .nb.fut{color:#7d8aa0;padding-top:7px;padding-bottom:7px;font-size:13px}
+.side .nb .ico{width:20px;text-align:center}
+.side .nb .cnt{margin-left:auto;background:var(--gold);color:var(--navy);font-size:10px;font-weight:800;padding:1px 7px;border-radius:9px}
+.side .nb .et{margin-left:auto;border:1px solid #3a4a66;color:#8a96aa;font-size:9px;font-weight:700;padding:0 6px;border-radius:9px}
+.side .foot{margin-top:auto;padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:12px}
+.side .foot .who{color:#fff;font-weight:600}.side .foot .role{color:#9fb0c8;font-size:11px}
+.side .foot .bld{font-size:9px;color:#8a96aa;text-align:center;margin-top:10px;line-height:1.5}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{background:#fff;border-bottom:1px solid var(--line);padding:14px 26px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.top .crumb{font-size:11px;color:var(--steel);letter-spacing:.12em;text-transform:uppercase}
+.top h2{margin:2px 0 0;font-size:20px;color:var(--navy)}
+#mnav{display:none;background:none;border:0;font-size:22px;color:var(--navy);cursor:pointer;padding:0 6px 0 0}
+.view{padding:22px 26px;max-width:1180px;width:100%}
+.card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px;margin-bottom:16px}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.card-h h3{margin:0;font-size:16px;color:var(--navy)}
+.hint{color:var(--muted);font-size:13px;margin:0 0 12px;line-height:1.5}
+label.lb{display:block;font-size:12px;font-weight:600;margin:10px 0 5px}
+.in{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fcfbf8;font-size:14px;color:var(--ink)}
+.in:focus{outline:none;border-color:var(--steel);box-shadow:0 0 0 3px rgba(61,90,128,.12)}
+.in[disabled]{background:#f1eee7;color:var(--muted)}
+textarea.in{min-height:70px;resize:vertical}
+.btn{border:0;border-radius:9px;padding:10px 15px;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-gold{background:var(--gold);color:#3a2c08}.btn-gold:hover{background:var(--gold-d);color:#fff}
+.btn-ghost{background:#fff;color:var(--navy);border:1px solid var(--line)}.btn-ghost:hover{background:#f6f3ec}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-danger{background:#fff;color:var(--clay);border:1px solid #e7c3b6}
+.btn-sm{padding:6px 10px;font-size:12px}
+.btn[disabled]{opacity:.4;cursor:default}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
+.t-ok{background:var(--sage-bg);color:var(--sage)}.t-out{background:var(--clay-bg);color:var(--clay)}.t-warn{background:var(--amber-bg);color:var(--amber)}.t-nav{background:#e8eef5;color:var(--navy)}.t-mut{background:#efece4;color:var(--muted)}.t-gold{background:#fbf3dd;color:#8a6410}
+.seg{display:inline-flex;gap:6px;flex-wrap:wrap}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+.filters .f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.filters .f .in{min-width:150px}
+.note{background:var(--amber-bg);border:1px solid #f0d9b0;color:var(--amber);padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;line-height:1.5}
+.empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:14px}
+.muted{color:var(--muted)}.small{font-size:12px}
+/* TABLAS (8 por página, selector y barra de acciones) */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid #f0ece2;vertical-align:middle}
+.cod{color:var(--muted);font-size:12px}
+.gx-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:#f7f3ea;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:0 0 10px}
+.gx-pager{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--navy)}
+.gx-n{font-size:12px;color:var(--muted)}
+.gx-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gx-who{font-weight:700;color:var(--navy);margin-right:4px}
+.gx-hint{font-size:12px;color:var(--muted)}
+td.gx-sel{width:34px;text-align:center}td.gx-sel input{width:18px;height:18px;cursor:pointer;accent-color:#b8862b}
+tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{background:#fdf3d9!important}
+.tscroll{overflow-x:auto}
+/* PANEL */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px 16px;cursor:default}
+.kpi.ck{cursor:pointer}.kpi.ck:hover{box-shadow:0 6px 18px rgba(17,29,53,.08)}
+.kpi small{display:block;color:var(--muted);font-size:12px}
+.kpi b{display:block;font-size:28px;color:var(--navy);margin-top:4px;line-height:1.1}
+.kpi b.r{color:var(--clay)}.kpi b.a{color:var(--amber)}.kpi b.g{color:#8a6410}
+.kpi span{font-size:11px;color:var(--muted)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid #f0ece2;font-size:13px;cursor:pointer}
+.li:last-child{border-bottom:0}.li:hover{background:#fbf9f4}
+.li .who{font-weight:600;color:var(--ink)}
+.bars .br{display:grid;grid-template-columns:150px 1fr 40px;gap:10px;align-items:center;font-size:13px;margin:6px 0}
+.bars .tr{background:#f1ede4;border-radius:6px;height:12px;overflow:hidden}.bars .tr i{display:block;height:100%;background:var(--navy);border-radius:6px}
+.bars .n{text-align:right;font-weight:700;color:var(--navy)}
+/* FICHA */
+.fh{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.av{width:62px;height:62px;border-radius:50%;background:var(--navy);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;flex-shrink:0}
+.fh .nm{font-size:22px;font-weight:800;color:var(--navy);line-height:1.15}
+.fh .sb{color:var(--muted);font-size:13px;margin-top:3px}
+.fh .tg{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer}
+.tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.dl{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 20px}
+.dl .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.dl .v{font-size:14px;font-weight:600;margin-top:2px;word-break:break-word}
+.dl .v.e{color:#b9b2a3;font-weight:400;font-style:italic}
+.sect{font-size:12px;font-weight:800;color:var(--steel);text-transform:uppercase;letter-spacing:.1em;margin:18px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.sect:first-child{margin-top:0}
+.tl{border-left:3px solid var(--line);margin-left:6px;padding-left:16px}
+.tl .ev{position:relative;padding:0 0 16px}
+.tl .ev:before{content:"";position:absolute;left:-23px;top:3px;width:11px;height:11px;border-radius:50%;background:var(--gold);border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.tl .ev.s:before{background:var(--clay)}.tl .ev.b:before{background:var(--muted)}.tl .ev.r:before{background:var(--sage)}
+.tl .ev .h{font-size:12px;color:var(--muted)}.tl .ev .t{font-weight:700;color:var(--navy);margin:2px 0}.tl .ev .d{font-size:13px;line-height:1.45}
+/* FORMULARIOS */
+.fg{display:grid;grid-template-columns:repeat(3,1fr);gap:0 12px}
+.fg>div{min-width:0}.fg .in{min-width:0;max-width:100%}
+.fg .full{grid-column:1/-1}
+.fg .two{grid-column:span 2}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(17,29,53,.5);display:none;align-items:center;justify-content:center;z-index:95;padding:16px}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:13px;padding:22px;max-width:540px;width:100%;max-height:92vh;overflow:auto}
+.modal.wide{max-width:860px}
+.modal h3{margin:0 0 6px;color:var(--navy)}
+.row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px;padding:6px 0;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:#b8862b}
+.lst{max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:4px 10px}
+/* BANNER / SPLASH */
+.banner{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:99;opacity:0;transition:opacity .2s;pointer-events:none;max-width:92vw}
+.banner.show{opacity:1}.banner.warn{background:var(--gold-d)}.banner.err{background:var(--clay)}
+#splash{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:14px;color:#fff;text-align:center;padding:20px}
+#splash .lg{font-size:26px;font-weight:900;color:var(--gold);letter-spacing:2px}
+#splash .lg span{color:#fff}
+.spin{width:38px;height:38px;border:3px solid rgba(201,168,76,.3);border-top-color:var(--gold);border-radius:50%;animation:s .8s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+.fut{max-width:640px}
+.fut .big{font-size:44px}
+@media(max-width:860px){.g2{grid-template-columns:1fr}.dl{grid-template-columns:1fr 1fr}.fg{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){
+  .layout{flex-direction:column}
+  .side{position:fixed;left:0;top:0;bottom:0;z-index:80;transform:translateX(-100%);transition:transform .2s;height:100vh}
+  body.nav-open .side{transform:none;box-shadow:0 0 40px rgba(0,0,0,.4)}
+  #mnav{display:block}
+  .top{padding:58px 14px 12px}.view{padding:14px}
+  .dl{grid-template-columns:1fr}.fg{grid-template-columns:1fr}.fg .two{grid-column:auto}
+  .bars .br{grid-template-columns:100px 1fr 34px}
+}
+</style>
+</head>
+<body>
+
+<div id="splash"><div class="lg">CONTROL <span>RRHH</span></div><div class="spin"></div><div id="splashMsg" style="font-size:13px;color:rgba(255,255,255,.7)">Cargando legajos…</div></div>
+
+<div id="app">
+ <div class="layout">
+  <nav class="side">
+   <div class="brand">
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 47V29M24 33l-6-6M24 31l7-7" stroke="#cdd6e4" stroke-width="2.4" stroke-linecap="round"/><circle cx="19" cy="13" r="6.5" fill="#e0c578"/><circle cx="30" cy="13" r="6.5" fill="#e0c578"/><circle cx="14" cy="20" r="7" fill="#d9b65f"/><circle cx="34" cy="20" r="7" fill="#d9b65f"/><circle cx="24" cy="16" r="9.5" fill="#c9a24b"/><circle cx="20" cy="17" r="1.4" fill="#a9762a"/><circle cx="28" cy="14" r="1.4" fill="#a9762a"/><circle cx="31" cy="20" r="1.4" fill="#a9762a"/><circle cx="16" cy="19" r="1.4" fill="#a9762a"/><circle cx="24" cy="21" r="1.4" fill="#a9762a"/></svg>
+    <div><h1>CONTROL RRHH</h1><div class="sub" id="empName">—</div></div>
+   </div>
+   <div id="nav"></div>
+   <div class="foot">
+    <div class="who" id="whoName">—</div><div class="role" id="whoRole">—</div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:10px;width:100%;justify-content:center" onclick="location.href='/portal.html'">🏠 Portal CONTROL MAX</button>
+    <div class="bld" id="buildLbl"></div>
+   </div>
+  </nav>
+  <div class="main">
+   <div class="top"><div style="display:flex;align-items:center"><button id="mnav" onclick="document.body.classList.toggle('nav-open')" aria-label="Menú">☰</button><div><div class="crumb" id="crumb">—</div><h2 id="title">—</h2></div></div><button class="btn btn-ghost btn-sm" id="btnRefresh" onclick="refreshNow()">🔄 Actualizar</button></div>
+   <div class="view" id="view"></div>
+  </div>
+ </div>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<div class="banner" id="banner"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONTROL RRHH · recursos humanos de CONTROL MAX
+// Etapa 1: legajos, documentos con vencimiento, historial laboral,
+// baja / reingreso / cambio de puesto / sanciones con PIN (quedan en
+// novedades → CONTROL TOTAL · Auditoría) y vínculo con los operarios
+// de TRACE (tabla operarios, no se modifica su estructura).
+// ══════════════════════════════════════════════════════════════
+const BUILD='build v1 · v1: Etapa 1 — legajos, documentos con vencimiento (archivo en Supabase Storage), historial laboral, baja / reingreso / cambio de puesto / sanciones con PIN (Auditoría en TOTAL), vínculo e importación de operarios de TRACE, accesos por usuario, listas configurables, Excel e impresión de ficha';
+const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
+const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
+const BUCKET='rrhh-docs';
+const MAX_MB=10;
+
+const ROL_LABEL={admin:'Administrador',administrador:'Administrador',dueno:'Dueño','dueño':'Dueño',supervisor:'Supervisor',comercial:'Comercial',preparador:'Preparador',chofer:'Chofer'};
+const ADMINS=['admin','administrador','dueno','dueño'];
+const AREAS_OP=['recepción','producción','despacho','general'];          // mismas áreas que Configuración → Operarios
+const AREA2SECTOR={'recepción':'Recepción','producción':'Producción / Envasado','despacho':'Despacho','general':''};
+const PP=8;
+// listas por defecto (se editan en Configuración RRHH; los convenios los define RRHH)
+const DEF_L={
+  sectores:['Recepción','Acondicionamiento','Producción / Envasado','Despacho','Cámaras y depósito','Mantenimiento','Logística','Administración','Comercial'],
+  puestos:['Operario de galpón','Operario de envasado','Operario de recepción','Autoelevadorista','Encargado/a de turno','Supervisor/a','Chofer','Mantenimiento','Administrativo/a','Vendedor/a'],
+  categorias:[],
+  convenios:['Fuera de convenio'],
+  modalidades:['Efectivo (tiempo indeterminado)','Período de prueba','De temporada','Eventual','Plazo fijo','Agencia / tercerizado','Pasantía'],
+  turnos:['Mañana','Tarde','Noche','Rotativo','Cortado'],
+  tiposDoc:[{n:'DNI',v:false},{n:'Constancia de CUIL',v:false},{n:'Alta temprana (ARCA)',v:false},{n:'Contrato de trabajo',v:false},{n:'Apto médico preocupacional',v:false},{n:'Libreta sanitaria / carnet de manipulador',v:true},{n:'Carnet de conducir',v:true},{n:'Carnet de autoelevador',v:true},{n:'Certificado de estudios',v:false},{n:'Constancia de CBU',v:false},{n:'Certificado médico',v:false},{n:'Otro',v:false}],
+  avisoDias:30
+};
+const MOTIVOS_BAJA=['Renuncia','Despido sin causa','Despido con causa','Fin de contrato / temporada','Mutuo acuerdo','Período de prueba no superado','Jubilación','Abandono de trabajo','Otro'];
+const NOV_TIPOS=[['reconocimiento','🏅 Reconocimiento',false],['nota','📝 Nota / observación',false],['llamado','⚠️ Llamado de atención',true],['apercibimiento','📄 Apercibimiento',true],['suspension','⛔ Suspensión',true]];
+const HIST_L={alta:'Alta',reingreso:'Reingreso',baja:'Baja',cambio_puesto:'Cambio de puesto / condiciones',reconocimiento:'Reconocimiento',nota:'Nota',llamado:'Llamado de atención',apercibimiento:'Apercibimiento',suspension:'Suspensión',vinculo_operario:'Vínculo con TRACE',documento:'Documento',anular_documento:'Documento anulado',edicion:'Datos actualizados'};
+const FUT={
+  'f:asis':['🕒','Asistencia',2,'Fichaje desde la app con el QR del galpón o en la tablet con DNI + PIN, turnos, tardanzas, ausencias y horas extra, parte diario automático.'],
+  'f:sol':['📨','Solicitudes',2,'Licencias, permisos, adelantos y consultas desde la app del empleado, con aviso por mail a la empresa y al Jefe de RRHH y aprobación con PIN.'],
+  'f:vac':['🏖️','Vacaciones y licencias',3,'Saldo calculado según la antigüedad del legajo, calendario por sector y aviso cuando se pisan ausencias.'],
+  'f:pres':['💳','Préstamos y adelantos',3,'Plan de cuotas, cuenta corriente por empleado y desembolso desde Caja o Banco de CONTROL PLUS.'],
+  'f:bib':['📚','Biblioteca e inducción',4,'Manuales, procedimientos, descripción de puestos, convenios colectivos (solo empresa) e inducción del empleado nuevo con “leí y entendí”.'],
+  'f:epp':['🦺','EPP y herramientas',4,'Entregas de indumentaria y herramientas con firma del trabajador en pantalla, talles y recambios.'],
+  'f:recl':['🔎','Reclutamiento',5,'Link público de postulación, formulario de admisión y de capacidades, análisis de CV con IA contra el perfil del puesto.'],
+  'f:asist':['💬','Asistente FMN',6,'Mensajes de buenos días, cumpleaños, bienvenidas y reconocimientos; primero con reglas y después con IA.'],
+  'f:liq':['🧮','Pre-liquidación',7,'Novedades del mes (días, extras, ausencias, licencias, adelantos y cuotas) listas para el estudio contable.']
+};
+const NAV=[['g','Personal'],['panel','🏠','Panel'],['legajos','👤','Legajos'],['docs','📎','Documentos'],['g','Próximas etapas'],...Object.keys(FUT).map(k=>[k]),['g','Ajustes'],['config','⚙️','Configuración RRHH']];
+const META={panel:['PERSONAL','Panel de RRHH'],legajos:['PERSONAL','Legajos'],ficha:['PERSONAL · LEGAJO','Ficha del empleado'],docs:['PERSONAL','Documentos y vencimientos'],config:['AJUSTES','Configuración RRHH']};
+
+const S={uid:null,empresaId:null,rol:'',nombre:'',empresa:{},nivel:'consulta',cfgRow:null,L:null,accesos:{},emps:[],docs:[],hist:[],ops:[],opsOk:true,fichaId:null};
+const F={q:'',sector:'',estado:'activos',mod:'',fTab:'datos',dEst:'alerta',dTipo:'',dQ:'',cTab:'listas'};
+let cur='panel';
+
+// ══════════════ UTILIDADES ══════════════
+const $=id=>document.getElementById(id);
+const esc=s=>(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const nf=(n,d=0)=>(+n||0).toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDays(f,n){if(!f)return '';const d=new Date(String(f).slice(0,10)+'T00:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+const fmtD=f=>f?String(f).slice(0,10).split('-').reverse().join('/'):'—';
+const d10=f=>f?String(f).slice(0,10):'';
+function diasHasta(f){if(!f)return null;return Math.round((new Date(d10(f)+'T00:00:00')-new Date(today()+'T00:00:00'))/864e5);}
+function fmtTs(ts){if(!ts)return '—';const d=new Date(ts);if(isNaN(d))return '—';return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function banner(t,k){const b=$('banner');b.textContent=t;b.className='banner show'+(k?' '+k:'');clearTimeout(b._t);b._t=setTimeout(()=>b.className='banner',k==='err'?6500:3000);}
+function modal(html,wide){const m=$('modal');m.className='modal'+(wide?' wide':'');m.innerHTML=html;$('modalBg').classList.add('show');setTimeout(()=>{const f=m.querySelector('input:not([type=hidden]):not([type=checkbox]):not([disabled]):not([readonly]),select:not([disabled]),textarea');if(f)f.focus();},40);}
+function closeModal(){$('modalBg').classList.remove('show');}
+function errMsg(e){const m=(e&&(e.message||e.details||e.error_description))||String(e||'');
+  if(/rrhh_|relation .* does not exist|PGRST205|PGRST202|Could not find the (table|function)/i.test(m)&&!/row-level|duplicate/i.test(m))return 'Falta correr rrhh_etapa1_setup.sql en Supabase → SQL Editor ('+m+')';
+  if(/Bucket not found/i.test(m))return 'Falta el bucket de archivos: corré rrhh_etapa1_setup.sql en Supabase ('+m+')';
+  if(/row-level security|permission denied/i.test(m))return 'Tu usuario no tiene permiso para esta operación en RRHH ('+m+')';
+  if(/rrhh_empleados_dni_uq/.test(m))return 'Ya existe un legajo con ese DNI';
+  if(/rrhh_empleados_legajo_uq/.test(m))return 'Ese número de legajo ya existe (otra persona lo cargó recién). Probá de nuevo.';
+  if(/rrhh_empleados_oper_uq/.test(m))return 'Ese operario de TRACE ya está vinculado a otro legajo';
+  return m;}
+function esAdmin(){return ADMINS.includes(S.rol);}
+function gestiona(){return S.nivel==='admin'||S.nivel==='gestion';}
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function norm(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+async function sbAll(build){const out=[];for(let from=0;;from+=1000){const {data,error}=await build().range(from,from+999);if(error)throw error;out.push(...(data||[]));if(!data||data.length<1000)break;}return out;}
+
+// ══════════════ GRILLA (8 por página, selector y barra de acciones · igual que los otros módulos) ══════════════
+const G={};
+function grid(cid,key,cols,rows,acts,dbl){
+  const st=G[key]||(G[key]={pag:1,sel:null});st.args=[cid,key,cols,rows,acts,dbl];
+  const pags=Math.max(1,Math.ceil(rows.length/PP));st.pag=Math.min(Math.max(1,st.pag),pags);
+  if(st.sel&&!rows.some(r=>r._k===st.sel))st.sel=null;
+  const sel=rows.find(r=>r._k===st.sel);const A=sel?acts(sel):[];window['_ga_'+key]=A;window['_gd_'+key]=dbl;
+  const vis=rows.slice((st.pag-1)*PP,st.pag*PP);
+  const bar=`<div class="gx-bar"><div class="gx-pager"><button class="btn btn-ghost btn-sm" ${st.pag<=1?'disabled':''} onclick="gridPag('${key}',-1)">◀</button><b>Pág. ${st.pag} de ${pags}</b><button class="btn btn-ghost btn-sm" ${st.pag>=pags?'disabled':''} onclick="gridPag('${key}',1)">▶</button><span class="gx-n">${rows.length} registro${rows.length===1?'':'s'}</span></div>
+   <div class="gx-acts">${sel?`<span class="gx-who">${esc(sel._lbl||'')}</span>`+(A.length?A.map((a,i)=>`<button class="btn btn-sm ${a.cls||'btn-ghost'}" ${a.dis?'disabled':''} onclick="gridDo('${key}',${i})">${a.lbl}</button>`).join(''):'<span class="gx-hint">Sin acciones para este registro</span>'):'<span class="gx-hint">☝️ Seleccioná un registro de la lista'+(dbl?' (doble clic para abrir)':'')+'</span>'}</div></div>`;
+  const body=vis.map(r=>`<tr class="gx-r${r._k===st.sel?' gx-on':''}" onclick="gridSel('${key}','${esc(r._k)}')" ondblclick="gridDbl('${key}','${esc(r._k)}')"><td class="gx-sel"><input type="radio" name="gx_${key}" ${r._k===st.sel?'checked':''} aria-label="Seleccionar"></td>${cols.map(c=>`<td class="${c.cls||''}">${c.f(r)}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${cols.length+1}" class="empty">Sin registros</td></tr>`;
+  $(cid).innerHTML=bar+`<div class="tscroll"><table><thead><tr><th></th>${cols.map(c=>`<th class="${c.cls||''}">${c.h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`;}
+function gridRedraw(key){const st=G[key];if(st&&st.args&&$(st.args[0]))grid(...st.args);}
+function gridSel(key,k){G[key].sel=k;gridRedraw(key);}
+function gridPag(key,d){G[key].pag+=d;G[key].sel=null;gridRedraw(key);}
+function gridDo(key,i){const a=(window['_ga_'+key]||[])[i];if(a&&!a.dis)a.fn();}
+function gridDbl(key,k){const f=window['_gd_'+key];if(f)f(k);}
+
+// ══════════════ DATOS ══════════════
+function mergeL(l){l=l||{};const o={};Object.keys(DEF_L).forEach(k=>{o[k]=(k in l&&l[k]!=null)?l[k]:JSON.parse(JSON.stringify(DEF_L[k]));});o.avisoDias=Math.max(1,+o.avisoDias||30);return o;}
+async function loadCfg(){const {data,error}=await sb.from('rrhh_config').select('*').eq('empresa_id',S.empresaId).maybeSingle();if(error)throw error;S.cfgRow=data||null;S.L=mergeL(data&&data.listas);S.accesos=(data&&data.accesos)||{};}
+async function loadEmps(){S.emps=await sbAll(()=>sb.from('rrhh_empleados').select('*').eq('empresa_id',S.empresaId).order('legajo',{ascending:true}));}
+async function loadDocs(){S.docs=await sbAll(()=>sb.from('rrhh_documentos').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false}));}
+async function loadHist(){S.hist=await sbAll(()=>sb.from('rrhh_historial').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false}));}
+async function loadOps(){const {data,error}=await sb.from('operarios').select('id,nombre,area,activo').eq('empresa_id',S.empresaId).order('nombre');S.opsOk=!error;S.ops=error?[]:(data||[]);}
+async function loadAll(){await loadCfg();await Promise.all([loadEmps(),loadDocs(),loadHist(),loadOps()]);}
+
+// ══════════════ REGLAS DEL LEGAJO ══════════════
+const emp=id=>S.emps.find(e=>e.id===id);
+function nomE(e){if(!e)return '—';return e.apellido?`${e.apellido}, ${e.nombre}`:(e.nombre||'—');}
+function nomCorto(e){return e?[e.nombre,e.apellido].filter(Boolean).join(' '):'—';}
+function iniciales(e){const p=[e.nombre,e.apellido].filter(Boolean).join(' ').split(/\s+/).filter(Boolean);return ((p[0]||'?')[0]+((p.length>1?p[p.length-1]:'')[0]||'')).toUpperCase();}
+function meses(a,b){const x=new Date(d10(a)+'T00:00:00'),y=new Date(d10(b)+'T00:00:00');let m=(y.getFullYear()-x.getFullYear())*12+(y.getMonth()-x.getMonth());if(y.getDate()<x.getDate())m--;return m;}
+function antigM(e){if(!e||!e.fecha_ingreso)return null;const fin=(e.estado==='baja'&&e.fecha_egreso)?e.fecha_egreso:today();const m=meses(e.fecha_ingreso,fin);return m<0?null:m;}
+function txtMeses(m){if(m==null)return '';const y=Math.floor(m/12),mm=m%12;if(!y&&!mm)return 'menos de 1 mes';return (y?y+' año'+(y>1?'s':''):'')+(y&&mm?' y ':'')+(mm?mm+' mes'+(mm>1?'es':''):'');}
+function edad(e){if(!e||!e.fecha_nacimiento)return null;return Math.floor(meses(e.fecha_nacimiento,today())/12);}
+const REQ=[['apellido','Apellido'],['dni','DNI'],['cuil','CUIL'],['fecha_ingreso','Fecha de ingreso'],['sector','Sector'],['puesto','Puesto'],['telefono','Teléfono']];
+function faltan(e){return REQ.filter(([k])=>!e[k]).map(r=>r[1]);}
+function cuilDig(c){return String(c||'').replace(/\D/g,'');}
+function fmtCuil(c){const d=cuilDig(c);return d.length===11?d.slice(0,2)+'-'+d.slice(2,10)+'-'+d.slice(10):String(c||'').trim();}
+function cuilOK(c){const d=cuilDig(c);if(d.length!==11)return false;const w=[5,4,3,2,7,6,5,4,3,2];let s=0;for(let i=0;i<10;i++)s+=(+d[i])*w[i];let v=11-(s%11);if(v===11)v=0;if(v===10)v=9;return v===+d[10];}
+function nextLegajo(extra){let mx=0;S.emps.forEach(e=>{const m=/(\d+)\s*$/.exec(e.legajo||'');if(m)mx=Math.max(mx,+m[1]);});return 'EMP-'+String(mx+1+(extra||0)).padStart(4,'0');}
+function opDe(e){return e&&e.operario_id?S.ops.find(o=>o.id===e.operario_id):null;}
+function opsLibres(exceptId){const used=new Set(S.emps.filter(e=>e.operario_id&&e.id!==exceptId).map(e=>e.operario_id));return S.ops.filter(o=>!used.has(o.id));}
+function opsSinLegajo(){return opsLibres().filter(o=>o.activo!==false);}
+function estadoTag(e){return e.estado==='baja'?`<span class="tag t-mut">Baja${e.fecha_egreso?' '+fmtD(e.fecha_egreso):''}</span>`:'<span class="tag t-ok">Activo</span>';}
+// documentos
+function aviso(){return (S.L&&S.L.avisoDias)||30;}
+function tipoVence(t){const x=(S.L.tiposDoc||[]).find(o=>o.n===t);return !!(x&&x.v);}
+function reemplazado(d){return S.docs.some(o=>o.id!==d.id&&o.estado!=='anulado'&&o.empleado_id===d.empleado_id&&o.tipo===d.tipo&&o.vence&&d.vence&&d10(o.vence)>d10(d.vence));}
+function docEst(d){if(d.estado==='anulado')return 'anulado';if(!d.vence)return 'sin';if(reemplazado(d))return 'renovado';const n=diasHasta(d.vence);if(n<0)return 'vencido';if(n<=aviso())return 'porvencer';return 'vigente';}
+function docTag(d){const e=docEst(d),n=diasHasta(d.vence);return {anulado:'<span class="tag t-mut">Anulado</span>',sin:'<span class="tag t-nav">Sin vencimiento</span>',renovado:'<span class="tag t-mut">Renovado</span>',vencido:`<span class="tag t-out">Vencido hace ${-n} d</span>`,porvencer:`<span class="tag t-warn">Vence en ${n} d</span>`,vigente:'<span class="tag t-ok">Vigente</span>'}[e];}
+function docsAlerta(){return S.docs.filter(d=>{const e=emp(d.empleado_id);return e&&e.estado!=='baja'&&['vencido','porvencer'].includes(docEst(d));}).sort((a,b)=>d10(a.vence).localeCompare(d10(b.vence)));}
+function docsDe(id){return S.docs.filter(d=>d.empleado_id===id);}
+function alertasDe(id){return S.docs.filter(d=>d.empleado_id===id&&['vencido','porvencer'].includes(docEst(d)));}
+
+// ══════════════ PIN Y AUDITORÍA (igual que TRACE / PLUS) ══════════════
+function pinAuth(v){v=(v||'').trim();if(!v)return null;const master=(((S.empresa&&S.empresa.pin)||'1234')+'').trim();if(v===master)return {nombre:(S.empresa&&S.empresa.pin_nombre)||'Supervisor'};const list=(S.empresa&&S.empresa.autorizadores)||[];const f=list.find(a=>a&&a.activo!==false&&((a.pin||'')+'').trim()===v);return f?{nombre:f.nombre||'Autorizador'}:null;}
+async function logNovedad(tipo,ref,detalle,auth){try{const {error}=await sb.from('novedades').insert({empresa_id:S.empresaId,fecha:today(),tipo:tipo,referencia:ref||null,detalle:(detalle||'').slice(0,400)||null,autorizado_por:(auth&&auth.nombre)||null,ejecutado_por:S.nombre||null});if(error)console.warn('[auditoría] no se pudo registrar',error.message);}catch(e){console.warn('[auditoría]',e);}}
+async function addHist(empId,tipo,detalle,ant,nue,auth,fecha){const {error}=await sb.from('rrhh_historial').insert({empresa_id:S.empresaId,empleado_id:empId,fecha:fecha||today(),tipo,detalle:detalle||null,valor_anterior:ant||null,valor_nuevo:nue||null,autorizado_por:(auth&&auth.nombre)||null,registrado_por:S.nombre||null});if(error)throw error;}
+// o: {titulo, html, btn, tipo, ref, detalle(), validar(), onOK(auth)}
+function pinModal(o){
+  modal(`<h3>🔒 ${o.titulo}</h3>${o.html||''}<label class="lb">PIN de supervisor *</label><input class="in" type="password" inputmode="numeric" id="pin_v" autocomplete="off" placeholder="PIN o QR de autorización"><p class="hint" style="margin:6px 0 0">Queda registrado en CONTROL TOTAL → Auditoría.</p><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="pin_ok">${o.btn||'✅ Autorizar'}</button></div>`,o.wide);
+  const go_=async()=>{const err=o.validar?o.validar():null;if(err)return banner(err,'warn');const a=pinAuth($('pin_v').value);if(!a){banner('PIN incorrecto','err');$('pin_v').select();return;}
+    const b=$('pin_ok');b.disabled=true;b.textContent='⏳ Guardando…';
+    try{await o.onOK(a);await logNovedad(o.tipo,o.ref,typeof o.detalle==='function'?o.detalle():o.detalle,a);closeModal();}catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;b.textContent=o.btn||'✅ Autorizar';}};
+  $('pin_ok').onclick=go_;$('pin_v').addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();go_();}});
+}
+
+// ══════════════ NAVEGACIÓN ══════════════
+function buildNav(){const al=docsAlerta().length;
+  $('nav').innerHTML=NAV.map(n=>{if(n[0]==='g')return `<div class="gl">${n[1]}</div>`;
+    if(FUT[n[0]]){const f=FUT[n[0]];return `<button class="nb fut${cur===n[0]?' on':''}" onclick="go('${n[0]}')"><span class="ico">${f[0]}</span>${f[1]}<span class="et">E${f[2]}</span></button>`;}
+    const on=cur===n[0]||(n[0]==='legajos'&&cur==='ficha');const cnt=n[0]==='docs'&&al?`<span class="cnt">${al}</span>`:'';
+    return `<button class="nb${on?' on':''}" onclick="go('${n[0]}')"><span class="ico">${n[1]}</span>${n[2]}${cnt}</button>`;}).join('');}
+function go(v,arg){if(!META[v]&&!FUT[v])v='panel';if(v==='config'&&!gestiona()&&!esAdmin())v='panel';cur=v;if(v==='ficha'){if(arg)S.fichaId=arg;if(!emp(S.fichaId)){cur=v='legajos';}}
+  document.body.classList.remove('nav-open');buildNav();const m=META[v]||['PRÓXIMAS ETAPAS',FUT[v][1]];$('crumb').textContent=m[0];$('title').textContent=v==='ficha'?nomCorto(emp(S.fichaId)):m[1];
+  render();window.scrollTo(0,0);try{history.replaceState(null,'','#'+v+(v==='ficha'?'='+S.fichaId:''));}catch(e){}}
+function render(){const V={panel:viewPanel,legajos:viewLegajos,ficha:viewFicha,docs:viewDocs,config:viewConfig}[cur];if(V)V();else viewFut();}
+async function refreshNow(){const b=$('btnRefresh');b.textContent='⏳ Actualizando…';try{await loadAll();go(cur,S.fichaId);banner('Datos actualizados ✓');}catch(e){banner('Error: '+errMsg(e),'err');}b.textContent='🔄 Actualizar';}
+
+// ══════════════ PANEL ══════════════
+function proximos(campo,dias,minAnios){const t=today(),out=[];S.emps.filter(e=>e.estado!=='baja'&&e[campo]).forEach(e=>{const f=d10(e[campo]);const y=+t.slice(0,4);for(const yy of [y,y+1]){let md=f.slice(5);if(md==='02-29'&&!((yy%4===0&&yy%100!==0)||yy%400===0))md='02-28';const c=yy+'-'+md;const n=diasHasta(c);if(n>=0&&n<=dias){const an=yy-(+f.slice(0,4));if(an>=(minAnios||0))out.push({e,f:c,n,an});break;}}});return out.sort((a,b)=>a.n-b.n);}
+function cuandoTxt(n){return n===0?'<b>Hoy</b>':n===1?'Mañana':'En '+n+' días';}
+function viewPanel(){
+  const act=S.emps.filter(e=>e.estado!=='baja');const t=today();
+  const altas=S.emps.filter(e=>e.fecha_ingreso&&d10(e.fecha_ingreso)>=addDays(t,-30)&&d10(e.fecha_ingreso)<=t);
+  const venc=docsAlerta();const vdos=venc.filter(d=>docEst(d)==='vencido').length;
+  const inc=act.filter(e=>faltan(e).length);const sinLeg=S.opsOk?opsSinLegajo():[];
+  const cumple=proximos('fecha_nacimiento',30,0),aniv=proximos('fecha_ingreso',30,1);
+  const porSec={};act.forEach(e=>{const k=e.sector||'Sin sector';porSec[k]=(porSec[k]||0)+1;});const secs=Object.entries(porSec).sort((a,b)=>b[1]-a[1]);const mx=Math.max(1,...secs.map(s=>s[1]));
+  const hola=(S.nombre||'').split(/\s+/)[0];
+  $('view').innerHTML=(S.emps.length?'':`<div class="card" style="border-left:6px solid var(--gold)"><h3 style="margin:0 0 6px;color:var(--navy)">👋 ¡Hola${hola?' '+esc(hola):''}! Arranquemos con los legajos</h3><p class="hint">Todavía no hay empleados cargados. ${sinLeg.length?`Hay <b>${sinLeg.length} operarios</b> en el padrón de TRACE: podés importarlos de una vez y después completar sus datos.`:'Cargá el primer legajo.'}</p><div class="seg">${gestiona()&&sinLeg.length?'<button class="btn btn-gold" onclick="importarOps()">⤵️ Importar operarios de TRACE</button>':''}${gestiona()?'<button class="btn btn-ghost" onclick="editEmp()">＋ Nuevo legajo</button>':''}</div></div>`)+
+  `<div class="kpis">
+    <div class="kpi ck" onclick="F.estado='activos';F.sector='';F.q='';go('legajos')"><small>Empleados activos</small><b>${nf(act.length)}</b><span>${nf(S.emps.length-act.length)} de baja</span></div>
+    <div class="kpi"><small>Ingresos (últimos 30 días)</small><b class="g">${nf(altas.length)}</b><span>por fecha de ingreso</span></div>
+    <div class="kpi ck" onclick="F.dEst='alerta';go('docs')"><small>Documentos vencidos</small><b class="${vdos?'r':''}">${nf(vdos)}</b><span>de empleados activos</span></div>
+    <div class="kpi ck" onclick="F.dEst='alerta';go('docs')"><small>Por vencer (${aviso()} días)</small><b class="${venc.length-vdos?'a':''}">${nf(venc.length-vdos)}</b><span>avisar para renovar</span></div>
+    <div class="kpi ck" onclick="F.estado='incompletos';go('legajos')"><small>Legajos incompletos</small><b class="${inc.length?'a':''}">${nf(inc.length)}</b><span>les falta algún dato clave</span></div>
+   </div>
+   <div class="g2">
+    <div class="card"><div class="card-h"><h3>⏰ Vencimientos</h3><button class="btn btn-ghost btn-sm" onclick="F.dEst='alerta';go('docs')">Ver todos</button></div>
+     ${venc.slice(0,8).map(d=>{const e=emp(d.empleado_id);return `<div class="li" onclick="go('ficha','${e.id}')"><span><span class="who">${esc(nomE(e))}</span><br><span class="small muted">${esc(d.tipo)} · vence ${fmtD(d.vence)}</span></span>${docTag(d)}</div>`;}).join('')||'<div class="empty">Sin documentos vencidos ni por vencer 👍</div>'}</div>
+    <div class="card"><div class="card-h"><h3>🎂 Cumpleaños y aniversarios</h3><span class="small muted">próximos 30 días</span></div>
+     ${[...cumple.map(x=>({...x,k:'c'})),...aniv.map(x=>({...x,k:'a'}))].sort((a,b)=>a.n-b.n).slice(0,10).map(x=>`<div class="li" onclick="go('ficha','${x.e.id}')"><span><span class="who">${esc(nomCorto(x.e))}</span><br><span class="small muted">${x.k==='c'?'🎂 Cumpleaños':'🏅 '+x.an+' año'+(x.an>1?'s':'')+' en la empresa'} · ${fmtD(x.f).slice(0,5)}</span></span><span class="small">${cuandoTxt(x.n)}</span></div>`).join('')||'<div class="empty">Nada en los próximos 30 días.<br><span class="small">Se calculan con la fecha de nacimiento y de ingreso del legajo.</span></div>'}</div>
+   </div>
+   <div class="g2">
+    <div class="card"><div class="card-h"><h3>👥 Dotación por sector</h3><span class="small muted">empleados activos</span></div>
+     <div class="bars">${secs.map(([k,v])=>`<div class="br"><span>${esc(k)}</span><span class="tr"><i style="width:${Math.round(v/mx*100)}%"></i></span><span class="n">${v}</span></div>`).join('')||'<div class="empty">Sin datos</div>'}</div></div>
+    <div class="card"><div class="card-h"><h3>🔗 Operarios de TRACE</h3></div>
+     ${!S.opsOk?'<p class="hint">No se pudo leer el padrón de operarios.</p>':`<p class="hint">El padrón de operarios lo usa TRACE en recepción y producción. Cada operario debería tener su legajo.</p>
+     <div class="kpis" style="grid-template-columns:1fr 1fr;margin-bottom:10px"><div class="kpi"><small>Operarios activos</small><b>${nf(S.ops.filter(o=>o.activo!==false).length)}</b></div><div class="kpi"><small>Sin legajo</small><b class="${sinLeg.length?'a':''}">${nf(sinLeg.length)}</b></div></div>
+     ${gestiona()&&sinLeg.length?'<button class="btn btn-gold btn-sm" onclick="importarOps()">⤵️ Importar los que faltan</button>':''}`}</div>
+   </div>`;
+}
+
+// ══════════════ LEGAJOS ══════════════
+function viewLegajos(){
+  const L=S.L;const opt=(l,v)=>l.map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('');
+  const secs=[...new Set([...L.sectores,...S.emps.map(e=>e.sector).filter(Boolean)])];const mods=[...new Set([...L.modalidades,...S.emps.map(e=>e.modalidad).filter(Boolean)])];
+  $('view').innerHTML=`<div class="card"><div class="card-h"><h3>👤 Legajos</h3><div class="seg">
+    ${gestiona()?'<button class="btn btn-gold" onclick="editEmp()">＋ Nuevo legajo</button>':''}
+    ${gestiona()&&S.opsOk&&opsSinLegajo().length?`<button class="btn btn-ghost" onclick="importarOps()">⤵️ Importar operarios (${opsSinLegajo().length})</button>`:''}
+    <button class="btn btn-ghost" onclick="exportLegajos()">📥 Excel</button></div></div>
+   <div class="filters">
+    <div class="f" style="flex:1;min-width:200px">Buscar<input class="in" id="fq" placeholder="Nombre, legajo, DNI o CUIL" value="${esc(F.q)}" oninput="F.q=this.value;G.leg&&(G.leg.pag=1);drawLegajos()"></div>
+    <div class="f">Sector<select class="in" onchange="F.sector=this.value;drawLegajos()"><option value="">Todos</option>${opt(secs,F.sector)}</select></div>
+    <div class="f">Modalidad<select class="in" onchange="F.mod=this.value;drawLegajos()"><option value="">Todas</option>${opt(mods,F.mod)}</select></div>
+    <div class="f">Estado<select class="in" onchange="F.estado=this.value;drawLegajos()">${[['activos','Activos'],['bajas','De baja'],['incompletos','Incompletos'],['todos','Todos']].map(([k,l])=>`<option value="${k}"${F.estado===k?' selected':''}>${l}</option>`).join('')}</select></div>
+   </div><div id="legGrid"></div></div>`;
+  drawLegajos();
+}
+function filtLegajos(){const q=norm(F.q),qd=cuilDig(F.q);return S.emps.filter(e=>{
+  if(F.estado==='activos'&&e.estado==='baja')return false;if(F.estado==='bajas'&&e.estado!=='baja')return false;if(F.estado==='incompletos'&&(e.estado==='baja'||!faltan(e).length))return false;
+  if(F.sector&&e.sector!==F.sector)return false;if(F.mod&&e.modalidad!==F.mod)return false;
+  if(q&&!(norm(nomE(e)).includes(q)||norm(nomCorto(e)).includes(q)||norm(e.legajo).includes(q)||(qd.length>=3&&(cuilDig(e.dni).includes(qd)||cuilDig(e.cuil).includes(qd)))))return false;return true;})
+  .sort((a,b)=>norm(nomE(a)).localeCompare(norm(nomE(b))));}
+function drawLegajos(){
+  const rows=filtLegajos().map(e=>Object.assign({},e,{_k:e.id,_lbl:nomE(e)}));
+  grid('legGrid','leg',[
+    {h:'Legajo',f:r=>`<b>${esc(r.legajo||'—')}</b>`},
+    {h:'Apellido y nombre',f:r=>`<b>${esc(nomE(r))}</b>${r.dni?`<div class="cod">DNI ${esc(r.dni)}</div>`:''}`},
+    {h:'Sector · puesto',f:r=>`${esc(r.sector||'—')}<div class="cod">${esc(r.puesto||'')}</div>`},
+    {h:'Ingreso',f:r=>r.fecha_ingreso?`${fmtD(r.fecha_ingreso)}<div class="cod">${txtMeses(antigM(r))}</div>`:'<span class="muted">—</span>'},
+    {h:'Modalidad',f:r=>esc(r.modalidad||'—')},
+    {h:'Estado',f:r=>{const a=alertasDe(r.id),fl=faltan(r);return estadoTag(r)+(r.estado!=='baja'&&a.length?` <span class="tag ${a.some(d=>docEst(d)==='vencido')?'t-out':'t-warn'}" title="${esc(a.map(d=>d.tipo).join(', '))}">📎 ${a.length}</span>`:'')+(r.estado!=='baja'&&fl.length?` <span class="tag t-warn" title="Falta: ${esc(fl.join(', '))}">Incompleto</span>`:'');}},
+    {h:'TRACE',f:r=>r.operario_id?'<span title="Vinculado al operario de TRACE">🔗</span>':'<span class="muted">—</span>'}
+  ],rows,r=>{const a=[{lbl:'👁️ Ver ficha',cls:'btn-gold',fn:()=>go('ficha',r.id)}];if(gestiona())a.push({lbl:'✏️ Editar',fn:()=>editEmp(r.id)},{lbl:'📎 Documento',fn:()=>upDoc(r.id)});return a;},k=>go('ficha',k));
+}
+
+// ══════════════ FICHA ══════════════
+function dv(l,v,full){return `<div${full?' style="grid-column:1/-1"':''}><div class="l">${l}</div><div class="v${v?'':' e'}">${v||'sin dato'}</div></div>`;}
+function viewFicha(){
+  const e=emp(S.fichaId);if(!e)return go('legajos');
+  const dd=docsDe(e.id),hh=S.hist.filter(h=>h.empleado_id===e.id),al=alertasDe(e.id),fl=faltan(e),op=opDe(e),ed=edad(e);
+  const g=gestiona(),baja=e.estado==='baja';
+  $('view').innerHTML=`<div style="margin-bottom:12px"><button class="btn btn-ghost btn-sm" onclick="go('legajos')">← Legajos</button></div>
+   <div class="card"><div class="fh"><div class="av">${esc(iniciales(e))}</div><div style="flex:1;min-width:220px">
+     <div class="nm">${esc(nomCorto(e))}</div>
+     <div class="sb">${esc(e.legajo||'')} · ${esc(e.puesto||'sin puesto')} · ${esc(e.sector||'sin sector')}${e.turno?' · Turno '+esc(e.turno):''}</div>
+     <div class="tg">${estadoTag(e)}${e.fecha_ingreso?`<span class="tag t-nav">${baja?'Trabajó ':''}${txtMeses(antigM(e))}${baja?'':' en la empresa'}</span>`:''}${e.modalidad?`<span class="tag t-gold">${esc(e.modalidad)}</span>`:''}${op?`<span class="tag t-nav" title="Operario de TRACE: ${esc(op.nombre)}">🔗 Operario TRACE${op.activo===false?' (inactivo)':''}</span>`:''}${!baja&&al.length?`<span class="tag ${al.some(d=>docEst(d)==='vencido')?'t-out':'t-warn'}">📎 ${al.length} doc. a renovar</span>`:''}</div>
+   </div></div>
+   ${!baja&&fl.length?`<div class="note" style="margin:14px 0 0">Falta completar: <b>${esc(fl.join(', '))}</b>.${g?` <a href="#" onclick="editEmp('${e.id}');return false" style="color:inherit">Completar ahora</a>`:''}</div>`:''}
+   <div class="acts">
+    ${g?`<button class="btn btn-gold btn-sm" onclick="editEmp('${e.id}')">✏️ Editar datos</button>`:''}
+    ${g&&!baja?`<button class="btn btn-ghost btn-sm" onclick="cambioPuesto('${e.id}')">🔀 Cambio de puesto</button><button class="btn btn-ghost btn-sm" onclick="novedad('${e.id}')">📝 Registrar novedad</button><button class="btn btn-ghost btn-sm" onclick="upDoc('${e.id}')">📎 Subir documento</button>`:''}
+    <button class="btn btn-ghost btn-sm" onclick="printFicha('${e.id}')">🖨️ Imprimir ficha</button>
+    ${g?(baja?`<button class="btn btn-ghost btn-sm" onclick="reingreso('${e.id}')">↩️ Reingreso</button>`:`<button class="btn btn-danger btn-sm" onclick="darBaja('${e.id}')">⛔ Dar de baja</button>`):''}
+   </div></div>
+   <div class="tabs">${[['datos','Datos'],['docs','Documentos ('+dd.filter(d=>d.estado!=='anulado').length+')'],['hist','Historial ('+hh.length+')']].map(([k,l])=>`<button class="${F.fTab===k?'on':''}" onclick="F.fTab='${k}';viewFicha()">${l}</button>`).join('')}</div>
+   <div class="card" id="fBody"></div>`;
+  if(F.fTab==='docs'){$('fBody').innerHTML=`<div class="card-h"><h3>📎 Documentos del legajo</h3>${g&&!baja?`<button class="btn btn-gold btn-sm" onclick="upDoc('${e.id}')">＋ Subir documento</button>`:''}</div><div id="fdGrid"></div>`;drawDocsGrid('fdGrid','fdocs',dd.sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))),false);}
+  else if(F.fTab==='hist'){$('fBody').innerHTML=`<div class="card-h"><h3>🕓 Historial laboral</h3>${g&&!baja?`<button class="btn btn-ghost btn-sm" onclick="novedad('${e.id}')">＋ Registrar novedad</button>`:''}</div>`+(hh.length?`<div class="tl">${hh.map(h=>{const c={baja:'b',llamado:'s',apercibimiento:'s',suspension:'s',reconocimiento:'r',alta:'r',reingreso:'r'}[h.tipo]||'';
+      return `<div class="ev ${c}"><div class="h">${fmtD(h.fecha)} · registró ${esc(h.registrado_por||'—')}${h.autorizado_por?' · 🔒 autorizó '+esc(h.autorizado_por):''}</div><div class="t">${esc(HIST_L[h.tipo]||h.tipo)}</div>${h.detalle?`<div class="d">${esc(h.detalle)}</div>`:''}${histCambio(h)}</div>`;}).join('')}</div>`:'<div class="empty">Sin movimientos registrados</div>');}
+  else{$('fBody').innerHTML=`<div class="sect">Datos personales</div><div class="dl">
+     ${dv('Apellido',esc(e.apellido))}${dv('Nombre',esc(e.nombre))}${dv('DNI',esc(e.dni))}
+     ${dv('CUIL',esc(e.cuil))}${dv('Fecha de nacimiento',e.fecha_nacimiento?fmtD(e.fecha_nacimiento)+(ed!=null?` <span class="muted">(${ed} años)</span>`:''):'')}${dv('Teléfono',esc(e.telefono))}
+     ${dv('Email',esc(e.email))}${dv('Domicilio',esc(e.domicilio))}${dv('Localidad',esc(e.localidad))}</div>
+    <div class="sect">Contacto de emergencia</div><div class="dl">${dv('Nombre',esc(e.emergencia_nombre))}${dv('Vínculo',esc(e.emergencia_vinculo))}${dv('Teléfono',esc(e.emergencia_tel))}</div>
+    <div class="sect">Datos laborales</div><div class="dl">
+     ${dv('Legajo',esc(e.legajo))}${dv('Fecha de ingreso',e.fecha_ingreso?fmtD(e.fecha_ingreso):'')}${dv('Antigüedad',txtMeses(antigM(e)))}
+     ${dv('Sector',esc(e.sector))}${dv('Puesto',esc(e.puesto))}${dv('Categoría',esc(e.categoria))}
+     ${dv('Convenio',esc(e.convenio))}${dv('Modalidad',esc(e.modalidad))}${dv('Turno',esc(e.turno))}
+     ${dv('Jornada',esc(e.jornada))}${dv('Operario en TRACE',op?esc(op.nombre)+' · '+esc(op.area||'')+(op.activo===false?' (inactivo)':''):'')}${baja?dv('Egreso',fmtD(e.fecha_egreso)+' · '+esc(e.motivo_egreso||'')):''}
+     ${e.observaciones?dv('Observaciones',esc(e.observaciones),true):''}</div>
+    <p class="small muted" style="margin:16px 0 0">Alta del legajo: ${fmtTs(e.created_at)}${e.created_by?' por '+esc(e.created_by):''} · Última modificación: ${fmtTs(e.updated_at)}</p>`;}
+}
+function histCambio(h){const a=h.valor_anterior,n=h.valor_nuevo;if(!a||!n||typeof a!=='object')return '';const L={sector:'Sector',puesto:'Puesto',categoria:'Categoría',convenio:'Convenio',modalidad:'Modalidad',turno:'Turno',jornada:'Jornada'};
+  const ch=Object.keys(L).filter(k=>(a[k]||'')!==(n[k]||''));if(!ch.length)return '';return `<div class="d" style="margin-top:4px">${ch.map(k=>`${L[k]}: <span class="muted" style="text-decoration:line-through">${esc(a[k]||'—')}</span> → <b>${esc(n[k]||'—')}</b>`).join('<br>')}</div>`;}
+
+// ══════════════ ALTA / EDICIÓN DEL LEGAJO ══════════════
+function fi(id,label,val,o){o=o||{};return `<div class="${o.cls||''}"><label class="lb" for="${id}">${label}${o.req?' *':''}</label><input class="in" id="${id}" type="${o.type||'text'}" value="${esc(val||'')}"${o.ph?` placeholder="${esc(o.ph)}"`:''}${o.dis?' disabled':''}${o.attr?' '+o.attr:''}></div>`;}
+function fsel(id,label,val,list,o){o=o||{};const l=[...(list||[])];if(val&&!l.includes(val))l.push(val);return `<div class="${o.cls||''}"><label class="lb" for="${id}">${label}${o.req?' *':''}</label><select class="in" id="${id}"${o.dis?' disabled':''}${o.attr?' '+o.attr:''}><option value="">${o.none||'—'}</option>${l.map(x=>`<option${x===val?' selected':''}>${esc(x)}</option>`).join('')}</select></div>`;}
+function editEmp(id){if(!gestiona())return;
+  const e=id?emp(id):null,L=S.L,nuevo=!e;const laborDis=!nuevo;
+  const libres=opsLibres(id);const opSel=e&&e.operario_id?e.operario_id:'';
+  const opOpts=`<option value="">— Sin vincular —</option>${S.opsOk?`<option value="__new">＋ Crear operario en TRACE con este nombre</option>`:''}${libres.map(o=>`<option value="${o.id}"${o.id===opSel?' selected':''}>${esc(o.nombre)} · ${esc(o.area||'')}${o.activo===false?' (inactivo)':''}</option>`).join('')}`;
+  modal(`<h3>${nuevo?'＋ Nuevo legajo':'✏️ Editar legajo · '+esc(e.legajo||'')}</h3>
+   <p class="hint">Los campos con * son obligatorios. ${nuevo?'El número de legajo se asigna solo.':'Sector, puesto, categoría, convenio, modalidad y turno se cambian con <b>🔀 Cambio de puesto</b> (con PIN), para que quede en el historial.'}</p>
+   <div class="sect">Datos personales</div><div class="fg">
+    ${fi('e_apellido','Apellido',e&&e.apellido,{req:true})}${fi('e_nombre','Nombre',e&&e.nombre,{req:true})}${fi('e_dni','DNI',e&&e.dni,{attr:'inputmode="numeric"',ph:'Sin puntos'})}
+    ${fi('e_cuil','CUIL',e&&e.cuil,{ph:'20-12345678-9'})}${fi('e_nac','Fecha de nacimiento',e&&d10(e.fecha_nacimiento),{type:'date'})}${fi('e_tel','Teléfono',e&&e.telefono,{type:'tel',ph:'261 …'})}
+    ${fi('e_mail','Email',e&&e.email,{type:'email',ph:'opcional'})}${fi('e_dom','Domicilio',e&&e.domicilio)}${fi('e_loc','Localidad',e&&e.localidad,{ph:'Guaymallén, Maipú…'})}</div>
+   <div class="sect">Contacto de emergencia</div><div class="fg">${fi('e_emn','Nombre',e&&e.emergencia_nombre)}${fi('e_emv','Vínculo',e&&e.emergencia_vinculo,{ph:'Madre, pareja…'})}${fi('e_emt','Teléfono',e&&e.emergencia_tel,{type:'tel'})}</div>
+   <div class="sect">Datos laborales</div><div class="fg">
+    ${fi('e_leg','Legajo',e?e.legajo:nextLegajo(),{dis:true})}${fi('e_ing','Fecha de ingreso',e?d10(e.fecha_ingreso):today(),{type:'date',req:nuevo})}${fsel('e_mod','Modalidad',e&&e.modalidad,L.modalidades,{dis:laborDis})}
+    ${fsel('e_sec','Sector',e&&e.sector,L.sectores,{dis:laborDis,req:nuevo})}${fsel('e_pue','Puesto',e&&e.puesto,L.puestos,{dis:laborDis,req:nuevo})}${L.categorias.length?fsel('e_cat','Categoría',e&&e.categoria,L.categorias,{dis:laborDis}):fi('e_cat','Categoría',e&&e.categoria,{dis:laborDis,ph:'Según convenio'})}
+    ${fsel('e_con','Convenio',e&&e.convenio,L.convenios,{dis:laborDis})}${fsel('e_tur','Turno',e&&e.turno,L.turnos,{dis:laborDis})}${fi('e_jor','Jornada',e&&e.jornada,{dis:laborDis,ph:'Lun a Sáb · 6 a 14 h'})}
+    <div class="two"><label class="lb" for="e_op">Operario en CONTROL TRACE</label><select class="in" id="e_op" onchange="$('e_opa_w').style.display=this.value==='__new'?'':'none'">${opOpts}</select></div>
+    <div id="e_opa_w" style="display:none"><label class="lb" for="e_opa">Área del operario</label><select class="in" id="e_opa">${AREAS_OP.map(a=>`<option${a==='producción'?' selected':''}>${a}</option>`).join('')}</select></div>
+    <div class="full"><label class="lb" for="e_obs">Observaciones</label><textarea class="in" id="e_obs">${esc(e&&e.observaciones||'')}</textarea></div></div>
+   ${!S.opsOk?'<p class="hint">No se pudo leer el padrón de operarios de TRACE: el vínculo queda para después.</p>':''}
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="e_ok" onclick="saveEmp(${e?`'${e.id}'`:'null'})">💾 ${nuevo?'Crear legajo':'Guardar cambios'}</button></div>`,true);
+}
+async function saveEmp(id){
+  const e=id?emp(id):null;const v=k=>{const x=$(k);return x?String(x.value||'').trim():'';};
+  const o={apellido:v('e_apellido')||null,nombre:v('e_nombre'),dni:cuilDig(v('e_dni'))||null,cuil:v('e_cuil')?fmtCuil(v('e_cuil')):null,fecha_nacimiento:v('e_nac')||null,telefono:v('e_tel')||null,email:v('e_mail')||null,domicilio:v('e_dom')||null,localidad:v('e_loc')||null,
+    emergencia_nombre:v('e_emn')||null,emergencia_vinculo:v('e_emv')||null,emergencia_tel:v('e_emt')||null,fecha_ingreso:v('e_ing')||null,observaciones:v('e_obs')||null};
+  if(!e)Object.assign(o,{modalidad:v('e_mod')||null,sector:v('e_sec')||null,puesto:v('e_pue')||null,categoria:v('e_cat')||null,convenio:v('e_con')||null,turno:v('e_tur')||null,jornada:v('e_jor')||null});
+  if(!o.apellido||!o.nombre)return banner('Completá apellido y nombre','warn');
+  if(!e&&!o.fecha_ingreso)return banner('Indicá la fecha de ingreso','warn');
+  if(!e&&(!o.sector||!o.puesto))return banner('Elegí el sector y el puesto','warn');
+  if(o.dni&&(o.dni.length<7||o.dni.length>8))return banner('El DNI debe tener 7 u 8 números','warn');
+  if(o.cuil&&!cuilOK(o.cuil))return banner('El CUIL no es válido (revisá los 11 números)','warn');
+  if(o.cuil&&o.dni&&!cuilDig(o.cuil).slice(2,10).endsWith(o.dni))return banner('El DNI no coincide con el del CUIL','warn');
+  if(o.dni&&S.emps.some(x=>x.id!==id&&x.dni===o.dni))return banner('Ya existe un legajo con ese DNI: '+nomE(S.emps.find(x=>x.id!==id&&x.dni===o.dni)),'warn');
+  if(o.fecha_nacimiento&&o.fecha_nacimiento>today())return banner('La fecha de nacimiento no puede ser futura','warn');
+  const opv=v('e_op');const b=$('e_ok');b.disabled=true;b.textContent='⏳ Guardando…';
+  try{
+    let row;
+    if(e){const {data,error}=await sb.from('rrhh_empleados').update(o).eq('id',e.id).eq('empresa_id',S.empresaId).select().single();if(error)throw error;row=data;
+      const camb=Object.keys(o).filter(k=>(e[k]||null)!==(o[k]||null)&&!(d10(e[k])&&d10(e[k])===o[k]));
+      if(camb.length)await addHist(e.id,'edicion','Se actualizaron: '+camb.map(k=>({apellido:'apellido',nombre:'nombre',dni:'DNI',cuil:'CUIL',fecha_nacimiento:'fecha de nacimiento',telefono:'teléfono',email:'email',domicilio:'domicilio',localidad:'localidad',emergencia_nombre:'contacto de emergencia',emergencia_vinculo:'vínculo de emergencia',emergencia_tel:'teléfono de emergencia',fecha_ingreso:'fecha de ingreso',observaciones:'observaciones'})[k]||k).join(', '));}
+    else{let leg=nextLegajo(),error,data;for(let i=0;i<3;i++){({data,error}=await sb.from('rrhh_empleados').insert(Object.assign({empresa_id:S.empresaId,legajo:leg,estado:'activo',created_by:S.nombre},o)).select().single());if(!error||!/legajo_uq/.test(error.message||''))break;await loadEmps();leg=nextLegajo();}
+      if(error)throw error;row=data;await addHist(row.id,'alta',`Ingreso como ${o.puesto} en ${o.sector}`+(o.modalidad?' · '+o.modalidad:''),null,{sector:o.sector,puesto:o.puesto,categoria:o.categoria,convenio:o.convenio,modalidad:o.modalidad,turno:o.turno,jornada:o.jornada},null,o.fecha_ingreso);}
+    // vínculo con TRACE
+    const prevOp=e?e.operario_id||'':'';
+    if(opv==='__new'){const nomOp=[o.nombre,o.apellido].join(' ');const {data:opr,error:eo}=await sb.from('operarios').insert({empresa_id:S.empresaId,nombre:nomOp,area:v('e_opa')||'producción'}).select().single();
+      if(eo)banner('El legajo se guardó, pero no se pudo crear el operario en TRACE: '+errMsg(eo),'warn');
+      else{const {error:el}=await sb.from('rrhh_empleados').update({operario_id:opr.id}).eq('id',row.id);if(el)throw el;await addHist(row.id,'vinculo_operario','Se creó el operario "'+nomOp+'" en CONTROL TRACE y se vinculó al legajo');}}
+    else if(opv!==prevOp){const {error:el}=await sb.from('rrhh_empleados').update({operario_id:opv||null}).eq('id',row.id);if(el)throw el;const op=S.ops.find(x=>x.id===opv);await addHist(row.id,'vinculo_operario',opv?'Vinculado al operario de TRACE "'+(op?op.nombre:'')+'"':'Se quitó el vínculo con el operario de TRACE');}
+    closeModal();await Promise.all([loadEmps(),loadHist(),loadOps()]);banner(e?'Legajo actualizado ✓':'Legajo '+row.legajo+' creado ✓');go('ficha',row.id);
+  }catch(err){banner('Error: '+errMsg(err),'err');b.disabled=false;b.textContent='💾 '+(e?'Guardar cambios':'Crear legajo');}
+}
+
+// ══════════════ CAMBIO DE PUESTO (PIN) ══════════════
+function cambioPuesto(id){const e=emp(id),L=S.L;
+  pinModal({wide:true,titulo:'Cambio de puesto / condiciones · '+esc(nomCorto(e)),btn:'✅ Autorizar cambio',tipo:'rrhh_cambio_puesto',ref:(e.legajo||'')+' '+nomE(e),
+   html:`<p class="hint">Cambiá lo que corresponda. El valor anterior queda en el historial del legajo.</p><div class="fg">
+     ${fsel('c_sec','Sector',e.sector,L.sectores,{req:true})}${fsel('c_pue','Puesto',e.puesto,L.puestos,{req:true})}${L.categorias.length?fsel('c_cat','Categoría',e.categoria,L.categorias):fi('c_cat','Categoría',e.categoria,{ph:'Según convenio'})}
+     ${fsel('c_con','Convenio',e.convenio,L.convenios)}${fsel('c_mod','Modalidad',e.modalidad,L.modalidades)}${fsel('c_tur','Turno',e.turno,L.turnos)}
+     ${fi('c_jor','Jornada',e.jornada,{cls:'two',ph:'Lun a Sáb · 6 a 14 h'})}${fi('c_fec','Vigente desde',today(),{type:'date',req:true})}
+     <div class="full"><label class="lb" for="c_mot">Motivo *</label><input class="in" id="c_mot" placeholder="Ej.: promoción, pase de sector, fin del período de prueba"></div></div>`,
+   validar:()=>{const n=cpNuevo();if(!n.sector||!n.puesto)return 'Sector y puesto son obligatorios';if(!$('c_fec').value)return 'Indicá desde cuándo rige';if(!$('c_mot').value.trim())return 'Indicá el motivo';const a=cpAnt(e);if(Object.keys(n).every(k=>(a[k]||'')===(n[k]||'')))return 'No cambiaste nada';return null;},
+   detalle:()=>{const a=cpAnt(e),n=cpNuevo();return Object.keys(n).filter(k=>(a[k]||'')!==(n[k]||'')).map(k=>k+': '+(a[k]||'—')+' → '+(n[k]||'—')).join(' · ')+' · Motivo: '+$('c_mot').value.trim();},
+   onOK:async a=>{const n=cpNuevo(),an=cpAnt(e),mot=$('c_mot').value.trim(),fec=$('c_fec').value;
+     const {error}=await sb.from('rrhh_empleados').update(n).eq('id',e.id).eq('empresa_id',S.empresaId);if(error)throw error;
+     await addHist(e.id,'cambio_puesto',mot,an,n,a,fec);await Promise.all([loadEmps(),loadHist()]);F.fTab='hist';banner('Cambio registrado ✓');go('ficha',e.id);}});
+}
+const CP_K=['sector','puesto','categoria','convenio','modalidad','turno','jornada'];
+function cpAnt(e){const o={};CP_K.forEach(k=>o[k]=e[k]||null);return o;}
+function cpNuevo(){const m={sector:'c_sec',puesto:'c_pue',categoria:'c_cat',convenio:'c_con',modalidad:'c_mod',turno:'c_tur',jornada:'c_jor'};const o={};CP_K.forEach(k=>o[k]=($(m[k]).value||'').trim()||null);return o;}
+
+// ══════════════ NOVEDADES DEL LEGAJO (reconocimientos, notas, sanciones con PIN) ══════════════
+function novedad(id,tipo){const e=emp(id);tipo=tipo||'reconocimiento';const T=NOV_TIPOS.find(t=>t[0]===tipo);
+  const body=`<label class="lb" for="n_tipo">Tipo</label><select class="in" id="n_tipo" onchange="novedad('${id}',this.value)">${NOV_TIPOS.map(t=>`<option value="${t[0]}"${t[0]===tipo?' selected':''}>${t[1]}${t[2]?' (con PIN)':''}</option>`).join('')}</select>
+   <div class="fg" style="grid-template-columns:1fr 1fr">${fi('n_fec','Fecha',today(),{type:'date'})}${tipo==='suspension'?fi('n_dias','Días de suspensión','',{type:'number',attr:'min="1" max="30"'}):'<div></div>'}</div>
+   <label class="lb" for="n_det">Detalle *</label><textarea class="in" id="n_det" placeholder="${tipo==='reconocimiento'?'Ej.: excelente predisposición en la temporada de choclo':'Qué pasó, cuándo y dónde'}"></textarea>`;
+  const val=()=>{if(!$('n_det').value.trim())return 'Escribí el detalle';if(tipo==='suspension'&&!(+$('n_dias').value>0))return 'Indicá los días de suspensión';if(!$('n_fec').value)return 'Indicá la fecha';return null;};
+  const guardar=async a=>{const det=$('n_det').value.trim()+(tipo==='suspension'?' · '+(+$('n_dias').value)+' día(s) de suspensión':'');await addHist(e.id,tipo,det,null,null,a,$('n_fec').value);await loadHist();F.fTab='hist';banner(T[1].replace(/^\S+\s/,'')+' registrado ✓');go('ficha',e.id);};
+  if(T[2])pinModal({titulo:'Registrar novedad · '+esc(nomCorto(e)),html:body,btn:'✅ Autorizar y registrar',tipo:'rrhh_sancion',ref:(e.legajo||'')+' '+nomE(e),validar:val,detalle:()=>T[1].replace(/^\S+\s/,'')+': '+$('n_det').value.trim(),onOK:guardar});
+  else{modal(`<h3>📝 Registrar novedad · ${esc(nomCorto(e))}</h3>${body}<div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="n_ok">💾 Registrar</button></div>`);
+    $('n_ok').onclick=async()=>{const er=val();if(er)return banner(er,'warn');const b=$('n_ok');b.disabled=true;try{await guardar(null);closeModal();}catch(x){banner('Error: '+errMsg(x),'err');b.disabled=false;}};}
+}
+
+// ══════════════ BAJA Y REINGRESO (PIN) ══════════════
+function darBaja(id){const e=emp(id),op=opDe(e);
+  pinModal({titulo:'Dar de baja · '+esc(nomCorto(e)),btn:'⛔ Autorizar baja',tipo:'rrhh_baja',ref:(e.legajo||'')+' '+nomE(e),
+   html:`<p class="hint">El legajo no se borra: queda <b>de baja</b> con todo su historial y documentos, y se puede reingresar.</p>
+    <div class="fg" style="grid-template-columns:1fr 1fr">${fi('b_fec','Fecha de egreso',today(),{type:'date',req:true})}${fsel('b_mot','Motivo',MOTIVOS_BAJA[0],MOTIVOS_BAJA,{req:true})}</div>
+    <label class="lb" for="b_det">Observaciones</label><textarea class="in" id="b_det"></textarea>
+    ${op&&op.activo!==false?`<label class="chk"><input type="checkbox" id="b_op" checked> Desactivar también el operario <b>${esc(op.nombre)}</b> en TRACE</label>`:''}`,
+   validar:()=>{const f=$('b_fec').value;if(!f)return 'Indicá la fecha de egreso';if(e.fecha_ingreso&&f<d10(e.fecha_ingreso))return 'El egreso no puede ser anterior al ingreso';if(!$('b_mot').value)return 'Elegí el motivo';return null;},
+   detalle:()=>'Egreso '+fmtD($('b_fec').value)+' · '+$('b_mot').value+($('b_det').value.trim()?' · '+$('b_det').value.trim():''),
+   onOK:async a=>{const f=$('b_fec').value,m=$('b_mot').value,det=$('b_det').value.trim(),desOp=$('b_op')&&$('b_op').checked;
+     const {error}=await sb.from('rrhh_empleados').update({estado:'baja',fecha_egreso:f,motivo_egreso:m}).eq('id',e.id).eq('empresa_id',S.empresaId);if(error)throw error;
+     await addHist(e.id,'baja',m+(det?' · '+det:''),null,null,a,f);
+     if(desOp){const {error:eo}=await sb.from('operarios').update({activo:false}).eq('id',op.id);if(eo)banner('Baja registrada, pero no se pudo desactivar el operario en TRACE: '+errMsg(eo),'warn');}
+     await Promise.all([loadEmps(),loadHist(),loadOps()]);banner('Baja registrada ✓');go('ficha',e.id);}});
+}
+function reingreso(id){const e=emp(id),op=opDe(e);
+  pinModal({titulo:'Reingreso · '+esc(nomCorto(e)),btn:'↩️ Autorizar reingreso',tipo:'rrhh_reingreso',ref:(e.legajo||'')+' '+nomE(e),
+   html:`<p class="hint">Mantiene el mismo legajo (${esc(e.legajo||'')}). El ingreso anterior (${fmtD(e.fecha_ingreso)} al ${fmtD(e.fecha_egreso)}) queda en el historial.</p>
+    ${fi('r_fec','Nueva fecha de ingreso',today(),{type:'date',req:true})}<label class="lb" for="r_det">Observaciones</label><input class="in" id="r_det" placeholder="Ej.: reingresa para la temporada">
+    ${op&&op.activo===false?`<label class="chk"><input type="checkbox" id="r_op" checked> Reactivar el operario <b>${esc(op.nombre)}</b> en TRACE</label>`:''}`,
+   validar:()=>{const f=$('r_fec').value;if(!f)return 'Indicá la fecha';if(e.fecha_egreso&&f<d10(e.fecha_egreso))return 'El reingreso no puede ser anterior al último egreso';return null;},
+   detalle:()=>'Reingreso '+fmtD($('r_fec').value)+' (antes: '+fmtD(e.fecha_ingreso)+' a '+fmtD(e.fecha_egreso)+')',
+   onOK:async a=>{const f=$('r_fec').value,det=$('r_det').value.trim(),reOp=$('r_op')&&$('r_op').checked;
+     const {error}=await sb.from('rrhh_empleados').update({estado:'activo',fecha_ingreso:f,fecha_egreso:null,motivo_egreso:null}).eq('id',e.id).eq('empresa_id',S.empresaId);if(error)throw error;
+     await addHist(e.id,'reingreso','Período anterior: '+fmtD(e.fecha_ingreso)+' al '+fmtD(e.fecha_egreso)+' ('+(e.motivo_egreso||'—')+')'+(det?' · '+det:''),{fecha_ingreso:e.fecha_ingreso,fecha_egreso:e.fecha_egreso,motivo_egreso:e.motivo_egreso},{fecha_ingreso:f},a,f);
+     if(reOp){const {error:eo}=await sb.from('operarios').update({activo:true}).eq('id',op.id);if(eo)banner('Reingreso registrado, pero no se pudo reactivar el operario en TRACE: '+errMsg(eo),'warn');}
+     await Promise.all([loadEmps(),loadHist(),loadOps()]);banner('Reingreso registrado ✓');go('ficha',e.id);}});
+}
+
+// ══════════════ IMPORTAR OPERARIOS DE TRACE ══════════════
+function importarOps(){const L=opsSinLegajo();if(!L.length)return banner('Todos los operarios activos ya tienen legajo ✓');
+  const porNombre={};S.emps.forEach(e=>{if(!e.operario_id){porNombre[norm(nomCorto(e))]=e;porNombre[norm(nomE(e).replace(',',''))]=e;}});
+  window._imp=L.map(o=>({o,match:porNombre[norm(o.nombre)]||null}));
+  modal(`<h3>⤵️ Importar operarios de TRACE</h3><p class="hint">Se crea un legajo por cada operario marcado, con el nombre del padrón y el sector según su área. Después completás DNI, CUIL, ingreso y el resto desde cada ficha. Si ya hay un legajo con el mismo nombre, se <b>vincula</b> en vez de crear otro.</p>
+   <label class="chk" style="font-weight:700"><input type="checkbox" checked onchange="document.querySelectorAll('.impc').forEach(c=>c.checked=this.checked)"> Todos (${L.length})</label>
+   <div class="lst">${window._imp.map((x,i)=>`<label class="chk"><input type="checkbox" class="impc" data-i="${i}" checked> <span style="flex:1">${esc(x.o.nombre)} <span class="small muted">· ${esc(x.o.area||'—')}</span></span>${x.match?`<span class="tag t-nav">vincular a ${esc(x.match.legajo||'')}</span>`:'<span class="tag t-gold">nuevo legajo</span>'}</label>`).join('')}</div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="imp_ok" onclick="doImportar()">⤵️ Importar</button></div>`);
+}
+async function doImportar(){const sel=[...document.querySelectorAll('.impc:checked')].map(c=>window._imp[+c.dataset.i]);if(!sel.length)return banner('No marcaste ningún operario','warn');
+  const b=$('imp_ok');b.disabled=true;b.textContent='⏳ Importando…';let creados=0,vinc=0;
+  try{
+    const nuevos=sel.filter(x=>!x.match),links=sel.filter(x=>x.match);
+    for(const x of links){const {error}=await sb.from('rrhh_empleados').update({operario_id:x.o.id}).eq('id',x.match.id);if(error)throw error;await addHist(x.match.id,'vinculo_operario','Vinculado al operario de TRACE "'+x.o.nombre+'"');vinc++;}
+    if(nuevos.length){await loadEmps();const rows=nuevos.map((x,i)=>({empresa_id:S.empresaId,legajo:nextLegajo(i),nombre:x.o.nombre,apellido:null,sector:AREA2SECTOR[x.o.area]||null,estado:'activo',operario_id:x.o.id,created_by:S.nombre}));
+      const {data,error}=await sb.from('rrhh_empleados').insert(rows).select();if(error)throw error;creados=data.length;
+      const {error:eh}=await sb.from('rrhh_historial').insert(data.map(r=>({empresa_id:S.empresaId,empleado_id:r.id,fecha:today(),tipo:'alta',detalle:'Legajo creado desde el padrón de operarios de TRACE',registrado_por:S.nombre})));if(eh)console.warn(eh);}
+    closeModal();await Promise.all([loadEmps(),loadHist()]);banner(`Listo: ${creados} legajo(s) nuevo(s)`+(vinc?` y ${vinc} vinculado(s)`:'')+'. Completá apellido, DNI e ingreso en cada ficha.');F.estado='incompletos';go('legajos');
+  }catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;b.textContent='⤵️ Importar';if(creados||vinc)loadEmps();}
+}
+
+// ══════════════ DOCUMENTOS ══════════════
+function upDoc(empId){if(!gestiona())return;const act=S.emps.filter(e=>e.estado!=='baja').sort((a,b)=>norm(nomE(a)).localeCompare(norm(nomE(b))));
+  const tipos=S.L.tiposDoc.map(t=>t.n);
+  modal(`<h3>📎 Subir documento</h3>
+   ${empId?`<p class="hint">Legajo de <b>${esc(nomE(emp(empId)))}</b></p><input type="hidden" id="d_emp" value="${empId}">`:`<label class="lb" for="d_emp">Empleado *</label><select class="in" id="d_emp"><option value="">— Elegí —</option>${act.map(e=>`<option value="${e.id}">${esc(nomE(e))} · ${esc(e.legajo||'')}</option>`).join('')}</select>`}
+   <label class="lb" for="d_tipo">Tipo de documento *</label><select class="in" id="d_tipo" onchange="docTipoCh()"><option value="">— Elegí —</option>${tipos.map(t=>`<option>${esc(t)}</option>`).join('')}</select>
+   <label class="lb" for="d_desc">Descripción</label><input class="in" id="d_desc" placeholder="Opcional (ej.: categoría B1, frente y dorso)">
+   <div class="fg" style="grid-template-columns:1fr 1fr">${fi('d_emi','Fecha de emisión','',{type:'date'})}<div><label class="lb" for="d_vto">Vence <span id="d_vreq"></span></label><input class="in" id="d_vto" type="date"></div></div>
+   <label class="lb" for="d_file">Archivo (foto o PDF, hasta ${MAX_MB} MB)</label><input class="in" id="d_file" type="file" accept="image/*,application/pdf">
+   <p class="hint" style="margin-top:6px">Desde el celular podés sacar la foto directamente. Si todavía no tenés el archivo, podés guardar igual el documento con su vencimiento.</p>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="d_ok" onclick="saveDoc()">💾 Guardar</button></div>`);
+}
+function docTipoCh(){const t=$('d_tipo').value;$('d_vreq').textContent=tipoVence(t)?'*':'';}
+async function saveDoc(){const empId=$('d_emp').value,tipo=$('d_tipo').value,f=$('d_file').files[0],vto=$('d_vto').value,emi=$('d_emi').value;
+  if(!empId)return banner('Elegí el empleado','warn');if(!tipo)return banner('Elegí el tipo de documento','warn');
+  if(tipoVence(tipo)&&!vto)return banner('Este tipo de documento lleva fecha de vencimiento','warn');
+  if(vto&&emi&&vto<emi)return banner('El vencimiento no puede ser anterior a la emisión','warn');
+  if(f&&f.size>MAX_MB*1024*1024)return banner('El archivo supera los '+MAX_MB+' MB','warn');
+  if(f&&!/^image\/|application\/pdf/.test(f.type||'')&&!/\.(pdf|jpe?g|png|heic|webp)$/i.test(f.name))return banner('Subí una foto o un PDF','warn');
+  const b=$('d_ok');b.disabled=true;b.textContent='⏳ Subiendo…';let path=null;
+  try{
+    if(f){const safe=f.name.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_').slice(-80);path=`${S.empresaId}/${empId}/${Date.now()}_${safe}`;
+      const {error}=await sb.storage.from(BUCKET).upload(path,f,{contentType:f.type||undefined,upsert:false});if(error)throw error;}
+    const {error}=await sb.from('rrhh_documentos').insert({empresa_id:S.empresaId,empleado_id:empId,tipo,descripcion:$('d_desc').value.trim()||null,archivo_path:path,archivo_nombre:f?f.name:null,mime:f?f.type||null:null,tamano:f?f.size:null,fecha_emision:emi||null,vence:vto||null,estado:'vigente',subido_por:S.nombre});if(error)throw error;
+    await addHist(empId,'documento','Se cargó: '+tipo+(vto?' (vence '+fmtD(vto)+')':'')+(f?'':' · sin archivo'));
+    closeModal();await Promise.all([loadDocs(),loadHist()]);banner('Documento guardado ✓');buildNav();render();
+  }catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;b.textContent='💾 Guardar';}
+}
+async function verDoc(id){const d=S.docs.find(x=>x.id===id);if(!d||!d.archivo_path)return banner('Este documento no tiene archivo cargado','warn');
+  const w=window.open('','_blank');try{const {data,error}=await sb.storage.from(BUCKET).createSignedUrl(d.archivo_path,300);if(error)throw error;if(w)w.location.href=data.signedUrl;else location.href=data.signedUrl;}catch(e){if(w)w.close();banner('No se pudo abrir el archivo: '+errMsg(e),'err');}}
+function anularDoc(id){const d=S.docs.find(x=>x.id===id),e=emp(d.empleado_id);
+  pinModal({titulo:'Anular documento',btn:'✕ Autorizar anulación',tipo:'rrhh_anular_documento',ref:(e?(e.legajo||'')+' '+nomE(e):'')+' · '+d.tipo,
+   html:`<p class="hint"><b>${esc(d.tipo)}</b> de ${esc(nomE(e))}${d.vence?' (vence '+fmtD(d.vence)+')':''}.<br>No se borra: queda como anulado y el archivo se conserva.</p><label class="lb" for="a_mot">Motivo *</label><input class="in" id="a_mot" placeholder="Ej.: cargado en el legajo equivocado">`,
+   validar:()=>$('a_mot').value.trim()?null:'Indicá el motivo',detalle:()=>d.tipo+' · '+$('a_mot').value.trim(),
+   onOK:async a=>{const m=$('a_mot').value.trim();const {error}=await sb.from('rrhh_documentos').update({estado:'anulado',motivo_anulacion:m}).eq('id',d.id).eq('empresa_id',S.empresaId);if(error)throw error;
+     await addHist(d.empleado_id,'anular_documento',d.tipo+' · '+m,null,null,a);await Promise.all([loadDocs(),loadHist()]);banner('Documento anulado ✓');buildNav();render();}});
+}
+function docActs(r){const a=[];if(r.archivo_path)a.push({lbl:'👁️ Ver archivo',cls:'btn-gold',fn:()=>verDoc(r.id)});if(cur!=='ficha')a.push({lbl:'👤 Ir a la ficha',fn:()=>{F.fTab='docs';go('ficha',r.empleado_id);}});
+  if(gestiona()&&r.estado!=='anulado'){a.push({lbl:'🔁 Renovar',fn:()=>{upDoc(r.empleado_id);setTimeout(()=>{$('d_tipo').value=r.tipo;docTipoCh();},60);}});a.push({lbl:'✕ Anular',cls:'btn-danger',fn:()=>anularDoc(r.id)});}return a;}
+function drawDocsGrid(cid,key,list,conEmp){
+  const rows=list.map(d=>Object.assign({},d,{_k:d.id,_lbl:d.tipo+(conEmp?' · '+nomE(emp(d.empleado_id)):'')}));
+  const cols=[];if(conEmp)cols.push({h:'Empleado',f:r=>{const e=emp(r.empleado_id);return `<b>${esc(nomE(e))}</b><div class="cod">${esc(e&&e.legajo||'')} · ${esc(e&&e.sector||'')}</div>`;}});
+  cols.push({h:'Documento',f:r=>`<b>${esc(r.tipo)}</b>${r.descripcion?`<div class="cod">${esc(r.descripcion)}</div>`:''}`},{h:'Emisión',f:r=>fmtD(r.fecha_emision)},{h:'Vence',f:r=>fmtD(r.vence)},{h:'Estado',f:r=>docTag(r)},
+    {h:'Archivo',f:r=>r.archivo_path?`📄 <span class="small">${esc((r.archivo_nombre||'archivo').slice(0,28))}</span>`:'<span class="small muted">sin archivo</span>'},{h:'Cargó',f:r=>`<span class="small">${esc(r.subido_por||'')}<br><span class="muted">${fmtTs(r.created_at)}</span></span>`});
+  grid(cid,key,cols,rows,docActs,k=>{const d=S.docs.find(x=>x.id===k);if(d&&d.archivo_path)verDoc(k);});
+}
+function viewDocs(){const tipos=[...new Set([...S.L.tiposDoc.map(t=>t.n),...S.docs.map(d=>d.tipo)])];
+  $('view').innerHTML=`<div class="card"><div class="card-h"><h3>📎 Documentos y vencimientos</h3><div class="seg">${gestiona()?'<button class="btn btn-gold" onclick="upDoc()">＋ Subir documento</button>':''}<button class="btn btn-ghost" onclick="exportDocs()">📥 Excel</button></div></div>
+   <p class="hint">Avisa con <b>${aviso()} días</b> de anticipación (se cambia en Configuración RRHH). Si se carga un documento nuevo del mismo tipo con vencimiento posterior, el anterior pasa a <b>Renovado</b> y deja de avisar.</p>
+   <div class="filters">
+    <div class="f">Mostrar<select class="in" onchange="F.dEst=this.value;G.docs&&(G.docs.pag=1);drawDocs()">${[['alerta','⚠️ Vencidos y por vencer'],['vigentes','Vigentes (todos)'],['sinarch','Sin archivo'],['anulados','Anulados'],['todos','Todos']].map(([k,l])=>`<option value="${k}"${F.dEst===k?' selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="f">Tipo<select class="in" onchange="F.dTipo=this.value;drawDocs()"><option value="">Todos</option>${tipos.map(t=>`<option${t===F.dTipo?' selected':''}>${esc(t)}</option>`).join('')}</select></div>
+    <div class="f" style="flex:1;min-width:200px">Empleado<input class="in" placeholder="Nombre o legajo" value="${esc(F.dQ)}" oninput="F.dQ=this.value;G.docs&&(G.docs.pag=1);drawDocs()"></div>
+   </div><div id="docGrid"></div></div>`;
+  drawDocs();
+}
+function filtDocs(){const q=norm(F.dQ);return S.docs.filter(d=>{const e=emp(d.empleado_id);if(!e)return false;const st=docEst(d);
+  if(F.dEst==='alerta'&&!(e.estado!=='baja'&&['vencido','porvencer'].includes(st)))return false;if(F.dEst==='vigentes'&&st==='anulado')return false;if(F.dEst==='anulados'&&st!=='anulado')return false;if(F.dEst==='sinarch'&&(d.archivo_path||st==='anulado'))return false;
+  if(F.dTipo&&d.tipo!==F.dTipo)return false;if(q&&!(norm(nomE(e)).includes(q)||norm(nomCorto(e)).includes(q)||norm(e.legajo).includes(q)))return false;return true;})
+  .sort((a,b)=>F.dEst==='alerta'?d10(a.vence).localeCompare(d10(b.vence)):String(b.created_at).localeCompare(String(a.created_at)));}
+function drawDocs(){drawDocsGrid('docGrid','docs',filtDocs(),true);}
+
+// ══════════════ CONFIGURACIÓN RRHH ══════════════
+const LISTAS=[['sectores','Sectores'],['puestos','Puestos'],['categorias','Categorías (si queda vacía, se escribe a mano)'],['convenios','Convenios colectivos'],['modalidades','Modalidades de contratación'],['turnos','Turnos']];
+function viewConfig(){const ad=esAdmin();if(F.cTab==='accesos'&&!ad)F.cTab='listas';
+  $('view').innerHTML=`<div class="tabs">${[['listas','📋 Listas'],...(ad?[['accesos','🔐 Accesos']]:[])].map(([k,l])=>`<button class="${F.cTab===k?'on':''}" onclick="F.cTab='${k}';viewConfig()">${l}</button>`).join('')}</div><div id="cfgBody"></div>`;
+  if(F.cTab==='accesos')return viewAccesos();
+  const L=S.L,g=gestiona();
+  $('cfgBody').innerHTML=`<div class="card"><div class="card-h"><h3>📋 Listas del módulo</h3>${g?'<button class="btn btn-gold" id="cfg_ok" onclick="saveListas()">💾 Guardar listas</button>':''}</div>
+   <p class="hint">Una opción por renglón. Son las opciones que aparecen al cargar un legajo. Cambiar una lista no modifica los legajos ya cargados.</p>
+   <div class="fg">${LISTAS.map(([k,l])=>`<div><label class="lb" for="l_${k}">${l}</label><textarea class="in" id="l_${k}" rows="8" ${g?'':'disabled'}>${esc((L[k]||[]).join('\n'))}</textarea></div>`).join('')}</div></div>
+   <div class="card"><div class="card-h"><h3>📎 Tipos de documento</h3>${g?'<button class="btn btn-ghost btn-sm" onclick="tdAdd()">＋ Agregar tipo</button>':''}</div>
+   <p class="hint">Marcá los que <b>vencen</b> (carnets, libreta sanitaria…): para esos se pide la fecha y aparecen en las alertas.</p>
+   <div id="tdList"></div>
+   <div style="max-width:260px">${fi('l_aviso','Avisar con cuántos días de anticipación',String(L.avisoDias),{type:'number',attr:'min="1" max="180"'+(g?'':' disabled')})}</div></div>`;
+  window._td=JSON.parse(JSON.stringify(L.tiposDoc));tdDraw();
+}
+function tdDraw(){const g=gestiona();$('tdList').innerHTML=`<table><thead><tr><th>Tipo</th><th style="width:110px">Vence</th><th style="width:60px"></th></tr></thead><tbody>${window._td.map((t,i)=>`<tr><td><input class="in" value="${esc(t.n)}" ${g?'':'disabled'} oninput="window._td[${i}].n=this.value"></td><td><label class="chk"><input type="checkbox" ${t.v?'checked':''} ${g?'':'disabled'} onchange="window._td[${i}].v=this.checked"> vence</label></td><td>${g?`<button class="btn btn-ghost btn-sm" title="Quitar" onclick="window._td.splice(${i},1);tdDraw()">✕</button>`:''}</td></tr>`).join('')}</tbody></table>`;}
+function tdAdd(){window._td.push({n:'',v:false});tdDraw();const ins=$('tdList').querySelectorAll('input.in');if(ins.length)ins[ins.length-1].focus();}
+async function saveListas(){const l={};LISTAS.forEach(([k])=>{l[k]=[...new Set($('l_'+k).value.split('\n').map(x=>x.trim()).filter(Boolean))];});
+  if(!l.sectores.length||!l.puestos.length)return banner('Sectores y puestos no pueden quedar vacíos','warn');
+  const td=[];const seen=new Set();window._td.forEach(t=>{const n=(t.n||'').trim();if(n&&!seen.has(n)){seen.add(n);td.push({n,v:!!t.v});}});if(!td.length)return banner('Dejá al menos un tipo de documento','warn');
+  l.tiposDoc=td;l.avisoDias=Math.min(180,Math.max(1,+$('l_aviso').value||30));
+  const b=$('cfg_ok');b.disabled=true;b.textContent='⏳ Guardando…';
+  try{const {error}=S.cfgRow?await sb.from('rrhh_config').update({listas:l}).eq('empresa_id',S.empresaId):await sb.from('rrhh_config').insert({empresa_id:S.empresaId,listas:l});if(error)throw error;await loadCfg();buildNav();banner('Listas guardadas ✓');viewConfig();}
+  catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;b.textContent='💾 Guardar listas';}
+}
+async function viewAccesos(){$('cfgBody').innerHTML='<div class="card"><div class="empty">Cargando usuarios…</div></div>';
+  const {data,error}=await sb.rpc('rrhh_usuarios');if(error){$('cfgBody').innerHTML=`<div class="card"><div class="note">${esc(errMsg(error))}</div></div>`;return;}
+  const us=(data||[]).filter(u=>u.activo!==false);window._us=us;const A=S.accesos||{};
+  $('cfgBody').innerHTML=`<div class="card"><div class="card-h"><h3>🔐 Quién entra a CONTROL RRHH</h3><button class="btn btn-gold" id="acc_ok" onclick="saveAccesos()">💾 Guardar accesos</button></div>
+   <p class="hint">Los legajos tienen datos personales, por eso el acceso es <b>por usuario</b> y no alcanza con el rol. El Administrador y el Dueño entran siempre.<br><b>Consulta:</b> ve legajos y documentos. <b>Gestión:</b> además carga, edita, sube documentos y registra bajas y cambios (con PIN).<br>Para que la tarjeta aparezca en el portal, el rol del usuario también tiene que tener <b>CONTROL RRHH</b> en Configuración → Roles y permisos.</p>
+   <table><thead><tr><th>Usuario</th><th>Rol</th><th style="width:220px">Acceso a RRHH</th></tr></thead><tbody>${us.map((u,i)=>{const adm=ADMINS.includes((u.rol||'').toLowerCase());const v=A[u.id]||'';
+     return `<tr><td><b>${esc(u.nombre||'—')}</b></td><td>${esc(ROL_LABEL[(u.rol||'').toLowerCase()]||u.rol||'')}</td><td>${adm?'<span class="tag t-ok">Siempre (administrador)</span>':`<select class="in acc" data-i="${i}">${[['','Sin acceso'],['consulta','Consulta'],['gestion','Gestión']].map(([k,l])=>`<option value="${k}"${v===k?' selected':''}>${l}</option>`).join('')}</select>`}</td></tr>`;}).join('')||'<tr><td colspan="3" class="empty">Sin usuarios</td></tr>'}</tbody></table></div>`;
+}
+async function saveAccesos(){const acc={};document.querySelectorAll('select.acc').forEach(s=>{if(s.value)acc[window._us[+s.dataset.i].id]=s.value;});
+  const b=$('acc_ok');b.disabled=true;b.textContent='⏳ Guardando…';
+  try{const {error}=S.cfgRow?await sb.from('rrhh_config').update({accesos:acc}).eq('empresa_id',S.empresaId):await sb.from('rrhh_config').insert({empresa_id:S.empresaId,listas:S.L,accesos:acc});if(error)throw error;
+    await loadCfg();const n=Object.keys(acc).length;banner('Accesos guardados ✓ ('+n+' usuario'+(n===1?'':'s')+' además de los administradores)');viewConfig();}
+  catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;b.textContent='💾 Guardar accesos';}
+}
+
+// ══════════════ PRÓXIMAS ETAPAS ══════════════
+function viewFut(){const f=FUT[cur];$('view').innerHTML=`<div class="card fut"><div class="big">${f[0]}</div><h3 style="color:var(--navy);margin:8px 0">${f[1]} <span class="tag t-gold">Etapa ${f[2]}</span></h3><p class="hint" style="font-size:14px">${f[3]}</p><p class="hint">Se construye sobre los legajos de esta etapa: por eso conviene tenerlos completos (DNI, CUIL, ingreso, sector y puesto).</p><button class="btn btn-ghost" onclick="F.estado='incompletos';go('legajos')">Ver legajos incompletos</button></div>`;}
+
+// ══════════════ EXCEL ══════════════
+let _xlsxP=null;
+function loadXLSX(){if(window.XLSX)return Promise.resolve();if(!_xlsxP)_xlsxP=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=res;s.onerror=()=>{_xlsxP=null;rej(new Error('No se pudo cargar el exportador'));};document.head.appendChild(s);});return _xlsxP;}
+async function toXlsx(nombre,hoja,aoa){try{await loadXLSX();const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=aoa[0].map((_,c)=>({wch:Math.min(45,Math.max(8,...aoa.map(r=>String(r[c]==null?'':r[c]).length+2)))}));ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:aoa.length-1,c:aoa[0].length-1}})};const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,hoja);XLSX.writeFile(wb,nombre+'_'+today()+'.xlsx');}catch(e){banner('Error: '+errMsg(e),'err');}}
+function exportLegajos(){const rows=filtLegajos();toXlsx('Legajos','Legajos',[['Legajo','Apellido','Nombre','DNI','CUIL','Nacimiento','Teléfono','Email','Domicilio','Localidad','Ingreso','Antigüedad','Sector','Puesto','Categoría','Convenio','Modalidad','Turno','Jornada','Estado','Egreso','Motivo egreso','Operario TRACE','Docs a renovar','Falta completar'],
+  ...rows.map(e=>{const op=opDe(e);return [e.legajo||'',e.apellido||'',e.nombre||'',e.dni||'',e.cuil||'',fmtD(e.fecha_nacimiento),e.telefono||'',e.email||'',e.domicilio||'',e.localidad||'',fmtD(e.fecha_ingreso),txtMeses(antigM(e)),e.sector||'',e.puesto||'',e.categoria||'',e.convenio||'',e.modalidad||'',e.turno||'',e.jornada||'',e.estado==='baja'?'Baja':'Activo',e.fecha_egreso?fmtD(e.fecha_egreso):'',e.motivo_egreso||'',op?op.nombre:'',alertasDe(e.id).length||'',faltan(e).join(', ')];})]);}
+function exportDocs(){const L={anulado:'Anulado',sin:'Sin vencimiento',renovado:'Renovado',vencido:'Vencido',porvencer:'Por vencer',vigente:'Vigente'};toXlsx('Documentos_RRHH','Documentos',[['Legajo','Empleado','Sector','Documento','Descripción','Emisión','Vence','Días','Estado','Archivo','Cargó','Fecha de carga'],
+  ...filtDocs().map(d=>{const e=emp(d.empleado_id)||{};const n=diasHasta(d.vence);return [e.legajo||'',nomE(e),e.sector||'',d.tipo,d.descripcion||'',fmtD(d.fecha_emision),fmtD(d.vence),n==null?'':n,L[docEst(d)],d.archivo_nombre||'',d.subido_por||'',fmtTs(d.created_at)];})]);}
+
+// ══════════════ IMPRIMIR FICHA ══════════════
+function printFicha(id){const e=emp(id);const emp_=S.empresa||{};const logo=(emp_.etiqueta_config&&emp_.etiqueta_config.logo)||'';
+  const dd=docsDe(id).filter(d=>d.estado!=='anulado'),hh=S.hist.filter(h=>h.empleado_id===id),op=opDe(e);
+  const r=(l,v)=>`<tr><th>${l}</th><td>${v||'—'}</td></tr>`;
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Legajo ${esc(e.legajo||'')} · ${esc(nomE(e))}</title><style>
+   body{font-family:system-ui,Segoe UI,Arial,sans-serif;color:#1C2536;margin:0;padding:10mm;font-size:12px}h1{margin:0;font-size:20px;color:#111D35}h2{font-size:13px;color:#111D35;border-bottom:2px solid #111D35;padding-bottom:3px;margin:16px 0 6px;text-transform:uppercase;letter-spacing:.06em}
+   .hd{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #C9A84C;padding-bottom:8px;margin-bottom:10px}.hd img{max-height:46px;max-width:150px}.e{font-size:11px;color:#6B7689;text-align:right}
+   .cols{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}table{width:100%;border-collapse:collapse}th{text-align:left;color:#6B7689;font-weight:600;width:40%;padding:3px 6px 3px 0;vertical-align:top}td{padding:3px 0}
+   .t th,.t td{border-bottom:1px solid #ddd;padding:4px 6px;width:auto}.t th{background:#f3f0e8;color:#1C2536}.ft{margin-top:22px;font-size:10px;color:#6B7689;display:flex;justify-content:space-between}
+   @page{size:A4;margin:8mm}</style></head><body>
+   <div class="hd"><div style="display:flex;gap:12px;align-items:center">${logo?`<img src="${logo}">`:''}<div><b>${esc(emp_.razon_social||'')}</b><div class="e" style="text-align:left">CUIT ${esc(emp_.cuit||'')}</div></div></div><div class="e">LEGAJO DEL PERSONAL<br><b style="font-size:16px;color:#111D35">${esc(e.legajo||'')}</b></div></div>
+   <h1>${esc(nomE(e))}</h1><div style="color:#6B7689;margin-top:2px">${esc(e.puesto||'')} · ${esc(e.sector||'')} · ${e.estado==='baja'?'BAJA '+fmtD(e.fecha_egreso):'Activo'}</div>
+   <div class="cols"><div><h2>Datos personales</h2><table>${r('DNI',esc(e.dni))}${r('CUIL',esc(e.cuil))}${r('Nacimiento',e.fecha_nacimiento?fmtD(e.fecha_nacimiento):'')}${r('Teléfono',esc(e.telefono))}${r('Email',esc(e.email))}${r('Domicilio',esc([e.domicilio,e.localidad].filter(Boolean).join(', ')))}${r('Emergencia',esc([e.emergencia_nombre,e.emergencia_vinculo,e.emergencia_tel].filter(Boolean).join(' · ')))}</table></div>
+   <div><h2>Datos laborales</h2><table>${r('Ingreso',e.fecha_ingreso?fmtD(e.fecha_ingreso)+' ('+txtMeses(antigM(e))+')':'')}${r('Categoría',esc(e.categoria))}${r('Convenio',esc(e.convenio))}${r('Modalidad',esc(e.modalidad))}${r('Turno / jornada',esc([e.turno,e.jornada].filter(Boolean).join(' · ')))}${r('Operario TRACE',op?esc(op.nombre):'')}${e.estado==='baja'?r('Egreso',fmtD(e.fecha_egreso)+' · '+esc(e.motivo_egreso||'')):''}</table></div></div>
+   ${e.observaciones?`<h2>Observaciones</h2><div>${esc(e.observaciones)}</div>`:''}
+   <h2>Documentos</h2>${dd.length?`<table class="t"><tr><th>Documento</th><th>Emisión</th><th>Vence</th><th>Archivo</th></tr>${dd.map(d=>`<tr><td>${esc(d.tipo)}${d.descripcion?' · '+esc(d.descripcion):''}</td><td>${fmtD(d.fecha_emision)}</td><td>${fmtD(d.vence)}</td><td>${d.archivo_path?'Sí':'No'}</td></tr>`).join('')}</table>`:'<div>Sin documentos</div>'}
+   <h2>Historial</h2>${hh.length?`<table class="t"><tr><th>Fecha</th><th>Movimiento</th><th>Detalle</th><th>Autorizó</th></tr>${hh.map(h=>`<tr><td>${fmtD(h.fecha)}</td><td>${esc(HIST_L[h.tipo]||h.tipo)}</td><td>${esc(h.detalle||'')}</td><td>${esc(h.autorizado_por||'')}</td></tr>`).join('')}</table>`:'<div>Sin movimientos</div>'}
+   <div class="ft"><span>CONTROL MAX · CONTROL RRHH</span><span>Impreso ${fmtTs(new Date().toISOString())} por ${esc(S.nombre||'')}</span></div></body></html>`;
+  const w=window.open('','_blank');if(!w)return banner('Permití las ventanas emergentes para imprimir','warn');w.document.write(html);w.document.close();w.focus();setTimeout(()=>{try{w.print();}catch(x){}},400);
+}
+
+// ══════════════ INICIO ══════════════
+function lock(msg,extra){$('splash').innerHTML=`<div style="font-size:34px">🔒</div><div style="font-size:17px;font-weight:800;max-width:520px">${msg}</div>${extra?`<div style="font-size:13px;color:rgba(255,255,255,.75);max-width:520px;line-height:1.5">${extra}</div>`:''}<a href="/portal.html" style="color:var(--gold);margin-top:8px">← Volver al portal CONTROL MAX</a>`;}
+async function init(){
+  $('buildLbl').textContent=BUILD;
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session||!session.user){location.href='/portal.html';return;}
+  const {data:perfil,error:pe}=await sb.from('perfiles').select('nombre,rol,empresa_id,activo').eq('id',session.user.id).single();
+  if(pe||!perfil||perfil.activo===false){location.href='/portal.html';return;}
+  S.uid=session.user.id;S.empresaId=perfil.empresa_id;S.rol=(perfil.rol||'').toLowerCase();S.nombre=perfil.nombre||session.user.email;
+  const {data:em}=await sb.from('empresas').select('*').eq('id',S.empresaId).single();S.empresa=em||{};
+  // plan y permisos de módulo (Configuración MAX)
+  const mods=S.empresa.modulos;if(mods&&typeof mods==='object'&&mods.rrhh===false)return lock('CONTROL RRHH no está activo en el plan de tu empresa',esAdmin()?'Activalo en <b>Configuración → Plan y módulos</b>.':'');
+  const pm=S.empresa.permisos_max&&S.empresa.permisos_max.modulos;
+  if(!esAdmin()&&pm&&Array.isArray(pm[S.rol])&&!pm[S.rol].includes('rrhh'))return lock('Tu rol no tiene acceso a CONTROL RRHH');
+  // acceso por usuario (los legajos tienen datos personales)
+  const r=await sb.rpc('rrhh_puede',{p_nivel:'gestion'});
+  if(r.error){if(/rrhh_puede|PGRST202|does not exist|Could not find/i.test(r.error.message||''))return lock('CONTROL RRHH todavía no está instalado en la base',esAdmin()?'Corré <b>rrhh_etapa1_setup.sql</b> en Supabase → SQL Editor y recargá esta página.':'Avisale al administrador.');throw r.error;}
+  if(esAdmin())S.nivel='admin';else if(r.data)S.nivel='gestion';
+  else{const r2=await sb.rpc('rrhh_puede',{p_nivel:'consulta'});if(r2.error)throw r2.error;if(!r2.data)return lock('Tu usuario no tiene acceso a CONTROL RRHH','Los legajos tienen datos personales: un administrador tiene que habilitarte en <b>CONTROL RRHH → Configuración RRHH → Accesos</b>.');S.nivel='consulta';}
+  await loadAll();
+  $('empName').textContent=S.empresa.razon_social||'';$('whoName').textContent=S.nombre;$('whoRole').textContent=(ROL_LABEL[S.rol]||S.rol)+' · RRHH '+({admin:'total',gestion:'gestión',consulta:'consulta'}[S.nivel]);
+  $('splash').style.display='none';$('app').style.display='block';
+  const h=(location.hash||'').slice(1);const [hv,hid]=h.split('=');
+  if(hv==='ficha'&&hid&&emp(hid))return go('ficha',hid);
+  go(META[hv]||FUT[hv]?hv:'panel');
+}
+document.addEventListener('visibilitychange',async()=>{if(document.hidden||!S.empresaId||$('modalBg').classList.contains('show'))return;try{await loadAll();buildNav();if(cur!=='config')go(cur,S.fichaId);}catch(e){}});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&$('modalBg').classList.contains('show'))closeModal();});
+init().catch(e=>{console.error(e);$('splash').innerHTML='<div style="padding:20px">No se pudo iniciar CONTROL RRHH: '+esc(errMsg(e))+'</div><a href="/portal.html" style="color:var(--gold)">← Volver al portal</a>';});
+</script>
+<script src="/cmax-top.js"></script>
+</body>
+</html>
