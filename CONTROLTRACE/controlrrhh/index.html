@@ -215,7 +215,7 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
 // novedades → CONTROL TOTAL · Auditoría) y vínculo con los operarios
 // de TRACE (tabla operarios, no se modifica su estructura).
 // ══════════════════════════════════════════════════════════════
-const BUILD='build v3 · v3: Etapa 3 — Vacaciones y licencias (saldo por antigüedad según LCT, proporcional, ajustes con PIN, calendario por sector con aviso de superposición, feriados con lista sugerida), Préstamos y adelantos (plan de cuotas, desembolso y cobro en Caja/Banco de CONTROL PLUS, descuentos del mes con Excel para el contador, cuenta corriente, anulación con PIN). v2: Etapa 2 — Asistencia, modo tablet, Solicitudes y app del empleado. v1: Legajos';
+const BUILD='build v4 · v4: Etapa 4 — Biblioteca (manuales, procedimientos, puestos, reglamentos y convenios solo para la empresa, por sector/puesto, versiones), "leí y entendí" desde la app o en papel, inducción del ingresante con checklist y avance, EPP / ropa / herramientas: catálogo, entregas con firma del trabajador en pantalla, constancia Res. SRT 299/11, talles, recambios y anulación con PIN. v3: Etapa 3 — Vacaciones y licencias (saldo por antigüedad según LCT, proporcional, ajustes con PIN, calendario por sector con aviso de superposición, feriados con lista sugerida), Préstamos y adelantos (plan de cuotas, desembolso y cobro en Caja/Banco de CONTROL PLUS, descuentos del mes con Excel para el contador, cuenta corriente, anulación con PIN). v2: Etapa 2 — Asistencia, modo tablet, Solicitudes y app del empleado. v1: Legajos';
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
@@ -240,22 +240,21 @@ const DEF_L={
   horarios:{'Mañana':{ini:'06:00',fin:'14:00'},'Tarde':{ini:'14:00',fin:'22:00'},'Noche':{ini:'22:00',fin:'06:00'}},
   tolerancia:10,
   diasLab:[1,2,3,4,5,6],
-  notif:{activo:true,emails:[]}
+  notif:{activo:true,emails:[]},
+  induccion:['Recorrido por las instalaciones y salidas de emergencia','Normas de higiene e inocuidad (BPM)','Normas de seguridad y uso de EPP','Entrega de EPP y ropa de trabajo','Presentación con el encargado y el equipo','Horarios, fichaje y app del empleado']
 };
 const MOTIVOS_BAJA=['Renuncia','Despido sin causa','Despido con causa','Fin de contrato / temporada','Mutuo acuerdo','Período de prueba no superado','Jubilación','Abandono de trabajo','Otro'];
 const NOV_TIPOS=[['reconocimiento','🏅 Reconocimiento',false],['nota','📝 Nota / observación',false],['llamado','⚠️ Llamado de atención',true],['apercibimiento','📄 Apercibimiento',true],['suspension','⛔ Suspensión',true]];
-const HIST_L={alta:'Alta',reingreso:'Reingreso',baja:'Baja',cambio_puesto:'Cambio de puesto / condiciones',reconocimiento:'Reconocimiento',nota:'Nota',llamado:'Llamado de atención',apercibimiento:'Apercibimiento',suspension:'Suspensión',vinculo_operario:'Vínculo con TRACE',documento:'Documento',anular_documento:'Documento anulado',edicion:'Datos actualizados',licencia:'Licencia / vacaciones aprobada',vac_ajuste:'Ajuste de vacaciones',prestamo:'Préstamo / adelanto',cobro:'Cobro de cuotas',app:'App del empleado y PIN'};
+const HIST_L={alta:'Alta',reingreso:'Reingreso',baja:'Baja',cambio_puesto:'Cambio de puesto / condiciones',reconocimiento:'Reconocimiento',nota:'Nota',llamado:'Llamado de atención',apercibimiento:'Apercibimiento',suspension:'Suspensión',vinculo_operario:'Vínculo con TRACE',documento:'Documento',anular_documento:'Documento anulado',edicion:'Datos actualizados',licencia:'Licencia / vacaciones aprobada',epp:'Entrega de EPP / ropa',lectura:'Lectura de documento',induccion:'Inducción',vac_ajuste:'Ajuste de vacaciones',prestamo:'Préstamo / adelanto',cobro:'Cobro de cuotas',app:'App del empleado y PIN'};
 const FUT={
-  'f:bib':['📚','Biblioteca e inducción',4,'Manuales, procedimientos, descripción de puestos, convenios colectivos (solo empresa) e inducción del empleado nuevo con “leí y entendí”.'],
-  'f:epp':['🦺','EPP y herramientas',4,'Entregas de indumentaria y herramientas con firma del trabajador en pantalla, talles y recambios.'],
   'f:recl':['🔎','Reclutamiento',5,'Link público de postulación, formulario de admisión y de capacidades, análisis de CV con IA contra el perfil del puesto.'],
   'f:asist':['💬','Asistente FMN',6,'Mensajes de buenos días, cumpleaños, bienvenidas y reconocimientos; primero con reglas y después con IA.'],
   'f:liq':['🧮','Pre-liquidación',7,'Novedades del mes (días, extras, ausencias, licencias, adelantos y cuotas) listas para el estudio contable.']
 };
-const NAV=[['g','Personal'],['panel','🏠','Panel'],['legajos','👤','Legajos'],['docs','📎','Documentos'],['asis','🕒','Asistencia'],['sol','📨','Solicitudes'],['vac','🏖️','Vacaciones y licencias'],['pres','💳','Préstamos y adelantos'],['g','Próximas etapas'],...Object.keys(FUT).map(k=>[k]),['g','Ajustes'],['config','⚙️','Configuración RRHH']];
-const META={panel:['PERSONAL','Panel de RRHH'],legajos:['PERSONAL','Legajos'],ficha:['PERSONAL · LEGAJO','Ficha del empleado'],docs:['PERSONAL','Documentos y vencimientos'],config:['AJUSTES','Configuración RRHH'],asis:['PERSONAL','Asistencia'],sol:['PERSONAL','Solicitudes'],vac:['PERSONAL','Vacaciones y licencias'],pres:['PERSONAL','Préstamos y adelantos'],kiosco:['ASISTENCIA','Modo tablet']};
+const NAV=[['g','Personal'],['panel','🏠','Panel'],['legajos','👤','Legajos'],['docs','📎','Documentos'],['asis','🕒','Asistencia'],['sol','📨','Solicitudes'],['vac','🏖️','Vacaciones y licencias'],['pres','💳','Préstamos y adelantos'],['bib','📚','Biblioteca e inducción'],['epp','🦺','EPP y herramientas'],['g','Próximas etapas'],...Object.keys(FUT).map(k=>[k]),['g','Ajustes'],['config','⚙️','Configuración RRHH']];
+const META={panel:['PERSONAL','Panel de RRHH'],legajos:['PERSONAL','Legajos'],ficha:['PERSONAL · LEGAJO','Ficha del empleado'],docs:['PERSONAL','Documentos y vencimientos'],config:['AJUSTES','Configuración RRHH'],asis:['PERSONAL','Asistencia'],sol:['PERSONAL','Solicitudes'],vac:['PERSONAL','Vacaciones y licencias'],pres:['PERSONAL','Préstamos y adelantos'],bib:['PERSONAL','Biblioteca e inducción'],epp:['PERSONAL','EPP y herramientas'],kiosco:['ASISTENCIA','Modo tablet']};
 
-const S={uid:null,empresaId:null,rol:'',nombre:'',empresa:{},nivel:'consulta',cfgRow:null,L:null,accesos:{},emps:[],docs:[],hist:[],ops:[],opsOk:true,fichaId:null,fich:[],fIdx:{},fichDesde:null,sol:[],puntos:[],pines:{},e2ok:true,e3ok:true,fer:[],ferMap:{},vaj:[],pres:[],cuo:[],cajas:[],ctas:[],vacS:{}};
+const S={uid:null,empresaId:null,rol:'',nombre:'',empresa:{},nivel:'consulta',cfgRow:null,L:null,accesos:{},emps:[],docs:[],hist:[],ops:[],opsOk:true,fichaId:null,fich:[],fIdx:{},fichDesde:null,sol:[],puntos:[],pines:{},e2ok:true,e3ok:true,e4ok:true,bib:[],lec:[],ind:[],eppI:[],eppE:[],eppD:[],fer:[],ferMap:{},vaj:[],pres:[],cuo:[],cajas:[],ctas:[],vacS:{}};
 const F={q:'',sector:'',estado:'activos',mod:'',fTab:'datos',dEst:'alerta',dTipo:'',dQ:'',cTab:'listas',aTab:'parte',aFecha:null,aSec:'',aEst:'',aQ:'',aMes:null,sEst:null,sTipo:'',sQ:''};
 let cur='panel';
 
@@ -273,6 +272,7 @@ function banner(t,k){const b=$('banner');b.textContent=t;b.className='banner sho
 function modal(html,wide){const m=$('modal');m.className='modal'+(wide?' wide':'');m.innerHTML=html;$('modalBg').classList.add('show');setTimeout(()=>{const f=m.querySelector('input:not([type=hidden]):not([type=checkbox]):not([disabled]):not([readonly]),select:not([disabled]),textarea');if(f)f.focus();},40);}
 function closeModal(){$('modalBg').classList.remove('show');}
 function errMsg(e){const m=(e&&(e.message||e.details||e.error_description))||String(e||'');
+  if(/rrhh_(biblioteca|lecturas|induccion|epp_)|column .*talles/.test(m)&&/does not exist|PGRST20[0-9]|Could not find/i.test(m))return 'Falta correr rrhh_etapa4_setup.sql en Supabase → SQL Editor ('+m+')';
   if(/rrhh_(vac_|feriados|prestamo)/.test(m)&&/does not exist|PGRST20[25]|Could not find/i.test(m))return 'Falta correr rrhh_etapa3_setup.sql en Supabase → SQL Editor ('+m+')';
   if(/rrhh_prestamos_num_uq/.test(m))return 'Ese número de préstamo ya existe (otra persona cargó uno recién). Probá de nuevo.';
   if(/rrhh_(fichadas|solicitudes|puntos|pines|qr_|fichar|set_pin|app_|puntos_kiosco|pines_estado)|app_uid/.test(m)&&/does not exist|PGRST20[25]|Could not find/i.test(m))return 'Falta correr rrhh_etapa2_setup.sql en Supabase → SQL Editor ('+m+')';
@@ -316,7 +316,7 @@ async function loadEmps(){S.emps=await sbAll(()=>sb.from('rrhh_empleados').selec
 async function loadDocs(){S.docs=await sbAll(()=>sb.from('rrhh_documentos').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false}));}
 async function loadHist(){S.hist=await sbAll(()=>sb.from('rrhh_historial').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false}));}
 async function loadOps(){const {data,error}=await sb.from('operarios').select('id,nombre,area,activo').eq('empresa_id',S.empresaId).order('nombre');S.opsOk=!error;S.ops=error?[]:(data||[]);}
-async function loadAll(){await loadCfg();await Promise.all([loadEmps(),loadDocs(),loadHist(),loadOps(),loadFich(S.fichDesde||undefined),loadSol(),loadPuntos(),loadPines(),loadFeriados(),loadAjustes(),loadPrest(),loadPlus()]);S.vacS={};}
+async function loadAll(){await loadCfg();await Promise.all([loadEmps(),loadDocs(),loadHist(),loadOps(),loadFich(S.fichDesde||undefined),loadSol(),loadPuntos(),loadPines(),loadFeriados(),loadAjustes(),loadPrest(),loadPlus(),loadBib(),loadInd(),loadEpp()]);S.vacS={};}
 
 // ══════════════ REGLAS DEL LEGAJO ══════════════
 const emp=id=>S.emps.find(e=>e.id===id);
@@ -369,7 +369,7 @@ function buildNav(){const al=docsAlerta().length;
 function go(v,arg){if(!META[v]&&!FUT[v])v='panel';if(S.nivel==='kiosco')v='kiosco';if(v==='config'&&!gestiona()&&!esJefe())v='panel';if(v==='kiosco'&&S.nivel==='consulta')v='asis';cur=v;if(v==='ficha'){if(arg)S.fichaId=arg;if(!emp(S.fichaId)){cur=v='legajos';}}
   document.body.classList.remove('nav-open');buildNav();const m=META[v]||['PRÓXIMAS ETAPAS',FUT[v][1]];$('crumb').textContent=m[0];$('title').textContent=v==='ficha'?nomCorto(emp(S.fichaId)):m[1];
   render();window.scrollTo(0,0);try{history.replaceState(null,'','#'+v+(v==='ficha'?'='+S.fichaId:''));}catch(e){}}
-function render(){const V={panel:viewPanel,legajos:viewLegajos,ficha:viewFicha,docs:viewDocs,config:viewConfig,asis:viewAsis,sol:viewSol,vac:viewVac,pres:viewPres,kiosco:viewKiosco}[cur];if(V)V();else viewFut();}
+function render(){const V={panel:viewPanel,legajos:viewLegajos,ficha:viewFicha,docs:viewDocs,config:viewConfig,asis:viewAsis,sol:viewSol,vac:viewVac,pres:viewPres,bib:viewBib,epp:viewEpp,kiosco:viewKiosco}[cur];if(V)V();else viewFut();}
 async function refreshNow(){const b=$('btnRefresh');b.textContent='⏳ Actualizando…';try{await loadAll();go(cur,S.fichaId);banner('Datos actualizados ✓');}catch(e){banner('Error: '+errMsg(e),'err');}b.textContent='🔄 Actualizar';}
 
 // ══════════════ PANEL ══════════════
@@ -395,6 +395,9 @@ function viewPanel(){
     ${S.e3ok!==false?(()=>{const t=today(),hv=(S.sol||[]).filter(x=>x.estado==='aprobada'&&LIC_T.includes(x.tipo)&&x.desde&&d10(x.desde)<=t&&d10(x.hasta||x.desde)>=t&&emp(x.empleado_id)),pa=(S.pres||[]).filter(p=>p.estado==='activo');
       return `<div class="kpi ck" onclick="F.vTab='cal';F.vMes=today().slice(0,7);go('vac')"><small>De vacaciones o licencia hoy</small><b>${nf(hv.length)}</b><span>${nf(hv.filter(x=>x.tipo==='vacaciones').length)} de vacaciones</span></div>
     <div class="kpi ck" onclick="F.pTab='lista';go('pres')"><small>Préstamos a cobrar</small><b>${mon0(pa.reduce((a,p)=>a+saldoPrest(p),0))}</b><span>${nf(pa.length)} activos</span></div>`;})():''}
+    ${S.e4ok!==false?(()=>{const rc=recambios(),pl=pendLect(),ei=S.emps.filter(enInduccion);
+      return `<div class="kpi ck" onclick="F.eTab='rec';go('epp')"><small>Recambios de EPP</small><b class="${rc.some(x=>x.venc)?'r':rc.length?'a':''}">${nf(rc.length)}</b><span>${nf(rc.filter(x=>x.venc).length)} vencidos</span></div>
+    <div class="kpi ck" onclick="F.bTab='ind';go('bib')"><small>Inducciones en curso</small><b class="${ei.length?'a':''}">${nf(ei.length)}</b><span>${nf(pl.length)} lecturas pendientes</span></div>`;})():''}
    </div>
    ${S.e2ok!==false&&pend.length?`<div class="card"><div class="card-h"><h3>📨 Solicitudes para responder</h3><button class="btn btn-ghost btn-sm" onclick="F.sEst='pendiente';go('sol')">Ver todas</button></div>${pend.slice(0,6).map(x=>`<div class="li" onclick="verSol('${x.id}')"><span><span class="who">${esc(nomE(emp(x.empleado_id)))}</span><br><span class="small muted">${(SOL_T[x.tipo]||['',''])[0]} ${esc((SOL_T[x.tipo]||['',x.tipo])[1])} · ${esc(resumenSol(x))}</span></span><span class="small muted">${fmtTs(x.created_at)}</span></div>`).join('')}</div>`:''}
    <div class="g2">
@@ -466,11 +469,13 @@ function viewFicha(){
     <button class="btn btn-ghost btn-sm" onclick="printFicha('${e.id}')">🖨️ Imprimir ficha</button>
     ${g?(baja?`<button class="btn btn-ghost btn-sm" onclick="reingreso('${e.id}')">↩️ Reingreso</button>`:`<button class="btn btn-danger btn-sm" onclick="darBaja('${e.id}')">⛔ Dar de baja</button>`):''}
    </div></div>
-   <div class="tabs">${[['datos','Datos'],['docs','Documentos ('+dd.filter(d=>d.estado!=='anulado').length+')'],...(S.e2ok!==false?[['asis','Asistencia'],['sol','Solicitudes ('+filtSol(e.id).length+')']]:[]),...(S.e3ok!==false?[['vac','Vacaciones'],['pres','Préstamos ('+(S.pres||[]).filter(p=>p.empleado_id===e.id&&p.estado!=='anulado').length+')']]:[]),['hist','Historial ('+hh.length+')']].map(([k,l])=>`<button class="${F.fTab===k?'on':''}" onclick="F.fTab='${k}';viewFicha()">${l}</button>`).join('')}</div>
+   <div class="tabs">${[['datos','Datos'],['docs','Documentos ('+dd.filter(d=>d.estado!=='anulado').length+')'],...(S.e2ok!==false?[['asis','Asistencia'],['sol','Solicitudes ('+filtSol(e.id).length+')']]:[]),...(S.e4ok!==false?[['epp','EPP ('+eppVig(e.id).length+')'],['ind','Inducción']]:[]),...(S.e3ok!==false?[['vac','Vacaciones'],['pres','Préstamos ('+(S.pres||[]).filter(p=>p.empleado_id===e.id&&p.estado!=='anulado').length+')']]:[]),['hist','Historial ('+hh.length+')']].map(([k,l])=>`<button class="${F.fTab===k?'on':''}" onclick="F.fTab='${k}';viewFicha()">${l}</button>`).join('')}</div>
    <div class="card" id="fBody"></div>`;
   if(F.fTab==='asis'&&S.e2ok!==false){$('fBody').innerHTML=fichaAsis(e);}
   else if(F.fTab==='vac'&&S.e3ok!==false){$('fBody').innerHTML='<div class="empty">Calculando…</div>';fichaVac(e).then(h=>{if($('fBody')&&cur==='ficha'&&F.fTab==='vac')$('fBody').innerHTML=h;});}
   else if(F.fTab==='pres'&&S.e3ok!==false){$('fBody').innerHTML=fichaPres(e);}
+  else if(F.fTab==='epp'&&S.e4ok!==false){$('fBody').innerHTML=fichaEpp(e);}
+  else if(F.fTab==='ind'&&S.e4ok!==false){$('fBody').innerHTML=fichaInd(e);}
   else if(F.fTab==='sol'&&S.e2ok!==false){$('fBody').innerHTML=`<div class="card-h"><h3>📨 Solicitudes</h3>${g&&!baja?`<button class="btn btn-gold btn-sm" onclick="cargarSol('${e.id}')">＋ Cargar solicitud</button>`:''}</div><div id="fsGrid"></div>`;drawSolGrid('fsGrid','fsol',filtSol(e.id),false);}
   else if(F.fTab==='docs'){$('fBody').innerHTML=`<div class="card-h"><h3>📎 Documentos del legajo</h3>${g&&!baja?`<button class="btn btn-gold btn-sm" onclick="upDoc('${e.id}')">＋ Subir documento</button>`:''}</div><div id="fdGrid"></div>`;drawDocsGrid('fdGrid','fdocs',dd.sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))),false);}
   else if(F.fTab==='hist'){$('fBody').innerHTML=`<div class="card-h"><h3>🕓 Historial laboral</h3>${g&&!baja?`<button class="btn btn-ghost btn-sm" onclick="novedad('${e.id}')">＋ Registrar novedad</button>`:''}</div>`+(hh.length?`<div class="tl">${hh.map(h=>{const c={baja:'b',llamado:'s',apercibimiento:'s',suspension:'s',reconocimiento:'r',alta:'r',reingreso:'r'}[h.tipo]||'';
@@ -1327,6 +1332,255 @@ async function fichaVac(e){const p=periodoDe(today());const [a,b]=await Promise.
 function fichaPres(e){const L=(S.pres||[]).filter(p=>p.empleado_id===e.id&&p.estado!=='anulado');const sal=L.reduce((a,p)=>a+saldoPrest(p),0);
   return `<div class="card-h"><h3>💳 Préstamos y adelantos</h3><div class="seg">${gestiona()&&e.estado!=='baja'?`<button class="btn btn-gold btn-sm" onclick="nuevoPrest({empId:'${e.id}'})">＋ Nuevo</button>`:''}<button class="btn btn-ghost btn-sm" onclick="F.pTab='cc';F.pEmp='${e.id}';go('pres')">📒 Cuenta corriente</button></div></div>
    <p class="hint">Saldo a cobrar: <b>${mon(sal)}</b></p>${L.length?`<table><thead><tr><th>N°</th><th>Tipo</th><th>Fecha</th><th>Monto</th><th>Cuotas</th><th>Saldo</th><th>Estado</th></tr></thead><tbody>${L.map(p=>`<tr class="gx-r" onclick="verPrest('${p.id}')"><td>${p.numero}</td><td>${esc(TIPO_P[p.tipo])}</td><td>${fmtD(p.fecha)}</td><td>${mon(p.monto)}</td><td>${cuotasDe(p.id).filter(cobrada).length}/${p.cuotas}</td><td><b>${mon(saldoPrest(p))}</b></td><td>${presTag(p)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Sin préstamos ni adelantos</div>'}`;}
+
+// ══════════════════════════════════════════════════════════════
+// ETAPA 4 · BIBLIOTECA E INDUCCIÓN · EPP Y HERRAMIENTAS
+// ══════════════════════════════════════════════════════════════
+const BIB_CAT={manual:['📘','Manual'],procedimiento:['📋','Procedimiento'],seguridad:['🦺','Seguridad e higiene'],puesto:['👷','Descripción de puesto'],politica:['📜','Reglamento / política'],convenio:['⚖️','Convenio colectivo'],otro:['📄','Otro']};
+const EPP_TIPO={epp:'EPP',ropa:'Ropa de trabajo',herramienta:'Herramienta'};
+const TALLE_T={superior:'Camisa / remera / campera',pantalon:'Pantalón',calzado:'Calzado',guantes:'Guantes'};
+const EPP_MOT=['Entrega inicial','Recambio','Rotura','Pérdida','Otro'];
+// catálogo sugerido para un galpón de empaque (se revisa y edita después)
+const EPP_SUG=[['Botines de seguridad','epp',true,'calzado',365],['Botas de goma','epp',true,'calzado',365],['Guantes de nitrilo (par)','epp',true,'guantes',30],['Guantes anticorte (par)','epp',true,'guantes',90],['Protector auditivo','epp',true,null,180],['Anteojos de seguridad','epp',true,null,365],
+  ['Cofia / gorro','ropa',false,null,30],['Barbijo','ropa',false,null,30],['Delantal impermeable','ropa',false,null,180],['Chaqueta de trabajo','ropa',false,'superior',365],['Pantalón de trabajo','ropa',false,'pantalon',365],['Campera térmica (cámaras)','ropa',false,'superior',730],['Chaleco reflectivo','epp',true,'superior',365],['Cúter / cuchillo de trabajo','herramienta',false,null,null]];
+function e4Nota(){return `<div class="card"><div class="note" style="margin:0">Para usar la Biblioteca, la Inducción y las entregas de EPP corré <b>rrhh_etapa4_setup.sql</b> en Supabase → SQL Editor y recargá esta página.</div></div>`;}
+const E4MISS=e=>/rrhh_(biblioteca|lecturas|induccion|epp_)|talles|PGRST205|does not exist/i.test((e&&e.message)||'');
+// ── datos ──
+async function loadBib(){try{S.bib=await sbAll(()=>sb.from('rrhh_biblioteca').select('*').eq('empresa_id',S.empresaId).order('titulo'));S.lec=await sbAll(()=>sb.from('rrhh_lecturas').select('*').eq('empresa_id',S.empresaId));}catch(e){S.bib=[];S.lec=[];if(E4MISS(e))S.e4ok=false;}}
+async function loadInd(){try{S.ind=await sbAll(()=>sb.from('rrhh_induccion').select('*').eq('empresa_id',S.empresaId));}catch(e){S.ind=[];if(E4MISS(e))S.e4ok=false;}}
+const ENT_COLS='id,empresa_id,empleado_id,numero,fecha,motivo,firmado_at,observaciones,estado,anulado_motivo,autorizado_por,registrado_por,created_at';
+async function loadEpp(){try{S.eppI=await sbAll(()=>sb.from('rrhh_epp_items').select('*').eq('empresa_id',S.empresaId).order('nombre'));S.eppE=await sbAll(()=>sb.from('rrhh_epp_entregas').select(ENT_COLS).eq('empresa_id',S.empresaId).order('numero',{ascending:false}));
+  S.eppD=await sbAll(()=>sb.from('rrhh_epp_entrega_items').select('*').eq('empresa_id',S.empresaId));}catch(e){S.eppI=[];S.eppE=[];S.eppD=[];if(E4MISS(e))S.e4ok=false;}}
+// ── biblioteca: a quién le corresponde ──
+function docAplica(d,e){return d.estado==='activo'&&d.visible&&d.categoria!=='convenio'&&e&&e.estado!=='baja'&&(!(d.sectores||[]).length||(d.sectores||[]).includes(e.sector))&&(!(d.puestos||[]).length||(d.puestos||[]).includes(e.puesto));}
+function lectura(d,empId){return (S.lec||[]).filter(l=>l.doc_id===d.id&&l.empleado_id===empId&&l.version===d.version).sort((a,b)=>String(b.leido_at).localeCompare(String(a.leido_at)))[0]||null;}
+function docPara(d){if(d.categoria==='convenio'||!d.visible)return '<span class="tag t-mut">Solo la empresa</span>';const s=d.sectores||[],p=d.puestos||[];return !s.length&&!p.length?'Todos':[s.length?s.map(esc).join(', '):'',p.length?p.map(esc).join(', '):''].filter(Boolean).join(' · ');}
+function pendLect(){const out=[];(S.bib||[]).filter(d=>d.obligatorio).forEach(d=>S.emps.forEach(e=>{if(docAplica(d,e)&&!lectura(d,e.id))out.push({d,e});}));return out;}
+// ── inducción ──
+function pasosInd(){return S.L.induccion||[];}
+function indDe(e){const P=pasosInd(),hechos=(S.ind||[]).filter(i=>i.empleado_id===e.id),docs=(S.bib||[]).filter(d=>d.induccion&&docAplica(d,e));
+  const ph=P.filter(p=>hechos.some(h=>h.paso===p)).length,dl=docs.filter(d=>lectura(d,e.id)).length,tot=P.length+docs.length,ok=ph+dl;
+  return {P,hechos,docs,ph,dl,tot,ok,pct:tot?Math.round(ok*100/tot):100,completa:tot>0&&ok>=tot};}
+function enInduccion(e){if(e.estado==='baja'||!e.fecha_ingreso)return false;return d10(e.fecha_ingreso)>=addDays(today(),-90)&&!indDe(e).completa;}
+// ── EPP ──
+function eppVig(empId){return (S.eppD||[]).filter(i=>i.empleado_id===empId&&i.estado==='entregado'&&(S.eppE||[]).some(g=>g.id===i.entrega_id&&g.estado==='activa'));}
+// aviso de recambio: el general de la empresa, pero nunca más del 20 % de la vida útil (guantes de 30 días → avisa 6 días antes)
+function avisoItem(i){const it=(S.eppI||[]).find(x=>x.id===i.item_id);const v=it&&it.vida_dias;return v?Math.min(aviso(),Math.max(3,Math.round(v*0.2))):aviso();}
+function recambios(){const out=[];S.emps.filter(e=>e.estado!=='baja').forEach(e=>eppVig(e.id).forEach(i=>{if(i.vence&&d10(i.vence)<=addDays(today(),avisoItem(i)))out.push({e,i,venc:d10(i.vence)<today()});}));return out.sort((a,b)=>String(a.i.vence).localeCompare(String(b.i.vence)));}
+function bar(p){return `<div style="background:#eee8da;border-radius:6px;height:8px;min-width:90px;overflow:hidden"><i style="display:block;height:8px;width:${p}%;background:${p>=100?'var(--ok,#4a7c3f)':'var(--gold)'}"></i></div>`;}
+
+// ══════════════ BIBLIOTECA E INDUCCIÓN ══════════════
+function viewBib(){if(S.e4ok===false){$('view').innerHTML=e4Nota();return;}
+  const tabs=[['docs','📚 Documentos'],['lec','✅ Lecturas'],['ind','🧭 Inducción']];if(!tabs.some(t=>t[0]===F.bTab))F.bTab='docs';
+  const pl=pendLect(),ei=S.emps.filter(enInduccion);
+  $('view').innerHTML=`<div class="kpis"><div class="kpi ck" onclick="F.bTab='docs';viewBib()"><small>Documentos activos</small><b>${nf((S.bib||[]).filter(d=>d.estado==='activo').length)}</b><span>${nf((S.bib||[]).filter(d=>d.estado==='activo'&&d.obligatorio).length)} piden "leí y entendí"</span></div>
+    <div class="kpi ck" onclick="F.bTab='lec';viewBib()"><small>Lecturas pendientes</small><b class="${pl.length?'a':''}">${nf(pl.length)}</b><span>${nf(new Set(pl.map(x=>x.e.id)).size)} empleados</span></div>
+    <div class="kpi ck" onclick="F.bTab='ind';viewBib()"><small>Inducciones en curso</small><b class="${ei.length?'a':''}">${nf(ei.length)}</b><span>ingresos de los últimos 90 días</span></div></div>
+   <div class="tabs">${tabs.map(([k,l])=>`<button class="${F.bTab===k?'on':''}" onclick="F.bTab='${k}';viewBib()">${l}</button>`).join('')}</div><div id="bibBody"></div>`;
+  ({docs:viewBibDocs,lec:viewBibLec,ind:viewBibInd})[F.bTab]();}
+function viewBibDocs(){const q=norm(F.bQ||'');const rows=(S.bib||[]).filter(d=>(F.bEst==='archivado'?d.estado==='archivado':d.estado==='activo')&&(!F.bCat||d.categoria===F.bCat)&&(!q||norm(d.titulo+' '+(d.descripcion||'')).includes(q)))
+   .map(d=>{const ap=S.emps.filter(e=>docAplica(d,e));return Object.assign({},d,{_k:d.id,_lbl:d.titulo,_ap:ap.length,_le:ap.filter(e=>lectura(d,e.id)).length});});
+  $('bibBody').innerHTML=`<div class="card"><div class="card-h"><h3>📚 Biblioteca</h3>${gestiona()?'<button class="btn btn-gold" onclick="editBib()">＋ Subir documento</button>':''}</div>
+   <p class="hint">Manuales, procedimientos, descripciones de puesto y reglamentos. Elegí quién lo ve en su app (todos, algunos sectores o puestos) y si pide <b>"leí y entendí"</b>. Los <b>convenios colectivos</b> quedan solo para la empresa.</p>
+   <div class="filters"><div class="f">Categoría<select class="in" onchange="F.bCat=this.value;viewBibDocs()"><option value="">Todas</option>${Object.entries(BIB_CAT).map(([k,v])=>`<option value="${k}"${F.bCat===k?' selected':''}>${v[1]}</option>`).join('')}</select></div>
+    <div class="f">Estado<select class="in" onchange="F.bEst=this.value;viewBibDocs()"><option value="">Activos</option><option value="archivado"${F.bEst==='archivado'?' selected':''}>Archivados</option></select></div>
+    <div class="f" style="flex:1;min-width:180px">Buscar<input class="in" value="${esc(F.bQ||'')}" placeholder="Título" oninput="F.bQ=this.value;viewBibDocs()"></div></div><div id="bibGrid"></div></div>`;
+  grid('bibGrid','bib',[{h:'Documento',f:r=>`<b>${BIB_CAT[r.categoria]?BIB_CAT[r.categoria][0]:'📄'} ${esc(r.titulo)}</b>${r.descripcion?`<div class="cod">${esc(r.descripcion)}</div>`:''}`},{h:'Categoría',f:r=>esc((BIB_CAT[r.categoria]||['',r.categoria])[1])},{h:'Para',f:r=>`<span class="small">${docPara(r)}</span>`},
+    {h:'Lectura',f:r=>r.obligatorio?`<b>${r._le}/${r._ap}</b> ${r._ap&&r._le>=r._ap?'<span class="tag t-ok">Completa</span>':''}${r.induccion?' <span class="tag t-gold">Inducción</span>':''}`:'<span class="muted">No se pide</span>'},{h:'Versión',f:r=>'v'+r.version},{h:'Actualizado',f:r=>`<span class="small">${fmtTs(r.updated_at)}</span>`},{h:'Archivo',f:r=>r.archivo_path?'📎':'—'}],rows,
+   r=>{const a=[];if(r.archivo_path)a.push({lbl:'👁️ Abrir',cls:'btn-gold',fn:()=>verArchivo(r.archivo_path)});if(r.obligatorio)a.push({lbl:'✅ Lecturas',fn:()=>{F.bTab='lec';F.bDoc=r.id;viewBib();}});
+     if(gestiona()){a.push({lbl:'✏️ Editar',fn:()=>editBib(r.id)});if(r.estado==='activo')a.push({lbl:'⬆️ Nueva versión',fn:()=>nuevaVersion(r.id)},{lbl:'🗄️ Archivar',fn:()=>archivarBib(r.id,true)});else a.push({lbl:'↩️ Reactivar',fn:()=>archivarBib(r.id,false)});}return a;},k=>{const d=S.bib.find(x=>x.id===k);if(d&&d.archivo_path)verArchivo(d.archivo_path);});}
+function chkList(cls,list,sel){return `<div class="lst" style="max-height:150px">${list.map(x=>`<label class="chk"><input type="checkbox" class="${cls}" value="${esc(x)}" ${(sel||[]).includes(x)?'checked':''}> ${esc(x)}</label>`).join('')||'<span class="muted small">(cargá la lista en Configuración)</span>'}</div>`;}
+function editBib(id){if(!gestiona())return;const d=id?S.bib.find(x=>x.id===id):{categoria:'procedimiento',visible:true,obligatorio:true,induccion:false,sectores:[],puestos:[]};
+  modal(`<h3>${id?'✏️ Editar documento':'＋ Subir documento a la biblioteca'}</h3>
+   <div class="fg"><div class="two">${fi('bb_tit','Título *',d.titulo||'',{ph:'Ej.: Procedimiento de limpieza de línea'})}</div>
+    <div><label class="lb" for="bb_cat">Categoría</label><select class="in" id="bb_cat" onchange="bbCat()">${Object.entries(BIB_CAT).map(([k,v])=>`<option value="${k}"${d.categoria===k?' selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select></div>
+    <div class="full">${fi('bb_desc','Descripción',d.descripcion||'',{ph:'Opcional'})}</div>
+    ${id?'':`<div class="full"><label class="lb" for="bb_file">Archivo (PDF o foto, hasta ${MAX_MB} MB) *</label><input class="in" id="bb_file" type="file" accept="application/pdf,image/*"></div>`}</div>
+   <div id="bb_conv" class="note" style="display:none;margin-top:10px">Los convenios colectivos son <b>solo para la empresa</b>: no aparecen en la app de los empleados.</div>
+   <div id="bb_opts"><label class="chk" style="margin-top:12px"><input type="checkbox" id="bb_vis" ${d.visible?'checked':''} onchange="bbCat()"> Lo ven los empleados en su app</label>
+    <div id="bb_more"><label class="chk"><input type="checkbox" id="bb_obl" ${d.obligatorio?'checked':''}> Pide <b>"leí y entendí"</b></label><label class="chk"><input type="checkbox" id="bb_ind" ${d.induccion?'checked':''}> Es parte de la <b>inducción</b> del que ingresa</label>
+    <div class="fg" style="grid-template-columns:1fr 1fr;margin-top:6px"><div><label class="lb">Sectores (ninguno = todos)</label>${chkList('bb_s',S.L.sectores,d.sectores)}</div><div><label class="lb">Puestos (ninguno = todos)</label>${chkList('bb_p',S.L.puestos,d.puestos)}</div></div></div></div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="bb_ok" onclick="saveBib('${id||''}')">💾 Guardar</button></div>`,true);bbCat();}
+function bbCat(){const conv=$('bb_cat').value==='convenio';$('bb_conv').style.display=conv?'':'none';$('bb_opts').style.display=conv?'none':'';$('bb_more').style.display=$('bb_vis').checked?'':'none';}
+function safeName(n){return n.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_').slice(-80);}
+async function subirBib(f){if(f.size>MAX_MB*1024*1024)throw new Error('El archivo supera los '+MAX_MB+' MB');const path=`${S.empresaId}/biblioteca/${Date.now()}_${safeName(f.name)}`;
+  const {error}=await sb.storage.from(BUCKET).upload(path,f,{contentType:f.type||undefined,upsert:false});if(error)throw error;return {archivo_path:path,archivo_nombre:f.name,mime:f.type||null,tamano:f.size};}
+async function saveBib(id){const tit=$('bb_tit').value.trim(),cat=$('bb_cat').value,f=$('bb_file')&&$('bb_file').files[0];if(!tit)return banner('Poné un título','warn');if(!id&&!f)return banner('Elegí el archivo','warn');
+  const vis=cat!=='convenio'&&$('bb_vis').checked;const o={titulo:tit,categoria:cat,descripcion:$('bb_desc').value.trim()||null,visible:vis,obligatorio:vis&&$('bb_obl').checked,induccion:vis&&$('bb_ind').checked,
+    sectores:vis?[...document.querySelectorAll('.bb_s:checked')].map(c=>c.value):[],puestos:vis?[...document.querySelectorAll('.bb_p:checked')].map(c=>c.value):[],updated_by:S.nombre};
+  const b=$('bb_ok');b.disabled=true;b.textContent='⏳ Guardando…';
+  try{if(id){const {error}=await sb.from('rrhh_biblioteca').update(o).eq('id',id).eq('empresa_id',S.empresaId);if(error)throw error;}
+    else{Object.assign(o,await subirBib(f),{empresa_id:S.empresaId,created_by:S.nombre});const {error}=await sb.from('rrhh_biblioteca').insert(o);if(error)throw error;}
+    closeModal();await loadBib();banner(id?'Documento actualizado ✓':'Documento subido ✓');render();}
+  catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;b.textContent='💾 Guardar';}}
+function nuevaVersion(id){const d=S.bib.find(x=>x.id===id);
+  modal(`<h3>⬆️ Nueva versión · ${esc(d.titulo)}</h3><p class="hint">Reemplaza el archivo (pasa a v${d.version+1}). ${d.obligatorio?'<b>Todos van a tener que volver a confirmar "leí y entendí".</b> Las lecturas de la versión anterior quedan registradas.':''}</p>
+   <label class="lb" for="nv_file">Archivo nuevo *</label><input class="in" id="nv_file" type="file" accept="application/pdf,image/*">
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="nv_ok" onclick="saveVersion('${id}')">⬆️ Subir versión</button></div>`);}
+async function saveVersion(id){const d=S.bib.find(x=>x.id===id),f=$('nv_file').files[0];if(!f)return banner('Elegí el archivo','warn');const b=$('nv_ok');b.disabled=true;b.textContent='⏳ Subiendo…';
+  try{const o=Object.assign(await subirBib(f),{version:d.version+1,updated_by:S.nombre});const {error}=await sb.from('rrhh_biblioteca').update(o).eq('id',id).eq('empresa_id',S.empresaId);if(error)throw error;closeModal();await loadBib();banner('Versión '+(d.version+1)+' publicada ✓');render();}
+  catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;b.textContent='⬆️ Subir versión';}}
+async function archivarBib(id,arch){const {error}=await sb.from('rrhh_biblioteca').update({estado:arch?'archivado':'activo',updated_by:S.nombre}).eq('id',id).eq('empresa_id',S.empresaId);if(error)return banner('Error: '+errMsg(error),'err');await loadBib();banner(arch?'Archivado: ya no se ve en la app':'Reactivado ✓');render();}
+// lecturas por documento
+function viewBibLec(){const docs=(S.bib||[]).filter(d=>d.estado==='activo'&&d.obligatorio);if(!docs.some(d=>d.id===F.bDoc))F.bDoc=docs[0]&&docs[0].id;const d=docs.find(x=>x.id===F.bDoc);
+  if(!d){$('bibBody').innerHTML='<div class="card"><div class="empty">Ningún documento pide "leí y entendí" todavía. Marcalo al subirlo o editarlo.</div></div>';return;}
+  const rows=S.emps.filter(e=>docAplica(d,e)).map(e=>{const l=lectura(d,e.id);return {e,l,_k:e.id,_lbl:nomE(e)};}).filter(r=>!F.bPend||!r.l).sort((a,b)=>(!!a.l-!!b.l)||norm(nomE(a.e)).localeCompare(norm(nomE(b.e))));window._lec=rows;const tot=S.emps.filter(e=>docAplica(d,e)).length,ok=S.emps.filter(e=>docAplica(d,e)&&lectura(d,e.id)).length;
+  $('bibBody').innerHTML=`<div class="card"><div class="card-h"><div class="seg" style="align-items:center"><select class="in" style="width:auto;max-width:100%" onchange="F.bDoc=this.value;viewBibLec()">${docs.map(x=>`<option value="${x.id}"${x.id===d.id?' selected':''}>${esc(x.titulo)} (v${x.version})</option>`).join('')}</select><label class="chk small"><input type="checkbox" ${F.bPend?'checked':''} onchange="F.bPend=this.checked;viewBibLec()"> solo pendientes</label></div>
+    <div class="seg"><button class="btn btn-ghost" onclick="exportLec()">📥 Excel</button></div></div>
+   <div class="seg" style="align-items:center;margin-bottom:10px"><b>${ok}/${tot}</b> confirmaron la versión ${d.version} <span style="flex:1;max-width:240px">${bar(tot?Math.round(ok*100/tot):0)}</span></div>
+   <p class="hint">Si alguien lo leyó en papel o en la oficina, seleccionalo y tocá <b>"Registrar lectura"</b>.</p><div id="lecGrid"></div></div>`;
+  grid('lecGrid','lec',[{h:'Empleado',f:r=>`<b>${esc(nomE(r.e))}</b><div class="cod">${esc(r.e.legajo||'')}</div>`},{h:'Sector / puesto',f:r=>`<span class="small">${esc(r.e.sector||'')} · ${esc(r.e.puesto||'')}</span>`},{h:'App',f:r=>r.e.app_estado==='activo'?'📱':'<span class="muted">—</span>'},
+    {h:'Estado',f:r=>r.l?`<span class="tag t-ok">Leído ${fmtTs(r.l.leido_at)}</span> <span class="small muted">${r.l.medio==='rrhh'?'en papel · '+esc(r.l.registrado_por||''):'desde la app'}</span>`:'<span class="tag t-warn">Pendiente</span>'}],rows,
+   r=>!r.l&&gestiona()?[{lbl:'✅ Registrar lectura',cls:'btn-gold',fn:()=>leidoPapel(d.id,r.e.id)}]:[]);}
+async function leidoPapel(docId,empId,after){const d=S.bib.find(x=>x.id===docId);const {error}=await sb.from('rrhh_lecturas').insert({empresa_id:S.empresaId,doc_id:docId,empleado_id:empId,version:d.version,medio:'rrhh',registrado_por:S.nombre});
+  if(error&&!/rrhh_lecturas_uq|duplicate/i.test(error.message||''))return banner('Error: '+errMsg(error),'err');await addHist(empId,'lectura',`Leyó "${d.titulo}" (v${d.version}) · registrado por RRHH`);await Promise.all([loadBib(),loadHist()]);banner('Lectura registrada ✓');if(after)after();else render();}
+function exportLec(){const d=S.bib.find(x=>x.id===F.bDoc);toXlsx('Lecturas_'+safeName(d.titulo),'Lecturas',[['Documento','Versión','Legajo','Empleado','Sector','Puesto','Estado','Fecha','Medio'],...(window._lec||[]).map(r=>[d.titulo,d.version,r.e.legajo||'',nomE(r.e),r.e.sector||'',r.e.puesto||'',r.l?'Leído':'Pendiente',r.l?fmtTs(r.l.leido_at):'',r.l?(r.l.medio==='rrhh'?'Papel / RRHH':'App'):''])]);}
+// inducción
+function viewBibInd(){const P=pasosInd();const rows=S.emps.filter(e=>e.estado!=='baja'&&(F.iTodos||enInduccion(e))).map(e=>Object.assign({e,_k:e.id,_lbl:nomE(e)},indDe(e))).sort((a,b)=>String(b.e.fecha_ingreso||'').localeCompare(String(a.e.fecha_ingreso||'')));
+  $('bibBody').innerHTML=`<div class="card"><div class="card-h"><h3>🧭 Inducción del personal nuevo</h3><div class="seg"><label class="chk small"><input type="checkbox" ${F.iTodos?'checked':''} onchange="F.iTodos=this.checked;viewBibInd()"> ver todos los activos</label>${gestiona()?'<button class="btn btn-ghost" onclick="editPasos()">✏️ Pasos de la inducción</button>':''}</div></div>
+   <p class="hint">Cada ingresante tiene que completar los <b>${P.length} pasos</b> (${P.map(esc).join(' · ')||'sin pasos cargados'}) y leer los documentos marcados como <b>inducción</b> que le correspondan. Se muestran los ingresos de los últimos 90 días que no terminaron.</p><div id="indGrid"></div></div>`;
+  grid('indGrid','ind',[{h:'Empleado',f:r=>`<b>${esc(nomE(r.e))}</b><div class="cod">${esc(r.e.sector||'')} · ${esc(r.e.puesto||'')}</div>`},{h:'Ingreso',f:r=>r.e.fecha_ingreso?fmtD(r.e.fecha_ingreso):'—'},{h:'Pasos',f:r=>`${r.ph}/${r.P.length}`},{h:'Lecturas',f:r=>`${r.dl}/${r.docs.length}`},{h:'Avance',f:r=>`<div style="display:flex;gap:8px;align-items:center">${bar(r.pct)}<b class="small">${r.pct}%</b></div>`},{h:'Estado',f:r=>r.completa?'<span class="tag t-ok">Completa</span>':'<span class="tag t-warn">En curso</span>'}],rows,
+   r=>[{lbl:'🧭 Abrir checklist',cls:'btn-gold',fn:()=>checkInd(r.e.id)},{lbl:'👤 Ficha',fn:()=>{F.fTab='ind';go('ficha',r.e.id);}}],k=>checkInd(k));}
+function checkInd(empId){const e=emp(empId),I=indDe(e),g=gestiona();
+  modal(`<h3>🧭 Inducción · ${esc(nomCorto(e))}</h3><p class="hint">Ingresó el ${fmtD(e.fecha_ingreso)||'—'} · ${esc(e.sector||'')} · ${esc(e.puesto||'')}</p>
+   <div class="seg" style="align-items:center;margin-bottom:10px"><b>${I.ok}/${I.tot}</b> <span style="flex:1">${bar(I.pct)}</span></div>
+   <div class="sect">Pasos</div><div class="lst" style="max-height:none;border:0;padding:0">${I.P.map((p,i)=>{const h=I.hechos.find(x=>x.paso===p);return `<label class="chk"><input type="checkbox" ${h?'checked':''} ${g?'':'disabled'} onchange="togPaso('${empId}',${i},this.checked)"> ${esc(p)} ${h?`<span class="small muted">· ${fmtD(h.fecha)} · ${esc(h.hecho_por||'')}</span>`:''}</label>`;}).join('')||'<span class="muted">No hay pasos cargados.</span>'}</div>
+   <div class="sect">Documentos para leer</div>${I.docs.length?I.docs.map(d=>{const l=lectura(d,empId);return `<div class="seg" style="justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)"><span>${BIB_CAT[d.categoria]?BIB_CAT[d.categoria][0]:'📄'} ${esc(d.titulo)}</span>${l?`<span class="tag t-ok">Leído ${fmtD(rhD(l.leido_at))}</span>`:g?`<button class="btn btn-ghost btn-sm" onclick="leidoPapel('${d.id}','${empId}',()=>checkInd('${empId}'))">✅ Leído en papel</button>`:'<span class="tag t-warn">Pendiente</span>'}</div>`;}).join(''):'<p class="muted small">No hay documentos de inducción para su sector/puesto.</p>'}
+   <p class="hint" style="margin-top:10px">${e.app_estado==='activo'?'Tiene la app: puede leer y confirmar desde el celular.':'Todavía no tiene la app activada.'}</p>
+   <div class="row"><button class="btn btn-gold" onclick="closeModal();render()">Listo</button></div>`,true);}
+const rhD=ts=>ts?new Date(ts).toLocaleDateString('sv-SE',{timeZone:'America/Argentina/Buenos_Aires'}):'';
+async function togPaso(empId,i,on){const p=pasosInd()[i];let error;
+  if(on)({error}=await sb.from('rrhh_induccion').insert({empresa_id:S.empresaId,empleado_id:empId,paso:p,fecha:today(),hecho_por:S.nombre}));
+  else({error}=await sb.from('rrhh_induccion').delete().eq('empleado_id',empId).eq('paso',p).eq('empresa_id',S.empresaId));
+  if(error&&!/rrhh_induccion_uq|duplicate/i.test(error.message||'')){banner('Error: '+errMsg(error),'err');}await loadInd();
+  const I=indDe(emp(empId));if(on&&I.completa){await addHist(empId,'induccion','Inducción completa ('+I.tot+' ítems)');await loadHist();banner('🎉 Inducción completa');}checkInd(empId);}
+function editPasos(){modal(`<h3>✏️ Pasos de la inducción</h3><p class="hint">Uno por renglón. Son los mismos para todos los ingresantes; lo que depende del sector o del puesto cargalo como documento de la biblioteca marcado "inducción".</p>
+  <textarea class="in" id="ip_txt" rows="9">${esc(pasosInd().join('\n'))}</textarea><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="ip_ok" onclick="savePasos()">💾 Guardar</button></div>`);}
+async function savePasos(){const l=[...new Set($('ip_txt').value.split('\n').map(x=>x.trim()).filter(Boolean))];const b=$('ip_ok');b.disabled=true;try{await saveCfgListas({induccion:l});closeModal();banner('Pasos guardados ✓');render();}catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;}}
+
+// ══════════════ EPP, ROPA Y HERRAMIENTAS ══════════════
+function viewEpp(){if(S.e4ok===false){$('view').innerHTML=e4Nota();return;}
+  const tabs=[['ent','📦 Entregas'],['rec','🔁 Recambios'],['cat','🧰 Catálogo']];if(!tabs.some(t=>t[0]===F.eTab))F.eTab='ent';const rc=recambios();
+  $('view').innerHTML=`<div class="kpis"><div class="kpi"><small>Entregas este mes</small><b>${nf((S.eppE||[]).filter(g=>g.estado==='activa'&&d10(g.fecha).startsWith(today().slice(0,7))).length)}</b></div>
+    <div class="kpi ck" onclick="F.eTab='rec';viewEpp()"><small>Recambios vencidos</small><b class="${rc.some(x=>x.venc)?'r':''}">${nf(rc.filter(x=>x.venc).length)}</b></div><div class="kpi ck" onclick="F.eTab='rec';viewEpp()"><small>Recambios por vencer</small><b class="${rc.some(x=>!x.venc)?'a':''}">${nf(rc.filter(x=>!x.venc).length)}</b></div>
+    <div class="kpi ck" onclick="F.eTab='ent';viewEpp()"><small>Sin firma</small><b>${nf((S.eppE||[]).filter(g=>g.estado==='activa'&&!g.firmado_at).length)}</b><span>entregas firmadas en papel</span></div></div>
+   <div class="tabs">${tabs.map(([k,l])=>`<button class="${F.eTab===k?'on':''}" onclick="F.eTab='${k}';viewEpp()">${l}</button>`).join('')}</div><div id="eppBody"></div>`;
+  ({ent:viewEppEnt,rec:viewEppRec,cat:viewEppCat})[F.eTab]();}
+function itemsDe(gid){return (S.eppD||[]).filter(i=>i.entrega_id===gid&&i.estado!=='anulado');}
+function viewEppEnt(){const q=norm(F.eQ||'');const rows=(S.eppE||[]).filter(g=>(F.eAnul?true:g.estado==='activa')&&(!q||norm(nomE(emp(g.empleado_id))).includes(q))).map(g=>Object.assign({},g,{_k:g.id,_lbl:'Entrega N° '+g.numero+' · '+nomE(emp(g.empleado_id))}));
+  $('eppBody').innerHTML=`<div class="card"><div class="card-h"><h3>📦 Entregas</h3><div class="seg">${gestiona()?'<button class="btn btn-gold" onclick="nuevaEntrega()">＋ Nueva entrega</button>':''}<button class="btn btn-ghost" onclick="exportEpp()">📥 Excel</button></div></div>
+   <div class="filters"><div class="f" style="flex:1;min-width:180px">Empleado<input class="in" value="${esc(F.eQ||'')}" placeholder="Nombre" oninput="F.eQ=this.value;viewEppEnt()"></div><label class="chk small" style="align-self:flex-end"><input type="checkbox" ${F.eAnul?'checked':''} onchange="F.eAnul=this.checked;viewEppEnt()"> incluir anuladas</label></div><div id="eppGrid"></div></div>`;
+  grid('eppGrid','eppE',[{h:'N°',f:r=>`<b>${r.numero}</b>`},{h:'Fecha',f:r=>fmtD(r.fecha)},{h:'Empleado',f:r=>{const e=emp(r.empleado_id);return `<b>${esc(nomE(e))}</b><div class="cod">${esc(e&&e.legajo||'')}</div>`;}},{h:'Elementos',f:r=>`<span class="small">${itemsDe(r.id).map(i=>esc((+i.cantidad!==1?nf(i.cantidad,0)+' × ':'')+i.nombre+(i.talle?' ('+i.talle+')':''))).join(', ')}</span>`},{h:'Motivo',f:r=>esc(r.motivo)},
+    {h:'Firma',f:r=>r.firmado_at?'<span class="tag t-ok">✍️ Firmada</span>':'<span class="tag t-mut">En papel</span>'},{h:'Estado',f:r=>r.estado==='anulada'?'<span class="tag t-mut">Anulada</span>':'<span class="tag t-ok">Activa</span>'}],rows,
+   r=>{const a=[{lbl:'🖨️ Constancia',cls:'btn-gold',fn:()=>printConstancia(r.empleado_id,r.id)}];if(gestiona()&&r.estado==='activa')a.push({lbl:'✕ Anular',cls:'btn-danger',fn:()=>anularEntrega(r.id)});return a;},k=>{const g=S.eppE.find(x=>x.id===k);printConstancia(g.empleado_id,k);});}
+function exportEpp(){toXlsx('Entregas_EPP','Entregas',[['N°','Fecha','Legajo','Empleado','Sector','Elemento','Tipo','Marca','Modelo','Certificación','Cantidad','Talle','Recambio','Motivo','Firma','Estado'],
+  ...(S.eppE||[]).flatMap(g=>{const e=emp(g.empleado_id)||{};return itemsDe(g.id).map(i=>[g.numero,fmtD(g.fecha),e.legajo||'',nomE(e),e.sector||'',i.nombre,EPP_TIPO[i.tipo]||i.tipo||'',i.marca||'',i.modelo||'',i.certificacion?'Sí':'No',+i.cantidad,i.talle||'',fmtD(i.vence),g.motivo,g.firmado_at?'En pantalla':'En papel',g.estado]);})]);}
+function viewEppRec(){const L=recambios().map(x=>Object.assign(x,{_k:x.i.id,_lbl:nomE(x.e)+' · '+x.i.nombre}));
+  $('eppBody').innerHTML=`<div class="card"><div class="card-h"><h3>🔁 Recambios</h3></div><p class="hint">Elementos que ya cumplieron (o están por cumplir) el tiempo de uso definido en el catálogo. Avisa con ${aviso()} días de anticipación, o menos en los de vida corta (guantes, cofias). Seleccioná y tocá <b>"Entregar recambio"</b>.</p><div id="recGrid"></div></div>`;
+  grid('recGrid','eppR',[{h:'Empleado',f:r=>`<b>${esc(nomE(r.e))}</b><div class="cod">${esc(r.e.sector||'')}</div>`},{h:'Elemento',f:r=>esc(r.i.nombre)+(r.i.talle?' <span class="small muted">('+esc(r.i.talle)+')</span>':'')},{h:'Entregado',f:r=>{const g=S.eppE.find(x=>x.id===r.i.entrega_id);return g?fmtD(g.fecha)+' · N° '+g.numero:'';}},{h:'Recambio',f:r=>fmtD(r.i.vence)},{h:'Estado',f:r=>r.venc?'<span class="tag t-out">Vencido</span>':'<span class="tag t-warn">Por vencer</span>'}],L,
+   r=>gestiona()?[{lbl:'🔁 Entregar recambio',cls:'btn-gold',fn:()=>{const mis=recambios().filter(x=>x.e.id===r.e.id);nuevaEntrega({empId:r.e.id,motivo:'Recambio',items:mis.map(x=>x.i.item_id).filter(Boolean)});}}]:[]);}
+function viewEppCat(){const rows=(S.eppI||[]).filter(i=>F.cInact||i.activo).map(i=>Object.assign({},i,{_k:i.id,_lbl:i.nombre}));
+  $('eppBody').innerHTML=`<div class="card"><div class="card-h"><h3>🧰 Catálogo</h3><div class="seg">${gestiona()?`${!(S.eppI||[]).length?'<button class="btn btn-ghost" onclick="eppSug()">📋 Cargar catálogo sugerido</button>':''}<button class="btn btn-gold" onclick="editItem()">＋ Nuevo elemento</button>`:''}</div></div>
+   <p class="hint">El <b>tiempo de recambio</b> genera el aviso; <b>marca, modelo y certificación</b> salen impresos en la constancia de entrega (Res. SRT 299/11). Si usa talle, se completa solo con el talle del legajo.</p>
+   <label class="chk small"><input type="checkbox" ${F.cInact?'checked':''} onchange="F.cInact=this.checked;viewEppCat()"> incluir inactivos</label><div id="catGrid"></div></div>`;
+  grid('catGrid','eppI',[{h:'Elemento',f:r=>`<b>${esc(r.nombre)}</b>`},{h:'Tipo',f:r=>esc(EPP_TIPO[r.tipo]||r.tipo)},{h:'Marca / modelo',f:r=>esc([r.marca,r.modelo].filter(Boolean).join(' · ')||'—')},{h:'Certificación',f:r=>r.certificacion?'Sí':'No'},{h:'Talle',f:r=>r.talle_tipo?esc(TALLE_T[r.talle_tipo]):'—'},{h:'Recambio',f:r=>r.vida_dias?nf(r.vida_dias)+' días':'—'},{h:'Estado',f:r=>r.activo?'<span class="tag t-ok">Activo</span>':'<span class="tag t-mut">Inactivo</span>'}],rows,
+   r=>gestiona()?[{lbl:'✏️ Editar',cls:'btn-gold',fn:()=>editItem(r.id)},{lbl:r.activo?'Desactivar':'Activar',fn:()=>togItem(r.id)}]:[],k=>gestiona()&&editItem(k));}
+function editItem(id){const i=id?S.eppI.find(x=>x.id===id):{tipo:'epp',certificacion:true,activo:true};
+  modal(`<h3>${id?'✏️ Editar elemento':'＋ Nuevo elemento'}</h3><div class="fg"><div class="two">${fi('it_n','Nombre *',i.nombre||'',{ph:'Ej.: Botines de seguridad'})}</div>${fsel('it_t','Tipo',EPP_TIPO[i.tipo]||'EPP',Object.values(EPP_TIPO),{})}
+   ${fi('it_m','Marca',i.marca||'')}${fi('it_mo','Modelo',i.modelo||'')}${fi('it_v','Recambio cada (días)',i.vida_dias!=null?String(i.vida_dias):'',{type:'number',attr:'min="1"',ph:'Vacío = sin recambio'})}
+   ${fsel('it_tt','Talle',i.talle_tipo?TALLE_T[i.talle_tipo]:'Sin talle',['Sin talle',...Object.values(TALLE_T)],{})}<div style="align-self:end"><label class="chk"><input type="checkbox" id="it_c" ${i.certificacion?'checked':''}> Posee certificación</label></div></div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="it_ok" onclick="saveItem('${id||''}')">💾 Guardar</button></div>`);}
+const keyOf=(o,v)=>Object.keys(o).find(k=>o[k]===v)||null;
+async function saveItem(id){const n=$('it_n').value.trim();if(!n)return banner('Poné el nombre','warn');const vd=+$('it_v').value;
+  const o={nombre:n,tipo:keyOf(EPP_TIPO,$('it_t').value)||'epp',marca:$('it_m').value.trim()||null,modelo:$('it_mo').value.trim()||null,certificacion:$('it_c').checked,talle_tipo:keyOf(TALLE_T,$('it_tt').value),vida_dias:vd>0?Math.round(vd):null};
+  const b=$('it_ok');b.disabled=true;const {error}=id?await sb.from('rrhh_epp_items').update(o).eq('id',id).eq('empresa_id',S.empresaId):await sb.from('rrhh_epp_items').insert(Object.assign(o,{empresa_id:S.empresaId}));
+  if(error){b.disabled=false;return banner(/rrhh_epp_items_uq|duplicate/.test(error.message||'')?'Ya hay un elemento con ese nombre':'Error: '+errMsg(error),'err');}closeModal();await loadEpp();banner('Guardado ✓');render();}
+async function togItem(id){const i=S.eppI.find(x=>x.id===id);const {error}=await sb.from('rrhh_epp_items').update({activo:!i.activo}).eq('id',id).eq('empresa_id',S.empresaId);if(error)return banner('Error: '+errMsg(error),'err');await loadEpp();render();}
+async function eppSug(){const {error}=await sb.from('rrhh_epp_items').insert(EPP_SUG.map(([nombre,tipo,certificacion,talle_tipo,vida_dias])=>({empresa_id:S.empresaId,nombre,tipo,certificacion,talle_tipo,vida_dias})));if(error)return banner('Error: '+errMsg(error),'err');await loadEpp();banner(EPP_SUG.length+' elementos cargados: revisá marcas, modelos y tiempos ✓');render();}
+// ── nueva entrega con firma en pantalla ──
+function nuevaEntrega(pre){if(!gestiona())return;pre=pre||{};const act=S.emps.filter(e=>e.estado!=='baja').sort((a,b)=>norm(nomE(a)).localeCompare(norm(nomE(b))));const its=(S.eppI||[]).filter(i=>i.activo);
+  if(!its.length)return banner('Primero cargá el catálogo (EPP → Catálogo)','warn');
+  modal(`<h3>📦 Nueva entrega de EPP / ropa / herramientas</h3><div class="fg"><div class="two"><label class="lb" for="ne_emp">Trabajador *</label><select class="in" id="ne_emp" onchange="neEmp()"><option value="">— Elegí —</option>${act.map(e=>`<option value="${e.id}"${e.id===pre.empId?' selected':''}>${esc(nomE(e))} · ${esc(e.legajo||'')}</option>`).join('')}</select></div>
+    ${fi('ne_f','Fecha',today(),{type:'date'})}${fsel('ne_mot','Motivo',pre.motivo||'Entrega inicial',EPP_MOT,{})}</div><div id="ne_tal" class="small muted" style="margin-top:6px"></div>
+   <div class="sect">Elementos</div><div class="tscroll"><table><thead><tr><th>Elemento</th><th style="width:80px">Cant.</th><th style="width:90px">Talle</th><th style="width:110px">Recambio</th><th style="width:40px"></th></tr></thead><tbody id="ne_rows"></tbody></table></div>
+   <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="neAdd()">＋ Agregar elemento</button>
+   <div class="sect">Firma del trabajador</div><p class="small" style="margin:0 0 6px">Recibí los elementos detallados, en buen estado y sin cargo, y me comprometo a usarlos y cuidarlos según las indicaciones recibidas.</p>
+   <div style="position:relative;border:2px dashed var(--line);border-radius:10px;background:#fff;touch-action:none"><canvas id="ne_firma" style="width:100%;height:170px;display:block;cursor:crosshair"></canvas><span id="ne_fh" style="position:absolute;left:12px;bottom:10px;color:#b9b2a2;pointer-events:none">Firmá acá con el dedo o el mouse</span></div>
+   <div class="seg" style="justify-content:space-between;margin-top:6px"><button class="btn btn-ghost btn-sm" onclick="firmaClear()">↺ Borrar firma</button><label class="chk small"><input type="checkbox" id="ne_papel"> Firma en papel (la imprimo y la firma)</label></div>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="ne_ok" onclick="saveEntrega()">💾 Registrar entrega</button></div>`,true);
+  window._neR=[];(pre.items&&pre.items.length?pre.items:[null]).forEach(id=>window._neR.push({item:id||'',cant:1,talle:''}));neEmp();firmaInit();}
+function neEmp(){const e=emp($('ne_emp').value);const t=(e&&e.talles)||{};$('ne_tal').innerHTML=e?'Talles del legajo: '+(Object.keys(TALLE_T).filter(k=>t[k]).map(k=>TALLE_T[k].split(' ')[0]+' <b>'+esc(t[k])+'</b>').join(' · ')||'sin cargar (se completan en la ficha → EPP)'):'';
+  window._neR.forEach(r=>{const it=S.eppI.find(x=>x.id===r.item);if(it&&it.talle_tipo&&!r.talle)r.talle=t[it.talle_tipo]||'';});neDraw();}
+function neDraw(){const its=(S.eppI||[]).filter(i=>i.activo),e=emp($('ne_emp').value),t=(e&&e.talles)||{};
+  $('ne_rows').innerHTML=window._neR.map((r,k)=>{const it=its.find(x=>x.id===r.item);const v=it&&it.vida_dias?addDays($('ne_f').value||today(),it.vida_dias):'';
+    return `<tr><td><select class="in" onchange="window._neR[${k}].item=this.value;const it=S.eppI.find(x=>x.id===this.value);window._neR[${k}].talle=it&&it.talle_tipo?(((emp($('ne_emp').value)||{}).talles||{})[it.talle_tipo]||''):'';neDraw()"><option value="">— Elegí —</option>${its.map(i=>`<option value="${i.id}"${i.id===r.item?' selected':''}>${esc(i.nombre)}</option>`).join('')}</select></td>
+     <td><input class="in" type="number" min="1" step="1" value="${r.cant}" oninput="window._neR[${k}].cant=+this.value"></td><td><input class="in" value="${esc(r.talle)}" ${it&&it.talle_tipo?'':'disabled placeholder="—"'} oninput="window._neR[${k}].talle=this.value"></td><td class="small">${v?fmtD(v):'—'}</td><td><button class="btn btn-ghost btn-sm" title="Quitar" onclick="window._neR.splice(${k},1);if(!window._neR.length)window._neR.push({item:'',cant:1,talle:''});neDraw()">✕</button></td></tr>`;}).join('');}
+function neAdd(){window._neR.push({item:'',cant:1,talle:''});neDraw();}
+let FIRMA={n:0};
+function firmaInit(){const c=$('ne_firma');const r=c.getBoundingClientRect(),dpr=window.devicePixelRatio||1;c.width=Math.max(300,r.width)*dpr;c.height=170*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);x.lineWidth=2.4;x.lineCap='round';x.lineJoin='round';x.strokeStyle='#111D35';
+  FIRMA={n:0,d:false,ctx:x};const pos=ev=>{const b=c.getBoundingClientRect();return [ev.clientX-b.left,ev.clientY-b.top];};
+  c.onpointerdown=ev=>{ev.preventDefault();c.setPointerCapture&&c.setPointerCapture(ev.pointerId);FIRMA.d=true;const [a,b]=pos(ev);x.beginPath();x.moveTo(a,b);x.lineTo(a+0.1,b+0.1);x.stroke();FIRMA.n++;$('ne_fh').style.display='none';};
+  c.onpointermove=ev=>{if(!FIRMA.d)return;ev.preventDefault();const [a,b]=pos(ev);x.lineTo(a,b);x.stroke();FIRMA.n++;};
+  c.onpointerup=c.onpointerleave=c.onpointercancel=()=>{FIRMA.d=false;};}
+// recorta la firma a lo dibujado (con margen) para que en la constancia se vea grande
+function firmaPNG(){const c=$('ne_firma'),x=c.getContext('2d'),W=c.width,H=c.height,d=x.getImageData(0,0,W,H).data;let a=W,b=H,cc=0,dd=0;
+  for(let y=0;y<H;y++)for(let i=0;i<W;i++)if(d[(y*W+i)*4+3]>20){if(i<a)a=i;if(i>cc)cc=i;if(y<b)b=y;if(y>dd)dd=y;}if(cc<a)return c.toDataURL('image/png');
+  const m=12,o=document.createElement('canvas');a=Math.max(0,a-m);b=Math.max(0,b-m);cc=Math.min(W,cc+m);dd=Math.min(H,dd+m);o.width=cc-a;o.height=dd-b;o.getContext('2d').drawImage(c,a,b,o.width,o.height,0,0,o.width,o.height);return o.toDataURL('image/png');}
+function firmaClear(){const c=$('ne_firma');FIRMA.ctx.clearRect(0,0,c.width,c.height);FIRMA.n=0;$('ne_fh').style.display='';}
+async function saveEntrega(){const empId=$('ne_emp').value,e=emp(empId);if(!empId)return banner('Elegí el trabajador','warn');
+  const R=window._neR.filter(r=>r.item);if(!R.length)return banner('Agregá al menos un elemento','warn');if(R.some(r=>!(+r.cant>0)))return banner('Revisá las cantidades','warn');
+  const papel=$('ne_papel').checked;if(!papel&&FIRMA.n<8)return banner('Falta la firma del trabajador (o marcá "firma en papel")','warn');
+  const f=$('ne_f').value||today(),mot=$('ne_mot').value,firma=papel?null:firmaPNG();const b=$('ne_ok');b.disabled=true;b.textContent='⏳ Guardando…';
+  try{let num=Math.max(0,...(S.eppE||[]).map(g=>+g.numero||0))+1,row,error;
+    for(let i=0;i<3;i++){({data:row,error}=await sb.from('rrhh_epp_entregas').insert({empresa_id:S.empresaId,empleado_id:empId,numero:num,fecha:f,motivo:mot,firma,firmado_at:papel?null:new Date().toISOString(),registrado_por:S.nombre}).select(ENT_COLS).single());
+      if(!error||!/num_uq|duplicate/.test(error.message||''))break;await loadEpp();num=Math.max(0,...(S.eppE||[]).map(g=>+g.numero||0))+1;}if(error)throw error;
+    const det=R.map(r=>{const it=S.eppI.find(x=>x.id===r.item);return {empresa_id:S.empresaId,entrega_id:row.id,empleado_id:empId,item_id:it.id,nombre:it.nombre,tipo:it.tipo,marca:it.marca,modelo:it.modelo,certificacion:it.certificacion,cantidad:+r.cant,talle:it.talle_tipo?(r.talle||null):null,vence:it.vida_dias?addDays(f,it.vida_dias):null};});
+    const {error:ed}=await sb.from('rrhh_epp_entrega_items').insert(det);if(ed)throw ed;
+    const viejos=eppVig(empId).filter(i=>R.some(r=>r.item===i.item_id)).map(i=>i.id);if(viejos.length)await sb.from('rrhh_epp_entrega_items').update({estado:'reemplazado',reemplazado_por:row.id}).in('id',viejos).eq('empresa_id',S.empresaId);
+    // guarda en el legajo los talles usados si no estaban
+    const t=Object.assign({},e.talles||{});let cambio=false;R.forEach(r=>{const it=S.eppI.find(x=>x.id===r.item);if(it.talle_tipo&&r.talle&&!t[it.talle_tipo]){t[it.talle_tipo]=r.talle;cambio=true;}});if(cambio){await sb.from('rrhh_empleados').update({talles:t}).eq('id',empId);e.talles=t;}
+    await addHist(empId,'epp',`Entrega N° ${num} (${mot}): `+det.map(d=>(d.cantidad!==1?d.cantidad+' × ':'')+d.nombre+(d.talle?' talle '+d.talle:'')).join(', ')+(papel?' · firma en papel':' · firmó en pantalla'),null,null,null,f);
+    closeModal();await Promise.all([loadEpp(),loadHist()]);banner('Entrega N° '+num+' registrada ✓');render();if(papel)printConstancia(empId,row.id);}
+  catch(x){banner('Error: '+errMsg(x),'err');b.disabled=false;b.textContent='💾 Registrar entrega';}}
+function anularEntrega(id){const g=S.eppE.find(x=>x.id===id),e=emp(g.empleado_id);
+  pinModal({titulo:'Anular entrega N° '+g.numero,btn:'✕ Autorizar anulación',tipo:'rrhh_anular_epp',ref:nomE(e)+' · entrega N° '+g.numero,html:`<p class="hint">${esc(nomE(e))} · ${fmtD(g.fecha)} · ${itemsDe(id).map(i=>esc(i.nombre)).join(', ')}. No se borra: queda anulada, y lo que esta entrega había reemplazado vuelve a figurar como entregado.</p><label class="lb" for="an_mot">Motivo *</label><input class="in" id="an_mot" placeholder="Ej.: se cargó al trabajador equivocado">`,
+   validar:()=>$('an_mot').value.trim()?null:'Indicá el motivo',detalle:()=>$('an_mot').value.trim(),
+   onOK:async a=>{const {error}=await sb.from('rrhh_epp_entregas').update({estado:'anulada',anulado_motivo:$('an_mot').value.trim(),autorizado_por:a.nombre}).eq('id',id).eq('empresa_id',S.empresaId);if(error)throw error;
+     await sb.from('rrhh_epp_entrega_items').update({estado:'anulado'}).eq('entrega_id',id).eq('empresa_id',S.empresaId);
+     await sb.from('rrhh_epp_entrega_items').update({estado:'entregado',reemplazado_por:null}).eq('reemplazado_por',id).eq('estado','reemplazado').eq('empresa_id',S.empresaId);await addHist(g.empleado_id,'epp',`Entrega N° ${g.numero} anulada · ${$('an_mot').value.trim()}`,null,null,a);await Promise.all([loadEpp(),loadHist()]);banner('Entrega anulada');render();}});}
+// ── constancia (Res. SRT 299/11): una entrega o la planilla completa del trabajador ──
+async function printConstancia(empId,entregaId){const e=emp(empId),E_=S.empresa||{},logo=(E_.etiqueta_config&&E_.etiqueta_config.logo)||'';const w=window.open('','_blank');if(!w)return banner('Permití las ventanas emergentes para imprimir','warn');
+  w.document.write('<p style="font-family:sans-serif">Preparando la constancia…</p>');
+  let q=sb.from('rrhh_epp_entregas').select('id,numero,fecha,firma,firmado_at,estado').eq('empresa_id',S.empresaId).eq('empleado_id',empId).eq('estado','activa');if(entregaId)q=q.eq('id',entregaId);const {data:G,error}=await q;
+  if(error){w.close();return banner('Error: '+errMsg(error),'err');}const fir={};(G||[]).forEach(g=>fir[g.id]=g);
+  const filas=(S.eppD||[]).filter(i=>fir[i.entrega_id]&&i.estado!=='anulado').sort((a,b)=>String(fir[a.entrega_id].fecha).localeCompare(String(fir[b.entrega_id].fecha))||a.nombre.localeCompare(b.nombre));
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Constancia de entrega de EPP · ${esc(nomE(e))}</title><style>body{font-family:system-ui,Segoe UI,Arial,sans-serif;color:#1C2536;margin:0;padding:8mm;font-size:11px}
+   .hd{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #C9A84C;padding-bottom:6px;margin-bottom:8px}.hd img{max-height:42px;max-width:140px}h1{font-size:15px;margin:0;color:#111D35;text-transform:uppercase;letter-spacing:.04em}
+   .dat{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 14px;border:1px solid #bbb;padding:6px 8px;margin-bottom:8px}.dat b{display:block;font-size:9px;color:#6B7689;text-transform:uppercase}
+   table{width:100%;border-collapse:collapse}th,td{border:1px solid #999;padding:4px 5px;text-align:left;vertical-align:middle}th{background:#f3f0e8;font-size:9.5px;text-transform:uppercase}td.f{height:44px;width:170px;text-align:center}td.f img{max-height:42px;max-width:165px}
+   .leg{font-size:9.5px;color:#444;margin-top:8px;line-height:1.4}.ft{margin-top:14px;display:flex;justify-content:space-between;font-size:9.5px;color:#6B7689}.sg{margin-top:28px;display:flex;gap:40px}.sg div{flex:1;border-top:1px solid #333;padding-top:3px;text-align:center}
+   @page{size:A4 landscape;margin:7mm}</style></head><body>
+   <div class="hd"><div style="display:flex;gap:10px;align-items:center">${logo?`<img src="${logo}">`:''}<div><h1>Constancia de entrega de ropa de trabajo y elementos de protección personal</h1><div style="color:#6B7689">Resolución SRT N° 299/11${entregaId&&filas[0]?' · Entrega N° '+fir[entregaId].numero:''}</div></div></div></div>
+   <div class="dat"><div><b>Razón social</b>${esc(E_.razon_social||'')}</div><div><b>CUIT</b>${esc(E_.cuit||'')}</div><div><b>Dirección</b>${esc(E_.direccion||E_.domicilio||'')}</div>
+    <div><b>Trabajador</b>${esc(nomE(e))}</div><div><b>DNI</b>${esc(e.dni||'')}</div><div><b>Puesto / sector</b>${esc([e.puesto,e.sector].filter(Boolean).join(' · '))}</div></div>
+   <table><thead><tr><th>#</th><th>Producto</th><th>Tipo / modelo</th><th>Marca</th><th>Posee certificación</th><th>Cantidad</th><th>Talle</th><th>Fecha de entrega</th><th>Firma del trabajador</th></tr></thead><tbody>
+   ${filas.map((i,k)=>{const g=fir[i.entrega_id];return `<tr><td>${k+1}</td><td>${esc(i.nombre)}</td><td>${esc(i.modelo||'')}</td><td>${esc(i.marca||'')}</td><td>${i.certificacion?'Sí':'No'}</td><td>${nf(i.cantidad,+i.cantidad%1?1:0)}</td><td>${esc(i.talle||'')}</td><td>${fmtD(g.fecha)}</td><td class="f">${g.firma?`<img src="${g.firma}">`:''}</td></tr>`;}).join('')||'<tr><td colspan="9">Sin entregas</td></tr>'}</tbody></table>
+   <div class="leg">El trabajador declara haber recibido los elementos detallados, en buen estado y sin cargo, y haber sido informado sobre su uso correcto. Se compromete a usarlos durante la jornada, cuidarlos y pedir su recambio cuando estén deteriorados.</div>
+   ${filas.some(i=>!fir[i.entrega_id].firma)?'<div class="sg"><div>Firma del trabajador</div><div>Aclaración</div><div>Firma y sello del empleador</div></div>':''}
+   <div class="ft"><span>CONTROL MAX · CONTROL RRHH</span><span>Impreso ${fmtTs(new Date().toISOString())} por ${esc(S.nombre||'')}</span></div></body></html>`;
+  w.document.open();w.document.write(html);w.document.close();w.focus();setTimeout(()=>{try{w.print();}catch(x){}},500);}
+// ── talles (ficha) ──
+function editTalles(empId){const e=emp(empId),t=e.talles||{};modal(`<h3>👕 Talles · ${esc(nomCorto(e))}</h3><div class="fg" style="grid-template-columns:1fr 1fr">${Object.entries(TALLE_T).map(([k,l])=>fi('tl_'+k,l,t[k]||'',{ph:k==='calzado'?'Ej.: 41':k==='pantalon'?'Ej.: 42':'Ej.: L'})).join('')}</div>
+  <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="tl_ok" onclick="saveTalles('${empId}')">💾 Guardar</button></div>`);}
+async function saveTalles(empId){const t={};Object.keys(TALLE_T).forEach(k=>{const v=$('tl_'+k).value.trim();if(v)t[k]=v;});const {error}=await sb.from('rrhh_empleados').update({talles:t}).eq('id',empId).eq('empresa_id',S.empresaId);if(error)return banner('Error: '+errMsg(error),'err');emp(empId).talles=t;closeModal();banner('Talles guardados ✓');render();}
+function fichaEpp(e){const V=eppVig(e.id),t=e.talles||{},G=(S.eppE||[]).filter(g=>g.empleado_id===e.id&&g.estado==='activa');
+  return `<div class="card-h"><h3>🦺 EPP, ropa y herramientas</h3><div class="seg">${gestiona()&&e.estado!=='baja'?`<button class="btn btn-ghost btn-sm" onclick="editTalles('${e.id}')">👕 Talles</button><button class="btn btn-gold btn-sm" onclick="nuevaEntrega({empId:'${e.id}'})">＋ Nueva entrega</button>`:''}${G.length?`<button class="btn btn-ghost btn-sm" onclick="printConstancia('${e.id}')">🖨️ Planilla SRT 299/11</button>`:''}</div></div>
+   <p class="hint">Talles: ${Object.keys(TALLE_T).filter(k=>t[k]).map(k=>TALLE_T[k]+' <b>'+esc(t[k])+'</b>').join(' · ')||'sin cargar'}</p>
+   ${V.length?`<table><thead><tr><th>Elemento</th><th>Cant.</th><th>Talle</th><th>Entregado</th><th>Recambio</th></tr></thead><tbody>${V.map(i=>{const g=S.eppE.find(x=>x.id===i.entrega_id);return `<tr><td>${esc(i.nombre)}</td><td>${nf(i.cantidad)}</td><td>${esc(i.talle||'')}</td><td>${g?fmtD(g.fecha)+' · N° '+g.numero:''}</td><td>${i.vence?fmtD(i.vence)+(d10(i.vence)<today()?' <span class="tag t-out">Vencido</span>':d10(i.vence)<=addDays(today(),avisoItem(i))?' <span class="tag t-warn">Por vencer</span>':''):'—'}</td></tr>`;}).join('')}</tbody></table>`:'<div class="empty">Sin elementos entregados</div>'}`;}
+function fichaInd(e){const I=indDe(e),D=(S.bib||[]).filter(d=>d.obligatorio&&docAplica(d,e));
+  return `<div class="card-h"><h3>🧭 Inducción y lecturas</h3>${gestiona()?`<button class="btn btn-gold btn-sm" onclick="checkInd('${e.id}')">🧭 Checklist de inducción</button>`:''}</div>
+   <div class="seg" style="align-items:center;margin-bottom:12px">Inducción: <b>${I.ok}/${I.tot}</b> <span style="flex:1;max-width:260px">${bar(I.pct)}</span>${I.completa?'<span class="tag t-ok">Completa</span>':''}</div>
+   ${D.length?`<table><thead><tr><th>Documento</th><th>Versión</th><th>Estado</th></tr></thead><tbody>${D.map(d=>{const l=lectura(d,e.id);return `<tr><td>${BIB_CAT[d.categoria]?BIB_CAT[d.categoria][0]:''} ${esc(d.titulo)}</td><td>v${d.version}</td><td>${l?`<span class="tag t-ok">Leído ${fmtTs(l.leido_at)}</span> <span class="small muted">${l.medio==='rrhh'?'en papel':'app'}</span>`:gestiona()?`<button class="btn btn-ghost btn-sm" onclick="leidoPapel('${d.id}','${e.id}')">✅ Registrar lectura</button>`:'<span class="tag t-warn">Pendiente</span>'}</td></tr>`;}).join('')}</tbody></table>`:'<div class="empty">No tiene documentos obligatorios para leer</div>'}`;}
 
 async function init(){
   $('buildLbl').textContent=BUILD;

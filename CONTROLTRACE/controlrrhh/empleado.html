@@ -65,7 +65,7 @@ label.lb{display:block;font-size:13px;font-weight:700;margin:12px 0 6px;color:va
 textarea.in{min-height:90px;resize:vertical}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn{border:0;border-radius:12px;padding:13px 16px;font-weight:700;cursor:pointer;background:#fff;border:1px solid var(--line);color:var(--navy);font-size:15px}
-.btn.gold{background:var(--gold);border-color:var(--gold);color:#2a1f05}.btn.red{color:var(--clay);border-color:#e7c3b6}.btn.full{width:100%;margin-top:14px}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#2a1f05}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.red{color:var(--clay);border-color:#e7c3b6}.btn.full{width:100%;margin-top:14px}
 .tipos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tipo{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;font-weight:700;font-size:14px;color:var(--navy)}.tipo .e{font-size:26px;display:block;margin-bottom:4px}
 .back{background:none;border:0;color:var(--steel);font-weight:700;padding:0 0 10px;cursor:pointer;font-size:15px}
@@ -123,7 +123,7 @@ textarea.in{min-height:90px;resize:vertical}
 // Entra con DNI + PIN. Todo pasa por funciones seguras de Supabase:
 // el empleado solo ve y carga lo suyo.
 // ══════════════════════════════════════════════════════════════
-const BUILD='app 1.1';
+const BUILD='app 1.2';
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlrrhh-app',persistSession:true,autoRefreshToken:true}});
@@ -158,7 +158,7 @@ function lmsg(t){$('lMsg').textContent=t;}
 function verLogin(){$('splash').classList.add('hide');$('app').classList.add('hide');$('login').classList.remove('hide');const e8=codEmp();$('lForm').classList.toggle('hide',!e8);$('lNoEmp').classList.toggle('hide',!!e8);const n=ls('rrhh_emp_nombre');if(n)$('lEmp').textContent=n;setTimeout(()=>{if(e8)$('lDni').focus();},100);}
 async function salir(){try{await sb.auth.signOut();}catch(e){}Y=null;verLogin();}
 async function cargar(logo){const {data,error}=await sb.rpc('rrhh_app_yo',{p_logo:!!logo});if(error)throw error;if(!data.ok){if(data.error==='SIN_APP'){banner(ERR.SIN_APP,'err');await salir();return false;}throw new Error(data.error);}
-  Y=data;ls('rrhh_emp_nombre',Y.empresa.nombre||'');if(logo&&Y.empresa.logo)ls('rrhh_logo',Y.empresa.logo);return true;}
+  Y=data;loadB();ls('rrhh_emp_nombre',Y.empresa.nombre||'');if(logo&&Y.empresa.logo)ls('rrhh_logo',Y.empresa.logo);return true;}
 async function arrancar(){try{if(!(await cargar(!ls('rrhh_logo'))))return;}catch(e){banner('No se pudo cargar: '+(e.message||e),'err');return verLogin();}
   $('splash').classList.add('hide');$('login').classList.add('hide');$('app').classList.remove('hide');
   const c=codigoQR(location.hash);if(c){history.replaceState(null,'',location.pathname+location.search);return fichar(c);}
@@ -166,8 +166,8 @@ async function arrancar(){try{if(!(await cargar(!ls('rrhh_logo'))))return;}catch
 
 // ══════════════ NAVEGACIÓN ══════════════
 const NAV=[['inicio','🏠','Inicio'],['asis','🕒','Asistencia'],['sol','📨','Pedidos'],['docs','📎','Docs'],['perfil','👤','Perfil']];
-function go(v,s){cur=v;sub=s||null;const navOn=({vac:'sol',pres:'perfil'})[cur]||cur;$('nav').innerHTML=NAV.map(n=>`<button class="${navOn===n[0]?'on':''}" onclick="go('${n[0]}')"><span class="i">${n[1]}</span>${n[2]}</button>`).join('');
-  ({inicio:vInicio,asis:vAsis,sol:vSol,docs:vDocs,perfil:vPerfil,vac:vVac,pres:vPres}[v]||vInicio)();window.scrollTo(0,0);}
+function go(v,s){cur=v;sub=s||null;const navOn=({vac:'sol',pres:'perfil',bib:'docs',epp:'perfil'})[cur]||cur;$('nav').innerHTML=NAV.map(n=>`<button class="${navOn===n[0]?'on':''}" onclick="go('${n[0]}')"><span class="i">${n[1]}</span>${n[2]}</button>`).join('');
+  ({inicio:vInicio,asis:vAsis,sol:vSol,docs:vDocs,perfil:vPerfil,vac:vVac,pres:vPres,bib:vBib,epp:vEpp}[v]||vInicio)();window.scrollTo(0,0);}
 function hd(t,s){const e=Y.emp;return `<div class="hd"><small>${esc(Y.empresa.nombre||'')}</small><h2>${t}</h2>${s?`<div class="sub">${s}</div>`:''}</div>`;}
 
 // ══════════════ INICIO ══════════════
@@ -190,8 +190,10 @@ function vInicio(){const e=Y.emp,h=Y.horario,t=hoyAR();
    ${instalable()}
    <div class="card"><h3>Hoy</h3><div class="hoy"><div><b>${ent?horaAR(ent.ts):'—'}</b><span>Entrada</span></div><div><b>${sal?horaAR(sal.ts):'—'}</b><span>Salida</span></div></div></div>
    <div class="card"><div class="asist"><div class="ic">${a[0]}</div><div><h3 style="margin-bottom:4px">Asistente</h3><p>${a[1]}</p></div></div></div>
+   ${indCard()}
    <div class="tiles"><div class="tile" onclick="go('sol','nuevo')"><span class="e">📨</span>Pedir licencia o permiso</div><div class="tile" onclick="go('sol')"><span class="e">📋</span>Mis pedidos${pend?`<span class="n">${pend}</span>`:''}</div>
     <div class="tile" onclick="go('vac')"><span class="e">🏖️</span>Mis vacaciones${vacSaldoTxt()}</div>${(Y.prestamos||[]).some(p=>p.estado==='activo')?`<div class="tile" onclick="go('pres')"><span class="e">💳</span>Mis préstamos</div>`:''}
+    <div class="tile" onclick="go('bib')"><span class="e">📚</span>Manuales y reglamentos${bibPend()?`<span class="n">${bibPend()}</span>`:''}</div><div class="tile" onclick="go('epp')"><span class="e">🦺</span>Mis EPP</div>
     <div class="tile" onclick="go('docs','subir')"><span class="e">📎</span>Subir certificado</div><div class="tile" onclick="go('perfil')"><span class="e">👤</span>Mis datos</div></div></div>`;}
 
 
@@ -219,6 +221,37 @@ function vPres(){const L=Y.prestamos||[];
      ${prox?`<p class="s" style="margin:10px 0 0">Próximo descuento: <b>${pesos(prox.importe)}</b> en el sueldo de ${mesTxt(prox.mes)}.</p>`:''}
      <div class="dl" style="margin-top:8px">${D.map(q=>`<div class="r"><span>Cuota ${q.nro}/${p.cuotas} · ${mesTxt(q.mes)}</span><b>${pesos(q.importe)} ${q.estado==='pendiente'?'':'✓'}</b></div>`).join('')}</div></div>`;}).join('')||'<div class="empty">No tenés préstamos ni adelantos.</div>'}
    <p class="empty">Para pedir un adelanto: Pedidos → Nuevo pedido → Adelanto de sueldo.</p></div>`;}
+
+
+// ══════════════ BIBLIOTECA, INDUCCIÓN Y EPP (Etapa 4) ══════════════
+const BIB_CAT={manual:['📘','Manual'],procedimiento:['📋','Procedimiento'],seguridad:['🦺','Seguridad e higiene'],puesto:['👷','Mi puesto'],politica:['📜','Reglamento'],otro:['📄','Otro']};
+let B=null,ABIERTOS={};
+async function loadB(){try{const {data,error}=await sb.rpc('rrhh_app_biblioteca');if(!error&&data&&data.ok){B=data;if(cur==='inicio'&&$('view')&&!$('app').classList.contains('hide'))vInicio();}}catch(e){}}
+function bibPend(){return B?B.docs.filter(d=>d.obligatorio&&!d.leido_at).length:0;}
+function indInfo(){if(!B)return null;const P=B.pasos_total||[],hechos=B.pasos||[],docs=B.docs.filter(d=>d.induccion);const ok=P.filter(p=>hechos.some(h=>h.paso===p)).length+docs.filter(d=>d.leido_at).length,tot=P.length+docs.length;return {P,hechos,docs,ok,tot,pct:tot?Math.round(ok*100/tot):100};}
+function indCard(){const I=indInfo();if(!I||!I.tot||I.ok>=I.tot||!B.ingreso)return '';const dias=Math.round((new Date(hoyAR())-new Date(d10(B.ingreso)))/864e5);if(dias>90||dias<0)return '';
+  return `<div class="card" onclick="go('bib')" style="cursor:pointer;border-left:5px solid var(--gold)"><h3>🧭 Tu inducción: ${I.pct}%</h3><div style="background:#eee8da;border-radius:6px;height:10px;overflow:hidden;margin:8px 0"><i style="display:block;height:10px;width:${I.pct}%;background:var(--gold)"></i></div><p class="s" style="margin:0;color:var(--muted)">${I.docs.filter(d=>!d.leido_at).length?'Tenés '+I.docs.filter(d=>!d.leido_at).length+' documento(s) para leer. Tocá acá.':'Te faltan pasos con tu encargado/a.'}</p></div>`;}
+async function vBib(){if(!B){$('view').innerHTML=hd('Manuales y reglamentos','')+'<div class="wrap"><div class="empty">Cargando…</div></div>';await loadB();if(!B){$('view').innerHTML=hd('Manuales y reglamentos','')+'<div class="wrap"><div class="note">Todavía no está disponible. Consultá con RRHH.</div></div>';return;}}
+  const I=indInfo(),pend=B.docs.filter(d=>d.obligatorio&&!d.leido_at),resto=B.docs.filter(d=>!(d.obligatorio&&!d.leido_at));
+  const item=d=>`<div class="li" style="flex-wrap:wrap"><div style="flex:1 1 100%;min-width:0"><div class="t">${(BIB_CAT[d.categoria]||['📄'])[0]} ${esc(d.titulo)}</div><div class="s">${esc((BIB_CAT[d.categoria]||['','Documento'])[1])}${d.descripcion?' · '+esc(d.descripcion):''}${d.leido_at?' · leído el '+fmtTsD(d.leido_at):''}</div></div>
+    <div style="display:flex;gap:8px;align-items:center;width:100%;justify-content:flex-end">${d.archivo_path?`<button class="btn" style="padding:8px 14px;margin:0" onclick="abrirB('${d.id}')">Abrir</button>`:''}${d.obligatorio&&!d.leido_at?`<button class="btn gold" id="lb_${d.id}" style="padding:8px 12px;margin:0" ${d.archivo_path&&!ABIERTOS[d.id]?'disabled title="Primero abrilo"':''} onclick="leiB('${d.id}')">✅ Leí y entendí</button>`:d.leido_at?'<span class="tag t-ok">Leído</span>':''}</div></div>`;
+  $('view').innerHTML=hd('Manuales y reglamentos','Lo que la empresa te comparte para tu trabajo')+`<div class="wrap">
+   ${I&&I.tot&&I.ok<I.tot?`<div class="card"><h3>🧭 Tu inducción: ${I.ok} de ${I.tot}</h3><div style="background:#eee8da;border-radius:6px;height:10px;overflow:hidden;margin:8px 0"><i style="display:block;height:10px;width:${I.pct}%;background:var(--gold)"></i></div>${I.P.map(p=>`<div class="s" style="padding:3px 0">${I.hechos.some(h=>h.paso===p)?'✅':'⬜'} ${esc(p)}</div>`).join('')}</div>`:''}
+   ${pend.length?`<div class="card"><h3>Para leer (${pend.length})</h3><p class="s" style="color:var(--muted);margin:0 0 4px">Abrí cada documento, leelo y confirmá con "Leí y entendí".</p>${pend.map(item).join('')}</div>`:''}
+   ${resto.length?`<div class="card"><h3>${pend.length?'Otros documentos':'Documentos'}</h3>${resto.map(item).join('')}</div>`:''}
+   ${!B.docs.length?'<div class="empty">Todavía no hay documentos para vos.</div>':''}</div>`;}
+async function abrirB(id){const d=B.docs.find(x=>x.id===id);ABIERTOS[id]=true;const b=$('lb_'+id);if(b){b.disabled=false;b.title='';}await verDoc(d.archivo_path);}
+async function leiB(id){const b=$('lb_'+id);if(b){b.disabled=true;b.textContent='Guardando…';}const {data,error}=await sb.rpc('rrhh_app_leido',{p_doc:id});
+  if(error||!data||!data.ok){banner('No se pudo registrar. Probá de nuevo.','err');if(b){b.disabled=false;b.textContent='✅ Leí y entendí';}return;}
+  const d=B.docs.find(x=>x.id===id);d.leido_at=new Date().toISOString();banner('¡Gracias! Quedó registrado ✓');vBib();}
+let EPP=null;const TALLE_T={superior:'Camisa / campera',pantalon:'Pantalón',calzado:'Calzado',guantes:'Guantes'};
+async function vEpp(){$('view').innerHTML=hd('Mis EPP y ropa de trabajo','')+'<div class="wrap"><div class="empty">Cargando…</div></div>';
+  try{const {data,error}=await sb.rpc('rrhh_app_epp');if(error||!data.ok)throw error||new Error(data.error);EPP=data;}catch(e){$('view').innerHTML=hd('Mis EPP y ropa de trabajo','')+'<div class="wrap"><div class="note">Todavía no está disponible. Consultá con RRHH.</div></div>';return;}
+  const G=EPP.entregas||[],vig=[];G.forEach(g=>(g.items||[]).forEach(i=>{if(i.estado==='entregado')vig.push(Object.assign({fecha:g.fecha},i));}));const t=EPP.talles||{},hoy=hoyAR();
+  $('view').innerHTML=hd('Mis EPP y ropa de trabajo','Lo que te entregó la empresa')+`<div class="wrap"><button class="back" onclick="go('perfil')">← Perfil</button>
+   <div class="card"><h3>Lo que tenés</h3>${vig.map(i=>`<div class="li"><div><div class="t">${esc(i.nombre)}${+i.cantidad!==1?' × '+i.cantidad:''}${i.talle?' · talle '+esc(i.talle):''}</div><div class="s">Entregado el ${fmtD(i.fecha)}${i.vence?' · recambio '+fmtD(i.vence):''}</div></div>${i.vence&&d10(i.vence)<hoy?'<span class="tag t-out">Pedí el cambio</span>':''}</div>`).join('')||'<div class="empty">Todavía no tenés entregas registradas.</div>'}</div>
+   <div class="card dl"><h3>Mis talles</h3>${Object.keys(TALLE_T).map(k=>`<div class="r"><span>${TALLE_T[k]}</span><b>${esc(t[k]||'—')}</b></div>`).join('')}</div>
+   <p class="empty">¿Se te rompió algo o cambió tu talle? Avisá a RRHH: Pedidos → Nuevo pedido → Consulta a RRHH.</p></div>`;}
 
 // ══════════════ FICHAR ══════════════
 let CAM={stream:null,raf:null,det:null,busy:false};
@@ -308,6 +341,7 @@ async function enviarSol(t){const v=id=>$(id)?$(id).value.trim():'';const b=$('f
 function docTag(d){if(!d.vence)return '';const n=Math.round((new Date(d10(d.vence))-new Date(hoyAR()))/864e5);return n<0?'<span class="tag t-out">Vencido</span>':n<=30?`<span class="tag t-warn">Vence en ${n} d</span>`:'<span class="tag t-ok">Vigente</span>';}
 function vDocs(){if(sub==='subir')return formDoc();const L=Y.documentos||[];
   $('view').innerHTML=hd('Mis documentos','Certificados, carnets y constancias')+`<div class="wrap"><button class="btn gold full" style="margin:0 0 12px" onclick="go('docs','subir')">＋ Subir certificado o documento</button>
+   <button class="btn full" style="margin:0 0 12px" onclick="go('bib')">📚 Manuales y reglamentos de la empresa${bibPend()?' · '+bibPend()+' para leer':''}</button>
    <div class="card">${L.map(d=>`<div class="li" ${d.archivo_path?`onclick="verDoc('${esc(d.archivo_path)}')"`:''}><div><div class="t">${d.archivo_path?'📄':'🗂️'} ${esc(d.tipo)}</div><div class="s">${d.descripcion?esc(d.descripcion)+' · ':''}${d.vence?'vence '+fmtD(d.vence):'cargado '+fmtTsD(d.created_at)}</div></div>${docTag(d)}</div>`).join('')||'<div class="empty">Todavía no hay documentos en tu legajo.</div>'}</div></div>`;}
 async function verDoc(path){const w=window.open('','_blank');try{const {data,error}=await sb.storage.from(BUCKET).createSignedUrl(path,300);if(error)throw error;if(w)w.location.href=data.signedUrl;else location.href=data.signedUrl;}catch(e){if(w)w.close();banner('No se pudo abrir el archivo','err');}}
 function formDoc(){const tipos=[...new Set(['Certificado médico',...(Y.tiposDoc||[]).map(t=>t.n)])];
@@ -329,7 +363,7 @@ function vPerfil(){if(sub==='pin')return formPin();const e=Y.emp,r=(l,v)=>v?`<di
    <div class="card dl">${r('Legajo',e.legajo)}${r('DNI',e.dni)}${r('CUIL',e.cuil)}${r('Ingreso',e.fecha_ingreso?fmtD(e.fecha_ingreso)+' ('+antig(e.fecha_ingreso)+')':'')}${r('Turno',e.turno)}${r('Jornada',e.jornada)}${r('Modalidad',e.modalidad)}</div>
    <div class="card dl">${r('Teléfono',e.telefono)}${r('Email',e.email)}${r('Domicilio',[e.domicilio,e.localidad].filter(Boolean).join(', '))}${r('Emergencia',e.emergencia)}</div>
    <button class="btn full" onclick="go('sol','nuevo:datos')">✏️ ¿Algo cambió? Avisá a RRHH</button>
-   <button class="btn full" onclick="go('vac')">🏖️ Mis vacaciones</button>${(Y.prestamos||[]).length?`<button class="btn full" onclick="go('pres')">💳 Mis préstamos y adelantos</button>`:''}
+   <button class="btn full" onclick="go('vac')">🏖️ Mis vacaciones</button><button class="btn full" onclick="go('epp')">🦺 Mis EPP y ropa de trabajo</button>${(Y.prestamos||[]).length?`<button class="btn full" onclick="go('pres')">💳 Mis préstamos y adelantos</button>`:''}
    <button class="btn full" onclick="go('perfil','pin')">🔑 Cambiar mi PIN</button>
    ${instalable(true)}
    <button class="btn red full" onclick="salir()">Cerrar sesión</button>
