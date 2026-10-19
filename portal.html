@@ -147,7 +147,7 @@ const PERM={
   finca:['agro','docs'],
 };
 // Módulos por rol: lo que se defina en Configuración CONTROL MAX (empresas.permisos_max.modulos); si no, estos valores por defecto
-const DEF_ROL={supervisor:['trace','plus','total','docs'],comercial:['trace','plus','docs'],preparador:['trace','docs'],chofer:['trace']};
+const DEF_ROL={supervisor:['trace','plus','total','docs'],comercial:['trace','plus','docs'],preparador:['trace','docs'],chofer:['trace'],rrhh:['rrhh','docs']};
 const ADMINS=['admin','dueno','dueño','administrador'];
 let EMP={};
 function permsFor(rol){
@@ -197,7 +197,7 @@ function renderHome(){
   const first=(CUR.nom||'').split(/[\s—]+/)[0]||'';
   document.getElementById('home-hi').textContent=`Hola ${first}, ¡bienvenida! 👋`;
   document.getElementById('home-emp').textContent='🏢 '+CUR.razon;
-  document.getElementById('home-role').textContent=CUR.rol||'usuario';
+  document.getElementById('home-role').textContent=({rrhh:'Jefe de RRHH'})[CUR.rol]||CUR.rol||'usuario';
   document.getElementById('home-av').textContent=avatarTxt(CUR.nom);
   const perm=permsFor(CUR.rol);
   document.getElementById('home-grid').innerHTML=MODULES.map(m=>{
