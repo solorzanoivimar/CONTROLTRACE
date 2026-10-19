@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111D35">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mi RRHH">
+<title>Mi RRHH — CONTROL MAX</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<!-- CONTROL RRHH · App del empleado · build app 1.0 (Etapa 2) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#111D35;--navy2:#1B2A4A;--gold:#C9A84C;--gold-d:#A9842F;--cream:#F5F2EA;--ink:#1C2536;--muted:#6B7689;--line:#E7E2D6;--sage:#4F7D6A;--sage-bg:#E9F1EC;--clay:#B5654A;--clay-bg:#F6EBE6;--amber:#86571A;--amber-bg:#FAF3E2;--steel:#3D5A80;
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--cream);color:var(--ink);overscroll-behavior-y:none}
+button,input,select,textarea{font-family:inherit;font-size:16px}
+.hide{display:none!important}
+/* PANTALLAS */
+#login,#app,#splash{min-height:100vh;min-height:100dvh}
+#splash{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:var(--navy);color:#fff}
+.spin{width:36px;height:36px;border:3px solid rgba(201,168,76,.3);border-top-color:var(--gold);border-radius:50%;animation:s .8s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+.brand{font-weight:900;letter-spacing:2px;font-size:22px;color:#fff}.brand b{color:var(--gold)}
+#login{background:var(--navy);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(30px + var(--sat)) 22px 30px}
+#login .box{width:100%;max-width:380px}
+#login .tree{width:84px;height:84px;display:block;margin:0 auto 6px}
+#login h1{text-align:center;margin:4px 0 2px;font-size:24px}#login .emp{text-align:center;color:#9fb0c8;font-size:14px;margin-bottom:24px}
+#login label{display:block;font-size:13px;color:#cdd6e4;margin:14px 0 6px;font-weight:600}
+#login input{width:100%;padding:15px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#fff;font-size:20px;letter-spacing:2px}
+#login input:focus{outline:none;border-color:var(--gold)}
+.big{display:block;width:100%;border:0;border-radius:14px;padding:16px;font-size:18px;font-weight:800;background:var(--gold);color:#2a1f05;cursor:pointer;margin-top:22px}
+.big[disabled]{opacity:.5}
+.msg{min-height:22px;margin-top:12px;text-align:center;font-size:14px;color:#ffb4a2}
+.lhelp{text-align:center;color:#9fb0c8;font-size:13px;margin-top:18px;line-height:1.5}
+/* APP */
+#app{padding-bottom:calc(76px + var(--sab))}
+.hd{background:var(--navy);color:#fff;padding:calc(18px + var(--sat)) 18px 22px;border-radius:0 0 22px 22px}
+.hd small{color:#9fb0c8;font-size:13px;display:block}.hd h2{margin:3px 0 2px;font-size:22px}.hd .sub{color:#cdd6e4;font-size:14px}
+.wrap{padding:16px;max-width:560px;margin:0 auto}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.card h3{margin:0 0 8px;font-size:16px;color:var(--navy)}
+.fich{display:block;width:100%;border:0;border-radius:18px;padding:20px;background:var(--gold);color:#2a1f05;font-size:21px;font-weight:900;cursor:pointer;box-shadow:0 8px 22px rgba(169,132,47,.35);margin:-34px 0 14px;position:relative}
+.fich small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.hoy{display:flex;gap:10px}.hoy div{flex:1;background:#f7f4ec;border-radius:12px;padding:10px;text-align:center}.hoy b{display:block;font-size:22px;color:var(--navy)}.hoy span{font-size:12px;color:var(--muted)}
+.asist{display:flex;gap:12px;align-items:flex-start}.asist .ic{font-size:26px}.asist p{margin:0;line-height:1.45;font-size:15px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 10px;text-align:center;font-weight:700;color:var(--navy);cursor:pointer;font-size:14px;position:relative}
+.tile .e{font-size:28px;display:block;margin-bottom:4px}.tile .n{position:absolute;top:8px;right:10px;background:var(--gold);color:var(--navy);font-size:11px;border-radius:9px;padding:1px 7px}
+.nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 0 calc(8px + var(--sab));z-index:20}
+.nav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:#8a94a3;cursor:pointer;padding:4px 8px;min-width:58px}
+.nav button .i{font-size:21px}.nav button.on{color:var(--gold-d);font-weight:700}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
+.t-ok{background:var(--sage-bg);color:var(--sage)}.t-out{background:var(--clay-bg);color:var(--clay)}.t-warn{background:var(--amber-bg);color:var(--amber)}.t-nav{background:#e8eef5;color:var(--navy)}.t-mut{background:#efece4;color:var(--muted)}
+.li{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #f0ece2;align-items:center}.li:last-child{border-bottom:0}
+.li .t{font-weight:700;color:var(--ink)}.li .s{font-size:13px;color:var(--muted);margin-top:2px}
+.empty{text-align:center;color:var(--muted);padding:22px 8px;font-size:14px}
+label.lb{display:block;font-size:13px;font-weight:700;margin:12px 0 6px;color:var(--ink)}
+.in{width:100%;padding:13px 12px;border:1px solid var(--line);border-radius:12px;background:#fcfbf8;color:var(--ink)}
+.in:focus{outline:none;border-color:var(--steel)}
+textarea.in{min-height:90px;resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{border:0;border-radius:12px;padding:13px 16px;font-weight:700;cursor:pointer;background:#fff;border:1px solid var(--line);color:var(--navy);font-size:15px}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#2a1f05}.btn.red{color:var(--clay);border-color:#e7c3b6}.btn.full{width:100%;margin-top:14px}
+.tipos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tipo{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;font-weight:700;font-size:14px;color:var(--navy)}.tipo .e{font-size:26px;display:block;margin-bottom:4px}
+.back{background:none;border:0;color:var(--steel);font-weight:700;padding:0 0 10px;cursor:pointer;font-size:15px}
+.note{background:var(--amber-bg);border:1px solid #f0d9b0;color:var(--amber);padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.45;margin-bottom:12px}
+.dl .r{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #f0ece2;font-size:15px}.dl .r:last-child{border:0}.dl .r span{color:var(--muted)}.dl .r b{text-align:right}
+/* CÁMARA */
+#cam{position:fixed;inset:0;background:#000;z-index:50;display:none;flex-direction:column}
+#cam.show{display:flex}
+#cam video{flex:1;width:100%;object-fit:cover}
+.cam-top{position:absolute;top:0;left:0;right:0;padding:calc(14px + var(--sat)) 16px 14px;display:flex;justify-content:space-between;align-items:center;color:#fff;background:linear-gradient(rgba(0,0,0,.6),transparent)}
+.cam-top button{background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:10px;padding:10px 14px;font-weight:700}
+.cam-frame{position:absolute;left:50%;top:46%;width:66vw;max-width:300px;aspect-ratio:1;transform:translate(-50%,-50%);border:4px solid var(--gold);border-radius:22px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+.cam-txt{position:absolute;left:0;right:0;bottom:calc(30px + var(--sab));text-align:center;color:#fff;font-size:16px;padding:0 20px;line-height:1.4}
+/* RESULTADO */
+#res{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;gap:10px}
+#res.show{display:flex}#res.ok{background:var(--navy);color:#fff}#res.err{background:#7a2c1c;color:#fff}
+#res .ic{font-size:76px}#res .t{font-size:28px;font-weight:900}#res .h{font-size:22px;color:var(--gold);font-weight:800}#res .s{font-size:18px;color:#dfe6ee;line-height:1.45;max-width:440px}
+#res button{margin-top:22px;background:var(--gold);border:0;border-radius:14px;padding:15px 40px;font-size:18px;font-weight:800;color:#2a1f05}
+.banner{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + var(--sab));background:var(--navy);color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;z-index:70;opacity:0;transition:opacity .2s;pointer-events:none;max-width:92vw;text-align:center}
+.banner.show{opacity:1}.banner.err{background:var(--clay)}.banner.warn{background:var(--gold-d)}
+.inst{background:#fff;border:1px dashed var(--gold);border-radius:14px;padding:12px 14px;font-size:14px;display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.off{background:var(--clay);color:#fff;text-align:center;font-size:13px;padding:6px;position:sticky;top:0;z-index:30}
+</style>
+</head>
+<body>
+<div id="splash"><div class="brand">CONTROL <b>RRHH</b></div><div class="spin"></div></div>
+
+<div id="login" class="hide"><div class="box">
+ <svg class="tree" viewBox="0 0 48 48" fill="none"><path d="M24 47V29M24 33l-6-6M24 31l7-7" stroke="#cdd6e4" stroke-width="2.4" stroke-linecap="round"/><circle cx="19" cy="13" r="6.5" fill="#e0c578"/><circle cx="30" cy="13" r="6.5" fill="#e0c578"/><circle cx="14" cy="20" r="7" fill="#d9b65f"/><circle cx="34" cy="20" r="7" fill="#d9b65f"/><circle cx="24" cy="16" r="9.5" fill="#c9a24b"/></svg>
+ <h1>Mi RRHH</h1><div class="emp" id="lEmp">CONTROL MAX</div>
+ <div id="lForm">
+  <label for="lDni">Tu DNI</label><input id="lDni" inputmode="numeric" autocomplete="username" placeholder="Sin puntos" maxlength="10">
+  <label for="lPin">Tu PIN (6 números)</label><input id="lPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••••" maxlength="6">
+  <button class="big" id="lBtn" onclick="login()">Ingresar</button><div class="msg" id="lMsg"></div>
+  <div class="lhelp">¿No tenés PIN o te lo olvidaste?<br>Pedíselo a RRHH.</div>
+ </div>
+ <div id="lNoEmp" class="hide"><div class="lhelp" style="font-size:15px">Para entrar, abrí el <b>link</b> o escaneá el <b>código QR</b> que te pasó RRHH.</div></div>
+</div></div>
+
+<div id="app" class="hide">
+ <div id="offBar" class="off hide">Sin conexión a internet</div>
+ <div id="view"></div>
+ <nav class="nav" id="nav"></nav>
+</div>
+
+<div id="cam"><video id="camV" playsinline muted></video><div class="cam-frame"></div>
+ <div class="cam-top"><b>Escaneá el QR</b><button onclick="camStop()">Cancelar</button></div>
+ <div class="cam-txt" id="camTxt">Apuntá al código de la tablet o del cartel de fichaje</div></div>
+<div id="res"></div>
+<div class="banner" id="banner"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONTROL RRHH · App del empleado (se instala como app desde el navegador)
+// Entra con DNI + PIN. Todo pasa por funciones seguras de Supabase:
+// el empleado solo ve y carga lo suyo.
+// ══════════════════════════════════════════════════════════════
+const BUILD='app 1.0';
+const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
+const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlrrhh-app',persistSession:true,autoRefreshToken:true}});
+const BUCKET='rrhh-docs',TZ='America/Argentina/Buenos_Aires',DOM='empleados.controlmax.app';
+const SOL_T={vacaciones:['🏖️','Vacaciones'],enfermedad:['🤒','Licencia por enfermedad'],especial:['📋','Licencia especial'],permiso:['⏱️','Permiso de horas'],cambio_turno:['🔁','Cambio de turno'],adelanto:['💵','Adelanto de sueldo'],constancia:['📄','Constancia laboral'],datos:['✏️','Actualizar mis datos'],consulta:['💬','Consulta a RRHH']};
+const SUB_ESP=['Casamiento','Nacimiento de hijo/a','Fallecimiento de familiar','Examen','Mudanza','Donación de sangre','Trámite personal','Otro'];
+const LIC_T=['vacaciones','enfermedad','especial'];
+const DIAS_L=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const ERR={SIN_APP:'Tu acceso a la app no está activo. Hablá con RRHH.',QR_INVALIDO:'Ese código no es un QR de fichaje válido.',QR_VENCIDO:'El código ya venció. Escaneá el que está en la pantalla ahora.',GPS_REQUERIDO:'Para fichar en este punto hace falta tu ubicación.',FUERA_DE_RANGO:'Estás lejos del punto de fichaje.',TIPO:'Elegí el tipo de pedido.',FECHA:'Indicá la fecha.',FECHAS:'"Hasta" no puede ser antes que "desde".',MONTO:'Indicá el monto.',DETALLE:'Contanos el detalle.',ADJUNTO:'No se pudo adjuntar el archivo.',LIMITE:'Llegaste al máximo de pedidos por hoy.',NO_PENDIENTE:'Ese pedido ya fue respondido.'};
+let Y=null,cur='inicio',sub=null;const $=id=>document.getElementById(id);
+const esc=s=>(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const d10=f=>f?String(f).slice(0,10):'';
+const fmtD=f=>f?d10(f).split('-').reverse().join('/'):'';
+function hoyAR(){return new Date().toLocaleDateString('sv-SE',{timeZone:TZ});}
+function horaAR(ts){return new Date(ts).toLocaleTimeString('es-AR',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false});}
+function fechaLarga(f){const d=new Date(d10(f)+'T12:00:00');return DIAS_L[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1);}
+function hm(min){min=Math.round(min||0);const h=Math.floor(min/60),m=min%60;return (h?h+' h':'')+(h&&m?' ':'')+(m||!h?m+' min':'');}
+function banner(t,k){const b=$('banner');b.textContent=t;b.className='banner show'+(k?' '+k:'');clearTimeout(b._t);b._t=setTimeout(()=>b.className='banner',k==='err'?5000:2800);}
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){return null;}}
+function codEmp(){const q=new URLSearchParams(location.search).get('e');if(q&&/^[0-9a-f]{8}$/i.test(q)){ls('rrhh_e8',q.toLowerCase());return q.toLowerCase();}return ls('rrhh_e8');}
+function codigoQR(txt){txt=String(txt||'').trim();let m=/[#&]f=([0-9a-f-]{36}\.\d+\.[0-9a-f]{12})/i.exec(txt);if(m)return m[1];m=/^([0-9a-f-]{36}\.\d+\.[0-9a-f]{12})$/i.exec(txt);return m?m[1]:null;}
+
+// ══════════════ INGRESO ══════════════
+async function login(){const dni=$('lDni').value.replace(/\D/g,''),pin=$('lPin').value.replace(/\D/g,''),e8=codEmp();
+  if(dni.length<7)return lmsg('Revisá el DNI (7 u 8 números)');if(pin.length!==6)return lmsg('El PIN tiene 6 números');
+  const b=$('lBtn');b.disabled=true;b.textContent='Ingresando…';lmsg('');
+  const {error}=await sb.auth.signInWithPassword({email:`${dni}.${e8}@${DOM}`,password:pin});
+  if(error){b.disabled=false;b.textContent='Ingresar';return lmsg(/banned/i.test(error.message)?'Tu acceso está suspendido. Hablá con RRHH.':/invalid/i.test(error.message)?'DNI o PIN incorrecto':'No se pudo ingresar: '+error.message);}
+  $('lPin').value='';b.disabled=false;b.textContent='Ingresar';await arrancar();}
+function lmsg(t){$('lMsg').textContent=t;}
+function verLogin(){$('splash').classList.add('hide');$('app').classList.add('hide');$('login').classList.remove('hide');const e8=codEmp();$('lForm').classList.toggle('hide',!e8);$('lNoEmp').classList.toggle('hide',!!e8);const n=ls('rrhh_emp_nombre');if(n)$('lEmp').textContent=n;setTimeout(()=>{if(e8)$('lDni').focus();},100);}
+async function salir(){try{await sb.auth.signOut();}catch(e){}Y=null;verLogin();}
+async function cargar(logo){const {data,error}=await sb.rpc('rrhh_app_yo',{p_logo:!!logo});if(error)throw error;if(!data.ok){if(data.error==='SIN_APP'){banner(ERR.SIN_APP,'err');await salir();return false;}throw new Error(data.error);}
+  Y=data;ls('rrhh_emp_nombre',Y.empresa.nombre||'');if(logo&&Y.empresa.logo)ls('rrhh_logo',Y.empresa.logo);return true;}
+async function arrancar(){try{if(!(await cargar(!ls('rrhh_logo'))))return;}catch(e){banner('No se pudo cargar: '+(e.message||e),'err');return verLogin();}
+  $('splash').classList.add('hide');$('login').classList.add('hide');$('app').classList.remove('hide');
+  const c=codigoQR(location.hash);if(c){history.replaceState(null,'',location.pathname+location.search);return fichar(c);}
+  go(cur);}
+
+// ══════════════ NAVEGACIÓN ══════════════
+const NAV=[['inicio','🏠','Inicio'],['asis','🕒','Asistencia'],['sol','📨','Pedidos'],['docs','📎','Docs'],['perfil','👤','Perfil']];
+function go(v,s){cur=v;sub=s||null;$('nav').innerHTML=NAV.map(n=>`<button class="${cur===n[0]?'on':''}" onclick="go('${n[0]}')"><span class="i">${n[1]}</span>${n[2]}</button>`).join('');
+  ({inicio:vInicio,asis:vAsis,sol:vSol,docs:vDocs,perfil:vPerfil}[v]||vInicio)();window.scrollTo(0,0);}
+function hd(t,s){const e=Y.emp;return `<div class="hd"><small>${esc(Y.empresa.nombre||'')}</small><h2>${t}</h2>${s?`<div class="sub">${s}</div>`:''}</div>`;}
+
+// ══════════════ INICIO ══════════════
+function ultFichada(){return (Y.fichadas||[])[0]||null;}
+function tocaSalida(){const u=ultFichada();return !!(u&&u.tipo==='entrada'&&(Date.now()-new Date(u.ts))<18*3600e3);}
+function saludo(){const h=+horaAR(new Date()).slice(0,2);return h<12?'¡Buen día':h<20?'¡Buenas tardes':'¡Buenas noches';}
+function mensajeAsistente(){const e=Y.emp,t=hoyAR(),md=t.slice(5);
+  const rs=(Y.solicitudes||[]).filter(s=>['aprobada','rechazada'].includes(s.estado)&&s.resuelto_at&&(Date.now()-new Date(s.resuelto_at))<3*864e5);
+  if(e.fecha_nacimiento&&d10(e.fecha_nacimiento).slice(5)===md)return ['🎂',`¡Feliz cumpleaños, ${esc(e.nombre)}! Todo el equipo de ${esc(Y.empresa.nombre||'la empresa')} te desea un día hermoso.`];
+  if(e.fecha_ingreso&&d10(e.fecha_ingreso).slice(5)===md&&d10(e.fecha_ingreso)<t){const a=+t.slice(0,4)-(+d10(e.fecha_ingreso).slice(0,4));return ['🏅',`Hoy cumplís ${a} año${a>1?'s':''} con nosotros. ¡Gracias por ser parte!`];}
+  if(rs.length){const s=rs[0];return [s.estado==='aprobada'?'✅':'💬',`Tu pedido de <b>${esc(SOL_T[s.tipo][1].toLowerCase())}</b> fue <b>${s.estado}</b>.${s.respuesta?' RRHH te dice: “'+esc(s.respuesta)+'”':''}`];}
+  const p=(Y.solicitudes||[]).filter(s=>s.estado==='pendiente').length;if(p)return ['⏳',`Tenés ${p} pedido${p>1?'s':''} esperando respuesta de RRHH.`];
+  const venc=(Y.documentos||[]).filter(d=>d.vence&&d10(d.vence)>=t&&(new Date(d10(d.vence))-new Date(t))/864e5<=30);if(venc.length)return ['📎',`Tu <b>${esc(venc[0].tipo)}</b> vence el ${fmtD(venc[0].vence)}. Acordate de renovarlo y subirlo acá.`];
+  const ent=(Y.fichadas||[]).filter(f=>f.tipo==='entrada');return ['💬',ent.length?'Que tengas una excelente jornada. Cualquier cosa que necesites, pedila desde <b>Pedidos</b>.':'¡Te damos la bienvenida a tu app de RRHH! Desde acá marcás tu entrada y salida, pedís licencias y permisos, y subís tus certificados.'];}
+function vInicio(){const e=Y.emp,h=Y.horario,t=hoyAR();
+  const ent=(Y.fichadas||[]).filter(f=>f.tipo==='entrada'&&d10(f.jornada)===t).slice(-1)[0]||null;const sal=(Y.fichadas||[]).filter(f=>f.tipo==='salida'&&d10(f.jornada)===t)[0]||null;
+  const a=mensajeAsistente();const pend=(Y.solicitudes||[]).filter(s=>s.estado==='pendiente').length;
+  $('view').innerHTML=hd(`${saludo()}, ${esc(e.nombre)}!`,`${fechaLarga(t)}${e.turno?' · Turno '+esc(e.turno)+(h&&h.ini?' '+h.ini+' a '+h.fin:''):''}`)+`<div class="wrap">
+   <button class="fich" onclick="camStart()">📷 Marcar ${tocaSalida()?'salida':'entrada'}<small>Escaneá el QR de la tablet o del cartel</small></button>
+   ${instalable()}
+   <div class="card"><h3>Hoy</h3><div class="hoy"><div><b>${ent?horaAR(ent.ts):'—'}</b><span>Entrada</span></div><div><b>${sal?horaAR(sal.ts):'—'}</b><span>Salida</span></div></div></div>
+   <div class="card"><div class="asist"><div class="ic">${a[0]}</div><div><h3 style="margin-bottom:4px">Asistente</h3><p>${a[1]}</p></div></div></div>
+   <div class="tiles"><div class="tile" onclick="go('sol','nuevo')"><span class="e">📨</span>Pedir licencia o permiso</div><div class="tile" onclick="go('sol')"><span class="e">📋</span>Mis pedidos${pend?`<span class="n">${pend}</span>`:''}</div>
+    <div class="tile" onclick="go('docs','subir')"><span class="e">📎</span>Subir certificado</div><div class="tile" onclick="go('perfil')"><span class="e">👤</span>Mis datos</div></div></div>`;}
+
+// ══════════════ FICHAR ══════════════
+let CAM={stream:null,raf:null,det:null,busy:false};
+async function loadJsQR(){if(window.jsQR)return;await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+async function camStart(){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return resultado(false,'No podemos usar la cámara acá','Abrí la cámara del celular, apuntá al QR y tocá el enlace.');
+  $('cam').classList.add('show');$('camTxt').textContent='Apuntá al código de la tablet o del cartel de fichaje';
+  try{CAM.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});const v=$('camV');v.srcObject=CAM.stream;await v.play();
+    if('BarcodeDetector' in window){try{CAM.det=new BarcodeDetector({formats:['qr_code']});}catch(e){CAM.det=null;}}if(!CAM.det)await loadJsQR();CAM.busy=false;camLoop();}
+  catch(e){camStop();resultado(false,'No se pudo abrir la cámara','Dale permiso de cámara a esta app, o abrí la cámara del celular y apuntá al QR.');}}
+function camStop(){cancelAnimationFrame(CAM.raf);if(CAM.stream)CAM.stream.getTracks().forEach(t=>t.stop());CAM.stream=null;$('cam').classList.remove('show');}
+const _cv=document.createElement('canvas');
+async function camLoop(){const v=$('camV');if(!CAM.stream)return;if(!CAM.busy&&v.readyState>=2){CAM.busy=true;let txt=null;
+  try{if(CAM.det){const r=await CAM.det.detect(v);if(r&&r[0])txt=r[0].rawValue;}else{const w=Math.min(640,v.videoWidth),h=Math.round(v.videoHeight*w/v.videoWidth);_cv.width=w;_cv.height=h;const c=_cv.getContext('2d',{willReadFrequently:true});c.drawImage(v,0,0,w,h);const d=c.getImageData(0,0,w,h);const q=window.jsQR(d.data,w,h,{inversionAttempts:'dontInvert'});if(q)txt=q.data;}}catch(e){}
+  CAM.busy=false;if(txt){const c=codigoQR(txt);if(c){camStop();if(navigator.vibrate)navigator.vibrate(60);return fichar(c);}$('camTxt').textContent='Ese código no es de fichaje. Apuntá al QR de la tablet.';}}
+  CAM.raf=requestAnimationFrame(()=>setTimeout(camLoop,120));}
+function ubicacion(){return new Promise(res=>{if(!navigator.geolocation)return res(null);navigator.geolocation.getCurrentPosition(p=>res(p.coords),()=>res(null),{enableHighAccuracy:true,timeout:12000,maximumAge:30000});});}
+async function fichar(codigo,coords){resultado(null,'Registrando…','');
+  try{const {data,error}=await sb.rpc('rrhh_fichar',{p_codigo:codigo,p_lat:coords?coords.latitude:null,p_lng:coords?coords.longitude:null,p_prec:coords?coords.accuracy:null,p_disp:navigator.userAgent.slice(0,150)});if(error)throw error;
+    if(!data.ok&&data.error==='GPS_REQUERIDO'&&!coords){resultado(null,'Buscando tu ubicación…','Aceptá el permiso de ubicación.');const c=await ubicacion();if(!c)return resultado(false,'Necesitamos tu ubicación','Activá la ubicación del celular y volvé a escanear.');return fichar(codigo,c);}
+    if(!data.ok)return resultado(false,ERR[data.error]||data.error,data.error==='FUERA_DE_RANGO'&&data.distancia_m?`Estás a unos ${data.distancia_m} m del punto.`:'');
+    const s=saludoFichada(data);resultado(true,s.t,s.s,data);try{await cargar();}catch(e){}}
+  catch(e){resultado(false,'No se pudo registrar',navigator.onLine?'Probá de nuevo.':'No tenés conexión a internet.');}}
+function resultado(ok,t,s,d){const r=$('res');r.className='show '+(ok===false?'err':'ok');r.innerHTML=ok===null?`<div class="spin"></div><div class="t" style="font-size:20px">${esc(t)}</div><div class="s">${esc(s||'')}</div>`:
+  `<div class="ic">${ok?(d&&d.tipo==='salida'?'👋':'✅'):'⚠️'}</div><div class="t">${esc(t)}</div>${d&&d.hora?`<div class="h">${d.tipo==='salida'?'Salida':'Entrada'} registrada · ${esc(d.hora)}</div>`:''}<div class="s">${esc(s||'')}</div><button onclick="$('res').className='';go('inicio')">Listo</button>`;}
+function saludoFichada(r){const n=r.nombre||'';const h=+(r.hora||'12:00').slice(0,2);const sal=h<12?'¡Buen día':h<20?'¡Buenas tardes':'¡Buenas noches';
+  if(r.duplicada)return {t:`Ya registramos tu ${r.tipo} de las ${r.hora}`,s:'No hace falta volver a fichar 👍'};
+  if(r.tipo==='salida')return {t:`¡Gracias por la jornada, ${n}!`,s:r.trabajado_min?`Hoy trabajaste ${hm(r.trabajado_min)}. ¡Buen descanso!`:'¡Buen descanso!'};
+  let s='Que tengas una buena jornada.';const tl=r.tol!=null?r.tol:10;
+  if(r.cumple)s='🎂 ¡Feliz cumpleaños! Todo el equipo te desea un gran día.';
+  else if(r.aniversario)s=`🏅 Hoy cumplís ${r.aniversario} año${r.aniversario>1?'s':''} con nosotros. ¡Gracias por estar!`;
+  else if(r.vuelve)s=r.vuelve==='enfermedad'?'¡Qué bueno tenerte de vuelta! Esperamos que estés mejor.':r.vuelve==='vacaciones'?'¡Qué bueno tenerte de vuelta! Esperamos que hayas descansado.':'¡Qué bueno tenerte de vuelta!';
+  else if(r.diff_min!=null&&Math.abs(r.diff_min)<=180){if(r.diff_min<=-5)s=`Llegaste ${hm(-r.diff_min)} antes. ¡Gracias por la puntualidad!`;else if(r.diff_min<=tl)s='¡Justo a tiempo! Que tengas una buena jornada.';else s=`Hoy se te hizo un poquito tarde (${hm(r.diff_min)}). ¿Todo bien? ¡Que rinda el día!`;}
+  return {t:`${sal}, ${n}!`,s};}
+
+// ══════════════ ASISTENCIA ══════════════
+function vAsis(){const por={};(Y.fichadas||[]).slice().reverse().forEach(f=>{const j=d10(f.jornada);(por[j]=por[j]||[]).push(f);});
+  const dias=Object.keys(por).sort().reverse();let totMes=0;const mes=hoyAR().slice(0,7);
+  const filas=dias.map(j=>{let tr=0,ab=null;por[j].forEach(f=>{if(f.tipo==='entrada')ab=f;else if(ab){tr+=(new Date(f.ts)-new Date(ab.ts))/6e4;ab=null;}});if(j.startsWith(mes))totMes+=tr;
+    const e=por[j].find(f=>f.tipo==='entrada'),s=por[j].filter(f=>f.tipo==='salida').slice(-1)[0];return `<div class="li"><div><div class="t">${fechaLarga(j)}</div><div class="s">Entrada ${e?horaAR(e.ts):'—'} · Salida ${s?horaAR(s.ts):'—'}</div></div><b>${tr?hm(tr):(ab?'<span class="tag t-warn">En curso</span>':'—')}</b></div>`;});
+  $('view').innerHTML=hd('Mi asistencia','Últimos 40 días')+`<div class="wrap"><div class="card"><div class="hoy"><div><b>${hm(totMes)}</b><span>Horas este mes</span></div><div><b>${dias.filter(j=>j.startsWith(mes)).length}</b><span>Días este mes</span></div></div></div>
+   <div class="card">${filas.join('')||'<div class="empty">Todavía no tenés fichadas.</div>'}</div><p class="empty" style="padding-top:0">¿Falta una fichada o hay un error? Pedí la corrección desde <a href="#" onclick="go('sol','nuevo:consulta');return false">Pedidos</a>.</p></div>`;}
+
+// ══════════════ PEDIDOS (solicitudes) ══════════════
+function solTag(s){return {pendiente:'<span class="tag t-warn">Pendiente</span>',aprobada:'<span class="tag t-ok">Aprobada</span>',rechazada:'<span class="tag t-out">Rechazada</span>',cancelada:'<span class="tag t-mut">Cancelada</span>'}[s.estado]||'';}
+function resumenSol(s){if(LIC_T.includes(s.tipo)||s.tipo==='cambio_turno')return fmtD(s.desde)+(s.hasta&&s.hasta!==s.desde?' al '+fmtD(s.hasta):'');if(s.tipo==='permiso')return fmtD(s.desde)+' · '+(s.hora_desde||'')+(s.hora_hasta?'–'+s.hora_hasta:'');if(s.tipo==='adelanto')return '$ '+Number(s.monto||0).toLocaleString('es-AR');return (s.detalle||'').slice(0,60);}
+function vSol(){if(sub&&sub.startsWith('nuevo'))return sub.includes(':')?formSol(sub.split(':')[1]):tiposSol();
+  const L=Y.solicitudes||[];
+  $('view').innerHTML=hd('Mis pedidos','Licencias, permisos, adelantos y consultas')+`<div class="wrap"><button class="btn gold full" style="margin:0 0 12px" onclick="go('sol','nuevo')">＋ Nuevo pedido</button>
+   <div class="card">${L.map(s=>`<div class="li" onclick="verSolE('${s.id}')"><div><div class="t">${SOL_T[s.tipo][0]} ${esc(SOL_T[s.tipo][1])}</div><div class="s">${esc(resumenSol(s))}</div>${s.respuesta&&s.estado!=='pendiente'?`<div class="s">💬 ${esc(s.respuesta)}</div>`:''}</div>${solTag(s)}</div>`).join('')||'<div class="empty">Todavía no hiciste ningún pedido.</div>'}</div></div>`;}
+function verSolE(id){const s=Y.solicitudes.find(x=>x.id===id);const dd=s.desde&&s.hasta?Math.round((new Date(d10(s.hasta))-new Date(d10(s.desde)))/864e5)+1:null;
+  $('view').innerHTML=hd(SOL_T[s.tipo][0]+' '+esc(SOL_T[s.tipo][1]),'Pedido del '+fmtD(s.created_at))+`<div class="wrap"><button class="back" onclick="go('sol')">← Mis pedidos</button><div class="card dl">
+   <div class="r"><span>Estado</span><b>${solTag(s)}</b></div>${s.subtipo?`<div class="r"><span>Motivo</span><b>${esc(s.subtipo)}</b></div>`:''}${s.desde?`<div class="r"><span>Fecha</span><b>${esc(resumenSol(s))}${dd&&LIC_T.includes(s.tipo)?` (${dd} días)`:''}</b></div>`:''}
+   ${s.monto?`<div class="r"><span>Monto</span><b>$ ${Number(s.monto).toLocaleString('es-AR')}</b></div>`:''}${s.detalle?`<div class="r"><span>Detalle</span><b style="font-weight:500">${esc(s.detalle)}</b></div>`:''}${s.adjunto_nombre?`<div class="r"><span>Adjunto</span><b>📎 ${esc(s.adjunto_nombre)}</b></div>`:''}
+   ${s.estado!=='pendiente'&&s.estado!=='cancelada'?`<div class="r"><span>Respuesta</span><b style="font-weight:500">${esc(s.respuesta||'—')}<br><small style="color:var(--muted)">${esc(s.resuelto_por||'')} · ${fmtD(s.resuelto_at)}</small></b></div>`:''}</div>
+   ${s.estado==='pendiente'?`<button class="btn red full" onclick="cancelarSol('${s.id}')">Cancelar este pedido</button>`:''}</div>`;}
+async function cancelarSol(id){if(!confirm('¿Cancelar este pedido?'))return;const {data,error}=await sb.rpc('rrhh_app_cancelar',{p_id:id});if(error||!data.ok)return banner(ERR[(data||{}).error]||'No se pudo cancelar','err');await cargar();banner('Pedido cancelado');go('sol');}
+function tiposSol(){$('view').innerHTML=hd('Nuevo pedido','¿Qué necesitás?')+`<div class="wrap"><button class="back" onclick="go('sol')">← Mis pedidos</button><div class="tipos">${Object.entries(SOL_T).map(([k,v])=>`<div class="tipo" onclick="go('sol','nuevo:${k}')"><span class="e">${v[0]}</span>${v[1]}</div>`).join('')}</div></div>`;}
+function formSol(t){const T=SOL_T[t];const hoy=hoyAR();const D=(id,l,v)=>`<div><label class="lb" for="${id}">${l}</label><input class="in" type="date" id="${id}" value="${v||''}"></div>`;
+  let f='';if(t==='vacaciones')f=`<div class="g2">${D('fs_d','Desde',hoy)}${D('fs_h','Hasta',hoy)}</div><div id="fs_dias" class="note" style="margin-top:12px">1 día</div>`;
+  else if(t==='enfermedad')f=`<div class="g2">${D('fs_d','Desde',hoy)}${D('fs_h','Hasta (estimado)',hoy)}</div><p class="empty" style="text-align:left;padding:8px 0 0">Si tenés el certificado médico, adjuntalo abajo (o subilo después desde Docs).</p>`;
+  else if(t==='especial')f=`<label class="lb" for="fs_sub">Motivo</label><select class="in" id="fs_sub">${SUB_ESP.map(x=>`<option>${x}</option>`).join('')}</select><div class="g2">${D('fs_d','Desde',hoy)}${D('fs_h','Hasta',hoy)}</div>`;
+  else if(t==='permiso')f=`${D('fs_d','Día',hoy)}<div class="g2"><div><label class="lb" for="fs_hd">Desde</label><input class="in" type="time" id="fs_hd"></div><div><label class="lb" for="fs_hh">Hasta</label><input class="in" type="time" id="fs_hh"></div></div>`;
+  else if(t==='cambio_turno')f=`${D('fs_d','Día',hoy)}`;
+  else if(t==='adelanto')f=`<label class="lb" for="fs_m">Monto</label><input class="in" type="number" inputmode="numeric" id="fs_m" placeholder="$">`;
+  const det={vacaciones:'Comentario (opcional)',enfermedad:'Comentario (opcional)',especial:'Comentario (opcional)',permiso:'Motivo',cambio_turno:'¿A qué turno y por qué?',adelanto:'Motivo (opcional)',constancia:'¿Para qué la necesitás?',datos:'¿Qué dato cambió? (domicilio, teléfono, etc.)',consulta:'Tu consulta'}[t];
+  const adj=['enfermedad','especial','datos','consulta'].includes(t);
+  $('view').innerHTML=hd(T[0]+' '+T[1],'Nuevo pedido')+`<div class="wrap"><button class="back" onclick="go('sol','nuevo')">← Elegir otro tipo</button><div class="card">${f}
+   <label class="lb" for="fs_det">${det}</label><textarea class="in" id="fs_det"></textarea>
+   ${adj?`<label class="lb" for="fs_file">Adjuntar foto o PDF (opcional)</label><input class="in" type="file" id="fs_file" accept="image/*,application/pdf">`:''}
+   <button class="btn gold full" id="fs_ok" onclick="enviarSol('${t}')">Enviar pedido</button></div></div>`;
+  if(t==='vacaciones'){const u=()=>{const a=$('fs_d').value,b=$('fs_h').value;if(a&&b&&b>=a){const n=Math.round((new Date(b)-new Date(a))/864e5)+1;$('fs_dias').textContent=n+' día'+(n>1?'s':'')+' corridos';}else $('fs_dias').textContent='Revisá las fechas';};$('fs_d').onchange=()=>{if($('fs_h').value<$('fs_d').value)$('fs_h').value=$('fs_d').value;u();};$('fs_h').onchange=u;}}
+async function subirArchivo(file,pref){if(file.size>10*1024*1024)throw new Error('El archivo supera los 10 MB');let blob=file,nombre=file.name,tipo=file.type;
+  if(/^image\//.test(tipo)&&!/gif/.test(tipo)){try{blob=await achicar(file);tipo='image/jpeg';nombre=nombre.replace(/\.[^.]+$/,'')+'.jpg';}catch(e){blob=file;}}
+  const safe=nombre.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_').slice(-70);const path=`${Y.empresa.id}/${Y.emp.id}/${pref}_${Date.now()}_${safe}`;
+  const {error}=await sb.storage.from(BUCKET).upload(path,blob,{contentType:tipo||undefined,upsert:false});if(error)throw error;return {path,nombre,tipo,tam:blob.size};}
+function achicar(file){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const m=1600,k=Math.min(1,m/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>b?res(b):rej(),'image/jpeg',.82);URL.revokeObjectURL(img.src);};img.onerror=rej;img.src=URL.createObjectURL(file);});}
+async function enviarSol(t){const v=id=>$(id)?$(id).value.trim():'';const b=$('fs_ok');b.disabled=true;b.textContent='Enviando…';
+  try{let adj=null;const f=$('fs_file')&&$('fs_file').files[0];if(f)adj=await subirArchivo(f,'sol');
+    const {data,error}=await sb.rpc('rrhh_app_solicitar',{p_tipo:t,p_subtipo:v('fs_sub')||null,p_desde:v('fs_d')||null,p_hasta:v('fs_h')||null,p_hora_desde:v('fs_hd')||null,p_hora_hasta:v('fs_hh')||null,p_monto:v('fs_m')?+v('fs_m'):null,p_detalle:v('fs_det')||null,p_adjunto_path:adj?adj.path:null,p_adjunto_nombre:adj?adj.nombre:null});
+    if(error)throw error;if(!data.ok){b.disabled=false;b.textContent='Enviar pedido';return banner(ERR[data.error]||data.error,'warn');}
+    sb.functions.invoke('rrhh',{body:{action:'notificar',solicitud_id:data.id}}).catch(()=>{});
+    await cargar();resultado(true,'¡Pedido enviado!','RRHH ya lo recibió. Te avisamos acá cuando lo respondan.');}
+  catch(e){b.disabled=false;b.textContent='Enviar pedido';banner('No se pudo enviar: '+(e.message||e),'err');}}
+
+// ══════════════ DOCUMENTOS ══════════════
+function docTag(d){if(!d.vence)return '';const n=Math.round((new Date(d10(d.vence))-new Date(hoyAR()))/864e5);return n<0?'<span class="tag t-out">Vencido</span>':n<=30?`<span class="tag t-warn">Vence en ${n} d</span>`:'<span class="tag t-ok">Vigente</span>';}
+function vDocs(){if(sub==='subir')return formDoc();const L=Y.documentos||[];
+  $('view').innerHTML=hd('Mis documentos','Certificados, carnets y constancias')+`<div class="wrap"><button class="btn gold full" style="margin:0 0 12px" onclick="go('docs','subir')">＋ Subir certificado o documento</button>
+   <div class="card">${L.map(d=>`<div class="li" ${d.archivo_path?`onclick="verDoc('${esc(d.archivo_path)}')"`:''}><div><div class="t">${d.archivo_path?'📄':'🗂️'} ${esc(d.tipo)}</div><div class="s">${d.descripcion?esc(d.descripcion)+' · ':''}${d.vence?'vence '+fmtD(d.vence):'cargado '+fmtD(d.created_at)}</div></div>${docTag(d)}</div>`).join('')||'<div class="empty">Todavía no hay documentos en tu legajo.</div>'}</div></div>`;}
+async function verDoc(path){const w=window.open('','_blank');try{const {data,error}=await sb.storage.from(BUCKET).createSignedUrl(path,300);if(error)throw error;if(w)w.location.href=data.signedUrl;else location.href=data.signedUrl;}catch(e){if(w)w.close();banner('No se pudo abrir el archivo','err');}}
+function formDoc(){const tipos=[...new Set(['Certificado médico',...(Y.tiposDoc||[]).map(t=>t.n)])];
+  $('view').innerHTML=hd('Subir documento','Le llega a RRHH y queda en tu legajo')+`<div class="wrap"><button class="back" onclick="go('docs')">← Mis documentos</button><div class="card">
+   <label class="lb" for="fd_t">¿Qué es?</label><select class="in" id="fd_t">${tipos.map(t=>`<option>${esc(t)}</option>`).join('')}</select>
+   <label class="lb" for="fd_d">Descripción (opcional)</label><input class="in" id="fd_d" placeholder="Ej.: reposo 48 h">
+   <label class="lb" for="fd_v">Vence (si tiene vencimiento)</label><input class="in" type="date" id="fd_v">
+   <label class="lb" for="fd_f">Foto o PDF</label><input class="in" type="file" id="fd_f" accept="image/*,application/pdf">
+   <button class="btn gold full" id="fd_ok" onclick="subirDoc()">Subir</button></div></div>`;}
+async function subirDoc(){const f=$('fd_f').files[0];if(!f)return banner('Elegí la foto o el PDF','warn');const b=$('fd_ok');b.disabled=true;b.textContent='Subiendo…';
+  try{const a=await subirArchivo(f,'doc');const {data,error}=await sb.rpc('rrhh_app_documento',{p_tipo:$('fd_t').value,p_descripcion:$('fd_d').value.trim()||null,p_vence:$('fd_v').value||null,p_path:a.path,p_nombre:a.nombre,p_mime:a.tipo,p_tamano:a.tam});
+    if(error)throw error;if(!data.ok)throw new Error(ERR[data.error]||data.error);await cargar();resultado(true,'¡Documento subido!','Ya está en tu legajo y RRHH lo puede ver.');}
+  catch(e){b.disabled=false;b.textContent='Subir';banner('No se pudo subir: '+(e.message||e),'err');}}
+
+// ══════════════ PERFIL ══════════════
+function antig(f){if(!f)return '';const a=new Date(d10(f)),b=new Date(hoyAR());let m=(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth();if(b.getDate()<a.getDate())m--;const y=Math.floor(m/12),mm=m%12;return y?y+' año'+(y>1?'s':'')+(mm?' y '+mm+' mes'+(mm>1?'es':''):''):mm+' mes'+(mm!==1?'es':'');}
+function vPerfil(){if(sub==='pin')return formPin();const e=Y.emp,r=(l,v)=>v?`<div class="r"><span>${l}</span><b>${esc(v)}</b></div>`:'';
+  $('view').innerHTML=hd(esc(e.nombre+' '+(e.apellido||'')),esc([e.puesto,e.sector].filter(Boolean).join(' · ')))+`<div class="wrap">
+   <div class="card dl">${r('Legajo',e.legajo)}${r('DNI',e.dni)}${r('CUIL',e.cuil)}${r('Ingreso',e.fecha_ingreso?fmtD(e.fecha_ingreso)+' ('+antig(e.fecha_ingreso)+')':'')}${r('Turno',e.turno)}${r('Jornada',e.jornada)}${r('Modalidad',e.modalidad)}</div>
+   <div class="card dl">${r('Teléfono',e.telefono)}${r('Email',e.email)}${r('Domicilio',[e.domicilio,e.localidad].filter(Boolean).join(', '))}${r('Emergencia',e.emergencia)}</div>
+   <button class="btn full" onclick="go('sol','nuevo:datos')">✏️ ¿Algo cambió? Avisá a RRHH</button>
+   <button class="btn full" onclick="go('perfil','pin')">🔑 Cambiar mi PIN</button>
+   ${instalable(true)}
+   <button class="btn red full" onclick="salir()">Cerrar sesión</button>
+   <p class="empty">Mi RRHH · ${esc(Y.empresa.nombre||'')} · CONTROL MAX · ${BUILD}</p></div>`;}
+function formPin(){$('view').innerHTML=hd('Cambiar mi PIN','Sirve para la app y para la tablet')+`<div class="wrap"><button class="back" onclick="go('perfil')">← Perfil</button><div class="card">
+   <label class="lb" for="np1">PIN nuevo (6 números)</label><input class="in" id="np1" type="password" inputmode="numeric" maxlength="6">
+   <label class="lb" for="np2">Repetilo</label><input class="in" id="np2" type="password" inputmode="numeric" maxlength="6">
+   <p class="empty" style="text-align:left;padding:10px 0 0">No uses tu fecha de nacimiento ni números seguidos como 123456. No se lo pases a nadie.</p>
+   <button class="btn gold full" id="np_ok" onclick="cambiarPin()">Guardar PIN</button></div></div>`;}
+async function cambiarPin(){const a=$('np1').value,b=$('np2').value;if(!/^\d{6}$/.test(a))return banner('El PIN tiene que tener 6 números','warn');if(a!==b)return banner('Los PIN no coinciden','warn');if(/^(\d)\1{5}$/.test(a)||'0123456789'.includes(a)||'9876543210'.includes(a))return banner('Elegí un PIN menos fácil de adivinar','warn');
+  const bt=$('np_ok');bt.disabled=true;try{const {error}=await sb.auth.updateUser({password:a});if(error)throw error;const r=await sb.rpc('rrhh_app_set_pin',{p_pin:a});if(r.error)throw r.error;banner('PIN actualizado ✓');go('perfil');}catch(e){bt.disabled=false;banner('No se pudo cambiar: '+(e.message||e),'err');}}
+
+// ══════════════ INSTALAR (PWA) ══════════════
+let _bip=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();_bip=e;if(cur==='inicio'&&Y)vInicio();});
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+function instalable(siempre){if(standalone())return '';const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);if(!siempre&&ls('rrhh_inst_no'))return '';
+  if(_bip)return `<div class="inst">📲 <div style="flex:1">Instalá la app en tu celular</div><button class="btn gold" onclick="instalar()">Instalar</button></div>`;
+  return `<div class="inst">📲 <div style="flex:1">Para tenerla como app: ${ios?'tocá <b>Compartir</b> ⬆️ y después <b>Agregar a inicio</b>':'abrí el menú ⋮ del navegador y tocá <b>Agregar a pantalla de inicio</b>'}.</div>${siempre?'':`<button class="btn" onclick="ls('rrhh_inst_no','1');vInicio()">✕</button>`}</div>`;}
+async function instalar(){if(!_bip)return;_bip.prompt();try{await _bip.userChoice;}catch(e){}_bip=null;vInicio();}
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+
+// ══════════════ INICIO ══════════════
+function online(){$('offBar').classList.toggle('hide',navigator.onLine);}
+window.addEventListener('online',online);window.addEventListener('offline',online);
+document.addEventListener('visibilitychange',async()=>{if(document.hidden||!Y||$('cam').classList.contains('show')||$('res').classList.contains('show'))return;try{await cargar();if(!sub)go(cur);}catch(e){}});
+window.addEventListener('hashchange',()=>{const c=codigoQR(location.hash);if(c&&Y){history.replaceState(null,'',location.pathname+location.search);fichar(c);}});
+(async()=>{codEmp();online();const {data:{session}}=await sb.auth.getSession();if(session&&session.user)await arrancar();else verLogin();})().catch(()=>verLogin());
+</script>
+</body>
+</html>

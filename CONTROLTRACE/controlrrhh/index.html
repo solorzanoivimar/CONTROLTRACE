@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CONTROL MAX — Control RRHH</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111D35'/%3E%3Ctext x='32' y='46' font-family='Segoe UI,Arial,sans-serif' font-size='40' font-weight='800' text-anchor='middle' fill='%23C9A84C'%3ER%3C/text%3E%3C/svg%3E">
-<!-- CONTROL RRHH · build v1 · Requiere rrhh_etapa1_setup.sql -->
+<!-- CONTROL RRHH · build v2 · Requiere rrhh_etapa1_setup.sql y rrhh_etapa2_setup.sql (+ función Edge rrhh para la app y los mails) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#111D35;--navy2:#1B2A4A;--gold:#C9A84C;--gold-d:#A9842F;--cream:#F5F2EA;--ink:#1C2536;--muted:#6B7689;--line:#E7E2D6;--sage:#4F7D6A;--sage-bg:#E9F1EC;--clay:#B5654A;--clay-bg:#F6EBE6;--amber:#86571A;--amber-bg:#FAF3E2;--steel:#3D5A80;
@@ -78,7 +78,7 @@ td.gx-sel{width:34px;text-align:center}td.gx-sel input{width:18px;height:18px;cu
 tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{background:#fdf3d9!important}
 .tscroll{overflow-x:auto}
 /* PANEL */
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin-bottom:16px}
 .kpi{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px 16px;cursor:default}
 .kpi.ck{cursor:pointer}.kpi.ck:hover{box-shadow:0 6px 18px rgba(17,29,53,.08)}
 .kpi small{display:block;color:var(--muted);font-size:12px}
@@ -138,6 +138,31 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
 @keyframes s{to{transform:rotate(360deg)}}
 .fut{max-width:640px}
 .fut .big{font-size:44px}
+/* ETAPA 2 */
+.urlbox{background:#f7f3ea;border:1px solid var(--line);border-radius:9px;padding:8px 10px;word-break:break-all}
+.cred{display:flex;gap:30px;background:var(--navy);color:#fff;border-radius:12px;padding:16px 20px;margin:12px 0}
+.cred .l{font-size:11px;color:#9fb0c8;text-transform:uppercase;letter-spacing:.1em}.cred b{font-size:22px}.cred .pin{color:var(--gold);letter-spacing:6px;font-size:30px}
+#kiosk{display:none;position:fixed;inset:0;z-index:98;background:var(--navy);color:#fff;flex-direction:column;user-select:none}
+#kiosk.show{display:flex}
+.k-top{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.k-br{font-weight:900;font-size:20px;color:#fff;letter-spacing:1px}.k-br b{color:var(--gold)}.k-br span{display:block;font-size:13px;font-weight:500;color:#9fb0c8;letter-spacing:0}
+.k-clk{margin-left:auto;text-align:right}.k-clk b{display:block;font-size:40px;line-height:1}.k-clk span{font-size:13px;color:#9fb0c8}
+.k-x{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#cdd6e4;border-radius:10px;width:42px;height:42px;font-size:18px;cursor:pointer}
+.k-body{flex:1;display:grid;grid-template-columns:1.1fr 1fr;gap:22px;padding:22px;min-height:0}
+.k-card{background:#fff;color:var(--ink);border-radius:20px;padding:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:0}
+.k-t{font-size:22px;font-weight:800;color:var(--navy)}
+.k-qr{background:#fff;padding:10px;border-radius:12px;border:4px solid var(--gold);line-height:0}
+.k-bar{width:70%;height:6px;background:#eee8d9;border-radius:6px;overflow:hidden}.k-bar i{display:block;height:100%;width:100%;background:var(--gold)}
+.k-s{font-size:16px;color:var(--muted);text-align:center;line-height:1.45}.k-net{color:var(--clay);font-weight:700;min-height:20px}
+.k-hint{font-size:16px;color:var(--muted)}
+.k-disp{font-size:40px;font-weight:800;letter-spacing:6px;color:var(--navy);min-height:52px;font-variant-numeric:tabular-nums}
+.k-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:360px}
+.k-keys button{font-size:30px;font-weight:700;padding:14px 0;border-radius:14px;border:1px solid var(--line);background:#f7f4ec;color:var(--navy);cursor:pointer}
+.k-keys button:active{background:#efe6cf}.k-keys .k-ok{background:var(--gold);color:#3a2c08;border-color:var(--gold)}.k-keys .k-sec{color:var(--muted)}
+.k-res{display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:30px}
+.k-res.show{display:flex}.k-res.ok{background:rgba(17,29,53,.97)}.k-res.err{background:rgba(120,40,28,.96)}
+.k-ic{font-size:90px}.k-rt{font-size:44px;font-weight:900;color:#fff}.k-rh{font-size:26px;color:var(--gold);font-weight:800}.k-rs{font-size:22px;color:#dfe6ee;max-width:900px;line-height:1.4}
+@media(max-width:820px){.k-body{grid-template-columns:1fr;overflow:auto}.k-clk b{font-size:28px}}
 @media(max-width:860px){.g2{grid-template-columns:1fr}.dl{grid-template-columns:1fr 1fr}.fg{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){
   .layout{flex-direction:column}
@@ -175,6 +200,7 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
  </div>
 </div>
 
+<div id="kiosk"></div>
 <div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
 <div class="banner" id="banner"></div>
 
@@ -186,14 +212,14 @@ tr.gx-r{cursor:pointer}tr.gx-r:hover td{background:#fbf9f4}tr.gx-on td{backgroun
 // novedades → CONTROL TOTAL · Auditoría) y vínculo con los operarios
 // de TRACE (tabla operarios, no se modifica su estructura).
 // ══════════════════════════════════════════════════════════════
-const BUILD='build v1 · v1: Etapa 1 — legajos, documentos con vencimiento (archivo en Supabase Storage), historial laboral, baja / reingreso / cambio de puesto / sanciones con PIN (Auditoría en TOTAL), vínculo e importación de operarios de TRACE, accesos por usuario, listas configurables, Excel e impresión de ficha';
+const BUILD='build v2 · v2: Etapa 2 — Asistencia (parte diario, resumen del mes, fichadas manuales y anulaciones con PIN, puntos de fichaje con QR que cambia cada 30 s), modo tablet (QR + DNI y PIN), Solicitudes (bandeja, aprobar/rechazar con PIN, aviso por mail), app del empleado y PIN desde la ficha, horarios por turno, avisos por mail, rol Jefe de RRHH y acceso Tablet · v1: Etapa 1 — legajos, documentos con vencimiento (archivo en Supabase Storage), historial laboral, baja / reingreso / cambio de puesto / sanciones con PIN (Auditoría en TOTAL), vínculo e importación de operarios de TRACE, accesos por usuario, listas configurables, Excel e impresión de ficha';
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlmax-auth',persistSession:true,autoRefreshToken:true}});
 const BUCKET='rrhh-docs';
 const MAX_MB=10;
 
-const ROL_LABEL={admin:'Administrador',administrador:'Administrador',dueno:'Dueño','dueño':'Dueño',supervisor:'Supervisor',comercial:'Comercial',preparador:'Preparador',chofer:'Chofer'};
+const ROL_LABEL={admin:'Administrador',administrador:'Administrador',dueno:'Dueño','dueño':'Dueño',supervisor:'Supervisor',comercial:'Comercial',preparador:'Preparador',chofer:'Chofer',rrhh:'Jefe de RRHH'};
 const ADMINS=['admin','administrador','dueno','dueño'];
 const AREAS_OP=['recepción','producción','despacho','general'];          // mismas áreas que Configuración → Operarios
 const AREA2SECTOR={'recepción':'Recepción','producción':'Producción / Envasado','despacho':'Despacho','general':''};
@@ -207,14 +233,16 @@ const DEF_L={
   modalidades:['Efectivo (tiempo indeterminado)','Período de prueba','De temporada','Eventual','Plazo fijo','Agencia / tercerizado','Pasantía'],
   turnos:['Mañana','Tarde','Noche','Rotativo','Cortado'],
   tiposDoc:[{n:'DNI',v:false},{n:'Constancia de CUIL',v:false},{n:'Alta temprana (ARCA)',v:false},{n:'Contrato de trabajo',v:false},{n:'Apto médico preocupacional',v:false},{n:'Libreta sanitaria / carnet de manipulador',v:true},{n:'Carnet de conducir',v:true},{n:'Carnet de autoelevador',v:true},{n:'Certificado de estudios',v:false},{n:'Constancia de CBU',v:false},{n:'Certificado médico',v:false},{n:'Otro',v:false}],
-  avisoDias:30
+  avisoDias:30,
+  horarios:{'Mañana':{ini:'06:00',fin:'14:00'},'Tarde':{ini:'14:00',fin:'22:00'},'Noche':{ini:'22:00',fin:'06:00'}},
+  tolerancia:10,
+  diasLab:[1,2,3,4,5,6],
+  notif:{activo:true,emails:[]}
 };
 const MOTIVOS_BAJA=['Renuncia','Despido sin causa','Despido con causa','Fin de contrato / temporada','Mutuo acuerdo','Período de prueba no superado','Jubilación','Abandono de trabajo','Otro'];
 const NOV_TIPOS=[['reconocimiento','🏅 Reconocimiento',false],['nota','📝 Nota / observación',false],['llamado','⚠️ Llamado de atención',true],['apercibimiento','📄 Apercibimiento',true],['suspension','⛔ Suspensión',true]];
-const HIST_L={alta:'Alta',reingreso:'Reingreso',baja:'Baja',cambio_puesto:'Cambio de puesto / condiciones',reconocimiento:'Reconocimiento',nota:'Nota',llamado:'Llamado de atención',apercibimiento:'Apercibimiento',suspension:'Suspensión',vinculo_operario:'Vínculo con TRACE',documento:'Documento',anular_documento:'Documento anulado',edicion:'Datos actualizados'};
+const HIST_L={alta:'Alta',reingreso:'Reingreso',baja:'Baja',cambio_puesto:'Cambio de puesto / condiciones',reconocimiento:'Reconocimiento',nota:'Nota',llamado:'Llamado de atención',apercibimiento:'Apercibimiento',suspension:'Suspensión',vinculo_operario:'Vínculo con TRACE',documento:'Documento',anular_documento:'Documento anulado',edicion:'Datos actualizados',licencia:'Licencia / vacaciones aprobada',app:'App del empleado y PIN'};
 const FUT={
-  'f:asis':['🕒','Asistencia',2,'Fichaje desde la app con el QR del galpón o en la tablet con DNI + PIN, turnos, tardanzas, ausencias y horas extra, parte diario automático.'],
-  'f:sol':['📨','Solicitudes',2,'Licencias, permisos, adelantos y consultas desde la app del empleado, con aviso por mail a la empresa y al Jefe de RRHH y aprobación con PIN.'],
   'f:vac':['🏖️','Vacaciones y licencias',3,'Saldo calculado según la antigüedad del legajo, calendario por sector y aviso cuando se pisan ausencias.'],
   'f:pres':['💳','Préstamos y adelantos',3,'Plan de cuotas, cuenta corriente por empleado y desembolso desde Caja o Banco de CONTROL PLUS.'],
   'f:bib':['📚','Biblioteca e inducción',4,'Manuales, procedimientos, descripción de puestos, convenios colectivos (solo empresa) e inducción del empleado nuevo con “leí y entendí”.'],
@@ -223,11 +251,11 @@ const FUT={
   'f:asist':['💬','Asistente FMN',6,'Mensajes de buenos días, cumpleaños, bienvenidas y reconocimientos; primero con reglas y después con IA.'],
   'f:liq':['🧮','Pre-liquidación',7,'Novedades del mes (días, extras, ausencias, licencias, adelantos y cuotas) listas para el estudio contable.']
 };
-const NAV=[['g','Personal'],['panel','🏠','Panel'],['legajos','👤','Legajos'],['docs','📎','Documentos'],['g','Próximas etapas'],...Object.keys(FUT).map(k=>[k]),['g','Ajustes'],['config','⚙️','Configuración RRHH']];
-const META={panel:['PERSONAL','Panel de RRHH'],legajos:['PERSONAL','Legajos'],ficha:['PERSONAL · LEGAJO','Ficha del empleado'],docs:['PERSONAL','Documentos y vencimientos'],config:['AJUSTES','Configuración RRHH']};
+const NAV=[['g','Personal'],['panel','🏠','Panel'],['legajos','👤','Legajos'],['docs','📎','Documentos'],['asis','🕒','Asistencia'],['sol','📨','Solicitudes'],['g','Próximas etapas'],...Object.keys(FUT).map(k=>[k]),['g','Ajustes'],['config','⚙️','Configuración RRHH']];
+const META={panel:['PERSONAL','Panel de RRHH'],legajos:['PERSONAL','Legajos'],ficha:['PERSONAL · LEGAJO','Ficha del empleado'],docs:['PERSONAL','Documentos y vencimientos'],config:['AJUSTES','Configuración RRHH'],asis:['PERSONAL','Asistencia'],sol:['PERSONAL','Solicitudes'],kiosco:['ASISTENCIA','Modo tablet']};
 
-const S={uid:null,empresaId:null,rol:'',nombre:'',empresa:{},nivel:'consulta',cfgRow:null,L:null,accesos:{},emps:[],docs:[],hist:[],ops:[],opsOk:true,fichaId:null};
-const F={q:'',sector:'',estado:'activos',mod:'',fTab:'datos',dEst:'alerta',dTipo:'',dQ:'',cTab:'listas'};
+const S={uid:null,empresaId:null,rol:'',nombre:'',empresa:{},nivel:'consulta',cfgRow:null,L:null,accesos:{},emps:[],docs:[],hist:[],ops:[],opsOk:true,fichaId:null,fich:[],fIdx:{},fichDesde:null,sol:[],puntos:[],pines:{},e2ok:true};
+const F={q:'',sector:'',estado:'activos',mod:'',fTab:'datos',dEst:'alerta',dTipo:'',dQ:'',cTab:'listas',aTab:'parte',aFecha:null,aSec:'',aEst:'',aQ:'',aMes:null,sEst:null,sTipo:'',sQ:''};
 let cur='panel';
 
 // ══════════════ UTILIDADES ══════════════
@@ -244,6 +272,7 @@ function banner(t,k){const b=$('banner');b.textContent=t;b.className='banner sho
 function modal(html,wide){const m=$('modal');m.className='modal'+(wide?' wide':'');m.innerHTML=html;$('modalBg').classList.add('show');setTimeout(()=>{const f=m.querySelector('input:not([type=hidden]):not([type=checkbox]):not([disabled]):not([readonly]),select:not([disabled]),textarea');if(f)f.focus();},40);}
 function closeModal(){$('modalBg').classList.remove('show');}
 function errMsg(e){const m=(e&&(e.message||e.details||e.error_description))||String(e||'');
+  if(/rrhh_(fichadas|solicitudes|puntos|pines|qr_|fichar|set_pin|app_|puntos_kiosco|pines_estado)|app_uid/.test(m)&&/does not exist|PGRST20[25]|Could not find/i.test(m))return 'Falta correr rrhh_etapa2_setup.sql en Supabase → SQL Editor ('+m+')';
   if(/rrhh_|relation .* does not exist|PGRST205|PGRST202|Could not find the (table|function)/i.test(m)&&!/row-level|duplicate/i.test(m))return 'Falta correr rrhh_etapa1_setup.sql en Supabase → SQL Editor ('+m+')';
   if(/Bucket not found/i.test(m))return 'Falta el bucket de archivos: corré rrhh_etapa1_setup.sql en Supabase ('+m+')';
   if(/row-level security|permission denied/i.test(m))return 'Tu usuario no tiene permiso para esta operación en RRHH ('+m+')';
@@ -252,6 +281,7 @@ function errMsg(e){const m=(e&&(e.message||e.details||e.error_description))||Str
   if(/rrhh_empleados_oper_uq/.test(m))return 'Ese operario de TRACE ya está vinculado a otro legajo';
   return m;}
 function esAdmin(){return ADMINS.includes(S.rol);}
+function esJefe(){return esAdmin()||S.rol==='rrhh';}
 function gestiona(){return S.nivel==='admin'||S.nivel==='gestion';}
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
@@ -283,7 +313,7 @@ async function loadEmps(){S.emps=await sbAll(()=>sb.from('rrhh_empleados').selec
 async function loadDocs(){S.docs=await sbAll(()=>sb.from('rrhh_documentos').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false}));}
 async function loadHist(){S.hist=await sbAll(()=>sb.from('rrhh_historial').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false}));}
 async function loadOps(){const {data,error}=await sb.from('operarios').select('id,nombre,area,activo').eq('empresa_id',S.empresaId).order('nombre');S.opsOk=!error;S.ops=error?[]:(data||[]);}
-async function loadAll(){await loadCfg();await Promise.all([loadEmps(),loadDocs(),loadHist(),loadOps()]);}
+async function loadAll(){await loadCfg();await Promise.all([loadEmps(),loadDocs(),loadHist(),loadOps(),loadFich(S.fichDesde||undefined),loadSol(),loadPuntos(),loadPines()]);}
 
 // ══════════════ REGLAS DEL LEGAJO ══════════════
 const emp=id=>S.emps.find(e=>e.id===id);
@@ -331,12 +361,12 @@ function pinModal(o){
 function buildNav(){const al=docsAlerta().length;
   $('nav').innerHTML=NAV.map(n=>{if(n[0]==='g')return `<div class="gl">${n[1]}</div>`;
     if(FUT[n[0]]){const f=FUT[n[0]];return `<button class="nb fut${cur===n[0]?' on':''}" onclick="go('${n[0]}')"><span class="ico">${f[0]}</span>${f[1]}<span class="et">E${f[2]}</span></button>`;}
-    const on=cur===n[0]||(n[0]==='legajos'&&cur==='ficha');const cnt=n[0]==='docs'&&al?`<span class="cnt">${al}</span>`:'';
+    const on=cur===n[0]||(n[0]==='legajos'&&cur==='ficha')||(n[0]==='asis'&&cur==='kiosco');const sp=solPend().length;const cnt=n[0]==='docs'&&al?`<span class="cnt">${al}</span>`:(n[0]==='sol'&&sp?`<span class="cnt">${sp}</span>`:'');
     return `<button class="nb${on?' on':''}" onclick="go('${n[0]}')"><span class="ico">${n[1]}</span>${n[2]}${cnt}</button>`;}).join('');}
-function go(v,arg){if(!META[v]&&!FUT[v])v='panel';if(v==='config'&&!gestiona()&&!esAdmin())v='panel';cur=v;if(v==='ficha'){if(arg)S.fichaId=arg;if(!emp(S.fichaId)){cur=v='legajos';}}
+function go(v,arg){if(!META[v]&&!FUT[v])v='panel';if(S.nivel==='kiosco')v='kiosco';if(v==='config'&&!gestiona()&&!esJefe())v='panel';if(v==='kiosco'&&S.nivel==='consulta')v='asis';cur=v;if(v==='ficha'){if(arg)S.fichaId=arg;if(!emp(S.fichaId)){cur=v='legajos';}}
   document.body.classList.remove('nav-open');buildNav();const m=META[v]||['PRÓXIMAS ETAPAS',FUT[v][1]];$('crumb').textContent=m[0];$('title').textContent=v==='ficha'?nomCorto(emp(S.fichaId)):m[1];
   render();window.scrollTo(0,0);try{history.replaceState(null,'','#'+v+(v==='ficha'?'='+S.fichaId:''));}catch(e){}}
-function render(){const V={panel:viewPanel,legajos:viewLegajos,ficha:viewFicha,docs:viewDocs,config:viewConfig}[cur];if(V)V();else viewFut();}
+function render(){const V={panel:viewPanel,legajos:viewLegajos,ficha:viewFicha,docs:viewDocs,config:viewConfig,asis:viewAsis,sol:viewSol,kiosco:viewKiosco}[cur];if(V)V();else viewFut();}
 async function refreshNow(){const b=$('btnRefresh');b.textContent='⏳ Actualizando…';try{await loadAll();go(cur,S.fichaId);banner('Datos actualizados ✓');}catch(e){banner('Error: '+errMsg(e),'err');}b.textContent='🔄 Actualizar';}
 
 // ══════════════ PANEL ══════════════
@@ -349,7 +379,7 @@ function viewPanel(){
   const inc=act.filter(e=>faltan(e).length);const sinLeg=S.opsOk?opsSinLegajo():[];
   const cumple=proximos('fecha_nacimiento',30,0),aniv=proximos('fecha_ingreso',30,1);
   const porSec={};act.forEach(e=>{const k=e.sector||'Sin sector';porSec[k]=(porSec[k]||0)+1;});const secs=Object.entries(porSec).sort((a,b)=>b[1]-a[1]);const mx=Math.max(1,...secs.map(s=>s[1]));
-  const hola=(S.nombre||'').split(/\s+/)[0];
+  const hola=(S.nombre||'').split(/\s+/)[0];const hoyP=S.e2ok!==false?filaParte(today()):[];const pend=solPend().filter(x=>emp(x.empleado_id));
   $('view').innerHTML=(S.emps.length?'':`<div class="card" style="border-left:6px solid var(--gold)"><h3 style="margin:0 0 6px;color:var(--navy)">👋 ¡Hola${hola?' '+esc(hola):''}! Arranquemos con los legajos</h3><p class="hint">Todavía no hay empleados cargados. ${sinLeg.length?`Hay <b>${sinLeg.length} operarios</b> en el padrón de TRACE: podés importarlos de una vez y después completar sus datos.`:'Cargá el primer legajo.'}</p><div class="seg">${gestiona()&&sinLeg.length?'<button class="btn btn-gold" onclick="importarOps()">⤵️ Importar operarios de TRACE</button>':''}${gestiona()?'<button class="btn btn-ghost" onclick="editEmp()">＋ Nuevo legajo</button>':''}</div></div>`)+
   `<div class="kpis">
     <div class="kpi ck" onclick="F.estado='activos';F.sector='';F.q='';go('legajos')"><small>Empleados activos</small><b>${nf(act.length)}</b><span>${nf(S.emps.length-act.length)} de baja</span></div>
@@ -357,7 +387,10 @@ function viewPanel(){
     <div class="kpi ck" onclick="F.dEst='alerta';go('docs')"><small>Documentos vencidos</small><b class="${vdos?'r':''}">${nf(vdos)}</b><span>de empleados activos</span></div>
     <div class="kpi ck" onclick="F.dEst='alerta';go('docs')"><small>Por vencer (${aviso()} días)</small><b class="${venc.length-vdos?'a':''}">${nf(venc.length-vdos)}</b><span>avisar para renovar</span></div>
     <div class="kpi ck" onclick="F.estado='incompletos';go('legajos')"><small>Legajos incompletos</small><b class="${inc.length?'a':''}">${nf(inc.length)}</b><span>les falta algún dato clave</span></div>
+    ${S.e2ok!==false?`<div class="kpi ck" onclick="F.aTab='parte';F.aFecha=today();go('asis')"><small>Presentes hoy</small><b>${nf(hoyP.filter(x=>['presente','tarde'].includes(x.i.est)).length)}<span style="font-size:14px;color:var(--muted)">/${nf(hoyP.filter(x=>x.i.est!=='franco').length)}</span></b><span>${nf(hoyP.filter(x=>x.i.est==='tarde').length)} tarde · ${nf(hoyP.filter(x=>x.i.est==='ausente').length)} ausentes</span></div>
+    <div class="kpi ck" onclick="F.sEst='pendiente';go('sol')"><small>Solicitudes pendientes</small><b class="${pend.length?'a':''}">${nf(pend.length)}</b><span>para responder</span></div>`:''}
    </div>
+   ${S.e2ok!==false&&pend.length?`<div class="card"><div class="card-h"><h3>📨 Solicitudes para responder</h3><button class="btn btn-ghost btn-sm" onclick="F.sEst='pendiente';go('sol')">Ver todas</button></div>${pend.slice(0,6).map(x=>`<div class="li" onclick="verSol('${x.id}')"><span><span class="who">${esc(nomE(emp(x.empleado_id)))}</span><br><span class="small muted">${(SOL_T[x.tipo]||['',''])[0]} ${esc((SOL_T[x.tipo]||['',x.tipo])[1])} · ${esc(resumenSol(x))}</span></span><span class="small muted">${fmtTs(x.created_at)}</span></div>`).join('')}</div>`:''}
    <div class="g2">
     <div class="card"><div class="card-h"><h3>⏰ Vencimientos</h3><button class="btn btn-ghost btn-sm" onclick="F.dEst='alerta';go('docs')">Ver todos</button></div>
      ${venc.slice(0,8).map(d=>{const e=emp(d.empleado_id);return `<div class="li" onclick="go('ficha','${e.id}')"><span><span class="who">${esc(nomE(e))}</span><br><span class="small muted">${esc(d.tipo)} · vence ${fmtD(d.vence)}</span></span>${docTag(d)}</div>`;}).join('')||'<div class="empty">Sin documentos vencidos ni por vencer 👍</div>'}</div>
@@ -418,18 +451,20 @@ function viewFicha(){
    <div class="card"><div class="fh"><div class="av">${esc(iniciales(e))}</div><div style="flex:1;min-width:220px">
      <div class="nm">${esc(nomCorto(e))}</div>
      <div class="sb">${esc(e.legajo||'')} · ${esc(e.puesto||'sin puesto')} · ${esc(e.sector||'sin sector')}${e.turno?' · Turno '+esc(e.turno):''}</div>
-     <div class="tg">${estadoTag(e)}${e.fecha_ingreso?`<span class="tag t-nav">${baja?'Trabajó ':''}${txtMeses(antigM(e))}${baja?'':' en la empresa'}</span>`:''}${e.modalidad?`<span class="tag t-gold">${esc(e.modalidad)}</span>`:''}${op?`<span class="tag t-nav" title="Operario de TRACE: ${esc(op.nombre)}">🔗 Operario TRACE${op.activo===false?' (inactivo)':''}</span>`:''}${!baja&&al.length?`<span class="tag ${al.some(d=>docEst(d)==='vencido')?'t-out':'t-warn'}">📎 ${al.length} doc. a renovar</span>`:''}</div>
+     <div class="tg">${estadoTag(e)}${e.fecha_ingreso?`<span class="tag t-nav">${baja?'Trabajó ':''}${txtMeses(antigM(e))}${baja?'':' en la empresa'}</span>`:''}${e.modalidad?`<span class="tag t-gold">${esc(e.modalidad)}</span>`:''}${op?`<span class="tag t-nav" title="Operario de TRACE: ${esc(op.nombre)}">🔗 Operario TRACE${op.activo===false?' (inactivo)':''}</span>`:''}${appTags(e)}${!baja&&al.length?`<span class="tag ${al.some(d=>docEst(d)==='vencido')?'t-out':'t-warn'}">📎 ${al.length} doc. a renovar</span>`:''}</div>
    </div></div>
    ${!baja&&fl.length?`<div class="note" style="margin:14px 0 0">Falta completar: <b>${esc(fl.join(', '))}</b>.${g?` <a href="#" onclick="editEmp('${e.id}');return false" style="color:inherit">Completar ahora</a>`:''}</div>`:''}
    <div class="acts">
     ${g?`<button class="btn btn-gold btn-sm" onclick="editEmp('${e.id}')">✏️ Editar datos</button>`:''}
-    ${g&&!baja?`<button class="btn btn-ghost btn-sm" onclick="cambioPuesto('${e.id}')">🔀 Cambio de puesto</button><button class="btn btn-ghost btn-sm" onclick="novedad('${e.id}')">📝 Registrar novedad</button><button class="btn btn-ghost btn-sm" onclick="upDoc('${e.id}')">📎 Subir documento</button>`:''}
+    ${g&&!baja?`<button class="btn btn-ghost btn-sm" onclick="cambioPuesto('${e.id}')">🔀 Cambio de puesto</button><button class="btn btn-ghost btn-sm" onclick="novedad('${e.id}')">📝 Registrar novedad</button><button class="btn btn-ghost btn-sm" onclick="upDoc('${e.id}')">📎 Subir documento</button><button class="btn btn-ghost btn-sm" onclick="appPin('${e.id}')">📱 App y PIN</button>${S.e2ok!==false?`<button class="btn btn-ghost btn-sm" onclick="cargarSol('${e.id}')">📨 Cargar solicitud</button>`:''}`:''}
     <button class="btn btn-ghost btn-sm" onclick="printFicha('${e.id}')">🖨️ Imprimir ficha</button>
     ${g?(baja?`<button class="btn btn-ghost btn-sm" onclick="reingreso('${e.id}')">↩️ Reingreso</button>`:`<button class="btn btn-danger btn-sm" onclick="darBaja('${e.id}')">⛔ Dar de baja</button>`):''}
    </div></div>
-   <div class="tabs">${[['datos','Datos'],['docs','Documentos ('+dd.filter(d=>d.estado!=='anulado').length+')'],['hist','Historial ('+hh.length+')']].map(([k,l])=>`<button class="${F.fTab===k?'on':''}" onclick="F.fTab='${k}';viewFicha()">${l}</button>`).join('')}</div>
+   <div class="tabs">${[['datos','Datos'],['docs','Documentos ('+dd.filter(d=>d.estado!=='anulado').length+')'],...(S.e2ok!==false?[['asis','Asistencia'],['sol','Solicitudes ('+filtSol(e.id).length+')']]:[]),['hist','Historial ('+hh.length+')']].map(([k,l])=>`<button class="${F.fTab===k?'on':''}" onclick="F.fTab='${k}';viewFicha()">${l}</button>`).join('')}</div>
    <div class="card" id="fBody"></div>`;
-  if(F.fTab==='docs'){$('fBody').innerHTML=`<div class="card-h"><h3>📎 Documentos del legajo</h3>${g&&!baja?`<button class="btn btn-gold btn-sm" onclick="upDoc('${e.id}')">＋ Subir documento</button>`:''}</div><div id="fdGrid"></div>`;drawDocsGrid('fdGrid','fdocs',dd.sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))),false);}
+  if(F.fTab==='asis'&&S.e2ok!==false){$('fBody').innerHTML=fichaAsis(e);}
+  else if(F.fTab==='sol'&&S.e2ok!==false){$('fBody').innerHTML=`<div class="card-h"><h3>📨 Solicitudes</h3>${g&&!baja?`<button class="btn btn-gold btn-sm" onclick="cargarSol('${e.id}')">＋ Cargar solicitud</button>`:''}</div><div id="fsGrid"></div>`;drawSolGrid('fsGrid','fsol',filtSol(e.id),false);}
+  else if(F.fTab==='docs'){$('fBody').innerHTML=`<div class="card-h"><h3>📎 Documentos del legajo</h3>${g&&!baja?`<button class="btn btn-gold btn-sm" onclick="upDoc('${e.id}')">＋ Subir documento</button>`:''}</div><div id="fdGrid"></div>`;drawDocsGrid('fdGrid','fdocs',dd.sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))),false);}
   else if(F.fTab==='hist'){$('fBody').innerHTML=`<div class="card-h"><h3>🕓 Historial laboral</h3>${g&&!baja?`<button class="btn btn-ghost btn-sm" onclick="novedad('${e.id}')">＋ Registrar novedad</button>`:''}</div>`+(hh.length?`<div class="tl">${hh.map(h=>{const c={baja:'b',llamado:'s',apercibimiento:'s',suspension:'s',reconocimiento:'r',alta:'r',reingreso:'r'}[h.tipo]||'';
       return `<div class="ev ${c}"><div class="h">${fmtD(h.fecha)} · registró ${esc(h.registrado_por||'—')}${h.autorizado_por?' · 🔒 autorizó '+esc(h.autorizado_por):''}</div><div class="t">${esc(HIST_L[h.tipo]||h.tipo)}</div>${h.detalle?`<div class="d">${esc(h.detalle)}</div>`:''}${histCambio(h)}</div>`;}).join('')}</div>`:'<div class="empty">Sin movimientos registrados</div>');}
   else{$('fBody').innerHTML=`<div class="sect">Datos personales</div><div class="dl">
@@ -546,6 +581,7 @@ function darBaja(id){const e=emp(id),op=opDe(e);
      const {error}=await sb.from('rrhh_empleados').update({estado:'baja',fecha_egreso:f,motivo_egreso:m}).eq('id',e.id).eq('empresa_id',S.empresaId);if(error)throw error;
      await addHist(e.id,'baja',m+(det?' · '+det:''),null,null,a,f);
      if(desOp){const {error:eo}=await sb.from('operarios').update({activo:false}).eq('id',op.id);if(eo)banner('Baja registrada, pero no se pudo desactivar el operario en TRACE: '+errMsg(eo),'warn');}
+     if(appActiva(e)&&!(await doQuitarApp(e.id,true)))setTimeout(()=>banner('Baja registrada. No se pudo quitar el acceso a la app: hacelo desde 📱 App y PIN','warn'),3200);
      await Promise.all([loadEmps(),loadHist(),loadOps()]);banner('Baja registrada ✓');go('ficha',e.id);}});
 }
 function reingreso(id){const e=emp(id),op=opDe(e);
@@ -647,9 +683,11 @@ function drawDocs(){drawDocsGrid('docGrid','docs',filtDocs(),true);}
 
 // ══════════════ CONFIGURACIÓN RRHH ══════════════
 const LISTAS=[['sectores','Sectores'],['puestos','Puestos'],['categorias','Categorías (si queda vacía, se escribe a mano)'],['convenios','Convenios colectivos'],['modalidades','Modalidades de contratación'],['turnos','Turnos']];
-function viewConfig(){const ad=esAdmin();if(F.cTab==='accesos'&&!ad)F.cTab='listas';
-  $('view').innerHTML=`<div class="tabs">${[['listas','📋 Listas'],...(ad?[['accesos','🔐 Accesos']]:[])].map(([k,l])=>`<button class="${F.cTab===k?'on':''}" onclick="F.cTab='${k}';viewConfig()">${l}</button>`).join('')}</div><div id="cfgBody"></div>`;
+function viewConfig(){const ad=esJefe();if(F.cTab==='accesos'&&!ad)F.cTab='listas';
+  $('view').innerHTML=`<div class="tabs">${[['listas','📋 Listas'],...(S.e2ok!==false?[['horarios','🕒 Horarios y avisos'],['app','📱 App del empleado']]:[]),...(ad?[['accesos','🔐 Accesos']]:[])].map(([k,l])=>`<button class="${F.cTab===k?'on':''}" onclick="F.cTab='${k}';viewConfig()">${l}</button>`).join('')}</div><div id="cfgBody"></div>`;
   if(F.cTab==='accesos')return viewAccesos();
+  if(F.cTab==='horarios')return viewHorarios();
+  if(F.cTab==='app')return viewAppCfg();
   const L=S.L,g=gestiona();
   $('cfgBody').innerHTML=`<div class="card"><div class="card-h"><h3>📋 Listas del módulo</h3>${g?'<button class="btn btn-gold" id="cfg_ok" onclick="saveListas()">💾 Guardar listas</button>':''}</div>
    <p class="hint">Una opción por renglón. Son las opciones que aparecen al cargar un legajo. Cambiar una lista no modifica los legajos ya cargados.</p>
@@ -667,16 +705,16 @@ async function saveListas(){const l={};LISTAS.forEach(([k])=>{l[k]=[...new Set($
   const td=[];const seen=new Set();window._td.forEach(t=>{const n=(t.n||'').trim();if(n&&!seen.has(n)){seen.add(n);td.push({n,v:!!t.v});}});if(!td.length)return banner('Dejá al menos un tipo de documento','warn');
   l.tiposDoc=td;l.avisoDias=Math.min(180,Math.max(1,+$('l_aviso').value||30));
   const b=$('cfg_ok');b.disabled=true;b.textContent='⏳ Guardando…';
-  try{const {error}=S.cfgRow?await sb.from('rrhh_config').update({listas:l}).eq('empresa_id',S.empresaId):await sb.from('rrhh_config').insert({empresa_id:S.empresaId,listas:l});if(error)throw error;await loadCfg();buildNav();banner('Listas guardadas ✓');viewConfig();}
+  try{await saveCfgListas(l);buildNav();banner('Listas guardadas ✓');viewConfig();}
   catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;b.textContent='💾 Guardar listas';}
 }
 async function viewAccesos(){$('cfgBody').innerHTML='<div class="card"><div class="empty">Cargando usuarios…</div></div>';
   const {data,error}=await sb.rpc('rrhh_usuarios');if(error){$('cfgBody').innerHTML=`<div class="card"><div class="note">${esc(errMsg(error))}</div></div>`;return;}
   const us=(data||[]).filter(u=>u.activo!==false);window._us=us;const A=S.accesos||{};
   $('cfgBody').innerHTML=`<div class="card"><div class="card-h"><h3>🔐 Quién entra a CONTROL RRHH</h3><button class="btn btn-gold" id="acc_ok" onclick="saveAccesos()">💾 Guardar accesos</button></div>
-   <p class="hint">Los legajos tienen datos personales, por eso el acceso es <b>por usuario</b> y no alcanza con el rol. El Administrador y el Dueño entran siempre.<br><b>Consulta:</b> ve legajos y documentos. <b>Gestión:</b> además carga, edita, sube documentos y registra bajas y cambios (con PIN).<br>Para que la tarjeta aparezca en el portal, el rol del usuario también tiene que tener <b>CONTROL RRHH</b> en Configuración → Roles y permisos.</p>
-   <table><thead><tr><th>Usuario</th><th>Rol</th><th style="width:220px">Acceso a RRHH</th></tr></thead><tbody>${us.map((u,i)=>{const adm=ADMINS.includes((u.rol||'').toLowerCase());const v=A[u.id]||'';
-     return `<tr><td><b>${esc(u.nombre||'—')}</b></td><td>${esc(ROL_LABEL[(u.rol||'').toLowerCase()]||u.rol||'')}</td><td>${adm?'<span class="tag t-ok">Siempre (administrador)</span>':`<select class="in acc" data-i="${i}">${[['','Sin acceso'],['consulta','Consulta'],['gestion','Gestión']].map(([k,l])=>`<option value="${k}"${v===k?' selected':''}>${l}</option>`).join('')}</select>`}</td></tr>`;}).join('')||'<tr><td colspan="3" class="empty">Sin usuarios</td></tr>'}</tbody></table></div>`;
+   <p class="hint">Los legajos tienen datos personales, por eso el acceso es <b>por usuario</b> y no alcanza con el rol. El Administrador, el Dueño y el Jefe de RRHH entran siempre.<br><b>Tablet:</b> solo abre el modo tablet para fichar (para el usuario de la tablet del galpón). <b>Consulta:</b> ve legajos, documentos, asistencia y solicitudes. <b>Gestión:</b> además carga, edita, aprueba y registra bajas y cambios (con PIN). El rol <b>Jefe de RRHH</b> tiene gestión siempre y administra estos accesos.<br>Para que la tarjeta aparezca en el portal, el rol del usuario también tiene que tener <b>CONTROL RRHH</b> en Configuración → Roles y permisos.</p>
+   <table><thead><tr><th>Usuario</th><th>Rol</th><th style="width:220px">Acceso a RRHH</th></tr></thead><tbody>${us.map((u,i)=>{const rl=(u.rol||'').toLowerCase(),adm=ADMINS.includes(rl)||rl==='rrhh';const v=A[u.id]||'';
+     return `<tr><td><b>${esc(u.nombre||'—')}</b></td><td>${esc(ROL_LABEL[(u.rol||'').toLowerCase()]||u.rol||'')}</td><td>${adm?`<span class="tag t-ok">Siempre (${rl==='rrhh'?'Jefe de RRHH':'administrador'})</span>`:`<select class="in acc" data-i="${i}">${[['','Sin acceso'],['kiosco','Tablet (solo fichaje)'],['consulta','Consulta'],['gestion','Gestión']].map(([k,l])=>`<option value="${k}"${v===k?' selected':''}>${l}</option>`).join('')}</select>`}</td></tr>`;}).join('')||'<tr><td colspan="3" class="empty">Sin usuarios</td></tr>'}</tbody></table></div>`;
 }
 async function saveAccesos(){const acc={};document.querySelectorAll('select.acc').forEach(s=>{if(s.value)acc[window._us[+s.dataset.i].id]=s.value;});
   const b=$('acc_ok');b.disabled=true;b.textContent='⏳ Guardando…';
@@ -718,6 +756,345 @@ function printFicha(id){const e=emp(id);const emp_=S.empresa||{};const logo=(emp
   const w=window.open('','_blank');if(!w)return banner('Permití las ventanas emergentes para imprimir','warn');w.document.write(html);w.document.close();w.focus();setTimeout(()=>{try{w.print();}catch(x){}},400);
 }
 
+// ══════════════════════════════════════════════════════════════
+// ETAPA 2 · ASISTENCIA, MODO TABLET, SOLICITUDES, APP DEL EMPLEADO Y PIN
+// ══════════════════════════════════════════════════════════════
+const TZ='America/Argentina/Buenos_Aires';
+const SOL_T={vacaciones:['🏖️','Vacaciones'],enfermedad:['🤒','Licencia por enfermedad'],especial:['📋','Licencia especial'],permiso:['⏱️','Permiso de horas'],cambio_turno:['🔁','Cambio de turno'],adelanto:['💵','Adelanto de sueldo'],constancia:['📄','Constancia laboral'],datos:['✏️','Actualizar mis datos'],consulta:['💬','Consulta a RRHH']};
+const SUB_ESP=['Casamiento','Nacimiento de hijo/a','Fallecimiento de familiar','Examen','Mudanza','Donación de sangre','Trámite personal','Otro'];
+const LIC_T=['vacaciones','enfermedad','especial'];
+const DIAS_L=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MEDIO_I={app:'📱',tablet:'🖥️',manual:'✍️'};
+function horaAR(ts){return new Date(ts).toLocaleTimeString('es-AR',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false});}
+function minDia(hhmm){const m=/^(\d{1,2}):(\d{2})/.exec(hhmm||'');return m?(+m[1])*60+(+m[2]):null;}
+function ahoraMin(){return minDia(horaAR(new Date()));}
+function hm(min){if(min==null||isNaN(min))return '—';min=Math.round(min);const h=Math.floor(min/60),m=min%60;return (h?h+' h':'')+(h&&m?' ':'')+(m||!h?m+' min':'');}
+function hmc(min){min=Math.round(min||0);return Math.floor(min/60)+':'+String(min%60).padStart(2,'0');}
+function horarioDe(e){const h=(S.L.horarios||{})[e&&e.turno];return h&&minDia(h.ini)!=null&&minDia(h.fin)!=null?h:null;}
+function durTurno(h){let d=minDia(h.fin)-minDia(h.ini);if(d<=0)d+=1440;return d;}
+function tol(){const t=+S.L.tolerancia;return isNaN(t)?10:Math.max(0,t);}
+function diaSem(f){return new Date(d10(f)+'T00:00:00').getDay();}
+function laborable(f){return (S.L.diasLab||[1,2,3,4,5,6]).includes(diaSem(f));}
+function e8(){return String(S.empresaId||'').slice(0,8);}
+function appURL(codigo){const u=new URL('empleado.html',location.href);u.search='?e='+e8();u.hash=codigo?'f='+codigo:'';return u.toString();}
+function nota2(){return `<div class="card"><div class="note" style="margin:0">Para usar Asistencia, Solicitudes y la app del empleado corré <b>rrhh_etapa2_setup.sql</b> en Supabase → SQL Editor y recargá esta página.</div></div>`;}
+async function fn(body){let r;try{r=await sb.functions.invoke('rrhh',{body});}catch(e){throw new Error('FN_NO');}const {data,error}=r;
+  if(error){let m=error.message||'';try{const t=await error.context.json();if(t&&t.error)m=t.error;}catch(x){}if(/Failed to send|FunctionsFetchError|404|not found|NOT_FOUND/i.test(m)||/Fetch/i.test(error.name||''))throw new Error('FN_NO');throw new Error(m);}
+  if(data&&data.error)throw new Error(data.error);return data||{};}
+const FN_NO_TXT='La función <b>rrhh</b> todavía no está publicada en Supabase (Edge Functions). Seguí el instructivo de la Etapa 2.';
+
+// ── datos ──
+async function loadFich(desde){desde=desde||addDays(today(),-62);try{S.fich=await sbAll(()=>sb.from('rrhh_fichadas').select('*').eq('empresa_id',S.empresaId).gte('jornada',desde).order('ts',{ascending:true}));S.fichDesde=desde;}
+  catch(e){S.fich=[];if(/rrhh_fichadas|does not exist|PGRST205/i.test((e&&e.message)||''))S.e2ok=false;else throw e;}idxFich();}
+async function ensureFich(desde){if(!S.fichDesde||desde<S.fichDesde)await loadFich(desde);}
+function idxFich(){S.fIdx={};(S.fich||[]).forEach(f=>{if(f.estado!=='valida')return;const k=f.empleado_id+'|'+d10(f.jornada);(S.fIdx[k]=S.fIdx[k]||[]).push(f);});}
+async function loadSol(){try{S.sol=await sbAll(()=>sb.from('rrhh_solicitudes').select('*').eq('empresa_id',S.empresaId).order('created_at',{ascending:false}));}
+  catch(e){S.sol=[];if(/rrhh_solicitudes|does not exist|PGRST205/i.test((e&&e.message)||''))S.e2ok=false;else throw e;}}
+async function loadPuntos(){S.puntos=[];if(!gestiona())return;const {data,error}=await sb.from('rrhh_puntos').select('*').eq('empresa_id',S.empresaId).order('nombre');if(!error)S.puntos=data||[];}
+async function loadPines(){S.pines={};const {data,error}=await sb.rpc('rrhh_pines_estado');if(!error)(data||[]).forEach(p=>S.pines[p.empleado_id]=p);}
+const solPend=()=>(S.sol||[]).filter(s=>s.estado==='pendiente');
+
+// ── cálculo de la jornada ──
+function jorInfo(e,f){const fs=(S.fIdx[e.id+'|'+f]||[]).slice().sort((a,b)=>String(a.ts).localeCompare(String(b.ts)));
+  let trab=0,ab=null,ent=null,sal=null;fs.forEach(x=>{if(x.tipo==='entrada'){if(!ent)ent=x;ab=x;}else{sal=x;if(ab){trab+=(new Date(x.ts)-new Date(ab.ts))/6e4;ab=null;}}});
+  const h=horarioDe(e);let tarde=null;if(ent&&h){let d=minDia(horaAR(ent.ts))-minDia(h.ini);if(d>720)d-=1440;if(d<-720)d+=1440;tarde=d>tol()&&d<=240?d:null;}
+  const lic=(S.sol||[]).find(s=>s.empleado_id===e.id&&s.estado==='aprobada'&&LIC_T.includes(s.tipo)&&s.desde&&d10(s.desde)<=f&&d10(s.hasta||s.desde)>=f);
+  const per=(S.sol||[]).find(s=>s.empleado_id===e.id&&s.estado==='aprobada'&&s.tipo==='permiso'&&d10(s.desde)===f);
+  const extra=h&&trab>durTurno(h)+29?trab-durTurno(h):0;const t=today();let est;
+  if((e.fecha_ingreso&&d10(e.fecha_ingreso)>f)||(e.estado==='baja'&&e.fecha_egreso&&d10(e.fecha_egreso)<f))est='na';
+  else if(fs.length)est=tarde!=null?'tarde':'presente';
+  else if(lic)est='licencia';else if(!laborable(f))est='franco';else if(f>t)est='futuro';else if(f<t)est='ausente';
+  else est=h?(ahoraMin()>minDia(h.ini)+tol()?'ausente':'espera'):'sinfichar';
+  return {fs,ent,sal,trab,abierta:!!ab,tarde,lic,per,extra,est,h};}
+function estTag(i,f){const sinSal=i.abierta&&f<today()?' <span class="tag t-warn">Sin salida</span>':'';
+  return ({presente:'<span class="tag t-ok">Presente</span>',tarde:`<span class="tag t-warn">Tarde ${i.tarde}′</span>`,licencia:`<span class="tag t-nav">${esc(SOL_T[i.lic&&i.lic.tipo]?SOL_T[i.lic.tipo][1]:'Licencia')}</span>`,franco:'<span class="tag t-mut">Franco</span>',ausente:'<span class="tag t-out">Ausente</span>',espera:'<span class="tag t-mut">Todavía no fichó</span>',sinfichar:'<span class="tag t-mut">Sin fichar</span>',futuro:''}[i.est]||'')+(i.per?' <span class="tag t-gold">Permiso</span>':'')+sinSal;}
+
+// ══════════════ ASISTENCIA ══════════════
+function viewAsis(){if(S.e2ok===false){$('view').innerHTML=nota2();return;}
+  const tabs=[['parte','📋 Parte diario'],['mes','📅 Resumen del mes'],...(gestiona()?[['puntos','📍 Puntos y QR']]:[])];if(!tabs.some(t=>t[0]===F.aTab))F.aTab='parte';
+  $('view').innerHTML=`<div class="tabs">${tabs.map(([k,l])=>`<button class="${F.aTab===k?'on':''}" onclick="F.aTab='${k}';viewAsis()">${l}</button>`).join('')}</div><div id="asisBody"></div>`;
+  ({parte:viewParte,mes:viewMes,puntos:viewPuntos})[F.aTab]();}
+function filaParte(f){return S.emps.filter(e=>e.estado!=='baja'||(e.fecha_egreso&&d10(e.fecha_egreso)>=f)).map(e=>({e,i:jorInfo(e,f)})).filter(x=>!['na','futuro'].includes(x.i.est));}
+async function viewParte(){const f=F.aFecha||(F.aFecha=today());await ensureFich(f);const L=filaParte(f);window._parte=L;
+  const n=c=>L.filter(x=>c.includes(x.i.est)).length,ext=L.reduce((a,x)=>a+x.i.extra,0);const secs=[...new Set(L.map(x=>x.e.sector).filter(Boolean))].sort();
+  $('asisBody').innerHTML=`<div class="card"><div class="card-h"><div class="seg" style="align-items:center">
+     <button class="btn btn-ghost btn-sm" onclick="F.aFecha=addDays(F.aFecha,-1);viewParte()" aria-label="Día anterior">◀</button><input type="date" class="in" style="width:auto" value="${f}" max="${today()}" onchange="F.aFecha=this.value||today();viewParte()">
+     <button class="btn btn-ghost btn-sm" ${f>=today()?'disabled':''} onclick="F.aFecha=addDays(F.aFecha,1);viewParte()" aria-label="Día siguiente">▶</button>${f!==today()?'<button class="btn btn-ghost btn-sm" onclick="F.aFecha=today();viewParte()">Hoy</button>':''}
+     <b style="margin-left:6px;color:var(--navy)">${DIAS_L[diaSem(f)]} ${fmtD(f)}${laborable(f)?'':' · no laborable'}</b></div>
+    <div class="seg">${gestiona()?'<button class="btn btn-navy" onclick="go(\'kiosco\')">🖥️ Modo tablet</button>':''}<button class="btn btn-ghost" onclick="exportParte()">📥 Excel</button></div></div>
+   <div class="kpis"><div class="kpi"><small>Presentes</small><b>${n(['presente','tarde'])}<span style="font-size:14px;color:var(--muted)">/${L.filter(x=>!['franco'].includes(x.i.est)).length}</span></b></div>
+    <div class="kpi"><small>Llegaron tarde</small><b class="${n(['tarde'])?'a':''}">${n(['tarde'])}</b><span>tolerancia ${tol()} min</span></div>
+    <div class="kpi"><small>Ausentes</small><b class="${n(['ausente'])?'r':''}">${n(['ausente'])}</b><span>sin fichar ni licencia</span></div>
+    <div class="kpi"><small>Licencia / vacaciones</small><b>${n(['licencia'])}</b></div>
+    <div class="kpi"><small>Horas extra</small><b class="g">${hmc(ext)}</b><span>más de 30 min sobre el turno</span></div></div>
+   ${!Object.keys(S.L.horarios||{}).length?'<div class="note">Cargá los horarios de cada turno en <b>Configuración RRHH → Horarios y avisos</b> para calcular tardanzas y horas extra.</div>':''}
+   <div class="filters"><div class="f">Sector<select class="in" onchange="F.aSec=this.value;drawParte()"><option value="">Todos</option>${secs.map(s=>`<option${s===F.aSec?' selected':''}>${esc(s)}</option>`).join('')}</select></div>
+    <div class="f">Estado<select class="in" onchange="F.aEst=this.value;drawParte()">${[['','Todos'],['presente,tarde','Presentes'],['tarde','Tarde'],['ausente','Ausentes'],['licencia','Licencia'],['espera,sinfichar','Todavía no fichó']].map(([k,l])=>`<option value="${k}"${F.aEst===k?' selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="f" style="flex:1;min-width:180px">Buscar<input class="in" placeholder="Nombre o legajo" value="${esc(F.aQ||'')}" oninput="F.aQ=this.value;drawParte()"></div></div>
+   <div id="parteGrid"></div></div>`;drawParte();}
+function drawParte(){const f=F.aFecha,q=norm(F.aQ||'');const ests=(F.aEst||'').split(',').filter(Boolean);
+  const rows=(window._parte||[]).filter(x=>(!F.aSec||x.e.sector===F.aSec)&&(!ests.length||ests.includes(x.i.est))&&(!q||norm(nomE(x.e)).includes(q)||norm(x.e.legajo).includes(q)))
+   .sort((a,b)=>norm(nomE(a.e)).localeCompare(norm(nomE(b.e)))).map(x=>Object.assign({},x,{_k:x.e.id,_lbl:nomE(x.e)}));
+  grid('parteGrid','parte',[
+   {h:'Empleado',f:r=>`<b>${esc(nomE(r.e))}</b><div class="cod">${esc(r.e.legajo||'')}</div>`},{h:'Sector',f:r=>esc(r.e.sector||'—')},
+   {h:'Turno',f:r=>r.i.h?`${esc(r.e.turno)}<div class="cod">${r.i.h.ini}–${r.i.h.fin}</div>`:`<span class="muted">${esc(r.e.turno||'—')}</span>`},
+   {h:'Entrada',f:r=>r.i.ent?`<b>${horaAR(r.i.ent.ts)}</b> <span title="${esc(r.i.ent.medio)}">${MEDIO_I[r.i.ent.medio]||''}</span>`:'<span class="muted">—</span>'},
+   {h:'Salida',f:r=>r.i.sal?`<b>${horaAR(r.i.sal.ts)}</b> <span title="${esc(r.i.sal.medio)}">${MEDIO_I[r.i.sal.medio]||''}</span>`:'<span class="muted">—</span>'},
+   {h:'Horas',f:r=>r.i.trab?hmc(r.i.trab)+(r.i.extra?` <span class="tag t-gold" title="Horas extra">+${hmc(r.i.extra)}</span>`:''):'<span class="muted">—</span>'},
+   {h:'Estado',f:r=>estTag(r.i,f)}],rows,
+   r=>{const a=[{lbl:'🕓 Fichadas',cls:'btn-gold',fn:()=>verFichadas(r.e.id,f)}];if(gestiona())a.push({lbl:'＋ Fichada manual',fn:()=>fichManual(r.e.id,f)});a.push({lbl:'👤 Ficha',fn:()=>{F.fTab='asis';go('ficha',r.e.id);}});return a;},k=>verFichadas(k,f));}
+function verFichadas(id,f){const e=emp(id);const L=(S.fich||[]).filter(x=>x.empleado_id===id&&d10(x.jornada)===f).sort((a,b)=>String(a.ts).localeCompare(String(b.ts)));const i=jorInfo(e,f);
+  const pn=pid=>{const p=(S.puntos||[]).find(x=>x.id===pid);return p?p.nombre:'';};
+  modal(`<h3>🕓 Fichadas · ${esc(nomCorto(e))}</h3><p class="hint">${DIAS_L[diaSem(f)]} ${fmtD(f)} · ${esc(e.turno||'sin turno')}${i.h?' ('+i.h.ini+'–'+i.h.fin+')':''} · trabajado <b>${hm(i.trab)}</b></p>
+   ${L.length?`<table><thead><tr><th>Hora</th><th>Tipo</th><th>Medio</th><th>Detalle</th><th></th></tr></thead><tbody>${L.map(x=>`<tr style="${x.estado==='anulada'?'opacity:.5;text-decoration:line-through':''}"><td><b>${horaAR(x.ts)}</b>${d10(new Date(x.ts).toLocaleDateString('sv-SE',{timeZone:TZ}))!==f?`<div class="cod">${fmtD(new Date(x.ts).toLocaleDateString('sv-SE',{timeZone:TZ}))}</div>`:''}</td><td>${x.tipo==='entrada'?'Entrada':'Salida'}</td><td>${MEDIO_I[x.medio]||''} ${esc(x.medio==='app'?'App':x.medio==='tablet'?'Tablet':'Manual')}</td>
+    <td class="small">${esc(pn(x.punto_id))}${x.distancia_m!=null?' · a '+Math.round(x.distancia_m)+' m':''}${x.motivo?'<br>'+esc(x.motivo):''}${x.autorizado_por?'<br>🔒 '+esc(x.autorizado_por):''}${x.estado==='anulada'?'<br><b>Anulada</b>':''}</td>
+    <td>${gestiona()&&x.estado==='valida'?`<button class="btn btn-danger btn-sm" onclick="anularFich('${x.id}')">✕</button>`:''}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Sin fichadas ese día</div>'}
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button>${gestiona()?`<button class="btn btn-gold" onclick="fichManual('${id}','${f}')">＋ Fichada manual</button>`:''}</div>`);}
+function fichManual(id,f){const e=emp(id),h=horarioDe(e),i=jorInfo(e,f);const tipo=i.abierta?'salida':'entrada';
+  pinModal({titulo:'Fichada manual · '+esc(nomCorto(e)),btn:'✅ Autorizar y guardar',tipo:'rrhh_fichada_manual',ref:(e.legajo||'')+' '+nomE(e),
+   html:`<p class="hint">Para olvidos o problemas con el celular. Queda marcada como <b>manual</b>, con el motivo y quién autorizó.</p><div class="fg" style="grid-template-columns:1fr 1fr 1fr">${fi('m_fec','Jornada',f,{type:'date'})}<div><label class="lb" for="m_tipo">Tipo</label><select class="in" id="m_tipo"><option value="entrada"${tipo==='entrada'?' selected':''}>Entrada</option><option value="salida"${tipo==='salida'?' selected':''}>Salida</option></select></div>${fi('m_hora','Hora',h?(tipo==='entrada'?h.ini:h.fin):'',{type:'time'})}</div>
+    <label class="lb" for="m_mot">Motivo *</label><input class="in" id="m_mot" placeholder="Ej.: se olvidó de fichar la salida">`,
+   validar:()=>{if(!$('m_fec').value||!$('m_hora').value)return 'Indicá la jornada y la hora';if(!$('m_mot').value.trim())return 'Indicá el motivo';if($('m_fec').value>today())return 'No se cargan fichadas a futuro';return null;},
+   detalle:()=>$('m_tipo').value+' '+fmtD($('m_fec').value)+' '+$('m_hora').value+' · '+$('m_mot').value.trim(),
+   onOK:async a=>{const jf=$('m_fec').value,tp=$('m_tipo').value,hr=$('m_hora').value;let dia=jf;const ii=jorInfo(e,jf);if(tp==='salida'&&ii.ent&&minDia(hr)<minDia(horaAR(ii.ent.ts)))dia=addDays(jf,1);
+     const {error}=await sb.from('rrhh_fichadas').insert({empresa_id:S.empresaId,empleado_id:id,tipo:tp,ts:new Date(dia+'T'+hr+':00-03:00').toISOString(),jornada:jf,medio:'manual',motivo:$('m_mot').value.trim(),registrado_por:S.nombre,autorizado_por:a.nombre});if(error)throw error;
+     await loadFich(S.fichDesde);banner('Fichada manual guardada ✓');render();}});}
+function anularFich(fid){const x=(S.fich||[]).find(y=>y.id===fid),e=emp(x.empleado_id);
+  pinModal({titulo:'Anular fichada',btn:'✕ Autorizar anulación',tipo:'rrhh_anular_fichada',ref:(e.legajo||'')+' '+nomE(e),
+   html:`<p class="hint">${x.tipo==='entrada'?'Entrada':'Salida'} de las <b>${horaAR(x.ts)}</b> del ${fmtD(x.jornada)} (${esc(x.medio)}). No se borra: queda anulada.</p><label class="lb" for="af_mot">Motivo *</label><input class="in" id="af_mot" placeholder="Ej.: fichó dos veces por error">`,
+   validar:()=>$('af_mot').value.trim()?null:'Indicá el motivo',detalle:()=>x.tipo+' '+fmtD(x.jornada)+' '+horaAR(x.ts)+' · '+$('af_mot').value.trim(),
+   onOK:async()=>{const {error}=await sb.from('rrhh_fichadas').update({estado:'anulada',motivo:$('af_mot').value.trim()}).eq('id',fid).eq('empresa_id',S.empresaId);if(error)throw error;await loadFich(S.fichDesde);banner('Fichada anulada ✓');render();}});}
+function exportParte(){const f=F.aFecha;toXlsx('Parte_'+f,'Parte',[['Fecha','Legajo','Empleado','Sector','Turno','Horario','Entrada','Medio','Salida','Medio','Horas','Extra','Tardanza (min)','Estado'],
+  ...(window._parte||[]).map(({e,i})=>[fmtD(f),e.legajo||'',nomE(e),e.sector||'',e.turno||'',i.h?i.h.ini+'-'+i.h.fin:'',i.ent?horaAR(i.ent.ts):'',i.ent?i.ent.medio:'',i.sal?horaAR(i.sal.ts):'',i.sal?i.sal.medio:'',i.trab?hmc(i.trab):'',i.extra?hmc(i.extra):'',i.tarde||'',{presente:'Presente',tarde:'Tarde',licencia:'Licencia',franco:'Franco',ausente:'Ausente',espera:'Todavía no fichó',sinfichar:'Sin fichar'}[i.est]||''])]);}
+// resumen mensual
+function resumenMes(e,ym){const [y,m]=ym.split('-').map(Number),n=new Date(y,m,0).getDate(),t=today();const r={dias:0,tarde:0,minTarde:0,aus:0,lic:0,trab:0,extra:0,sinSal:0};
+  for(let d=1;d<=n;d++){const f=ym+'-'+String(d).padStart(2,'0');if(f>t)break;const i=jorInfo(e,f);if(i.est==='na')continue;
+    if(i.fs.length){r.dias++;r.trab+=i.trab;r.extra+=i.extra;if(i.tarde!=null){r.tarde++;r.minTarde+=i.tarde;}if(i.abierta&&f<t)r.sinSal++;}else if(i.est==='licencia')r.lic++;else if(i.est==='ausente')r.aus++;}return r;}
+async function viewMes(){const ym=F.aMes||(F.aMes=today().slice(0,7));$('asisBody').innerHTML='<div class="card"><div class="empty">Calculando…</div></div>';await ensureFich(ym+'-01');
+  const rows=S.emps.filter(e=>e.estado!=='baja'||(e.fecha_egreso&&d10(e.fecha_egreso)>=ym+'-01')).map(e=>Object.assign({e,_k:e.id,_lbl:nomE(e)},resumenMes(e,ym))).sort((a,b)=>norm(nomE(a.e)).localeCompare(norm(nomE(b.e))));window._mes=rows;
+  const tot=k=>rows.reduce((a,r)=>a+r[k],0);
+  $('asisBody').innerHTML=`<div class="card"><div class="card-h"><div class="seg" style="align-items:center"><input type="month" class="in" style="width:auto" value="${ym}" max="${today().slice(0,7)}" onchange="F.aMes=this.value||today().slice(0,7);viewMes()"><span class="small muted">hasta hoy · días laborables: ${(S.L.diasLab||[]).map(d=>DIAS_L[d].slice(0,3)).join(', ')}</span></div><button class="btn btn-ghost" onclick="exportMes()">📥 Excel</button></div>
+   <div class="kpis"><div class="kpi"><small>Horas trabajadas</small><b>${hmc(tot('trab'))}</b></div><div class="kpi"><small>Horas extra</small><b class="g">${hmc(tot('extra'))}</b></div><div class="kpi"><small>Tardanzas</small><b class="${tot('tarde')?'a':''}">${tot('tarde')}</b><span>${hm(tot('minTarde'))} en total</span></div><div class="kpi"><small>Ausencias</small><b class="${tot('aus')?'r':''}">${tot('aus')}</b><span>días sin fichar ni licencia</span></div><div class="kpi"><small>Días de licencia</small><b>${tot('lic')}</b></div></div>
+   <div id="mesGrid"></div></div>`;
+  grid('mesGrid','mes',[{h:'Empleado',f:r=>`<b>${esc(nomE(r.e))}</b><div class="cod">${esc(r.e.legajo||'')} · ${esc(r.e.sector||'')}</div>`},{h:'Días trab.',f:r=>r.dias},{h:'Horas',f:r=>hmc(r.trab)},{h:'Extra',f:r=>r.extra?`<span class="tag t-gold">${hmc(r.extra)}</span>`:'—'},
+    {h:'Tardanzas',f:r=>r.tarde?`<span class="tag t-warn">${r.tarde}</span> <span class="cod">${hm(r.minTarde)}</span>`:'0'},{h:'Ausencias',f:r=>r.aus?`<span class="tag t-out">${r.aus}</span>`:'0'},{h:'Licencia',f:r=>r.lic||'0'},{h:'Sin salida',f:r=>r.sinSal?`<span class="tag t-warn">${r.sinSal}</span>`:'0'}],
+    rows,r=>[{lbl:'👤 Ver asistencia en la ficha',cls:'btn-gold',fn:()=>{F.fTab='asis';go('ficha',r.e.id);}}],k=>{F.fTab='asis';go('ficha',k);});}
+function exportMes(){toXlsx('Asistencia_'+F.aMes,'Resumen',[['Mes','Legajo','Empleado','Sector','Días trabajados','Horas','Horas extra','Tardanzas','Minutos tarde','Ausencias','Días de licencia','Días sin salida'],
+  ...(window._mes||[]).map(r=>[F.aMes,r.e.legajo||'',nomE(r.e),r.e.sector||'',r.dias,hmc(r.trab),hmc(r.extra),r.tarde,r.minTarde,r.aus,r.lic,r.sinSal])]);}
+// puntos de fichaje
+function viewPuntos(){const P=S.puntos||[];
+  $('asisBody').innerHTML=`<div class="card"><div class="card-h"><h3>📍 Puntos de fichaje</h3><button class="btn btn-gold" onclick="editPunto()">＋ Nuevo punto</button></div>
+   <p class="hint">Un punto es un lugar donde se ficha (ej.: <i>Entrada galpón</i>). Ahí va una <b>tablet en modo tablet</b>: muestra un QR que cambia cada 30 segundos (no sirve sacarle foto) y permite fichar con DNI + PIN a quien no tenga celular.<br>Opcional: pedir la <b>ubicación</b> del celular al fichar, o aceptar un <b>QR impreso</b> pegado en la pared (en ese caso conviene pedir ubicación).</p>
+   <div id="ptGrid"></div></div>`;
+  grid('ptGrid','pts',[{h:'Punto',f:r=>`<b>${esc(r.nombre)}</b>`},{h:'Ubicación',f:r=>r.requiere_gps?`<span class="tag t-nav">📍 pide ubicación · ${r.radio_m} m</span>`:(r.lat!=null?'<span class="small muted">registrada, no obligatoria</span>':'<span class="muted">—</span>')},
+    {h:'QR impreso',f:r=>r.permite_fijo?'<span class="tag t-gold">Sí</span>':'<span class="muted">No</span>'},{h:'Estado',f:r=>r.activo?'<span class="tag t-ok">Activo</span>':'<span class="tag t-mut">Inactivo</span>'}],
+    P.map(p=>Object.assign({},p,{_k:p.id,_lbl:p.nombre})),r=>{const a=[{lbl:'🖥️ Abrir modo tablet',cls:'btn-gold',dis:!r.activo,fn:()=>{lsSet('rrhh_kiosco_punto',r.id);go('kiosco');}},{lbl:'✏️ Editar',fn:()=>editPunto(r.id)}];if(r.permite_fijo&&r.activo)a.push({lbl:'🖨️ Imprimir QR fijo',fn:()=>printQRFijo(r.id)});return a;},k=>editPunto(k));}
+function editPunto(id){const p=id?(S.puntos||[]).find(x=>x.id===id):null;
+  modal(`<h3>${p?'✏️ Editar punto':'＋ Nuevo punto de fichaje'}</h3>${fi('p_nom','Nombre',p?p.nombre:'Entrada galpón',{req:true})}
+   <label class="chk"><input type="checkbox" id="p_act" ${!p||p.activo?'checked':''}> Activo</label>
+   <div class="sect" style="margin-top:14px">Ubicación (opcional)</div>
+   <label class="chk"><input type="checkbox" id="p_gps" ${p&&p.requiere_gps?'checked':''}> Pedir la ubicación del celular al fichar</label>
+   <div class="fg">${fi('p_lat','Latitud',p&&p.lat!=null?String(p.lat):'',{attr:'inputmode="decimal"'})}${fi('p_lng','Longitud',p&&p.lng!=null?String(p.lng):'',{attr:'inputmode="decimal"'})}${fi('p_rad','Radio permitido (m)',String(p?p.radio_m:150),{type:'number',attr:'min="30" max="2000"'})}</div>
+   <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="miUbicacion()">📍 Usar mi ubicación actual (abrí esto parada en el punto)</button>
+   <div class="sect" style="margin-top:14px">QR impreso</div>
+   <label class="chk"><input type="checkbox" id="p_fijo" ${p&&p.permite_fijo?'checked':''}> Aceptar también un QR impreso pegado en la pared</label>
+   <p class="hint">El QR impreso no cambia: alguien le podría sacar una foto. Si lo usás, activá también la ubicación.</p>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="p_ok" onclick="savePunto(${p?`'${p.id}'`:'null'})">💾 Guardar</button></div>`);}
+function miUbicacion(){if(!navigator.geolocation)return banner('Este dispositivo no da la ubicación','warn');banner('Buscando ubicación…');
+  navigator.geolocation.getCurrentPosition(p=>{$('p_lat').value=p.coords.latitude.toFixed(6);$('p_lng').value=p.coords.longitude.toFixed(6);banner('Ubicación tomada (precisión '+Math.round(p.coords.accuracy)+' m) ✓');},e=>banner('No se pudo obtener la ubicación: '+e.message,'warn'),{enableHighAccuracy:true,timeout:15000});}
+async function savePunto(id){const nom=$('p_nom').value.trim(),lat=$('p_lat').value.trim(),lng=$('p_lng').value.trim(),gps=$('p_gps').checked,fijo=$('p_fijo').checked;
+  if(!nom)return banner('Poné un nombre','warn');if((lat||lng)&&(isNaN(+lat)||isNaN(+lng)||Math.abs(+lat)>90||Math.abs(+lng)>180))return banner('Latitud/longitud inválidas','warn');
+  if(gps&&(!lat||!lng))return banner('Para pedir la ubicación hace falta cargar la del punto','warn');
+  const o={nombre:nom,activo:$('p_act').checked,requiere_gps:gps,permite_fijo:fijo,lat:lat?+lat:null,lng:lng?+lng:null,radio_m:Math.max(30,Math.min(2000,+$('p_rad').value||150))};
+  const b=$('p_ok');b.disabled=true;try{const {error}=id?await sb.from('rrhh_puntos').update(o).eq('id',id).eq('empresa_id',S.empresaId):await sb.from('rrhh_puntos').insert(Object.assign({empresa_id:S.empresaId},o));if(error)throw error;
+    closeModal();await loadPuntos();banner('Punto guardado ✓');render();}catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;}}
+let _qrP=null;
+function loadQR(){if(window.QRCode)return Promise.resolve();if(!_qrP)_qrP=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';s.onload=res;s.onerror=()=>{_qrP=null;rej(new Error('No se pudo cargar el generador de QR'));};document.head.appendChild(s);});return _qrP;}
+async function qrDataURL(text,size){await loadQR();const d=document.createElement('div');d.style.cssText='position:fixed;left:-9999px';document.body.appendChild(d);new QRCode(d,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});await new Promise(r=>setTimeout(r,60));const c=d.querySelector('canvas');const u=c?c.toDataURL('image/png'):(d.querySelector('img')||{}).src;d.remove();return u;}
+async function qrInto(el,text,size){await loadQR();el.innerHTML='';new QRCode(el,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});}
+function cartel(titulo,qr,sub,pie){const emp_=S.empresa||{};const logo=(emp_.etiqueta_config&&emp_.etiqueta_config.logo)||'';
+  const w=window.open('','_blank');if(!w)return banner('Permití las ventanas emergentes para imprimir','warn');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>body{font-family:system-ui,Segoe UI,Arial,sans-serif;text-align:center;color:#111D35;margin:0;padding:14mm}h1{font-size:34px;margin:10px 0 4px}.s{font-size:20px;color:#3D5A80;margin-bottom:18px}img.q{width:120mm;height:120mm}.p{font-size:16px;color:#555;margin-top:16px;line-height:1.5}.b{display:inline-block;background:#111D35;color:#C9A84C;font-weight:800;letter-spacing:2px;padding:6px 16px;border-radius:8px;margin-bottom:10px}@page{size:A4;margin:8mm}</style></head><body>
+   ${logo?`<img src="${logo}" style="max-height:24mm;max-width:70mm"><br>`:''}<div class="b">CONTROL RRHH</div><h1>${esc(titulo)}</h1><div class="s">${sub}</div><img class="q" src="${qr}"><div class="p">${pie}</div></body></html>`);w.document.close();w.focus();setTimeout(()=>{try{w.print();}catch(x){}},500);}
+async function printQRFijo(id){const p=(S.puntos||[]).find(x=>x.id===id);try{const {data,error}=await sb.rpc('rrhh_qr_fijo',{p_punto:id});if(error)throw error;
+  cartel('Marcá tu entrada y salida',await qrDataURL(appURL(data),600),esc(p.nombre)+' · '+esc((S.empresa||{}).razon_social||''),'Abrí la <b>cámara</b> del celular, apuntá al código y tocá el enlace.<br>La primera vez ingresás con tu <b>DNI</b> y tu <b>PIN</b>.'+(p.requiere_gps?'<br>Tenés que estar acá: se verifica la ubicación.':''));}catch(e){banner('Error: '+errMsg(e),'err');}}
+
+// ══════════════ MODO TABLET (kiosco) ══════════════
+const K={t:null,clk:null,punto:null,dni:'',pin:'',paso:'dni',lock:null,busy:false,resT:null};
+async function viewKiosco(){$('view').innerHTML='<div class="card"><div class="empty">Abriendo modo tablet…</div></div>';
+  const {data,error}=await sb.rpc('rrhh_puntos_kiosco');if(error){$('view').innerHTML=S.e2ok===false?nota2():`<div class="card"><div class="note">${esc(errMsg(error))}</div></div>`;return;}
+  const P=data||[];if(!P.length){$('view').innerHTML=`<div class="card"><div class="empty">No hay puntos de fichaje activos.<br>${gestiona()?'<button class="btn btn-gold" style="margin-top:10px" onclick="F.aTab=\'puntos\';go(\'asis\')">📍 Crear un punto</button>':'Pedile a RRHH que cree uno.'}</div></div>`;return;}
+  const sel=lsGet('rrhh_kiosco_punto','');K.punto=P.some(p=>p.id===sel)?sel:P[0].id;K.puntos=P;
+  $('view').innerHTML=`<div class="card fut"><div class="big">🖥️</div><h3 style="color:var(--navy);margin:8px 0">Modo tablet</h3><p class="hint">Dejá esta pantalla abierta en la tablet del punto de fichaje: muestra el QR que cambia cada 30 segundos y un teclado para fichar con DNI + PIN.</p>
+   ${P.length>1?`<label class="lb">Punto</label><select class="in" id="k_sel">${P.map(p=>`<option value="${p.id}"${p.id===K.punto?' selected':''}>${esc(p.nombre)}</option>`).join('')}</select>`:`<p><b>${esc(P[0].nombre)}</b></p>`}
+   <div class="seg" style="margin-top:14px"><button class="btn btn-gold" onclick="kAbrir()">▶ Iniciar en pantalla completa</button>${S.nivel==='kiosco'?'<button class="btn btn-ghost" onclick="salirSesion()">Cerrar sesión</button>':''}</div></div>`;
+  if(S.nivel==='kiosco'&&lsGet('rrhh_kiosco_auto','')==='1')kAbrir();}
+async function salirSesion(){try{await sb.auth.signOut();}catch(e){}location.href='/portal.html';}
+async function kAbrir(){if($('k_sel'))K.punto=$('k_sel').value;lsSet('rrhh_kiosco_punto',K.punto);if(S.nivel==='kiosco')lsSet('rrhh_kiosco_auto','1');const p=K.puntos.find(x=>x.id===K.punto);
+  const k=$('kiosk');k.innerHTML=`<div class="k-top"><div class="k-br">CONTROL <b>RRHH</b><span>${esc((S.empresa||{}).razon_social||'')} · ${esc(p?p.nombre:'')}</span></div><div class="k-clk"><b id="kClk"></b><span id="kFec"></span></div><button class="k-x" onclick="kCerrar()" title="Salir del modo tablet">✕</button></div>
+   <div class="k-body"><div class="k-card"><div class="k-t">📱 Con tu celular</div><div id="kQr" class="k-qr"></div><div class="k-bar"><i id="kProg"></i></div><div class="k-s">Abrí la <b>cámara</b>, apuntá al código y tocá el enlace.<br>Marca tu <b>entrada</b> o tu <b>salida</b>.</div><div id="kNet" class="k-net"></div></div>
+    <div class="k-card"><div class="k-t">🔢 Sin celular</div><div class="k-hint" id="kHint"></div><div class="k-disp" id="kDisp"></div>
+     <div class="k-keys">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="kKey('${n}')">${n}</button>`).join('')}<button class="k-sec" onclick="kKey('back')">⌫</button><button onclick="kKey('0')">0</button><button class="k-ok" onclick="kKey('ok')">OK</button></div></div></div>
+   <div class="k-res" id="kRes"></div>`;k.classList.add('show');document.body.style.overflow='hidden';
+  try{if(k.requestFullscreen&&!document.fullscreenElement)await k.requestFullscreen();}catch(e){}
+  try{if('wakeLock' in navigator)K.lock=await navigator.wakeLock.request('screen');}catch(e){}
+  kReset();kClock();clearInterval(K.clk);K.clk=setInterval(kClock,1000);kQR();}
+function kCerrar(){clearTimeout(K.t);clearInterval(K.clk);clearTimeout(K.resT);try{if(K.lock)K.lock.release();}catch(e){}K.lock=null;try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}
+  lsSet('rrhh_kiosco_auto','');const k=$('kiosk');k.classList.remove('show');k.innerHTML='';document.body.style.overflow='';render();}
+function kClock(){const d=new Date();if(!$('kClk'))return;$('kClk').textContent=d.toLocaleTimeString('es-AR',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false});const fx=d.toLocaleDateString('es-AR',{timeZone:TZ,weekday:'long',day:'numeric',month:'long'});$('kFec').textContent=fx.charAt(0).toUpperCase()+fx.slice(1);}
+async function kQR(){clearTimeout(K.t);if(!$('kQr'))return;let espera=8000;
+  try{const {data,error}=await sb.rpc('rrhh_qr_actual',{p_punto:K.punto});if(error)throw error;await qrInto($('kQr'),appURL(data.codigo),Math.min(360,Math.round(window.innerHeight*0.42)));
+    $('kNet').textContent='';const seg=Math.max(3,+data.vence_en||30);espera=seg*1000+400;const pr=$('kProg');if(pr){pr.style.transition='none';pr.style.width='100%';void pr.offsetWidth;pr.style.transition='width '+seg+'s linear';pr.style.width='0';}}
+  catch(e){$('kNet').textContent='⚠️ Sin conexión: reintentando…';}
+  K.t=setTimeout(kQR,espera);}
+function kReset(){K.dni='';K.pin='';K.paso='dni';kPaint();}
+function kPaint(){if(!$('kDisp'))return;$('kHint').textContent=K.paso==='dni'?'Ingresá tu DNI y tocá OK':'Ahora tu PIN de 6 números';$('kDisp').textContent=K.paso==='dni'?(K.dni||'—'):('●'.repeat(K.pin.length)+'○'.repeat(6-K.pin.length));}
+function kKey(k){if(K.busy)return;if(K.paso==='dni'){if(k==='back')K.dni=K.dni.slice(0,-1);else if(k==='ok'){if(K.dni.length<7)return kMsg(false,'El DNI tiene 7 u 8 números','');K.paso='pin';}else if(K.dni.length<8)K.dni+=k;}
+  else{if(k==='back'){if(!K.pin.length){K.paso='dni';}else K.pin=K.pin.slice(0,-1);}else if(k==='ok'){if(K.pin.length===6)kFichar();}else if(K.pin.length<6){K.pin+=k;if(K.pin.length===6){kPaint();return kFichar();}}}kPaint();}
+document.addEventListener('keydown',ev=>{const k=$('kiosk');if(!k||!k.classList.contains('show'))return;if(/^\d$/.test(ev.key))kKey(ev.key);else if(ev.key==='Backspace')kKey('back');else if(ev.key==='Enter')kKey('ok');else if(ev.key==='Escape')kReset();else return;ev.preventDefault();});
+async function kFichar(){K.busy=true;$('kHint').textContent='⏳ Registrando…';
+  try{const {data,error}=await sb.rpc('rrhh_fichar_kiosco',{p_punto:K.punto,p_dni:K.dni,p_pin:K.pin,p_disp:'Tablet · '+navigator.userAgent.slice(0,120)});if(error)throw error;
+    if(data.ok){const s=saludoFichada(data);kMsg(true,s.t,s.s,data);}
+    else kMsg(false,{DNI:'No encontramos ese DNI',SIN_PIN:'Todavía no tenés PIN',PIN_INCORRECTO:'PIN incorrecto',BLOQUEADO:'PIN bloqueado por intentos fallidos',PUNTO:'Este punto de fichaje está inactivo',SIN_ACCESO:'Esta tablet no tiene permiso para fichar'}[data.error]||data.error,
+      {SIN_PIN:'Pedile tu PIN a RRHH.',PIN_INCORRECTO:data.quedan!=null?`Te quedan ${data.quedan} intento${data.quedan===1?'':'s'}.`:'',BLOQUEADO:`Probá de nuevo en ${data.minutos||15} minutos o pedí ayuda a RRHH.`,DNI:'Revisalo o avisale a RRHH.'}[data.error]||'');}
+  catch(e){kMsg(false,'No se pudo registrar','Revisá la conexión e intentá de nuevo.');}
+  K.busy=false;}
+function kMsg(ok,t,s,d){const r=$('kRes');clearTimeout(K.resT);r.className='k-res show '+(ok?'ok':'err');r.innerHTML=`<div class="k-ic">${ok?(d&&d.tipo==='salida'?'👋':'✅'):'⚠️'}</div><div class="k-rt">${esc(t)}</div>${d&&d.hora?`<div class="k-rh">${d.tipo==='salida'?'Salida':'Entrada'} · ${esc(d.hora)}</div>`:''}<div class="k-rs">${esc(s||'')}</div>`;
+  K.resT=setTimeout(()=>{r.className='k-res';kReset();},ok?6000:4000);if(ok||/PIN|DNI|bloq/i.test(t))kReset();}
+// mensaje "humano" al fichar (lo mismo usa la app del empleado)
+function saludoFichada(r){const n=r.nombre||'';const h=+(r.hora||'12:00').slice(0,2);const sal=h<12?'¡Buen día':h<20?'¡Buenas tardes':'¡Buenas noches';
+  if(r.duplicada)return {t:`Ya registramos tu ${r.tipo} de las ${r.hora}`,s:'No hace falta volver a fichar 👍'};
+  if(r.tipo==='salida')return {t:`¡Gracias por la jornada, ${n}!`,s:r.trabajado_min?`Hoy trabajaste ${hm(r.trabajado_min)}. ¡Buen descanso!`:'¡Buen descanso!'};
+  let s='Que tengas una buena jornada.';const tl=r.tol!=null?r.tol:10;
+  if(r.cumple)s='🎂 ¡Feliz cumpleaños! Todo el equipo te desea un gran día.';
+  else if(r.aniversario)s=`🏅 Hoy cumplís ${r.aniversario} año${r.aniversario>1?'s':''} con nosotros. ¡Gracias por estar!`;
+  else if(r.vuelve)s=r.vuelve==='enfermedad'?'¡Qué bueno tenerte de vuelta! Esperamos que estés mejor.':r.vuelve==='vacaciones'?'¡Qué bueno tenerte de vuelta! Esperamos que hayas descansado.':'¡Qué bueno tenerte de vuelta!';
+  else if(r.diff_min!=null&&Math.abs(r.diff_min)<=180){if(r.diff_min<=-5)s=`Llegaste ${hm(-r.diff_min)} antes. ¡Gracias por la puntualidad!`;else if(r.diff_min<=tl)s='¡Justo a tiempo! Que tengas una buena jornada.';else s=`Hoy se te hizo un poquito tarde (${hm(r.diff_min)}). ¿Todo bien? ¡Que rinda el día!`;}
+  return {t:`${sal}, ${n}!`,s};}
+
+// ══════════════ SOLICITUDES ══════════════
+function diasSol(s){return s.desde&&s.hasta?Math.round((new Date(d10(s.hasta)+'T00:00:00')-new Date(d10(s.desde)+'T00:00:00'))/864e5)+1:null;}
+function resumenSol(s){const T=s.tipo,dd=diasSol(s);if(LIC_T.includes(T))return `${fmtD(s.desde)}${s.hasta&&s.hasta!==s.desde?' al '+fmtD(s.hasta):''}${dd?` · ${dd} día${dd>1?'s':''}`:''}`;
+  if(T==='permiso')return `${fmtD(s.desde)} · ${s.hora_desde||''}${s.hora_hasta?'–'+s.hora_hasta:''}`;if(T==='cambio_turno')return fmtD(s.desde)+(s.detalle?' · '+s.detalle.slice(0,60):'');
+  if(T==='adelanto')return '$ '+nf(s.monto,0);return (s.detalle||'').slice(0,80);}
+function solTag(s){return {pendiente:'<span class="tag t-warn">Pendiente</span>',aprobada:'<span class="tag t-ok">Aprobada</span>',rechazada:'<span class="tag t-out">Rechazada</span>',cancelada:'<span class="tag t-mut">Cancelada</span>'}[s.estado]||esc(s.estado);}
+function notifTag(s){if(s.origen==='rrhh')return '<span class="small muted">cargada por RRHH</span>';return {enviado:'<span class="tag t-ok" title="Aviso por mail enviado">📧 Enviado</span>',error:`<span class="tag t-out" title="${esc(s.notif_error||'')}">📧 Error</span>`,sin_config:'<span class="tag t-mut" title="No hay mails de aviso configurados o falta la función">📧 Sin mail</span>'}[s.notif_estado]||'<span class="small muted">—</span>';}
+function viewSol(){if(S.e2ok===false){$('view').innerHTML=nota2();return;}
+  $('view').innerHTML=`<div class="card"><div class="card-h"><h3>📨 Solicitudes del personal</h3><div class="seg">${gestiona()?'<button class="btn btn-gold" onclick="cargarSol()">＋ Cargar solicitud</button>':''}<button class="btn btn-ghost" onclick="exportSol()">📥 Excel</button></div></div>
+   <p class="hint">Llegan desde la app del empleado (y por mail a los avisos configurados). Se aprueban o rechazan con PIN y el empleado ve la respuesta en su app.</p>
+   <div class="filters"><div class="f">Estado<select class="in" onchange="F.sEst=this.value;G.sol&&(G.sol.pag=1);drawSol()">${[['pendiente','⏳ Pendientes'],['aprobada','Aprobadas'],['rechazada','Rechazadas'],['cancelada','Canceladas'],['','Todas']].map(([k,l])=>`<option value="${k}"${(F.sEst==null?'pendiente':F.sEst)===k?' selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="f">Tipo<select class="in" onchange="F.sTipo=this.value;drawSol()"><option value="">Todos</option>${Object.entries(SOL_T).map(([k,v])=>`<option value="${k}"${F.sTipo===k?' selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select></div>
+    <div class="f" style="flex:1;min-width:180px">Empleado<input class="in" placeholder="Nombre o legajo" value="${esc(F.sQ||'')}" oninput="F.sQ=this.value;drawSol()"></div></div><div id="solGrid"></div></div>`;drawSol();}
+function filtSol(empId){const est=F.sEst==null?'pendiente':F.sEst,q=norm(F.sQ||'');return (S.sol||[]).filter(s=>{if(empId)return s.empleado_id===empId;const e=emp(s.empleado_id);if(!e)return false;if(est&&s.estado!==est)return false;if(F.sTipo&&s.tipo!==F.sTipo)return false;if(q&&!(norm(nomE(e)).includes(q)||norm(e.legajo).includes(q)))return false;return true;});}
+function drawSolGrid(cid,key,list,conEmp){const rows=list.map(s=>Object.assign({},s,{_k:s.id,_lbl:(SOL_T[s.tipo]||['',s.tipo])[1]+(conEmp?' · '+nomE(emp(s.empleado_id)):'')}));
+  const cols=[{h:'Fecha',f:r=>`<span class="small">${fmtTs(r.created_at)}</span>`}];if(conEmp)cols.push({h:'Empleado',f:r=>{const e=emp(r.empleado_id);return `<b>${esc(nomE(e))}</b><div class="cod">${esc(e&&e.legajo||'')} · ${esc(e&&e.sector||'')}</div>`;}});
+  cols.push({h:'Tipo',f:r=>`${(SOL_T[r.tipo]||['•'])[0]} <b>${esc((SOL_T[r.tipo]||['',r.tipo])[1])}</b>${r.subtipo?`<div class="cod">${esc(r.subtipo)}</div>`:''}`},{h:'Pedido',f:r=>esc(resumenSol(r))+(r.adjunto_path?' 📎':'')},{h:'Estado',f:r=>solTag(r)+(r.resuelto_por&&r.estado!=='pendiente'?`<div class="cod">${esc(r.resuelto_por)}</div>`:'')},{h:'Aviso',f:r=>notifTag(r)});
+  grid(cid,key,cols,rows,r=>{const a=[{lbl:'👁️ Ver',cls:'btn-gold',fn:()=>verSol(r.id)}];if(gestiona()&&r.estado==='pendiente'){a.push({lbl:'✅ Aprobar',fn:()=>resolverSol(r.id,true)},{lbl:'✕ Rechazar',cls:'btn-danger',fn:()=>resolverSol(r.id,false)});if(r.origen!=='rrhh'&&r.notif_estado!=='enviado')a.push({lbl:'📧 Reenviar aviso',fn:()=>reenviarAviso(r.id)});}return a;},k=>verSol(k));}
+function drawSol(){drawSolGrid('solGrid','sol',filtSol(),true);}
+function superpuestas(s){if(!LIC_T.includes(s.tipo)||!s.desde)return [];const e=emp(s.empleado_id);const h=d10(s.hasta||s.desde);
+  return (S.sol||[]).filter(o=>o.id!==s.id&&LIC_T.includes(o.tipo)&&['pendiente','aprobada'].includes(o.estado)&&o.desde&&d10(o.desde)<=h&&d10(o.hasta||o.desde)>=d10(s.desde)&&(()=>{const x=emp(o.empleado_id);return x&&e&&x.sector&&x.sector===e.sector&&x.id!==e.id;})());}
+function verSol(id){const s=(S.sol||[]).find(x=>x.id===id),e=emp(s.empleado_id),T=SOL_T[s.tipo]||['•',s.tipo],sp=superpuestas(s),dd=diasSol(s);
+  const r=(l,v)=>v?`<div><div class="l">${l}</div><div class="v">${v}</div></div>`:'';
+  modal(`<h3>${T[0]} ${esc(T[1])}</h3><p class="hint"><b>${esc(nomE(e))}</b> · ${esc(e&&e.legajo||'')} · ${esc(e&&e.sector||'')} · ${esc(e&&e.puesto||'')}</p>
+   <div class="dl" style="grid-template-columns:1fr 1fr">${r('Estado',solTag(s))}${r('Pedida',fmtTs(s.created_at)+(s.origen==='rrhh'?' · cargada por '+esc(s.cargado_por||'RRHH'):' · desde la app'))}${r('Subtipo',esc(s.subtipo||''))}
+    ${r('Fechas',s.desde?fmtD(s.desde)+(s.hasta&&s.hasta!==s.desde?' al '+fmtD(s.hasta):'')+(dd&&LIC_T.includes(s.tipo)?` (${dd} días corridos)`:''):'')}${r('Horario',s.hora_desde?esc(s.hora_desde)+(s.hora_hasta?' a '+esc(s.hora_hasta):''):'')}${r('Monto',s.monto?'$ '+nf(s.monto,0):'')}
+    ${s.detalle?`<div style="grid-column:1/-1"><div class="l">Detalle</div><div class="v" style="font-weight:400;white-space:pre-wrap">${esc(s.detalle)}</div></div>`:''}
+    ${s.estado!=='pendiente'?r('Respuesta',esc(s.respuesta||'—')+'<div class="cod">'+esc(s.resuelto_por||'')+(s.autorizado_por?' · 🔒 '+esc(s.autorizado_por):'')+' · '+fmtTs(s.resuelto_at)+'</div>'):''}${r('Aviso por mail',notifTag(s))}</div>
+   ${s.adjunto_path?`<button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="verArchivo('${esc(s.adjunto_path)}')">📎 Ver adjunto (${esc(s.adjunto_nombre||'archivo')})</button>`:''}
+   ${sp.length?`<div class="note" style="margin:14px 0 0">⚠️ En esas fechas también ${sp.length===1?'pidió/tiene':'pidieron/tienen'} licencia en <b>${esc(e.sector)}</b>: ${sp.map(o=>esc(nomCorto(emp(o.empleado_id)))+' ('+fmtD(o.desde)+(o.hasta&&o.hasta!==o.desde?'–'+fmtD(o.hasta):'')+', '+o.estado+')').join(', ')}.</div>`:''}
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-ghost" onclick="closeModal();F.fTab='sol';go('ficha','${s.empleado_id}')">👤 Ficha</button>${gestiona()&&s.estado==='pendiente'?`<button class="btn btn-danger" onclick="resolverSol('${s.id}',false)">✕ Rechazar</button><button class="btn btn-gold" onclick="resolverSol('${s.id}',true)">✅ Aprobar</button>`:''}</div>`,true);}
+async function verArchivo(path){const w=window.open('','_blank');try{const {data,error}=await sb.storage.from(BUCKET).createSignedUrl(path,300);if(error)throw error;if(w)w.location.href=data.signedUrl;else location.href=data.signedUrl;}catch(e){if(w)w.close();banner('No se pudo abrir el archivo: '+errMsg(e),'err');}}
+function resolverSol(id,ok){const s=(S.sol||[]).find(x=>x.id===id),e=emp(s.empleado_id),T=SOL_T[s.tipo]||['',s.tipo];
+  pinModal({titulo:(ok?'Aprobar ':'Rechazar ')+esc(T[1].toLowerCase())+' · '+esc(nomCorto(e)),btn:ok?'✅ Autorizar y aprobar':'✕ Autorizar rechazo',tipo:ok?'rrhh_aprobar_solicitud':'rrhh_rechazar_solicitud',ref:(e.legajo||'')+' '+nomE(e)+' · '+T[1],
+   html:`<p class="hint">${esc(resumenSol(s))}</p><label class="lb" for="rs_txt">${ok?'Mensaje para el empleado (opcional)':'Motivo del rechazo *'}</label><textarea class="in" id="rs_txt" placeholder="${ok?'Ej.: ¡Que las disfrutes!':'Ej.: esa semana hay mucha producción, ¿podés pasarlas a la siguiente?'}"></textarea><p class="hint" style="margin-top:6px">El empleado ve la respuesta en su app.</p>`,
+   validar:()=>!ok&&!$('rs_txt').value.trim()?'Escribí el motivo del rechazo':null,detalle:()=>T[1]+' · '+resumenSol(s)+($('rs_txt').value.trim()?' · '+$('rs_txt').value.trim():''),
+   onOK:async a=>{const {error}=await sb.from('rrhh_solicitudes').update({estado:ok?'aprobada':'rechazada',respuesta:$('rs_txt').value.trim()||null,resuelto_por:S.nombre,autorizado_por:a.nombre,resuelto_at:new Date().toISOString()}).eq('id',id).eq('empresa_id',S.empresaId).eq('estado','pendiente');if(error)throw error;
+     if(ok&&LIC_T.includes(s.tipo))await addHist(s.empleado_id,'licencia',T[1]+(s.subtipo?' ('+s.subtipo+')':'')+' · '+resumenSol(s),null,null,a,s.desde);
+     await loadSol();await loadHist();closeModal();banner(ok?'Solicitud aprobada ✓':'Solicitud rechazada');buildNav();render();}});}
+async function reenviarAviso(id){banner('Enviando aviso…');try{const r=await fn({action:'notificar',solicitud_id:id,reenviar:true});await loadSol();render();
+  banner(r.estado==='enviado'?'Aviso enviado ✓':r.estado==='sin_config'?'No hay mails de aviso configurados (Configuración RRHH → Horarios y avisos)':'No se pudo enviar: '+(r.error_mail||''),r.estado==='enviado'?'':'warn');}
+  catch(e){banner(e.message==='FN_NO'?'Falta publicar la función rrhh en Supabase':'Error: '+e.message,'err');}}
+function solCampos(tipo){const t=today();const D=(id,l,v)=>fi(id,l,v||'',{type:'date'});
+  if(tipo==='vacaciones')return `<div class="fg" style="grid-template-columns:1fr 1fr">${D('cs_d','Desde *',t)}${D('cs_h','Hasta *',t)}</div>`;
+  if(tipo==='enfermedad')return `<div class="fg" style="grid-template-columns:1fr 1fr">${D('cs_d','Desde *',t)}${D('cs_h','Hasta (estimado)',t)}</div>`;
+  if(tipo==='especial')return `${fsel('cs_sub','Motivo',SUB_ESP[0],SUB_ESP)}<div class="fg" style="grid-template-columns:1fr 1fr">${D('cs_d','Desde *',t)}${D('cs_h','Hasta *',t)}</div>`;
+  if(tipo==='permiso')return `<div class="fg">${D('cs_d','Día *',t)}${fi('cs_hd','Desde','',{type:'time'})}${fi('cs_hh','Hasta','',{type:'time'})}</div>`;
+  if(tipo==='cambio_turno')return D('cs_d','Día *',t);if(tipo==='adelanto')return fi('cs_m','Monto *','',{type:'number',attr:'min="1"'});return '';}
+function cargarSol(empId){if(!gestiona())return;const act=S.emps.filter(e=>e.estado!=='baja').sort((a,b)=>norm(nomE(a)).localeCompare(norm(nomE(b))));const tp=window._csTipo||'enfermedad';
+  modal(`<h3>＋ Cargar solicitud</h3><p class="hint">Para quien avisa por teléfono o no tiene la app. Queda <b>pendiente</b> para aprobar.</p>
+   <label class="lb" for="cs_emp">Empleado *</label><select class="in" id="cs_emp"><option value="">— Elegí —</option>${act.map(e=>`<option value="${e.id}"${e.id===empId?' selected':''}>${esc(nomE(e))} · ${esc(e.legajo||'')}</option>`).join('')}</select>
+   <label class="lb" for="cs_tipo">Tipo</label><select class="in" id="cs_tipo" onchange="window._csTipo=this.value;const em=$('cs_emp').value;cargarSol(em)">${Object.entries(SOL_T).map(([k,v])=>`<option value="${k}"${k===tp?' selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
+   ${solCampos(tp)}<label class="lb" for="cs_det">Detalle${['constancia','datos','consulta','cambio_turno'].includes(tp)?' *':''}</label><textarea class="in" id="cs_det"></textarea>
+   <div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-gold" id="cs_ok" onclick="saveCargaSol()">💾 Guardar</button></div>`);}
+async function saveCargaSol(){const tp=$('cs_tipo').value,v=k=>$(k)?$(k).value.trim():'';const o={empresa_id:S.empresaId,empleado_id:v('cs_emp'),tipo:tp,subtipo:v('cs_sub')||null,desde:v('cs_d')||null,hasta:v('cs_h')||(['permiso','cambio_turno'].includes(tp)?v('cs_d'):null)||null,hora_desde:v('cs_hd')||null,hora_hasta:v('cs_hh')||null,monto:v('cs_m')?+v('cs_m'):null,detalle:v('cs_det')||null,estado:'pendiente',origen:'rrhh',cargado_por:S.nombre};
+  if(!o.empleado_id)return banner('Elegí el empleado','warn');if(['vacaciones','enfermedad','especial','permiso','cambio_turno'].includes(tp)&&!o.desde)return banner('Indicá la fecha','warn');if(o.hasta&&o.desde&&o.hasta<o.desde)return banner('"Hasta" no puede ser antes que "desde"','warn');
+  if(tp==='adelanto'&&!(o.monto>0))return banner('Indicá el monto','warn');if(['constancia','datos','consulta','cambio_turno'].includes(tp)&&!o.detalle)return banner('Escribí el detalle','warn');
+  const b=$('cs_ok');b.disabled=true;try{const {error}=await sb.from('rrhh_solicitudes').insert(o);if(error)throw error;window._csTipo=null;closeModal();await loadSol();buildNav();F.sEst='pendiente';banner('Solicitud cargada ✓');go('sol');}catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;}}
+function exportSol(){toXlsx('Solicitudes_RRHH','Solicitudes',[['Fecha','Legajo','Empleado','Sector','Tipo','Subtipo','Desde','Hasta','Días','Horario','Monto','Detalle','Estado','Respuesta','Resolvió','Autorizó','Origen','Aviso'],
+  ...filtSol().map(s=>{const e=emp(s.empleado_id)||{};return [fmtTs(s.created_at),e.legajo||'',nomE(e),e.sector||'',(SOL_T[s.tipo]||['',s.tipo])[1],s.subtipo||'',fmtD(s.desde),fmtD(s.hasta),LIC_T.includes(s.tipo)?diasSol(s)||'':'',s.hora_desde?s.hora_desde+'-'+(s.hora_hasta||''):'',s.monto||'',s.detalle||'',s.estado,s.respuesta||'',s.resuelto_por||'',s.autorizado_por||'',s.origen==='rrhh'?'RRHH':'App',s.notif_estado||''];})]);}
+
+// ══════════════ APP DEL EMPLEADO Y PIN (desde la ficha) ══════════════
+function appActiva(e){return !!(e&&e.app_uid&&(e.app_estado||'activo')==='activo');}
+function appTags(e){const p=S.pines&&S.pines[e.id];return (appActiva(e)?'<span class="tag t-ok">📱 App activa</span>':'')+(p?(p.bloqueado?'<span class="tag t-out">🔑 PIN bloqueado</span>':(appActiva(e)?'':'<span class="tag t-nav">🔑 PIN tablet</span>')):'');}
+function genPin(){const a=new Uint32Array(1);let p;do{crypto.getRandomValues(a);p=String(a[0]%1000000).padStart(6,'0');}while(/^(\d)\1{5}$/.test(p)||'0123456789'.includes(p)||'9876543210'.includes(p));return p;}
+function appPin(id){const e=emp(id),p=S.pines&&S.pines[id];
+  modal(`<h3>📱 App y PIN · ${esc(nomCorto(e))}</h3>
+   <div class="dl" style="grid-template-columns:1fr 1fr;margin:10px 0 4px"><div><div class="l">App del celular</div><div class="v">${appActiva(e)?'✅ Activa desde '+fmtTs(e.app_alta):e.app_estado==='revocado'?'⛔ Acceso quitado':'— Sin activar'}</div></div>
+    <div><div class="l">PIN (app y tablet)</div><div class="v">${p?(p.bloqueado?'🔒 Bloqueado por intentos':'✅ Asignado')+'<div class="cod">'+fmtTs(p.pin_alta)+(p.updated_by?' · '+esc(p.updated_by):'')+'</div>':'— Sin PIN'}</div></div></div>
+   <p class="hint">Al generar un PIN nuevo, el empleado entra a la app del celular con su <b>DNI</b> y ese <b>PIN</b>, y con el mismo PIN puede fichar en la tablet. El PIN anterior deja de servir.${e.dni?'':'<br><b>Falta cargar el DNI en el legajo.</b>'}</p>
+   <div class="row" style="justify-content:flex-start">${e.dni?`<button class="btn btn-gold" id="ap_gen" onclick="doGenPin('${id}')">🔑 ${p||appActiva(e)?'Generar PIN nuevo':'Generar PIN y activar la app'}</button>`:`<button class="btn btn-gold" onclick="closeModal();editEmp('${id}')">✏️ Cargar DNI</button>`}${appActiva(e)?`<button class="btn btn-danger" onclick="quitarApp('${id}')">⛔ Quitar acceso a la app</button>`:''}<button class="btn btn-ghost" onclick="closeModal()">Cerrar</button></div>`);}
+async function doGenPin(id){const e=emp(id),pin=genPin();const b=$('ap_gen');b.disabled=true;b.textContent='⏳ Generando…';let app=true,aviso='';
+  try{await fn({action:'acceso',empleado_id:id,pin});}
+  catch(err){app=false;if(err.message!=='FN_NO'){banner('Error: '+err.message,'err');b.disabled=false;b.textContent='🔑 Generar PIN';return;}
+    const {error}=await sb.rpc('rrhh_set_pin',{p_emp:id,p_pin:pin});if(error){banner('Error: '+errMsg(error),'err');b.disabled=false;return;}aviso=FN_NO_TXT+' Mientras tanto el PIN ya sirve para fichar en la <b>tablet</b>.';}
+  await addHist(id,'app',app?'Se generó un PIN nuevo y se activó la app del celular':'Se generó un PIN nuevo (tablet)');await Promise.all([loadEmps(),loadPines(),loadHist()]);credencial(id,pin,app,aviso);render();}
+async function credencial(id,pin,app,aviso){const e=emp(id),link=appURL(),razon=(S.empresa||{}).razon_social||'';
+  const msg=`Hola ${e.nombre}! Ya podés usar la app de RRHH de ${razon}.\n1) Entrá a: ${link}\n2) Ingresá con tu DNI ${e.dni} y tu PIN ${pin}\n3) Tocá "Agregar a pantalla de inicio" para tenerla como app.\nCon el mismo PIN también podés fichar en la tablet del galpón. Cambiá tu PIN desde la app (Perfil → Cambiar mi PIN) y no se lo pases a nadie.`;window._credMsg=msg;
+  let tel=cuilDig(e.telefono);if(tel){tel=tel.replace(/^0/,'');if(!tel.startsWith('54'))tel='549'+tel.replace(/^15/,'');}
+  modal(`<h3>🔑 PIN de ${esc(nomCorto(e))}</h3>${aviso?`<div class="note">${aviso}</div>`:''}
+   <div class="cred"><div><div class="l">DNI</div><b>${esc(e.dni)}</b></div><div><div class="l">PIN</div><b class="pin">${pin}</b></div></div>
+   <p class="hint">Anotalo ahora: por seguridad <b>no se vuelve a mostrar</b>. Si se lo olvida, generás uno nuevo.</p>
+   ${app?`<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div id="cred_qr" style="background:#fff;padding:6px;border:1px solid var(--line);border-radius:8px"></div><div style="flex:1;min-width:200px"><div class="l small muted">Link de la app</div><div class="urlbox small">${esc(link)}</div></div></div>`:''}
+   <div class="row">${tel?`<a class="btn btn-ghost" target="_blank" rel="noopener" href="https://wa.me/${tel}?text=${encodeURIComponent(msg)}">💬 Enviar por WhatsApp</a>`:''}<button class="btn btn-ghost" onclick="copiar(window._credMsg)">📋 Copiar mensaje</button><button class="btn btn-ghost" onclick="printCred('${id}','${pin}')">🖨️ Imprimir</button><button class="btn btn-gold" onclick="closeModal()">Listo</button></div>`);
+  if(app&&$('cred_qr'))try{await qrInto($('cred_qr'),link,120);}catch(x){}}
+function copiar(t){try{navigator.clipboard.writeText(t).then(()=>banner('Copiado ✓'),()=>banner('No se pudo copiar','warn'));}catch(e){banner('No se pudo copiar','warn');}}
+async function printCred(id,pin){const e=emp(id);let qr='';try{qr=await qrDataURL(appURL(),400);}catch(x){}
+  cartel('Tu acceso a la app de RRHH',qr,esc(nomCorto(e))+' · DNI '+esc(e.dni)+' · <b style="font-size:26px;letter-spacing:4px">PIN '+pin+'</b>','1) Escaneá el código con la cámara del celular.<br>2) Ingresá con tu DNI y tu PIN.<br>3) Tocá <b>Agregar a pantalla de inicio</b>.<br>Con el mismo PIN fichás en la tablet. No compartas tu PIN y cambialo desde la app.');}
+function quitarApp(id){const e=emp(id);modal(`<h3>⛔ Quitar acceso a la app</h3><p class="hint">${esc(nomCorto(e))} no va a poder entrar más a la app del celular (su PIN de la tablet sigue). Lo podés volver a activar cuando quieras.</p><div class="row"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" id="qa_ok" onclick="doQuitarApp('${id}')">⛔ Quitar acceso</button></div>`);}
+async function doQuitarApp(id,silencioso){const b=$('qa_ok');if(b)b.disabled=true;try{await fn({action:'revocar',empleado_id:id});await addHist(id,'app','Se quitó el acceso a la app del celular');await Promise.all([loadEmps(),loadHist()]);if(!silencioso){closeModal();banner('Acceso a la app quitado');render();}return true;}
+  catch(e){if(!silencioso){banner(e.message==='FN_NO'?'Falta publicar la función rrhh en Supabase':'Error: '+e.message,'err');if(b)b.disabled=false;}return false;}}
+// pestañas de la ficha
+function fichaAsis(e){const t=today();const ym=t.slice(0,7),r=resumenMes(e,ym),rows=[];for(let i=0;i<31;i++){const f=addDays(t,-i);const j=jorInfo(e,f);if(['na','futuro'].includes(j.est)||(j.est==='franco'&&!j.fs.length))continue;rows.push({f,j});}
+  return `<div class="card-h"><h3>🕒 Asistencia (últimos 31 días)</h3><button class="btn btn-ghost btn-sm" onclick="F.aTab='mes';go('asis')">📅 Resumen del mes</button></div>
+   <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))"><div class="kpi"><small>Este mes</small><b>${r.dias}</b><span>días trabajados</span></div><div class="kpi"><small>Horas</small><b>${hmc(r.trab)}</b><span>extra ${hmc(r.extra)}</span></div><div class="kpi"><small>Tardanzas</small><b class="${r.tarde?'a':''}">${r.tarde}</b><span>${hm(r.minTarde)}</span></div><div class="kpi"><small>Ausencias</small><b class="${r.aus?'r':''}">${r.aus}</b></div></div>
+   ${rows.length?`<div class="tscroll"><table><thead><tr><th>Día</th><th>Entrada</th><th>Salida</th><th>Horas</th><th>Estado</th></tr></thead><tbody>${rows.map(({f,j})=>`<tr class="gx-r" onclick="verFichadas('${e.id}','${f}')"><td><b>${DIAS_L[diaSem(f)].slice(0,3)} ${fmtD(f).slice(0,5)}</b></td><td>${j.ent?horaAR(j.ent.ts)+' '+(MEDIO_I[j.ent.medio]||''):'—'}</td><td>${j.sal?horaAR(j.sal.ts)+' '+(MEDIO_I[j.sal.medio]||''):'—'}</td><td>${j.trab?hmc(j.trab):'—'}</td><td>${estTag(j,f)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Sin registros todavía</div>'}`;}
+
+// ══════════════ CONFIGURACIÓN: HORARIOS, AVISOS Y APP ══════════════
+async function saveCfgListas(parcial){const listas=Object.assign({},S.L,parcial);const {error}=S.cfgRow?await sb.from('rrhh_config').update({listas}).eq('empresa_id',S.empresaId):await sb.from('rrhh_config').insert({empresa_id:S.empresaId,listas});if(error)throw error;await loadCfg();}
+function viewHorarios(){const L=S.L,g=gestiona(),H=L.horarios||{},N=L.notif||{};
+  $('cfgBody').innerHTML=`<div class="card"><div class="card-h"><h3>🕒 Horarios por turno</h3>${g?'<button class="btn btn-gold" id="hz_ok" onclick="saveHorarios()">💾 Guardar</button>':''}</div>
+   <p class="hint">Con el horario se calculan las <b>tardanzas</b> y las <b>horas extra</b>. Dejá vacíos los turnos sin horario fijo (rotativo, cortado). Los turnos se editan en la pestaña Listas.</p>
+   <table><thead><tr><th>Turno</th><th>Ingreso</th><th>Salida</th><th>Duración</th></tr></thead><tbody>${L.turnos.map((t,i)=>{const h=H[t]||{};return `<tr><td><b>${esc(t)}</b></td><td><input class="in" type="time" id="hz_i${i}" value="${esc(h.ini||'')}" ${g?'':'disabled'} style="max-width:140px"></td><td><input class="in" type="time" id="hz_f${i}" value="${esc(h.fin||'')}" ${g?'':'disabled'} style="max-width:140px"></td><td class="small muted">${h.ini&&h.fin?hm(durTurno(h)):'—'}</td></tr>`;}).join('')}</tbody></table>
+   <div class="fg" style="margin-top:6px">${fi('hz_tol','Tolerancia de llegada (minutos)',String(tol()),{type:'number',attr:'min="0" max="60"'+(g?'':' disabled')})}<div class="two"><label class="lb">Días laborables</label><div class="seg">${[1,2,3,4,5,6,0].map(d=>`<label class="chk" style="margin-right:8px"><input type="checkbox" class="hz_d" value="${d}" ${(L.diasLab||[]).includes(d)?'checked':''} ${g?'':'disabled'}> ${DIAS_L[d].slice(0,3)}</label>`).join('')}</div></div></div></div>
+   <div class="card"><div class="card-h"><h3>📧 Avisos por mail</h3>${g?'<button class="btn btn-ghost" id="hz_test" onclick="pruebaMail()">📧 Enviar mail de prueba</button>':''}</div>
+   <p class="hint">Cada solicitud nueva de la app manda un mail a estas direcciones (por ejemplo, el correo de la empresa y el del Jefe de RRHH). Uno por renglón. El envío lo hace la función <b>rrhh</b> de Supabase con la cuenta de correo configurada en sus secretos (ver instructivo).</p>
+   <label class="chk"><input type="checkbox" id="hz_nact" ${N.activo!==false?'checked':''} ${g?'':'disabled'}> Enviar avisos por mail</label>
+   <textarea class="in" id="hz_mails" rows="3" placeholder="rrhh@empresa.com" ${g?'':'disabled'}>${esc((N.emails||[]).join('\n'))}</textarea></div>`;}
+async function saveHorarios(){const L=S.L,H={};L.turnos.forEach((t,i)=>{const a=$('hz_i'+i).value,b=$('hz_f'+i).value;if(a&&b)H[t]={ini:a,fin:b};});
+  const bad=L.turnos.find((t,i)=>!!$('hz_i'+i).value!==!!$('hz_f'+i).value);if(bad)return banner('Completá ingreso y salida del turno '+bad+' (o dejá los dos vacíos)','warn');
+  const dias=[...document.querySelectorAll('.hz_d:checked')].map(c=>+c.value);if(!dias.length)return banner('Marcá al menos un día laborable','warn');
+  const mails=[...new Set($('hz_mails').value.split(/[\n,;]+/).map(x=>x.trim().toLowerCase()).filter(Boolean))];const malo=mails.find(m=>!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m));if(malo)return banner('Mail inválido: '+malo,'warn');
+  const b=$('hz_ok');b.disabled=true;try{await saveCfgListas({horarios:H,tolerancia:Math.min(60,Math.max(0,+$('hz_tol').value||0)),diasLab:dias,notif:{activo:$('hz_nact').checked,emails:mails}});banner('Horarios y avisos guardados ✓');viewConfig();}catch(e){banner('Error: '+errMsg(e),'err');b.disabled=false;}}
+async function pruebaMail(){const b=$('hz_test');b.disabled=true;b.textContent='⏳ Enviando…';try{const r=await fn({action:'prueba'});banner('Mail de prueba enviado a '+(r.destinatarios||[]).join(', ')+' ✓');}catch(e){banner(e.message==='FN_NO'?'Falta publicar la función rrhh en Supabase (ver instructivo)':e.message,'err');}b.disabled=false;b.textContent='📧 Enviar mail de prueba';}
+async function viewAppCfg(){const link=appURL(),con=S.emps.filter(appActiva).length,act=S.emps.filter(e=>e.estado!=='baja').length;
+  $('cfgBody').innerHTML=`<div class="card"><div class="card-h"><h3>📱 App del empleado</h3><span class="tag t-nav">${con} de ${act} con la app activa</span></div>
+   <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap"><div id="appQr" style="background:#fff;padding:8px;border:1px solid var(--line);border-radius:10px"></div>
+   <div style="flex:1;min-width:240px"><p class="hint" style="margin-top:0">Es una app web que se instala sin Play Store: el empleado abre el link, entra con su <b>DNI</b> y su <b>PIN</b>, y toca <b>"Agregar a pantalla de inicio"</b>. Desde ahí ficha, pide licencias y permisos, sube certificados y ve sus datos.</p>
+    <div class="urlbox small">${esc(link)}</div><div class="seg" style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="copiar('${esc(link)}')">📋 Copiar link</button><button class="btn btn-ghost btn-sm" onclick="printCartelApp()">🖨️ Imprimir cartel</button></div>
+    <p class="hint" style="margin-top:12px">El PIN de cada empleado se genera desde su ficha: <b>📱 App y PIN</b>.</p></div></div></div>`;
+  try{await qrInto($('appQr'),link,170);}catch(e){}}
+async function printCartelApp(){cartel('Descargá la app de RRHH',await qrDataURL(appURL(),600),esc((S.empresa||{}).razon_social||''),'Escaneá con la cámara del celular, entrá con tu <b>DNI</b> y tu <b>PIN</b><br>y tocá <b>Agregar a pantalla de inicio</b>.<br>Fichá, pedí licencias y permisos, y subí tus certificados desde el celular.<br>¿No tenés PIN? Pedíselo a RRHH.');}
+
 // ══════════════ INICIO ══════════════
 function lock(msg,extra){$('splash').innerHTML=`<div style="font-size:34px">🔒</div><div style="font-size:17px;font-weight:800;max-width:520px">${msg}</div>${extra?`<div style="font-size:13px;color:rgba(255,255,255,.75);max-width:520px;line-height:1.5">${extra}</div>`:''}<a href="/portal.html" style="color:var(--gold);margin-top:8px">← Volver al portal CONTROL MAX</a>`;}
 async function init(){
@@ -731,20 +1108,26 @@ async function init(){
   // plan y permisos de módulo (Configuración MAX)
   const mods=S.empresa.modulos;if(mods&&typeof mods==='object'&&mods.rrhh===false)return lock('CONTROL RRHH no está activo en el plan de tu empresa',esAdmin()?'Activalo en <b>Configuración → Plan y módulos</b>.':'');
   const pm=S.empresa.permisos_max&&S.empresa.permisos_max.modulos;
-  if(!esAdmin()&&pm&&Array.isArray(pm[S.rol])&&!pm[S.rol].includes('rrhh'))return lock('Tu rol no tiene acceso a CONTROL RRHH');
+  const sinRol=!esAdmin()&&pm&&Array.isArray(pm[S.rol])&&!pm[S.rol].includes('rrhh')&&!(S.rol==='rrhh'&&!(S.rol in pm));
   // acceso por usuario (los legajos tienen datos personales)
   const r=await sb.rpc('rrhh_puede',{p_nivel:'gestion'});
   if(r.error){if(/rrhh_puede|PGRST202|does not exist|Could not find/i.test(r.error.message||''))return lock('CONTROL RRHH todavía no está instalado en la base',esAdmin()?'Corré <b>rrhh_etapa1_setup.sql</b> en Supabase → SQL Editor y recargá esta página.':'Avisale al administrador.');throw r.error;}
-  if(esAdmin())S.nivel='admin';else if(r.data)S.nivel='gestion';
-  else{const r2=await sb.rpc('rrhh_puede',{p_nivel:'consulta'});if(r2.error)throw r2.error;if(!r2.data)return lock('Tu usuario no tiene acceso a CONTROL RRHH','Los legajos tienen datos personales: un administrador tiene que habilitarte en <b>CONTROL RRHH → Configuración RRHH → Accesos</b>.');S.nivel='consulta';}
+  // si el rol no tiene RRHH, solo puede entrar el usuario de la tablet (acceso "Tablet")
+  if(sinRol){const rk=await sb.rpc('rrhh_puede',{p_nivel:'kiosco'});if(rk.error||!rk.data)return lock('Tu rol no tiene acceso a CONTROL RRHH');S.nivel='kiosco';}
+  else if(esJefe())S.nivel='admin';else if(r.data)S.nivel='gestion';
+  else{const r2=await sb.rpc('rrhh_puede',{p_nivel:'consulta'});if(r2.error)throw r2.error;
+    if(r2.data)S.nivel='consulta';
+    else{const r3=await sb.rpc('rrhh_puede',{p_nivel:'kiosco'});if(!r3.error&&r3.data)S.nivel='kiosco';
+      else return lock('Tu usuario no tiene acceso a CONTROL RRHH','Los legajos tienen datos personales: el administrador o el Jefe de RRHH tienen que habilitarte en <b>CONTROL RRHH → Configuración RRHH → Accesos</b>.');}}
+  if(S.nivel==='kiosco'){S.L=mergeL({});$('empName').textContent=S.empresa.razon_social||'';$('whoName').textContent=S.nombre;$('whoRole').textContent='Tablet de fichaje';$('splash').style.display='none';$('app').style.display='block';return go('kiosco');}
   await loadAll();
-  $('empName').textContent=S.empresa.razon_social||'';$('whoName').textContent=S.nombre;$('whoRole').textContent=(ROL_LABEL[S.rol]||S.rol)+' · RRHH '+({admin:'total',gestion:'gestión',consulta:'consulta'}[S.nivel]);
+  $('empName').textContent=S.empresa.razon_social||'';$('whoName').textContent=S.nombre;$('whoRole').textContent=(ROL_LABEL[S.rol]||S.rol)+' · RRHH '+({admin:'total',gestion:'gestión',consulta:'consulta'}[S.nivel]);if(S.e2ok===false&&esJefe())setTimeout(()=>banner('Falta correr rrhh_etapa2_setup.sql para Asistencia y Solicitudes','warn'),600);
   $('splash').style.display='none';$('app').style.display='block';
   const h=(location.hash||'').slice(1);const [hv,hid]=h.split('=');
   if(hv==='ficha'&&hid&&emp(hid))return go('ficha',hid);
   go(META[hv]||FUT[hv]?hv:'panel');
 }
-document.addEventListener('visibilitychange',async()=>{if(document.hidden||!S.empresaId||$('modalBg').classList.contains('show'))return;try{await loadAll();buildNav();if(cur!=='config')go(cur,S.fichaId);}catch(e){}});
+document.addEventListener('visibilitychange',async()=>{if(document.hidden||!S.empresaId||$('modalBg').classList.contains('show')||S.nivel==='kiosco'||cur==='kiosco')return;try{await loadAll();buildNav();if(cur!=='config')go(cur,S.fichaId);}catch(e){}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&$('modalBg').classList.contains('show'))closeModal();});
 init().catch(e=>{console.error(e);$('splash').innerHTML='<div style="padding:20px">No se pudo iniciar CONTROL RRHH: '+esc(errMsg(e))+'</div><a href="/portal.html" style="color:var(--gold)">← Volver al portal</a>';});
 </script>
