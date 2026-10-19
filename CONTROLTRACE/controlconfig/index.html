@@ -342,7 +342,7 @@ textarea.fctl{resize:vertical}
 </div>
 <script>
 // ══════════════════════════════════════════════════════════════
-// CONTROL MAX · Configuración unificada — build cfg 1.4 · rol Jefe de RRHH (ve CONTROL RRHH y DOCS por defecto) · cfg 1.3 · permisos CONTROL DOCS (quién publica) · cfg 1.2 integración ARCA
+// CONTROL MAX · Configuración unificada — build cfg 1.4 · rol Jefe de RRHH (ve CONTROL RRHH, TOTAL —solo reportes de RRHH— y DOCS por defecto) · cfg 1.3 · permisos CONTROL DOCS (quién publica) · cfg 1.2 integración ARCA
 // Misma base (Supabase) que TRACE / PLUS / AGRO. Escribe en las MISMAS
 // columnas que usa CONTROL TRACE (empresas.*, operarios, permisos) y en
 // plus_config / puntos_venta de CONTROL PLUS: no hay nada que sincronizar.
@@ -426,7 +426,7 @@ const MODULOS=[
   {id:'rrhh', nom:'CONTROL RRHH', ico:'👥',sub:'Recursos humanos'},
 ];
 // Qué módulos ve cada rol si nunca se configuró (coincide con lo que hoy hace cada app)
-const DEF_MODROL={supervisor:['trace','plus','total','docs'],comercial:['trace','plus','docs'],preparador:['trace','docs'],chofer:['trace'],rrhh:['rrhh','docs']};
+const DEF_MODROL={supervisor:['trace','plus','total','docs'],comercial:['trace','plus','docs'],preparador:['trace','docs'],chofer:['trace'],rrhh:['rrhh','total','docs']};
 // Pantallas de CONTROL TRACE (copia de la matriz de Trace v154 · ids = empresas.permisos)
 const TRACE_MODS=[
   {id:'rec',ico:'📥',name:'Recepción',grupo:'Operaciones',roles:['admin','supervisor','preparador']},
