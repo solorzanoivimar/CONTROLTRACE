@@ -123,7 +123,7 @@ textarea.in{min-height:90px;resize:vertical}
 // Entra con DNI + PIN. Todo pasa por funciones seguras de Supabase:
 // el empleado solo ve y carga lo suyo.
 // ══════════════════════════════════════════════════════════════
-const BUILD='app 1.0';
+const BUILD='app 1.1';
 const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
 const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'controlrrhh-app',persistSession:true,autoRefreshToken:true}});
@@ -166,8 +166,8 @@ async function arrancar(){try{if(!(await cargar(!ls('rrhh_logo'))))return;}catch
 
 // ══════════════ NAVEGACIÓN ══════════════
 const NAV=[['inicio','🏠','Inicio'],['asis','🕒','Asistencia'],['sol','📨','Pedidos'],['docs','📎','Docs'],['perfil','👤','Perfil']];
-function go(v,s){cur=v;sub=s||null;$('nav').innerHTML=NAV.map(n=>`<button class="${cur===n[0]?'on':''}" onclick="go('${n[0]}')"><span class="i">${n[1]}</span>${n[2]}</button>`).join('');
-  ({inicio:vInicio,asis:vAsis,sol:vSol,docs:vDocs,perfil:vPerfil}[v]||vInicio)();window.scrollTo(0,0);}
+function go(v,s){cur=v;sub=s||null;const navOn=({vac:'sol',pres:'perfil'})[cur]||cur;$('nav').innerHTML=NAV.map(n=>`<button class="${navOn===n[0]?'on':''}" onclick="go('${n[0]}')"><span class="i">${n[1]}</span>${n[2]}</button>`).join('');
+  ({inicio:vInicio,asis:vAsis,sol:vSol,docs:vDocs,perfil:vPerfil,vac:vVac,pres:vPres}[v]||vInicio)();window.scrollTo(0,0);}
 function hd(t,s){const e=Y.emp;return `<div class="hd"><small>${esc(Y.empresa.nombre||'')}</small><h2>${t}</h2>${s?`<div class="sub">${s}</div>`:''}</div>`;}
 
 // ══════════════ INICIO ══════════════
@@ -191,7 +191,34 @@ function vInicio(){const e=Y.emp,h=Y.horario,t=hoyAR();
    <div class="card"><h3>Hoy</h3><div class="hoy"><div><b>${ent?horaAR(ent.ts):'—'}</b><span>Entrada</span></div><div><b>${sal?horaAR(sal.ts):'—'}</b><span>Salida</span></div></div></div>
    <div class="card"><div class="asist"><div class="ic">${a[0]}</div><div><h3 style="margin-bottom:4px">Asistente</h3><p>${a[1]}</p></div></div></div>
    <div class="tiles"><div class="tile" onclick="go('sol','nuevo')"><span class="e">📨</span>Pedir licencia o permiso</div><div class="tile" onclick="go('sol')"><span class="e">📋</span>Mis pedidos${pend?`<span class="n">${pend}</span>`:''}</div>
+    <div class="tile" onclick="go('vac')"><span class="e">🏖️</span>Mis vacaciones${vacSaldoTxt()}</div>${(Y.prestamos||[]).some(p=>p.estado==='activo')?`<div class="tile" onclick="go('pres')"><span class="e">💳</span>Mis préstamos</div>`:''}
     <div class="tile" onclick="go('docs','subir')"><span class="e">📎</span>Subir certificado</div><div class="tile" onclick="go('perfil')"><span class="e">👤</span>Mis datos</div></div></div>`;}
+
+
+// ══════════════ VACACIONES Y PRÉSTAMOS (Etapa 3) ══════════════
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const num=v=>{v=+v||0;return Number.isInteger(v)?String(v):v.toLocaleString('es-AR',{maximumFractionDigits:1});};
+const pesos=v=>'$ '+(+v||0).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:2});
+function addD(f,n){const d=new Date(d10(f)+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function lunesProx(){let f=hoyAR();for(let i=0;i<7;i++){if(new Date(f+'T12:00:00').getDay()===1&&f>hoyAR())break;f=addD(f,1);}return f;}
+function mesTxt(m){m=d10(m);return MESES[+m.slice(5,7)-1]+' '+m.slice(0,4);}
+function vacSaldoTxt(){const v=(Y.vacaciones||[])[0];return v&&+v.saldo>0?`<span class="n">${num(v.saldo)}</span>`:'';}
+function vVac(){const V=(Y.vacaciones||[]).filter(Boolean),F=Y.feriados||[];const L=(Y.solicitudes||[]).filter(s=>s.tipo==='vacaciones');
+  const card=v=>`<div class="card"><h3>Período ${v.periodo}</h3><div class="hoy"><div><b>${num(v.saldo)}</b><span>días que te quedan</span></div><div><b>${num(v.corresponde)}</b><span>te corresponden${v.proporcional?' (proporcional)':''}</span></div></div>
+    <div class="dl" style="margin-top:10px">${+v.ajustes?`<div class="r"><span>Ajustes de RRHH</span><b>${+v.ajustes>0?'+':''}${num(v.ajustes)}</b></div>`:''}<div class="r"><span>Ya tomados</span><b>${num(v.tomados)}</b></div>${+v.pendientes?`<div class="r"><span>Pedidos esperando respuesta</span><b>${num(v.pendientes)}</b></div>`:''}</div></div>`;
+  $('view').innerHTML=hd('Mis vacaciones',Y.emp.fecha_ingreso?'Ingresaste el '+fmtD(Y.emp.fecha_ingreso):'')+`<div class="wrap"><button class="back" onclick="go('inicio')">← Inicio</button>
+   <button class="btn gold full" style="margin:0 0 12px" onclick="go('sol','nuevo:vacaciones')">🏖️ Pedir vacaciones</button>
+   ${V.length&&Y.emp.fecha_ingreso?V.filter((v,i)=>i===0||(+v.ajustes&&+v.saldo>0)).map(card).join(''):'<div class="note">Todavía no podemos calcular tus días. Consultá con RRHH.</div>'}
+   <p class="empty" style="text-align:left;padding:0 4px 12px">Los días son corridos y salen de la Ley de Contrato de Trabajo según tu antigüedad (14, 21, 28 o 35). El período ${V[0]?V[0].periodo:''} se toma entre octubre y abril.</p>
+   ${L.length?`<div class="card"><h3>Mis pedidos de vacaciones</h3>${L.map(s=>`<div class="li" onclick="verSolE('${s.id}')"><div><div class="t">${esc(resumenSol(s))}</div><div class="s">${s.dias?num(s.dias)+' días':''}</div></div>${solTag(s)}</div>`).join('')}</div>`:''}
+   ${F.length?`<div class="card"><h3>🎌 Próximos feriados</h3>${F.map(f=>`<div class="li"><div><div class="t">${fechaLarga(f.fecha)}/${d10(f.fecha).slice(0,4)}</div><div class="s">${esc(f.nombre)}</div></div></div>`).join('')}</div>`:''}</div>`;}
+function vPres(){const L=Y.prestamos||[];
+  $('view').innerHTML=hd('Mis préstamos y adelantos','Lo que te dio la empresa y cómo lo vas devolviendo')+`<div class="wrap"><button class="back" onclick="go('perfil')">← Perfil</button>
+   ${L.map(p=>{const debe=Math.max(0,+p.monto-(+p.pagado||0)),D=p.detalle||[];const prox=D.find(q=>q.estado==='pendiente');return `<div class="card"><h3>${p.tipo==='adelanto'?'Adelanto de sueldo':'Préstamo'} N° ${p.numero} ${p.estado==='cancelado'?'<span class="tag t-ok">Pagado</span>':''}</h3>
+     <div class="hoy"><div><b>${pesos(p.monto)}</b><span>${fmtD(p.fecha)}</span></div><div><b>${pesos(debe)}</b><span>falta devolver</span></div></div>
+     ${prox?`<p class="s" style="margin:10px 0 0">Próximo descuento: <b>${pesos(prox.importe)}</b> en el sueldo de ${mesTxt(prox.mes)}.</p>`:''}
+     <div class="dl" style="margin-top:8px">${D.map(q=>`<div class="r"><span>Cuota ${q.nro}/${p.cuotas} · ${mesTxt(q.mes)}</span><b>${pesos(q.importe)} ${q.estado==='pendiente'?'':'✓'}</b></div>`).join('')}</div></div>`;}).join('')||'<div class="empty">No tenés préstamos ni adelantos.</div>'}
+   <p class="empty">Para pedir un adelanto: Pedidos → Nuevo pedido → Adelanto de sueldo.</p></div>`;}
 
 // ══════════════ FICHAR ══════════════
 let CAM={stream:null,raf:null,det:null,busy:false};
@@ -250,7 +277,7 @@ function verSolE(id){const s=Y.solicitudes.find(x=>x.id===id);const dd=s.desde&&
 async function cancelarSol(id){if(!confirm('¿Cancelar este pedido?'))return;const {data,error}=await sb.rpc('rrhh_app_cancelar',{p_id:id});if(error||!data.ok)return banner(ERR[(data||{}).error]||'No se pudo cancelar','err');await cargar();banner('Pedido cancelado');go('sol');}
 function tiposSol(){$('view').innerHTML=hd('Nuevo pedido','¿Qué necesitás?')+`<div class="wrap"><button class="back" onclick="go('sol')">← Mis pedidos</button><div class="tipos">${Object.entries(SOL_T).map(([k,v])=>`<div class="tipo" onclick="go('sol','nuevo:${k}')"><span class="e">${v[0]}</span>${v[1]}</div>`).join('')}</div></div>`;}
 function formSol(t){const T=SOL_T[t];const hoy=hoyAR();const D=(id,l,v)=>`<div><label class="lb" for="${id}">${l}</label><input class="in" type="date" id="${id}" value="${v||''}"></div>`;
-  let f='';if(t==='vacaciones')f=`<div class="g2">${D('fs_d','Desde',hoy)}${D('fs_h','Hasta',hoy)}</div><div id="fs_dias" class="note" style="margin-top:12px">1 día</div>`;
+  let f='';if(t==='vacaciones'){const v=(Y.vacaciones||[])[0];f=`${v?`<div class="note" style="background:#eef4ea;border-color:#cfe0c6;color:#2d5a27">Te quedan <b>${num(v.saldo)} días</b> del período ${v.periodo}${+v.pendientes?` (y ${num(v.pendientes)} ya pedidos esperando respuesta)`:''}.</div>`:''}<div class="g2">${D('fs_d','Desde',lunesProx())}${D('fs_h','Hasta',addD(lunesProx(),6))}</div><div id="fs_dias" class="note" style="margin-top:12px">7 días</div>`;}
   else if(t==='enfermedad')f=`<div class="g2">${D('fs_d','Desde',hoy)}${D('fs_h','Hasta (estimado)',hoy)}</div><p class="empty" style="text-align:left;padding:8px 0 0">Si tenés el certificado médico, adjuntalo abajo (o subilo después desde Docs).</p>`;
   else if(t==='especial')f=`<label class="lb" for="fs_sub">Motivo</label><select class="in" id="fs_sub">${SUB_ESP.map(x=>`<option>${x}</option>`).join('')}</select><div class="g2">${D('fs_d','Desde',hoy)}${D('fs_h','Hasta',hoy)}</div>`;
   else if(t==='permiso')f=`${D('fs_d','Día',hoy)}<div class="g2"><div><label class="lb" for="fs_hd">Desde</label><input class="in" type="time" id="fs_hd"></div><div><label class="lb" for="fs_hh">Hasta</label><input class="in" type="time" id="fs_hh"></div></div>`;
@@ -262,7 +289,8 @@ function formSol(t){const T=SOL_T[t];const hoy=hoyAR();const D=(id,l,v)=>`<div><
    <label class="lb" for="fs_det">${det}</label><textarea class="in" id="fs_det"></textarea>
    ${adj?`<label class="lb" for="fs_file">Adjuntar foto o PDF (opcional)</label><input class="in" type="file" id="fs_file" accept="image/*,application/pdf">`:''}
    <button class="btn gold full" id="fs_ok" onclick="enviarSol('${t}')">Enviar pedido</button></div></div>`;
-  if(t==='vacaciones'){const u=()=>{const a=$('fs_d').value,b=$('fs_h').value;if(a&&b&&b>=a){const n=Math.round((new Date(b)-new Date(a))/864e5)+1;$('fs_dias').textContent=n+' día'+(n>1?'s':'')+' corridos';}else $('fs_dias').textContent='Revisá las fechas';};$('fs_d').onchange=()=>{if($('fs_h').value<$('fs_d').value)$('fs_h').value=$('fs_d').value;u();};$('fs_h').onchange=u;}}
+  if(t==='vacaciones'){const u=()=>{const a=$('fs_d').value,b=$('fs_h').value;if(a&&b&&b>=a){const n=Math.round((new Date(b)-new Date(a))/864e5)+1;const v=(Y.vacaciones||[])[0];const disp=v?(+v.saldo)-(+v.pendientes||0):null;
+      let t=n+' día'+(n>1?'s':'')+' corridos';if(new Date(a+'T12:00:00').getDay()!==1)t+=' · Ojo: por ley las vacaciones empiezan un lunes. RRHH lo va a revisar.';if(disp!=null&&n>disp)t+=' · Pedís más días de los que te quedan ('+num(Math.max(0,disp))+').';$('fs_dias').textContent=t;}else $('fs_dias').textContent='Revisá las fechas';};u();$('fs_d').onchange=()=>{if($('fs_h').value<$('fs_d').value)$('fs_h').value=$('fs_d').value;u();};$('fs_h').onchange=u;}}
 async function subirArchivo(file,pref){if(file.size>10*1024*1024)throw new Error('El archivo supera los 10 MB');let blob=file,nombre=file.name,tipo=file.type;
   if(/^image\//.test(tipo)&&!/gif/.test(tipo)){try{blob=await achicar(file);tipo='image/jpeg';nombre=nombre.replace(/\.[^.]+$/,'')+'.jpg';}catch(e){blob=file;}}
   const safe=nombre.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_').slice(-70);const path=`${Y.empresa.id}/${Y.emp.id}/${pref}_${Date.now()}_${safe}`;
@@ -301,6 +329,7 @@ function vPerfil(){if(sub==='pin')return formPin();const e=Y.emp,r=(l,v)=>v?`<di
    <div class="card dl">${r('Legajo',e.legajo)}${r('DNI',e.dni)}${r('CUIL',e.cuil)}${r('Ingreso',e.fecha_ingreso?fmtD(e.fecha_ingreso)+' ('+antig(e.fecha_ingreso)+')':'')}${r('Turno',e.turno)}${r('Jornada',e.jornada)}${r('Modalidad',e.modalidad)}</div>
    <div class="card dl">${r('Teléfono',e.telefono)}${r('Email',e.email)}${r('Domicilio',[e.domicilio,e.localidad].filter(Boolean).join(', '))}${r('Emergencia',e.emergencia)}</div>
    <button class="btn full" onclick="go('sol','nuevo:datos')">✏️ ¿Algo cambió? Avisá a RRHH</button>
+   <button class="btn full" onclick="go('vac')">🏖️ Mis vacaciones</button>${(Y.prestamos||[]).length?`<button class="btn full" onclick="go('pres')">💳 Mis préstamos y adelantos</button>`:''}
    <button class="btn full" onclick="go('perfil','pin')">🔑 Cambiar mi PIN</button>
    ${instalable(true)}
    <button class="btn red full" onclick="salir()">Cerrar sesión</button>
