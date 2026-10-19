@@ -317,7 +317,7 @@ textarea.fctl{resize:vertical}
   <div class="nav-item" onclick="go('seguridad')" id="n-seguridad"><span class="nav-icon">🔐</span>PIN y autorizadores</div>
   <div class="nav-sec">Suscripción</div>
   <div class="nav-item" onclick="go('plan')" id="n-plan"><span class="nav-icon">🧩</span>Plan y módulos</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build cfg 1.4 · rol Jefe de RRHH</div>
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)">build cfg 1.5 · usuarios: errores claros</div>
 </nav>
 
 <main class="main">
@@ -342,7 +342,7 @@ textarea.fctl{resize:vertical}
 </div>
 <script>
 // ══════════════════════════════════════════════════════════════
-// CONTROL MAX · Configuración unificada — build cfg 1.4 · rol Jefe de RRHH (ve CONTROL RRHH, TOTAL —solo reportes de RRHH— y DOCS por defecto) · cfg 1.3 · permisos CONTROL DOCS (quién publica) · cfg 1.2 integración ARCA
+// CONTROL MAX · Configuración unificada — build cfg 1.5 · Usuarios: muestra el motivo real cuando la función manage-users rechaza el alta y aclara que "Acceso" es solo de CONTROL TRACE · cfg 1.4 · rol Jefe de RRHH (ve CONTROL RRHH, TOTAL —solo reportes de RRHH— y DOCS por defecto) · cfg 1.3 · permisos CONTROL DOCS (quién publica) · cfg 1.2 integración ARCA
 // Misma base (Supabase) que TRACE / PLUS / AGRO. Escribe en las MISMAS
 // columnas que usa CONTROL TRACE (empresas.*, operarios, permisos) y en
 // plus_config / puntos_venta de CONTROL PLUS: no hay nada que sincronizar.
@@ -649,7 +649,13 @@ async function toggleOp(id){const o=S.ops.find(x=>x.id===id);const {error}=await
 
 // ══════════════ 4 · USUARIOS (Edge Function manage-users, la misma de TRACE) ══════════════
 let USERS=null,USERS_ERR=null;
-async function mu(body){const {data,error}=await sb.functions.invoke('manage-users',{body});const err=(data&&data.error)||(error&&(error.message||String(error)));if(err)throw new Error(err);return data||{};}
+async function mu(body){const {data,error}=await sb.functions.invoke('manage-users',{body});let err=(data&&data.error)||null;
+  if(!err&&error){err=error.message||String(error);try{const c=error.context;if(c&&typeof c.text==='function'){const t=await c.clone().text();let j=null;try{j=JSON.parse(t);}catch(x){}const m=j&&(j.error||j.message||j.msg)||t;if(m)err=String(m).slice(0,300)+(c.status?' ('+c.status+')':'');}}catch(x){}}
+  if(err)throw new Error(muMsg(err,body));return data||{};}
+function muMsg(m,body){const r=body&&body.rol;
+  if(/already (been )?registered|already exists|duplicate|ya existe/i.test(m))return 'Ese correo ya tiene un usuario. Buscalo en la lista y cambiale el rol, o usá otro correo. ('+m+')';
+  if(r&&/rol|role|check constraint|invalid input value|not allowed|no permitido|inv[aá]lid/i.test(m))return 'La función manage-users no acepta el rol "'+(ROL_LABEL[r]||r)+'". Creá el usuario con rol Preparador y después cambiale el rol en Supabase → SQL Editor: update perfiles set rol = \''+r+'\' where id = (select id from auth.users where email = \''+String(body.email||'correo').replace(/'/g,'')+'\'); · Detalle: '+m;
+  return m;}
 function rolOpts(sel_){const l=(esAdmin()?['admin']:[]).concat(ROLES);if(sel_&&!l.includes(sel_))l.push(sel_);return l.map(r=>`<option value="${r}"${r===sel_?' selected':''}>${esc(ROL_LABEL[r]||r)}</option>`).join('');}
 function accOpts(sel_){const l=(esAdmin()?['admin']:[]).concat(['galpon','finca']);if(sel_&&!l.includes(sel_))l.push(sel_);return (sel_?'':'<option value="">—</option>')+l.map(a=>`<option value="${a}"${a===sel_?' selected':''}>${esc(ACCESO_LABEL[a]||a)}</option>`).join('');}
 R.usuarios=function(){
@@ -671,7 +677,7 @@ function nuevoUsuario(){formModal({title:'Nuevo usuario',sub:'Podrá ingresar co
   {id:'nombre',label:'Nombre y apellido',req:true},{id:'email',label:'Correo (para ingresar)',type:'email',req:true},
   {id:'password',label:'Contraseña inicial (mín. 6)',req:true,help:'Pedile que la cambie después desde su usuario.'},
   {id:'rol',label:'Rol',type:'select',options:(esAdmin()?['admin']:[]).concat(ROLES).map(r=>[r,ROL_LABEL[r]])},
-  {id:'acceso',label:'Acceso',type:'select',options:[['galpon',ACCESO_LABEL.galpon],['finca',ACCESO_LABEL.finca]].concat(esAdmin()?[['admin',ACCESO_LABEL.admin]]:[])}],values:{rol:'preparador',acceso:'galpon'},
+  {id:'acceso',label:'Acceso a CONTROL TRACE',type:'select',help:'Solo para CONTROL TRACE. Los demás módulos (RRHH, TOTAL, DOCS…) los da el <b>rol</b>. Para el Jefe de RRHH dejá <b>Galpón</b>.',options:[['galpon',ACCESO_LABEL.galpon],['finca',ACCESO_LABEL.finca]].concat(esAdmin()?[['admin',ACCESO_LABEL.admin]]:[])}],values:{rol:'preparador',acceso:'galpon'},
   onSave:async v=>{if(v.password.length<6){toast('La contraseña debe tener al menos 6 caracteres','warn');return false;}
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)){toast('El correo no es válido','warn');return false;}
     const d=await mu({action:'create',nombre:v.nombre,email:v.email,password:v.password,rol:v.rol,acceso:v.acceso});
