@@ -344,7 +344,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
   <div class="nav-item" onclick="go('banco')" id="n-banco"><span class="nav-icon">🏦</span>Banco</div>
   <div class="nav-sec">Sistema</div>
   <div class="nav-item" onclick="go('config')" id="n-config"><span class="nav-icon">⚙️</span>Configuración</div>
-  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)" title="Vendedores: productos que pagan comisión, cada uno con % o $ por unidad; comisiones calculadas por producto con detalle (plus_v11_9_comisiones.sql)">build v11.9</div><!-- HISTORIAL DE VERSIONES (se muestra solo la última en el menú): build v11.9 · v11.9: Vendedores: productos que pagan comisión, cada uno con % del neto o $ por unidad (lista vacía = % general sobre todo); Comisiones: base comisionable, regla y detalle por producto (plus_v11_9_comisiones.sql) · v11.8: Compras → Compra de artículos por proveedor: columna Estado (pagada, pendiente, pago parcial, vencida, sin facturar) en el detalle, filtro por pago y totales pagado / pendiente · v11.7: en el menú se muestra solo el número de versión; el detalle de la última aparece al pasar el mouse · v11.6: Costos: ficha de costo en media hoja A4 (A5) o A4 completa · Caja: imprimir movimientos por período (desde/hasta, ingresos/egresos, accesos rápidos hoy/semana/mes/mes anterior) con saldo inicial, saldo final, totales y resumen por categoría · v11.5: Costos: ficha de costo imprimible por producto (🖨️ en el costeo y en la tabla): datos del producto, materia prima e insumos, estructura de costo, precio, margen y costo por caja · v11.4: remitos de TRACE: un renglón por artículo (se suman los lotes) en la factura, en el detalle y en la lista; al facturar varios remitos juntos también se unifican · v11.3: Compras y Gastos: carga desde PDF o foto del comprobante (IA): completa tipo, número, fechas, proveedor por CUIT, renglones o importes, percepciones y total; avisa duplicados y diferencias; el archivo queda guardado con la compra · v11.2: Caja y Banco: la referencia de cada movimiento es un enlace que abre el comprobante de origen (recibo, orden de pago, cheque, factura, compra o el movimiento de la otra cuenta) · v11.1: Inventario: buscadores de artículo con Cód. + nombre (materia prima, productos, insumos, stock, ajustes, movimientos, costos); Costos: costeo de producto con su estructura completa (MP + insumos + gastos op., mano de obra, flete, otros, precio de venta y margen), como tenía TRACE · v11.0: clientes, proveedores y artículos con Cód. + nombre también en los filtros de Ventas y Compras y en todos los formularios de Compras (comprobante, gasto, NC/ND, remito manual, pagos); Enter pasa de campo en campo; Remitos: una sola casilla para seleccionar y facturar varios; Nuevo pedido igual que TRACE (fecha del pedido, fecha de entrega, OC, productos por código o nombre, Enter) · v10.9: números (comprobantes, CUIT, códigos, importes) con la fuente del sistema: se ven nítidos, no pixelados · v10.8: comprobante de venta: cliente y artículos con Cód. + nombre, Enter pasa de campo en campo y al siguiente artículo, sin columna Unidad, descuento % y $ (combinables); Ventas y Compras: listas de 8 por página con selector y barra de acciones arriba; sin columna CAE · v10.7: cantidad por defecto en muestras en la ficha de producto (la usa TRACE para el remito de muestra) · v10.6: sin PIN en PLUS: las operaciones se confirman y quedan registradas en Auditoría con el usuario; imprimir cartera de cheques · v10.5: caja: corregir el saldo de apertura de la caja abierta (con PIN) · v10.4: descuento global por % o por importe; unidades de medida en lista cerrada también en ventas; editar comprobantes de compra/gasto (sin pagos) y NC en X de venta · v10.3: compras: unidades de medida en lista cerrada; recepciones de TRACE pasan por bulto (o kg) respetando lo cargado; al volver a TRACE se recalcula bien el $/kg; reparador de precios de recepciones · v10.2: recepciones de TRACE ordenadas por correlativo de lote; los acondicionamientos (y reingresos por devolución) ya no aparecen en PLUS · v10.1: crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9 -->
+  <div style="padding:14px 16px;font-size:10px;color:rgba(255,255,255,.3)" title="Ficha del insumo: se agrega la unidad pallet (para comprar por pallet y entregar al galpón en unidades)">build v12.1</div><!-- HISTORIAL DE VERSIONES (se muestra solo la última en el menú): build v12.1 · v12.1: Ficha del insumo: se agrega la unidad pallet (para comprar por pallet y entregar al galpón en unidades) · v12.0: Inventario → Ubicaciones (cámaras, depósitos, áreas y externos que crea cada empresa) e insumos en dos depósitos: lo comprado entra al depósito de compra en su unidad (rollo, caja); 🚚 Al galpón lo pasa fraccionado según el rinde (1 rollo = 7000 bolsas) al depósito de uso que descuenta TRACE; cierre de la entrega con el rinde real y la merma (plus_v12_0_ubicaciones_insumos.sql); ficha del insumo con unidad de compra, rinde y mínimo de compra; compras con depósito de destino y costo por unidad de uso (precio ÷ rinde); stock, movimientos y planilla de conteo por depósito; sin depósito de compra cargado todo sigue como en v11.9 · v11.9: Vendedores: productos que pagan comisión, cada uno con % del neto o $ por unidad (lista vacía = % general sobre todo); Comisiones: base comisionable, regla y detalle por producto (plus_v11_9_comisiones.sql) · v11.8: Compras → Compra de artículos por proveedor: columna Estado (pagada, pendiente, pago parcial, vencida, sin facturar) en el detalle, filtro por pago y totales pagado / pendiente · v11.7: en el menú se muestra solo el número de versión; el detalle de la última aparece al pasar el mouse · v11.6: Costos: ficha de costo en media hoja A4 (A5) o A4 completa · Caja: imprimir movimientos por período (desde/hasta, ingresos/egresos, accesos rápidos hoy/semana/mes/mes anterior) con saldo inicial, saldo final, totales y resumen por categoría · v11.5: Costos: ficha de costo imprimible por producto (🖨️ en el costeo y en la tabla): datos del producto, materia prima e insumos, estructura de costo, precio, margen y costo por caja · v11.4: remitos de TRACE: un renglón por artículo (se suman los lotes) en la factura, en el detalle y en la lista; al facturar varios remitos juntos también se unifican · v11.3: Compras y Gastos: carga desde PDF o foto del comprobante (IA): completa tipo, número, fechas, proveedor por CUIT, renglones o importes, percepciones y total; avisa duplicados y diferencias; el archivo queda guardado con la compra · v11.2: Caja y Banco: la referencia de cada movimiento es un enlace que abre el comprobante de origen (recibo, orden de pago, cheque, factura, compra o el movimiento de la otra cuenta) · v11.1: Inventario: buscadores de artículo con Cód. + nombre (materia prima, productos, insumos, stock, ajustes, movimientos, costos); Costos: costeo de producto con su estructura completa (MP + insumos + gastos op., mano de obra, flete, otros, precio de venta y margen), como tenía TRACE · v11.0: clientes, proveedores y artículos con Cód. + nombre también en los filtros de Ventas y Compras y en todos los formularios de Compras (comprobante, gasto, NC/ND, remito manual, pagos); Enter pasa de campo en campo; Remitos: una sola casilla para seleccionar y facturar varios; Nuevo pedido igual que TRACE (fecha del pedido, fecha de entrega, OC, productos por código o nombre, Enter) · v10.9: números (comprobantes, CUIT, códigos, importes) con la fuente del sistema: se ven nítidos, no pixelados · v10.8: comprobante de venta: cliente y artículos con Cód. + nombre, Enter pasa de campo en campo y al siguiente artículo, sin columna Unidad, descuento % y $ (combinables); Ventas y Compras: listas de 8 por página con selector y barra de acciones arriba; sin columna CAE · v10.7: cantidad por defecto en muestras en la ficha de producto (la usa TRACE para el remito de muestra) · v10.6: sin PIN en PLUS: las operaciones se confirman y quedan registradas en Auditoría con el usuario; imprimir cartera de cheques · v10.5: caja: corregir el saldo de apertura de la caja abierta (con PIN) · v10.4: descuento global por % o por importe; unidades de medida en lista cerrada también en ventas; editar comprobantes de compra/gasto (sin pagos) y NC en X de venta · v10.3: compras: unidades de medida en lista cerrada; recepciones de TRACE pasan por bulto (o kg) respetando lo cargado; al volver a TRACE se recalcula bien el $/kg; reparador de precios de recepciones · v10.2: recepciones de TRACE ordenadas por correlativo de lote; los acondicionamientos (y reingresos por devolución) ya no aparecen en PLUS · v10.1: crear y editar proveedores desde compras y gastos (✏️ / ＋ junto al proveedor) · v10.0: cheques de terceros: recorrido completo (entrada → depósito / entrega / caja), accesos rápidos por estado, buscador y fechas de entrada y salida · v9.9: cheques de terceros: opción "A caja" (cobrados en efectivo ingresan a caja chica u otra caja) · v9.8: recepciones de TRACE: cajas además de kilos en compras · v9.7: remitos de TRACE con renglones sin precio (productos sin lote): se completan con el precio del cliente · v9.6: descuento global en comprobantes de venta · compras en X con numeración automática · barra de desplazamiento siempre visible en las tablas · v9.5: saldo inicial: se numera con el comprobante del sistema anterior y se puede editar (fecha, vencimiento, importe) · v9.4: buscador por código, nombre o CUIT en todos los selectores de cliente y proveedor · v9.3: nuevo formato de factura: hoja completa, logo, domicilio, IIBB, inicio de actividades, vencimiento, total en letras, totales al pie · v9.2: buscar cliente/artículo por código, editar/crear cliente desde la factura, editar comprobantes sin CAE · v9.1: corrige "invalid input syntax for type uuid" al emitir · v9.0: factura electrónica ARCA (CAE vía Afip SDK) · v8.4: remitos y recepciones "✓ Listo" (salen de pendientes, no se borran) · v8.2: título de pestaña e ícono propio · v8.1: Ajustes de stock: MP/productos y stock por lote directo en la pestaña · v8.0: auditoría de autorizaciones · incluye v7.9 -->
 </nav>
 
 <!-- MAIN -->
@@ -981,6 +981,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
     <button class="tab-btn" onclick="switchTab(this,'ti-stock')">Stock</button>
     <button class="tab-btn" onclick="switchTab(this,'ti-aj')">Ajustes de stock</button>
     <button class="tab-btn" onclick="switchTab(this,'ti-mov')">Movimientos</button>
+    <button class="tab-btn" onclick="switchTab(this,'ti-ubic')">📍 Ubicaciones</button>
     <button class="tab-btn" onclick="switchTab(this,'ti-srv')">Servicios</button>
   </div>
   <div class="tab-pane active" id="ti-mp">
@@ -1001,8 +1002,10 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
     <div class="fbar"><div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="ins-q" oninput="rINS()" placeholder="Nombre o código"></div>
       <div class="fg"><div class="fg-lbl">Mostrar</div><select class="fs" id="ins-est" onchange="rINS()"><option value="">Activos</option><option value="bajo">Bajo mínimo</option><option value="sin">Sin stock</option><option value="inact">Inactivos</option><option value="todos">Todos</option></select></div>
       <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-ins','Insumos')">📥 Excel</button><button class="btn btn-outline btn-sm" onclick="planillaInsumos()">🖨️ Planilla de conteo</button><button class="btn btn-gold btn-sm" onclick="editInsumo()">＋ Nuevo insumo</button></div></div>
-    <div class="tcard"><div class="tbar"><div class="tbar-title">Insumos</div><div class="tbar-actions"><span class="small muted">El stock baja solo cuando TRACE produce o despacha, según la receta de cada producto</span></div></div>
-      <div class="tscroll"><table id="tbl-ins"><thead><tr><th>Insumo</th><th>Unidad</th><th class="tr">Stock</th><th class="tr">Mínimo</th><th class="tr">Costo unit.</th><th class="tr">Valorizado</th><th class="tr">En recetas</th><th>Estado</th><th class="noprint"></th></tr></thead><tbody id="ins-body"></tbody></table></div></div>
+    <div class="tcard"><div class="tbar"><div class="tbar-title">Insumos</div><div class="tbar-actions"><span class="small muted" id="ins-nota">El stock baja solo cuando TRACE produce o despacha, según la receta de cada producto</span></div></div>
+      <div class="tscroll"><table id="tbl-ins"><thead><tr><th>Insumo</th><th>Unidad</th><th class="tr" id="ins-th-d1" title="Stock en el depósito de compra, en unidad de compra (rollo, caja, bulto)">Dep. compra</th><th class="tr" id="ins-th-uso" title="Stock fraccionado en el depósito de uso: es el que TRACE descuenta al producir">Stock</th><th class="tr">Mínimo</th><th class="tr">Costo unit.</th><th class="tr">Valorizado</th><th class="tr">En recetas</th><th>Estado</th><th class="noprint"></th></tr></thead><tbody id="ins-body"></tbody></table></div></div>
+    <div class="tcard" id="pases-card" style="display:none"><div class="tbar"><div class="tbar-title">🚚 Entregas al galpón</div><div class="tbar-actions"><span class="small muted">Cuando se termina el rollo o bulto, cerrá la entrega con lo que rindió de verdad</span><select class="fs" id="pase-est" onchange="rPASES()"><option value="abierto">En uso (abiertas)</option><option value="cerrado">Cerradas</option><option value="anulado">Anuladas</option><option value="">Todas</option></select><button class="btn btn-outline btn-sm" onclick="xls('tbl-pases','Entregas_al_galpon')">📥 Excel</button></div></div>
+      <div class="tscroll"><table id="tbl-pases"><thead><tr><th>N°</th><th>Fecha</th><th>Insumo</th><th>Desde</th><th class="tr">Entregado</th><th class="tr">Teórico</th><th class="tr">Real</th><th class="tr">Merma</th><th>Estado</th><th class="noprint"></th></tr></thead><tbody id="pases-body"></tbody></table></div></div>
   </div>
   <div class="tab-pane" id="ti-cost">
     <div class="alert alert-info">🧮 <div><b>Criterio de costo de materia prima (igual que en TRACE):</b> promedio ponderado por kilo de las <b>últimas 5 compras</b> de cada materia prima, con el <b>descarte y la merma absorbidos</b> en el costo por kilo procesado.</div></div>
@@ -1028,7 +1031,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
     <div class="alert alert-warn" id="stk-warn" style="display:none">⚠️ <div>Todavía no está creada la vista de stock: corré <b>plus_v7_8_stock.sql</b> en Supabase. Mientras tanto se usa el cálculo local (mismo resultado).</div></div>
     <div id="stkw-mp" class="tcard"><div class="tbar"><div class="tbar-title">Materia prima en cámara — por lote</div></div><div class="tscroll"><table id="tbl-stkmp"><thead><tr><th>Cód.</th><th>Lote</th><th>Recepción</th><th>Proveedor</th><th class="tr">Kg recibidos</th><th class="tr">Cajas</th><th class="tr">Stock</th></tr></thead><tbody id="stkmp-body"></tbody></table></div></div>
     <div id="stkw-pt" class="tcard" style="display:none"><div class="tbar"><div class="tbar-title">Productos terminados — por lote</div></div><div class="tscroll"><table id="tbl-stkpt"><thead><tr><th>Cód.</th><th>Lote</th><th>Producción</th><th class="tr"></th><th class="tr">Stock (u)</th></tr></thead><tbody id="stkpt-body"></tbody></table></div></div>
-    <div id="stkw-ins" class="tcard" style="display:none"><div class="tbar"><div class="tbar-title">Stock de insumos a la fecha</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="printTbl('tbl-stk','Stock de insumos')">🖨️</button></div></div><div class="tscroll"><table id="tbl-stk"><thead><tr><th>Insumo</th><th>Unidad</th><th class="tr">Stock</th><th class="tr">Mínimo</th><th>Estado</th></tr></thead><tbody id="stk-body"></tbody></table></div></div>
+    <div id="stkw-ins" class="tcard" style="display:none"><div class="tbar"><div class="tbar-title">Stock de insumos a la fecha</div><div class="tbar-actions"><button class="btn btn-outline btn-sm" onclick="printTbl('tbl-stk','Stock de insumos')">🖨️</button></div></div><div class="tscroll"><table id="tbl-stk"><thead><tr><th>Insumo</th><th>Unidad</th><th class="tr" title="En unidad de compra">Dep. compra</th><th class="tr">Stock de uso</th><th class="tr">Mínimo</th><th>Estado</th></tr></thead><tbody id="stk-body"></tbody></table></div></div>
   </div>
   <div class="tab-pane" id="ti-aj">
     <div class="tcard" style="margin-bottom:16px"><div class="tbar"><div class="tbar-title">Ajustar stock por lote</div><div class="tbar-actions" style="gap:6px"><button class="btn btn-sm btn-gold" id="ajb-mp" onclick="ajMode('mp')">🥬 Materia prima (kg)</button><button class="btn btn-sm btn-outline" id="ajb-pt" onclick="ajMode('pt')">📦 Productos (u)</button></div></div>
@@ -1044,7 +1047,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
       <div class="tscroll"><table id="tbl-aj"><thead><tr><th>N°</th><th>Fecha</th><th>Tipo</th><th>Artículo</th><th>Lote</th><th class="tr">Cantidad</th><th>Motivo</th><th>Registró</th><th>Autorizó</th><th>Estado</th><th class="noprint"></th></tr></thead><tbody id="aj-body"></tbody></table></div></div>
   </div>
   <div class="tab-pane" id="ti-mov">
-    <div class="fbar"><div class="fg"><div class="fg-lbl">Artículo</div><select class="fs" id="mov-src" onchange="movSrc(this.value)"><option value="ins">Insumos</option><option value="mp">Materia prima (por lote)</option><option value="pt">Productos (por lote)</option></select></div></div>
+    <div class="fbar"><div class="fg"><div class="fg-lbl">Artículo</div><select class="fs" id="mov-src" onchange="movSrc(this.value)"><option value="ins">Insumos</option><option value="insdep">Insumos — depósito de compra</option><option value="mp">Materia prima (por lote)</option><option value="pt">Productos (por lote)</option></select></div></div>
     <div id="mov-ins-wrap">
     <div class="fbar"><div class="fg"><div class="fg-lbl">Insumo</div><select class="fs" id="mov-ins" onchange="rMOV()"></select></div>
       <div class="fg"><div class="fg-lbl">Tipo</div><select class="fs" id="mov-tipo" onchange="rMOV()"><option value="">Todos</option><option value="ingreso">Ingresos</option><option value="consumo">Consumos</option><option value="ajuste">Ajustes</option></select></div>
@@ -1057,6 +1060,16 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
       <div class="fbar"><div class="fg"><div class="fg-lbl">Artículo</div><select class="fs" id="mov-item" onchange="rKardex()"></select></div><div class="fg"><div class="fg-lbl">Lote</div><input class="fi" id="mov-lote" placeholder="Filtrar lote…" oninput="rKardex()"></div></div>
       <div id="mov-kx"></div>
     </div>
+  </div>
+  <div class="tab-pane" id="ti-ubic">
+    <div class="alert alert-warn" id="ubi-warn" style="display:none">⚠️ <div>Falta un paso en Supabase: corré <b>plus_v12_0_ubicaciones_insumos.sql</b> en el SQL Editor para poder crear ubicaciones y depósitos.</div></div>
+    <div class="alert alert-info">📍 <div>Cargá las <b>cámaras de frío</b>, los <b>depósitos</b>, las <b>áreas o sectores</b> del galpón y los lugares <b>externos</b> (fincas, proveedores), con el nombre que uses. Para los insumos marcá un <b>depósito de compra</b> (entra lo comprado, por rollo, caja o bulto) y un <b>depósito de uso</b> (el galpón: entra fraccionado y TRACE lo descuenta al producir).</div></div>
+    <div class="fbar"><div class="fg"><div class="fg-lbl">Búsqueda</div><input class="fi" id="ubi-q" oninput="rUBI()" placeholder="Código o nombre"></div>
+      <div class="fg"><div class="fg-lbl">Tipo</div><select class="fs" id="ubi-tipo" onchange="rUBI()"><option value="">Todos</option><option value="camara">Cámaras de frío</option><option value="deposito">Depósitos</option><option value="area">Áreas / sectores</option><option value="externo">Externos</option></select></div>
+      <div class="fg"><div class="fg-lbl">Estado</div><select class="fs" id="ubi-est" onchange="rUBI()"><option value="">Activas</option><option value="inact">Inactivas</option><option value="todas">Todas</option></select></div>
+      <div class="fbar-actions"><button class="btn btn-outline btn-sm" onclick="xls('tbl-ubi','Ubicaciones')">📥 Excel</button><button class="btn btn-gold btn-sm" onclick="editUbic()">＋ Nueva ubicación</button></div></div>
+    <div class="tcard"><div class="tbar"><div class="tbar-title">Ubicaciones de la empresa</div><div class="tbar-actions"><span class="small muted">No se borran: se dan de baja y quedan con su historial</span></div></div>
+      <div class="tscroll"><table id="tbl-ubi"><thead><tr><th>Código</th><th>Ubicación</th><th>Tipo</th><th>Guarda</th><th>Insumos</th><th class="tr">Temp. objetivo</th><th class="tr">Insumos en stock</th><th>Estado</th><th class="noprint"></th></tr></thead><tbody id="ubi-body"></tbody></table></div></div>
   </div>
   <div class="tab-pane" id="ti-srv">
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-gold btn-sm" onclick="editServicio()">＋ Nuevo servicio</button></div>
@@ -1543,7 +1556,7 @@ table[data-grid] tbody tr{cursor:pointer}table[data-grid] tbody tr.gx-on td{back
           <div class="fgroup cp-pag-cta" style="display:none"><label class="flabel">Referencia</label><input class="fctl" id="cp-pag-ref"></div>
         </div></div>
       <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start">
-        <div><div class="fgroup"><label class="flabel">Observaciones</label><textarea class="fctl" rows="3" id="cp-obs"></textarea></div><label class="switch" id="cp-insbox" style="display:none;margin-top:10px"><input type="checkbox" id="cp-instock" checked> 📦 Ingresar los insumos al stock y actualizar su costo</label></div>
+        <div><div class="fgroup"><label class="flabel">Observaciones</label><textarea class="fctl" rows="3" id="cp-obs"></textarea></div><label class="switch" id="cp-insbox" style="display:none;margin-top:10px"><input type="checkbox" id="cp-instock" checked> 📦 Ingresar los insumos al stock y actualizar su costo</label><div id="cp-insdep-w" class="small" style="display:none;margin-top:6px">Entran a: <select class="fs" id="cp-insdep" style="min-width:180px"></select> <span class="muted">(en unidad de compra)</span></div></div>
         <div class="sum-box" id="cp-totales"></div>
       </div>
     </div>
@@ -3919,13 +3932,14 @@ let CP={}; let CPA_MAP={};
 function buildCpaDatalist(){
   CPA_MAP={}; const o=[];
   (S.materias||[]).filter(m=>m.activo!==false).forEach(m=>{ const k='MP '+(m.codigo?m.codigo+' · ':'')+m.nombre; CPA_MAP[k]={t:'mp',id:m.id,n:m.nombre,u:m.unidad||'kg',c:m.codigo||''}; o.push(k); });
-  (D.ins||[]).filter(m=>m.activo!==false).forEach(m=>{ const k='INS '+(m.codigo?m.codigo+' · ':'')+m.nombre; CPA_MAP[k]={t:'insumo',id:m.id,n:m.nombre,u:m.unidad||'u',c:m.codigo||''}; o.push(k); });
+  (D.ins||[]).filter(m=>m.activo!==false).forEach(m=>{ const k='INS '+(m.codigo?m.codigo+' · ':'')+m.nombre; CPA_MAP[k]={t:'insumo',id:m.id,n:m.nombre,u:m.unidad_compra||m.unidad||'u',c:m.codigo||''}; o.push(k); });
   (S.productos||[]).filter(m=>m.activo!==false).forEach(m=>{ const k='PROD '+(m.codigo?m.codigo+' · ':'')+m.nombre; CPA_MAP[k]={t:'producto',id:m.id,n:m.nombre,u:m.unidad||'u',c:m.codigo||''}; o.push(k); });
   el('dl-cpa').innerHTML=o.map(x=>`<option value="${esc(x)}">`).join('');
 }
 function nuevaCompra(subtipo, clase='factura', o={}){
   CP={subtipo, clase, recepcion_ids:o.recepcion_ids||null, remito_ids:o.remito_ids||null, recs:o.recs||null, saldoIni:!!o.saldoIni, editId:o.editId||null};
   buildCpaDatalist(); renderSelects();
+  if(UB.loaded) cpInsDep(); else cargarUbic().then(cpInsDep).catch(e=>console.warn('[ubicaciones]',e));
   el('cp-title').textContent=o.saldoIni?'Saldo inicial con proveedor':(clase==='nc'?'Nota de crédito recibida':clase==='nd'?'Nota de débito recibida':subtipo==='gasto'?'Registrar gasto':'Registrar comprobante de compra');
   el('cp-sub').textContent=o.saldoIni?'Deuda con el proveedor al empezar a usar CONTROL PLUS':subtipo==='gasto'?'Egreso no inventariable':'Mercadería, materia prima, insumos';
   el('cp-origen').innerHTML=o.origen?`<div class="alert alert-info">${o.origen}</div>`:''; CP.archivo=null; el('cp-ia-res').innerHTML=''; el('cp-ia-file').value=''; el('cp-ia-bar').style.display=(o.saldoIni||o.editId||o.recepcion_ids||o.remito_ids)?'none':'flex';
@@ -4092,6 +4106,7 @@ function cpCalc(){
   el('cp-totales').innerHTML=row('Neto gravado',o.neto_gravado)+row('IVA 10,5%',o.iva_105)+row('IVA 21%',o.iva_21)+row('IVA 27%',o.iva_27)+row(disc?'No gravado':'Importe (sin IVA discriminado)',o.neto_no_gravado)+row('Exento',o.exento)+row('Percepción IVA',o.perc_iva)+row('Percepción IIBB',o.perc_iibb)+row('Otros tributos',o.otros_tributos)
     +`<div class="divider"></div><div class="drow"><span class="dkey fw" style="font-size:14px">TOTAL</span><span class="dval fw cd" style="font-size:18px">${m$(o.total)}</span></div>${!disc?'<div class="small muted">Este tipo de comprobante no discrimina IVA (no genera crédito fiscal).</div>':''}`;
   const ib=el('cp-insbox'); if(ib) ib.style.display=(CP&&CP.clase==='factura'&&!CP.saldoIni&&o.items.some(i=>i.item_tipo==='insumo'&&i.item_id))?'':'none';
+  { const dw=el('cp-insdep-w'); if(dw) dw.style.display=(ib&&ib.style.display!=='none'&&usaDeposito())?'':'none'; }
   return o;
 }
 function cpPagoUI(){ const v=V('cp-pagado'); document.querySelectorAll('.cp-pag-caja').forEach(x=>x.style.display=v==='efectivo'?'':'none'); document.querySelectorAll('.cp-pag-cta').forEach(x=>x.style.display=v==='transferencia'?'':'none'); }
@@ -4699,13 +4714,13 @@ const INV={loaded:false, vok:false, vmp:{}, vpt:{}, acond:[], enscons:[], devs:[
 async function loadInventario(force,quiet){
   if(INV.loaded&&!force) return;
   const [costos, receta, recmp, comp, ajustes, insmov, rec, prod, pout, plot, desc, acond, enscons, devs, ent, enti] = await Promise.all([ fetchAll('costos_producto'), fetchAll('producto_insumos'), fetchAll('producto_materias'), fetchAll('producto_componentes'), fetchAll('ajustes_stock'), fetchAll('insumo_movimientos',q=>q.gte('fecha',addDays(hoy(),-400))), fetchAll('recepciones'), fetchAll('producciones'), fetchAll('produccion_outputs'), fetchAll('produccion_lotes'), fetchAll('descartes'), fetchAll('acondicionamientos'), fetchAll('ensamblado_consumos'), fetchAll('devoluciones'), fetchAll('entregas'), fetchAll('entrega_items') ]);
-  await recargarStock();
+  await recargarStock(); await cargarUbic(true);
   Object.assign(INV,{costos,receta,recmp,comp,ajustes,insmov,rec,prod,pout,plot,desc,acond,enscons,devs,ent,enti,loaded:true});
   if(force){ await Promise.all([cargarProductos(),cargarMaterias()]); D.ins=await fetchAll('insumos'); await reload(['rub']); if(!quiet) toast('Inventario actualizado','ok'); }
   renderMod('inventario');
 }
 MOD_R.inventario=()=>{ if(!INV.loaded) loadInventario(); const s=el('prod-fam'); if(s&&!s.options.length) s.innerHTML='<option value="">Todos</option>'+rubrosList().map(r=>`<option>${esc(r.nombre)}</option>`).join(''); const mi=el('mov-ins'); if(mi&&mi.options.length<=1) mi.innerHTML='<option value="">Todos</option>'+(D.ins||[]).map(i=>`<option value="${i.id}">${esc(i.nombre)}</option>`).join(''); };
-TAB_R['ti-mp']=rMP; TAB_R['ti-prod']=rPROD; TAB_R['ti-ins']=rINS; TAB_R['ti-cost']=rCOST; TAB_R['ti-rub']=rRUB; TAB_R['ti-stock']=rSTK; TAB_R['ti-aj']=()=>{ rAJGrid(); rAJ(); }; TAB_R['ti-mov']=rMOV;
+TAB_R['ti-mp']=rMP; TAB_R['ti-prod']=rPROD; TAB_R['ti-ins']=rINS; TAB_R['ti-cost']=rCOST; TAB_R['ti-rub']=rRUB; TAB_R['ti-stock']=rSTK; TAB_R['ti-aj']=()=>{ rAJGrid(); rAJ(); }; TAB_R['ti-mov']=rMOV; TAB_R['ti-ubic']=rUBI;
 function rMP(){ const tb=el('mp-body'); if(!tb) return; const q=V('mp-q').toLowerCase(), e=V('mp-est');
   const rows=(S.materias||[]).filter(m=>(!e||m.activo!==false)&&(!q||((m.codigo||'')+' '+m.nombre).toLowerCase().includes(q)));
   tb.innerHTML=rows.length?rows.map(m=>{ const rc=(D.rec||[]).filter(r=>String(r.materia_prima||'').toUpperCase()===String(m.nombre||'').toUpperCase()&&r.estado!=='anulada').sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')); const u=rc[0];
@@ -4920,7 +4935,7 @@ function rubroOpts(){ return [['','— Sin rubro —'],...(D.rub||[]).filter(r=>
 // ══════════════════════════════════════════════════════════════
 const insMin=i=>num(i.minimo!=null?i.minimo:i.stock_minimo);
 const insBajo=i=>i.activo!==false&&insMin(i)>0&&num(i.stock)<=insMin(i);
-async function recargarInsumos(){ D.ins=await fetchAll('insumos'); INV.insmov=await fetchAll('insumo_movimientos',q=>q.gte('fecha',addDays(hoy(),-400))); if(typeof INV.receta!=='undefined') INV.receta=await fetchAll('producto_insumos'); }
+async function recargarInsumos(){ D.ins=await fetchAll('insumos'); INV.insmov=await fetchAll('insumo_movimientos',q=>q.gte('fecha',addDays(hoy(),-400))); if(typeof INV.receta!=='undefined') INV.receta=await fetchAll('producto_insumos'); await cargarUbic(true); }
 // lee el stock actual desde la base (TRACE también lo mueve) y aplica el cambio + registra el movimiento
 async function moverInsumo(id,delta,mov){
   const { data:cur, error:e0 } = await sb.from('insumos').select('stock').eq('id',id).eq('empresa_id',S.empresaId).single(); if(e0) throw e0;
@@ -4930,43 +4945,61 @@ async function moverInsumo(id,delta,mov){
   return nuevo;
 }
 function rINS(){ const tb=el('ins-body'); if(!tb) return; const q=V('ins-q').toLowerCase(), e=V('ins-est');
-  const rows=(D.ins||[]).filter(i=>(!q||(String(i.codigo||'')+' '+i.nombre+' '+(i.unidad||'')).toLowerCase().includes(q))&&(e==='inact'?i.activo===false:(i.activo!==false||e==='todos'))&&(e!=='bajo'||insBajo(i))&&(e!=='sin'||num(i.stock)<=0))
+  if(!UB.loaded&&!UB._p) cargarUbic().then(()=>{ rINS(); }).catch(err=>console.warn('[ubicaciones]',err));
+  const dep=usaDeposito(), du=depUso();
+  // v12.0: columnas por depósito (si la empresa tiene depósito de compra)
+  const th1=el('ins-th-d1'), th2=el('ins-th-uso'); if(th1) th1.textContent=dep?(depCompra().length===1?depCompra()[0].nombre:'Dep. compra'):'Dep. compra'; if(th2) th2.textContent=dep?(du?du.nombre:'Stock de uso'):'Stock';
+  const nt=el('ins-nota'); if(nt) nt.textContent=dep?'Lo comprado entra al depósito de compra; con 🚚 Al galpón pasa fraccionado al de uso, que es el que TRACE descuenta al producir':'El stock baja solo cuando TRACE produce o despacha, según la receta de cada producto';
+  const rows=(D.ins||[]).filter(i=>(!q||(String(i.codigo||'')+' '+i.nombre+' '+(i.unidad||'')).toLowerCase().includes(q))&&(e==='inact'?i.activo===false:(i.activo!==false||e==='todos'))&&(e!=='bajo'||insBajo(i)||insBajoCompra(i))&&(e!=='sin'||num(i.stock)<=0))
     .sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
-  const bajos=(D.ins||[]).filter(insBajo); const al=el('ins-alert'); if(al){ al.style.display=bajos.length?'':'none'; al.innerHTML=bajos.length?`⚠️ <div><b>${bajos.length} insumo${bajos.length>1?'s':''} en stock bajo:</b> ${bajos.slice(0,8).map(i=>esc(i.nombre)).join(', ')}${bajos.length>8?'…':''}. Conviene reponer.</div>`:''; }
-  let val=0; rows.forEach(i=>val+=num(i.stock)*num(i.costo));
-  tb.innerHTML=rows.length?rows.map(i=>{ const usos=(INV.receta||[]).filter(r=>r.insumo_id===i.id).length;
-    return `<tr style="${i.activo===false?'opacity:.5':''}"><td class="fw">${esc(i.nombre)}${i.codigo?` <span class="chip chip-x">${esc(i.codigo)}</span>`:''}</td><td>${esc(i.unidad||'u')}</td>
-    <td class="tr fw ${insBajo(i)?'cd':''}" data-v="${num(i.stock)}">${num(i.stock).toLocaleString('es-AR',{maximumFractionDigits:2})}</td><td class="tr">${insMin(i)?insMin(i).toLocaleString('es-AR'):'—'}</td>${tdM(i.costo)}${tdM(num(i.stock)*num(i.costo))}
+  const bajos=(D.ins||[]).filter(insBajo), comprar=(D.ins||[]).filter(insBajoCompra); const al=el('ins-alert');
+  if(al){ const pedir=dep?bajos.filter(i=>stockDep(i.id)>0):[]; const rep=bajos.filter(i=>!pedir.includes(i)); const p=[];
+    if(rep.length) p.push(`<b>${rep.length} insumo${rep.length>1?'s':''} en stock bajo:</b> ${rep.slice(0,8).map(i=>esc(i.nombre)).join(', ')}${rep.length>8?'…':''}. Conviene reponer.`);
+    if(pedir.length) p.push(`<b>${pedir.length} para entregar al galpón</b> (hay en el depósito de compra): ${pedir.slice(0,8).map(i=>esc(i.nombre)).join(', ')}${pedir.length>8?'…':''}.`);
+    if(comprar.length) p.push(`<b>${comprar.length} para comprar</b> (depósito de compra bajo el mínimo): ${comprar.slice(0,8).map(i=>esc(i.nombre)).join(', ')}${comprar.length>8?'…':''}.`);
+    al.style.display=p.length?'':'none'; al.innerHTML=p.length?`⚠️ <div>${p.join('<br>')}</div>`:''; }
+  let val=0; rows.forEach(i=>val+=(num(i.stock)+(dep?stockDep(i.id)*insRinde(i):0))*num(i.costo));
+  tb.innerHTML=rows.length?rows.map(i=>{ const usos=(INV.receta||[]).filter(r=>r.insumo_id===i.id).length; const d1=dep?stockDep(i.id):0, rd=insRinde(i);
+    const cD1=dep?`<td class="tr fw ${insBajoCompra(i)?'cd':''}" data-v="${d1}" title="${rd>1?'= '+fmtQ(d1*rd)+' '+esc(i.unidad||'u'):''}">${d1||d1===0?fmtQ(d1):''} <span class="small muted">${esc(insUC(i))}</span>${rd>1&&d1?`<div class="small muted">= ${fmtQ(d1*rd)} ${esc(i.unidad||'u')}</div>`:''}</td>`:'<td class="tr muted">—</td>';
+    return `<tr style="${i.activo===false?'opacity:.5':''}"><td class="fw">${esc(i.nombre)}${i.codigo?` <span class="chip chip-x">${esc(i.codigo)}</span>`:''}${rd>1?`<div class="small muted">1 ${esc(insUC(i))} = ${fmtQ(rd)} ${esc(i.unidad||'u')}</div>`:''}</td><td>${esc(i.unidad||'u')}</td>${cD1}
+    <td class="tr fw ${insBajo(i)?'cd':''}" data-v="${num(i.stock)}">${num(i.stock).toLocaleString('es-AR',{maximumFractionDigits:2})}</td><td class="tr">${insMin(i)?insMin(i).toLocaleString('es-AR'):'—'}${dep&&num(i.minimo_compra)>0?`<div class="small muted">compra: ${fmtQ(i.minimo_compra)} ${esc(insUC(i))}</div>`:''}</td>${tdM(i.costo)}${tdM((num(i.stock)+d1*rd)*num(i.costo))}
     <td class="tr">${usos?`<span class="link" onclick="usosInsumo('${i.id}')">${usos}</span>`:'<span class="muted">—</span>'}</td>
-    <td>${i.activo===false?badge('Inactivo','b-neutral'):num(i.stock)<=0?badge('Sin stock','b-danger'):insBajo(i)?badge('Bajo','b-warning'):badge('OK','b-success')}</td>
-    <td class="noprint"><div class="act-btns">${i.activo===false?'':`<button class="btn btn-success btn-xs" onclick="ingresoInsumo('${i.id}')">＋ Ingreso</button><button class="btn btn-outline btn-xs" onclick="ajusteInsumo('${i.id}')">⚖️ Ajustar</button>`}<button class="btn btn-outline btn-xs" onclick="editInsumo('${i.id}')">✏️</button><button class="btn btn-outline btn-xs" onclick="toggleInsumo('${i.id}')">${i.activo===false?'Activar':'Baja'}</button></div></td></tr>`; }).join('')
-    +`<tr style="background:var(--ice)"><td colspan="5" class="fw">Total valorizado (${rows.length} insumo${rows.length!==1?'s':''})</td>${tdM(val,'fw')}<td colspan="3"></td></tr>`:emptyRow(9,'Sin insumos'); }
+    <td>${i.activo===false?badge('Inactivo','b-neutral'):num(i.stock)<=0&&!(d1>0)?badge('Sin stock','b-danger'):insBajo(i)?badge(d1>0?'Entregar':'Bajo','b-warning'):insBajoCompra(i)?badge('Comprar','b-warning'):badge('OK','b-success')}</td>
+    <td class="noprint"><div class="act-btns">${i.activo===false?'':`${dep&&d1>0?`<button class="btn btn-gold btn-xs" onclick="paseInsumo('${i.id}')" title="Entregar al galpón: sale del depósito de compra y entra fraccionado">🚚 Al galpón</button>`:''}<button class="btn btn-success btn-xs" onclick="ingresoInsumo('${i.id}')">＋ Ingreso</button><button class="btn btn-outline btn-xs" onclick="ajusteInsumo('${i.id}')">⚖️ Ajustar</button>`}<button class="btn btn-outline btn-xs" onclick="editInsumo('${i.id}')">✏️</button><button class="btn btn-outline btn-xs" onclick="toggleInsumo('${i.id}')">${i.activo===false?'Activar':'Baja'}</button></div></td></tr>`; }).join('')
+    +`<tr style="background:var(--ice)"><td colspan="6" class="fw">Total valorizado (${rows.length} insumo${rows.length!==1?'s':''})</td>${tdM(val,'fw')}<td colspan="3"></td></tr>`:emptyRow(10,'Sin insumos');
+  rPASES(); }
 function editInsumo(id){ const i=id?(D.ins||[]).find(x=>x.id===id):null;
-  formModal({title:i?'Editar insumo — '+i.nombre:'Nuevo insumo', sub:'Envases, etiquetas, films, cajas, pallets… TRACE los descuenta según la receta de cada producto',
-    fields:[{id:'nombre',label:'Nombre',req:true,ph:'ej: Bandeja PET 500g'},{id:'unidad',label:'Unidad',type:'select',options:['u','rollo','kg','m','caja','paquete','litro']},{id:'rubro',label:'Rubro',type:'select',options:rubroOpts()},
-      ...(i?[]:[{id:'stock',label:'Stock inicial',type:'number',help:'Queda registrado como ingreso "stock inicial".'}]),
-      {id:'minimo',label:'Stock mínimo (alerta)',type:'number'},{id:'costo',label:'Costo por unidad (sin IVA)',type:'number',step:'0.01',help:'Se actualiza solo al cargar una factura de compra con este insumo.'}],
-    values:i?{nombre:i.nombre,unidad:i.unidad||'u',minimo:insMin(i),costo:i.costo,rubro:i.rubro||''}:{unidad:'u',stock:0,minimo:0,costo:0},
+  formModal({wide:true, title:i?'Editar insumo — '+i.nombre:'Nuevo insumo', sub:'Envases, etiquetas, films, cajas, pallets… TRACE los descuenta según la receta de cada producto',
+    fields:[{id:'nombre',label:'Nombre',req:true,ph:'ej: Bandeja PET 500g'},{id:'unidad',label:'Unidad de uso',type:'select',options:insUnis(i&&i.unidad),help:'En la que se usa y la que descuenta la receta (ej: u = bolsa).'},{id:'rubro',label:'Rubro',type:'select',options:rubroOpts()},
+      {id:'unidad_compra',label:'Unidad de compra',type:'select',options:[['','= la unidad de uso'],...insUnis(i&&i.unidad_compra)],help:'En la que se compra y se guarda en el depósito de compra (ej: rollo).'},
+      {id:'rinde',label:'Rinde por unidad de compra',type:'number',step:'0.0001',help:'Cuántas unidades de uso salen de 1 de compra. Ej: 1 rollo Flow pack 450 = 7000. Dejá 1 si no se fracciona.'},
+      ...(i?[]:[{id:'stock',label:'Stock inicial (de uso)',type:'number',help:'Queda registrado como ingreso "stock inicial".'}]),
+      {id:'minimo',label:'Stock mínimo de uso (alerta)',type:'number'},{id:'minimo_compra',label:'Mínimo en depósito de compra',type:'number',help:'En unidades de compra: avisa cuándo comprar.'},
+      {id:'costo',label:'Costo por unidad de uso (sin IVA)',type:'number',step:'0.0001',help:'Se actualiza solo con la factura de compra (precio ÷ rinde).'}],
+    values:i?{nombre:i.nombre,unidad:i.unidad||'u',minimo:insMin(i),costo:i.costo,rubro:i.rubro||'',unidad_compra:i.unidad_compra||'',rinde:insRinde(i),minimo_compra:num(i.minimo_compra)}:{unidad:'u',stock:0,minimo:0,costo:0,unidad_compra:'',rinde:1,minimo_compra:0},
     onSave:async v=>{ const nom=v.nombre.trim();
       if((D.ins||[]).some(x=>String(x.nombre||'').trim().toUpperCase()===nom.toUpperCase()&&x.id!==(i&&i.id))){ toast('Ya existe un insumo con ese nombre','warn'); return false; }
-      const o={nombre:nom,unidad:v.unidad||'u',minimo:num(v.minimo),costo:num(v.costo),...(hayRubroCol(D.ins)?{rubro:v.rubro||null}:{})};
+      if(v.rinde!=null&&num(v.rinde)<=0){ toast('El rinde tiene que ser mayor a cero (1 si no se fracciona)','warn'); return false; }
+      const uc=(v.unidad_compra&&v.unidad_compra!==v.unidad)?v.unidad_compra:null;
+      const o={nombre:nom,unidad:v.unidad||'u',minimo:num(v.minimo),costo:num(v.costo),unidad_compra:uc,rinde:num(v.rinde)>0?num(v.rinde):1,minimo_compra:num(v.minimo_compra),...(hayRubroCol(D.ins)?{rubro:v.rubro||null}:{})};
       if(!i){ o.stock=0; o.activo=true; }
       const r=await guardarSafe('insumos',o,i&&i.id);
       if(!i&&num(v.stock)>0) await moverInsumo(r.id,num(v.stock),{tipo:'ingreso',cantidad:num(v.stock),referencia:'alta',nota:'stock inicial'});
+      if((r.miss||[]).some(c=>['unidad_compra','rinde','minimo_compra'].includes(c))) toast('La unidad de compra y el rinde no se guardaron: falta correr plus_v12_0_ubicaciones_insumos.sql','warn');
       await recargarInsumos(); rINS(); toast('Insumo guardado','ok'); }}); }
 async function toggleInsumo(id){ const i=(D.ins||[]).find(x=>x.id===id); if(!i) return;
   const usos=(INV.receta||[]).filter(r=>r.insumo_id===id).length;
   if(i.activo!==false&&!confirm('¿Dar de baja "'+i.nombre+'"?'+(usos?'\n\nOjo: está en la receta de '+usos+' producto(s); TRACE lo va a seguir descontando hasta que lo saques de la receta.':'')+'\n\nNo se borra: queda inactivo y con su historial.')) return;
   const { error } = await sb.from('insumos').update({activo:i.activo===false}).eq('id',id).eq('empresa_id',S.empresaId);
   if(error){ toast(error.message,'err'); return; } await recargarInsumos(); rINS(); toast('Insumo actualizado','ok'); }
-function ingresoInsumo(id){ const i=(D.ins||[]).find(x=>x.id===id);
+function ingresoInsumo(id){ const i=(D.ins||[]).find(x=>x.id===id); if(usaDeposito()) return ingresoInsumoDep(id);
   formModal({title:'Ingreso de '+i.nombre, sub:'Suma stock por una compra o entrega recibida. Si cargás la factura en Compras, el ingreso se hace desde ahí.',
     fields:[{id:'cantidad',label:'Cantidad ('+(i.unidad||'u')+')',type:'number',req:true},{id:'fecha',label:'Fecha',type:'date',value:hoy()},{id:'costo',label:'Costo por unidad (opcional)',type:'number',step:'0.01',help:'Si lo completás, actualiza el costo del insumo.'},{id:'nota',label:'Nota',ph:'ej: remito 0001-1234 proveedor X',full:true}],
     onSave:async v=>{ if(!(num(v.cantidad)>0)){ toast('Indicá una cantidad mayor a cero','warn'); return false; }
       await moverInsumo(id,num(v.cantidad),{tipo:'ingreso',cantidad:num(v.cantidad),fecha:v.fecha||hoy(),referencia:'ingreso',nota:v.nota||null});
       if(num(v.costo)>0) await sb.from('insumos').update({costo:num(v.costo)}).eq('id',id).eq('empresa_id',S.empresaId);
       await recargarInsumos(); rINS(); toast('Ingreso registrado','ok'); }}); }
-function ajusteInsumo(id){ const i=(D.ins||[]).find(x=>x.id===id);
+function ajusteInsumo(id){ const i=(D.ins||[]).find(x=>x.id===id); if(usaDeposito()) return ajusteInsumoDep(id);
   formModal({title:'Ajustar stock — '+i.nombre, sub:'Corregí el stock al valor real contado (inventario físico)',
     pre:`<div class="alert alert-info">📦 <div>Stock en el sistema: <b>${num(i.stock).toLocaleString('es-AR')} ${esc(i.unidad||'u')}</b>. La diferencia queda registrada como ajuste.</div></div>`,
     fields:[{id:'real',label:'Stock real contado ('+(i.unidad||'u')+')',type:'number',req:true,value:num(i.stock)},{id:'motivo',label:'Motivo',req:true,ph:'ej: conteo físico, rotura, vencido'}],
@@ -4978,28 +5011,227 @@ function ajusteInsumo(id){ const i=(D.ins||[]).find(x=>x.id===id);
 function usosInsumo(id){ const i=(D.ins||[]).find(x=>x.id===id)||{}; const rs=(INV.receta||[]).filter(r=>r.insumo_id===id);
   viewModal('Productos que usan '+(i.nombre||''),'Se descuenta solo al producir o despachar',`<table><thead><tr><th>Producto</th><th class="tr">Cantidad</th><th>Se descuenta</th><th>Base</th></tr></thead><tbody>${rs.map(r=>{ const p=(S.productos||[]).find(x=>x.id===r.producto_id)||{}; return `<tr><td class="fw">${esc(p.nombre||'—')}</td><td class="tr">${num(r.cantidad)}</td><td>${r.momento==='despacho'?'Al despachar':'Al producir'}</td><td>${r.base==='caja'?'Por caja':'Por unidad'}</td></tr>`; }).join('')}</tbody></table>`); }
 function planillaInsumos(){ const rows=(D.ins||[]).filter(i=>i.activo!==false).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
+  if(usaDeposito()){ const du=depUso(); // v12.0: conteo de los dos depósitos
+    printHTML(`<h1>Planilla de conteo de insumos</h1><div class="sub">${esc(emisor().razon)} · ${fD(hoy())} · ${esc(depCompra().map(d=>d.nombre).join(', '))} (en unidad de compra) y ${esc(du?du.nombre:'depósito de uso')} (fraccionado)</div>
+     <table><thead><tr><th>Insumo</th><th>U. compra</th><th class="tr">Dep. compra sistema</th><th class="tr" style="width:90px">Conteo</th><th>U. uso</th><th class="tr">Uso sistema</th><th class="tr" style="width:90px">Conteo</th><th style="width:130px">Observaciones</th></tr></thead>
+     <tbody>${rows.map(i=>`<tr><td>${esc(i.nombre)}</td><td>${esc(insUC(i))}</td><td class="tr">${fmtQ(stockDep(i.id))}</td><td></td><td>${esc(i.unidad||'u')}</td><td class="tr">${num(i.stock).toLocaleString('es-AR')}</td><td></td><td></td></tr>`).join('')}</tbody></table>
+     <div style="margin-top:30px;display:flex;gap:60px"><div>Contó: ____________________</div><div>Controló: ____________________</div></div>`,'Conteo de insumos'); return; }
   printHTML(`<h1>Planilla de conteo de insumos</h1><div class="sub">${esc(emisor().razon)} · ${fD(hoy())} · Anotá el conteo real y la diferencia contra el sistema</div>
    <table><thead><tr><th>Insumo</th><th>Unidad</th><th class="tr">Stock sistema</th><th class="tr" style="width:110px">Conteo real</th><th class="tr" style="width:110px">Diferencia</th><th style="width:160px">Observaciones</th></tr></thead>
    <tbody>${rows.map(i=>`<tr><td>${esc(i.nombre)}</td><td>${esc(i.unidad||'u')}</td><td class="tr">${num(i.stock).toLocaleString('es-AR')}</td><td></td><td></td><td></td></tr>`).join('')}</tbody></table>
    <div style="margin-top:30px;display:flex;gap:60px"><div>Contó: ____________________</div><div>Controló: ____________________</div></div>`,'Conteo de insumos'); }
 
 // Movimientos de insumos (tipos de TRACE: ingreso · consumo · ajuste)
-function rMOV(){ if(window._movSrc&&window._movSrc!=='ins') return rKardex(); const tb=el('mov-body'); if(!tb) return; const fi=V('mov-ins'), ft=V('mov-tipo'), d=V('mov-d'), h=V('mov-h');
+function rMOV(){ if(window._movSrc==='insdep') return rMOVDep(); if(window._movSrc&&window._movSrc!=='ins') return rKardex(); const tb=el('mov-body'); if(!tb) return; const fi=V('mov-ins'), ft=V('mov-tipo'), d=V('mov-d'), h=V('mov-h');
   const rows=(INV.insmov||[]).filter(m=>(!fi||m.insumo_id===fi)&&(!ft||m.tipo===ft)&&inRange(m.fecha,d,h)).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||String(b.created_at||'').localeCompare(String(a.created_at||'')));
   const sgn=m=>m.tipo==='consumo'?-Math.abs(num(m.cantidad)):m.tipo==='ingreso'?Math.abs(num(m.cantidad)):num(m.cantidad);
   tb.innerHTML=rows.length?rows.map(m=>{ const i=(D.ins||[]).find(x=>x.id===m.insumo_id)||{}; const s=sgn(m);
     return `<tr><td>${fD(m.fecha)}</td><td class="fw">${esc(i.nombre||'—')}</td><td>${badge(m.tipo==='ingreso'?'Ingreso':m.tipo==='consumo'?'Consumo':'Ajuste',m.tipo==='ingreso'?'b-success':m.tipo==='consumo'?'b-info':'b-warning')}</td><td class="tr fw ${s<0?'cd':'cs'}">${s>0?'+':''}${s.toLocaleString('es-AR',{maximumFractionDigits:2})} ${esc(i.unidad||'')}</td><td class="mono small">${esc(m.referencia||'')}</td><td class="small">${esc(m.nota||'')}</td></tr>`; }).join(''):emptyRow(6,INV.loaded?'Sin movimientos en el período':'Cargando…'); }
 
+// ══════════════════════════════════════════════════════════════
+// CONTROL PLUS · INVENTARIO · UBICACIONES Y DEPÓSITOS DE INSUMOS (v12.0)
+//   ubicaciones: cámaras, depósitos, áreas/sectores y externos — las crea cada empresa (SaaS)
+//   Insumos en dos depósitos:
+//     DEPÓSITO DE COMPRA (rol_insumo='compra') → stock en unidad de compra (rollo, caja), en inv_movimientos / v_inv_stock
+//     DEPÓSITO DE USO    (rol_insumo='uso')    → es insumos.stock de siempre (TRACE lo descuenta al producir)
+//   insumo_pases: cada entrega al galpón (1 rollo → 7000 bolsas); al cerrarla se registra el rinde real (merma)
+//   Sin depósito de compra cargado, todo funciona como antes (v11.9).
+// ══════════════════════════════════════════════════════════════
+const UBI_TIPOS=[['camara','❄️ Cámara de frío'],['deposito','📦 Depósito'],['area','🏭 Área / sector'],['externo','🚜 Externo (finca, proveedor, cliente)']];
+const UBI_GUARDA=[['mp','Materia prima'],['pt','Productos terminados'],['insumo','Insumos'],['envase','Envases'],['bien','Bienes de uso'],['implemento','Implementos']];
+const UBI_ROL={compra:'Depósito de compra (por bulto)',uso:'Depósito de uso (fraccionado)'};
+const UB={ok:false,loaded:false,_p:null};
+const r4=n=>Math.round((num(n)+Number.EPSILON)*10000)/10000;
+const fmtQ=n=>num(n).toLocaleString('es-AR',{maximumFractionDigits:2});
+async function cargarUbic(force){ if(UB._p&&!force) return UB._p;
+  const p=(async()=>{ D._missing=D._missing||{}; delete D._missing.ubicaciones; const ub=await fetchAll('ubicaciones'); const ok=!D._missing.ubicaciones; let st=[],pa=[],mv=[];
+    if(ok) [st,pa,mv]=await Promise.all([fetchAll('v_inv_stock',q=>q.eq('clase','insumo'),'*',null),fetchAll('insumo_pases'),fetchAll('inv_movimientos',q=>q.eq('clase','insumo').gte('fecha',addDays(hoy(),-400)))]);
+    D.ubic=ub; UB.ok=ok; INV.invstk=st; INV.pases=pa; INV.invmov=mv; UB.loaded=true; })();
+  UB._p=p; try{ await p; } finally{ if(UB._p===p) UB._p=null; } }
+const depCompra=()=>(D.ubic||[]).filter(u=>u.activo!==false&&u.rol_insumo==='compra').sort((a,b)=>(b.por_defecto?1:0)-(a.por_defecto?1:0)||String(a.nombre||'').localeCompare(String(b.nombre||'')));
+const depUso=()=>(D.ubic||[]).find(u=>u.activo!==false&&u.rol_insumo==='uso')||null;
+const usaDeposito=()=>UB.ok&&depCompra().length>0;
+const insUC=i=>(i&&(i.unidad_compra||i.unidad))||'u';
+const insRinde=i=>num(i&&i.rinde)>0?num(i.rinde):1;
+const insBajoCompra=i=>usaDeposito()&&i.activo!==false&&num(i.minimo_compra)>0&&stockDep(i.id)<=num(i.minimo_compra);
+function stockDep(insId,ubId){ const ids=ubId?[ubId]:depCompra().map(d=>d.id); return r4(sumBy((INV.invstk||[]).filter(s=>String(s.item_id)===String(insId)&&ids.includes(s.ubicacion_id)),'cantidad')); }
+async function stockDepDB(insId,ubId){ const { data, error } = await sb.from('v_inv_stock').select('cantidad').eq('empresa_id',S.empresaId).eq('clase','insumo').eq('item_id',String(insId)).eq('ubicacion_id',ubId); if(error) throw error; return r4(sumBy(data||[],'cantidad')); }
+const insumosEnDep=ubId=>(INV.invstk||[]).filter(s=>s.ubicacion_id===ubId&&Math.abs(num(s.cantidad))>0.0001);
+function insUnis(cur){ return [...new Set(['u','bolsa','rollo','kg','m','caja','bulto','paquete','pack','pallet','litro',cur].filter(Boolean))]; }
+// ¿el renglón de compra vino en la unidad de USO (ej. bolsas sueltas) y no en la de compra?
+function insEnUnidadUso(ins,uni){ const n=x=>uniNorm(x).replace(/s$/,''); const uc=ins&&ins.unidad_compra; if(!uc||n(uc)===n(ins.unidad||'u')) return false; return n(uni)===n(ins.unidad||'u'); }
+function cpInsDep(){ const s=el('cp-insdep'); if(!s) return; const ds=depCompra(); s.innerHTML=ds.map(d=>`<option value="${d.id}">${esc(d.nombre)}</option>`).join('');
+  const ib=el('cp-insbox'), dw=el('cp-insdep-w'); if(dw) dw.style.display=(ib&&ib.style.display!=='none'&&usaDeposito())?'':'none'; }
+
+// ── Pestaña Ubicaciones ──
+function rUBI(){ const tb=el('ubi-body'); if(!tb) return;
+  if(!UB.loaded){ tb.innerHTML=emptyRow(9,'Cargando…'); if(!UB._p) cargarUbic().then(rUBI).catch(e=>{ tb.innerHTML=emptyRow(9,esc(e.message||String(e))); }); return; }
+  const w=el('ubi-warn'); if(w) w.style.display=UB.ok?'none':'';
+  const t=V('ubi-tipo'), q=(V('ubi-q')||'').toLowerCase(), e=V('ubi-est'); const ord=['camara','deposito','area','externo'];
+  const rows=(D.ubic||[]).filter(u=>(!t||u.tipo===t)&&(e==='todas'||(e==='inact'?u.activo===false:u.activo!==false))&&(!q||[u.codigo,u.nombre,u.notas].join(' ').toLowerCase().includes(q)))
+    .sort((a,b)=>ord.indexOf(a.tipo)-ord.indexOf(b.tipo)||String(a.codigo||a.nombre||'').localeCompare(String(b.codigo||b.nombre||'')));
+  const gl=Object.fromEntries(UBI_GUARDA), tl=Object.fromEntries(UBI_TIPOS);
+  tb.innerHTML=rows.length?rows.map(u=>{ const n=u.rol_insumo==='compra'?insumosEnDep(u.id).length:u.rol_insumo==='uso'?(D.ins||[]).filter(i=>i.activo!==false&&num(i.stock)>0).length:0;
+    return `<tr style="${u.activo===false?'opacity:.5':''}"><td><span class="chip chip-x">${esc(u.codigo||'—')}</span></td><td class="fw">${esc(u.nombre)}${u.por_defecto?' '+badge('por defecto','b-info'):''}${u.capacidad?`<div class="small muted">Capacidad: ${esc(u.capacidad)}</div>`:''}</td>
+      <td>${tl[u.tipo]||esc(u.tipo||'')}</td><td class="small">${(u.guarda||[]).map(k=>esc(gl[k]||k)).join(', ')||'—'}</td><td class="small">${u.rol_insumo?esc(UBI_ROL[u.rol_insumo]||u.rol_insumo):'—'}</td>
+      <td class="tr">${u.temperatura_obj!=null?fmtQ(u.temperatura_obj)+' °C':'—'}</td><td class="tr">${u.rol_insumo?(n?`<span class="link" onclick="verUbicStock('${u.id}')">${n} insumo${n>1?'s':''}</span>`:'<span class="muted">0</span>'):'—'}</td>
+      <td>${u.activo===false?badge('Inactiva','b-neutral'):badge('Activa','b-success')}</td>
+      <td class="noprint"><div class="act-btns"><button class="btn btn-outline btn-xs" onclick="editUbic('${u.id}')">✏️</button><button class="btn btn-outline btn-xs" onclick="toggleUbic('${u.id}')">${u.activo===false?'Activar':'Baja'}</button></div></td></tr>`; }).join('')
+    :emptyRow(9,UB.ok?((D.ubic||[]).length?'Ninguna ubicación con ese filtro':'Todavía no hay ubicaciones: creá la primera con ＋ Nueva ubicación'):'Falta correr plus_v12_0_ubicaciones_insumos.sql'); }
+function editUbic(id){ if(!UB.ok){ toast('Primero corré plus_v12_0_ubicaciones_insumos.sql en Supabase','warn'); return; }
+  const u=id?(D.ubic||[]).find(x=>x.id===id):null; const g=new Set(u?(u.guarda||[]):[]);
+  formModal({wide:true, title:u?'Editar ubicación — '+u.nombre:'Nueva ubicación', sub:'Cámaras, depósitos, áreas o sectores y lugares externos, con el nombre que usen en la empresa',
+    fields:[{id:'codigo',label:'Código',ph:'ej: CF1, D1, EMP',mono:true},{id:'nombre',label:'Nombre',req:true,ph:'ej: Cámara 1, Depósito de insumos, Finca Milagros'},
+      {id:'tipo',label:'Tipo',type:'select',options:UBI_TIPOS},
+      {id:'guarda',type:'html',full:true,html:`<label class="flabel">Qué se guarda acá</label><div style="display:flex;flex-wrap:wrap;gap:6px 18px">${UBI_GUARDA.map(([k,l])=>`<label class="small" style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" id="ubg-${k}"${g.has(k)?' checked':''}> ${l}</label>`).join('')}</div>`},
+      {id:'rol_insumo',label:'Rol para insumos',type:'select',options:[['','— Ninguno'],['compra',UBI_ROL.compra],['uso',UBI_ROL.uso]],help:'Compra: entra lo comprado por rollo, caja o bulto. Uso: el galpón, entra fraccionado y TRACE lo descuenta.'},
+      {id:'por_defecto',label:'Por defecto',type:'checkbox',help:'Se propone primero al cargar (por ejemplo, en las compras).'},
+      {id:'temperatura_obj',label:'Temperatura objetivo (°C)',type:'number',step:'0.1',help:'Para cámaras de frío.'},
+      {id:'capacidad',label:'Capacidad',ph:'ej: 40 pallets, 120 bins'},
+      {id:'notas',label:'Notas',full:true}],
+    values:u?{codigo:u.codigo||'',nombre:u.nombre,tipo:u.tipo||'deposito',rol_insumo:u.rol_insumo||'',por_defecto:!!u.por_defecto,temperatura_obj:u.temperatura_obj,capacidad:u.capacidad||'',notas:u.notas||''}:{tipo:'deposito',rol_insumo:'',por_defecto:false},
+    onSave:async v=>{ const nom=v.nombre.trim(), cod=(v.codigo||'').toUpperCase(); const guarda=UBI_GUARDA.map(x=>x[0]).filter(k=>el('ubg-'+k)&&el('ubg-'+k).checked);
+      const otras=(D.ubic||[]).filter(x=>x.id!==(u&&u.id));
+      if(otras.some(x=>String(x.nombre||'').trim().toUpperCase()===nom.toUpperCase())){ toast('Ya existe una ubicación con ese nombre','warn'); return false; }
+      if(cod&&otras.some(x=>String(x.codigo||'').trim().toUpperCase()===cod)){ toast('Ya existe una ubicación con ese código','warn'); return false; }
+      const rol=v.rol_insumo||null; if(rol&&!guarda.includes('insumo')) guarda.push('insumo');
+      if(rol==='uso'){ const o2=otras.find(x=>x.activo!==false&&x.rol_insumo==='uso'); if(o2){ toast('Ya hay un depósito de uso ('+o2.nombre+'). Por ahora el stock fraccionado se lleva en uno solo.','warn'); return false; } }
+      if(u&&u.rol_insumo==='compra'&&rol!=='compra'&&insumosEnDep(u.id).length){ toast('Tiene insumos en stock: entregalos al galpón o ajustalos antes de cambiarle el rol','warn'); return false; }
+      let pd=!!v.por_defecto; if(rol==='compra'&&!otras.some(x=>x.activo!==false&&x.rol_insumo==='compra')) pd=true;
+      const o={codigo:cod||null,nombre:nom,tipo:v.tipo||'deposito',guarda,rol_insumo:rol,por_defecto:pd,temperatura_obj:v.temperatura_obj,capacidad:v.capacidad||null,notas:v.notas||null};
+      if(!u){ o.activo=true; o.created_by=S.nombre||S.email||null; }
+      const r=await guardarSafe('ubicaciones',o,u&&u.id);
+      if(pd){ let q=sb.from('ubicaciones').update({por_defecto:false}).eq('empresa_id',S.empresaId).neq('id',r.id).eq('por_defecto',true); q=rol?q.eq('rol_insumo',rol):q.eq('tipo',o.tipo).is('rol_insumo',null); const { error } = await q; if(error) console.warn('[ubicaciones]',error.message); }
+      await cargarUbic(true); rUBI(); if(el('ins-body')) rINS(); toast('Ubicación guardada','ok'); }}); }
+async function toggleUbic(id){ const u=(D.ubic||[]).find(x=>x.id===id); if(!u) return;
+  if(u.activo!==false){ const n=u.rol_insumo==='compra'?insumosEnDep(id).length:0;
+    if(n){ toast('"'+u.nombre+'" tiene '+n+' insumo(s) en stock: entregalos al galpón o ajustalos antes de darla de baja','warn'); return; }
+    if(!confirm('¿Dar de baja "'+u.nombre+'"?'+(u.rol_insumo==='uso'?'\n\nEs el depósito de uso: el stock de uso no cambia (TRACE lo sigue descontando).':'')+'\n\nNo se borra: queda inactiva y con su historial.')) return; }
+  else if(u.rol_insumo==='uso'&&depUso()){ toast('Ya hay otro depósito de uso activo ('+depUso().nombre+')','warn'); return; }
+  const { error } = await sb.from('ubicaciones').update({activo:u.activo===false}).eq('id',id).eq('empresa_id',S.empresaId); if(error){ toast(error.message,'err'); return; }
+  await cargarUbic(true); rUBI(); toast('Ubicación actualizada','ok'); }
+function verUbicStock(id){ const u=(D.ubic||[]).find(x=>x.id===id)||{}; let rows;
+  if(u.rol_insumo==='uso') rows=(D.ins||[]).filter(i=>i.activo!==false&&num(i.stock)>0).map(i=>({i,q:num(i.stock),un:i.unidad||'u'}));
+  else rows=insumosEnDep(id).map(s=>{ const i=(D.ins||[]).find(x=>String(x.id)===String(s.item_id))||{nombre:'(insumo '+s.item_id+')'}; return {i,q:num(s.cantidad),un:insUC(i),eq:insRinde(i)>1?num(s.cantidad)*insRinde(i):null}; });
+  rows.sort((a,b)=>String(a.i.nombre||'').localeCompare(String(b.i.nombre||'')));
+  viewModal('Insumos en '+(u.nombre||''),u.rol_insumo==='uso'?'Stock de uso (fraccionado)':'Stock en unidad de compra',`<table><thead><tr><th>Insumo</th><th class="tr">Cantidad</th>${u.rol_insumo==='compra'?'<th class="tr">Equivale a</th>':''}</tr></thead><tbody>${rows.map(r=>`<tr><td class="fw">${esc(r.i.nombre||'')}</td><td class="tr">${fmtQ(r.q)} ${esc(r.un)}</td>${u.rol_insumo==='compra'?`<td class="tr muted">${r.eq!=null?fmtQ(r.eq)+' '+esc(r.i.unidad||'u'):'—'}</td>`:''}</tr>`).join('')}</tbody></table>`); }
+
+// ── Insumos con depósito de compra: ingreso, ajuste, entrega al galpón ──
+function ingresoInsumoDep(id){ const i=(D.ins||[]).find(x=>x.id===id); if(!i) return; const du=depUso(), uc=insUC(i), u=i.unidad||'u', rd=insRinde(i);
+  formModal({title:'Ingreso de '+i.nombre, sub:'Si cargás la factura en Compras, el ingreso se hace desde ahí.',
+    fields:[{id:'dep',label:'Entra a',type:'select',options:[...depCompra().map(d=>[d.id,d.nombre+' (en '+uc+')']),['__uso',(du?du.nombre:'Depósito de uso')+' — directo, en '+u]]},
+      {id:'cantidad',label:'Cantidad',type:'number',req:true,help:'En el depósito de compra va en '+esc(uc)+'; directo al de uso, en '+esc(u)+'.'},{id:'fecha',label:'Fecha',type:'date',value:hoy()},
+      {id:'costo',label:'Costo por '+uc+' (opcional)',type:'number',step:'0.01',help:rd!==1?'Actualiza el costo por '+esc(u)+' (÷ '+fmtQ(rd)+').':'Si lo completás, actualiza el costo del insumo.'},{id:'nota',label:'Nota',ph:'ej: remito 0001-1234 proveedor X',full:true}],
+    onSave:async v=>{ const q=num(v.cantidad); if(!(q>0)){ toast('Indicá una cantidad mayor a cero','warn'); return false; }
+      if(v.dep==='__uso') await moverInsumo(id,q,{tipo:'ingreso',cantidad:q,fecha:v.fecha||hoy(),referencia:'ingreso',nota:v.nota||null});
+      else { const { error } = await sb.from('inv_movimientos').insert({empresa_id:S.empresaId,fecha:v.fecha||hoy(),clase:'insumo',item_id:String(id),ubicacion_id:v.dep,cantidad:q,unidad:uc,tipo:'ingreso',referencia:'ingreso',nota:v.nota||null,usuario:S.nombre||S.email||null}); if(error) throw error; }
+      if(num(v.costo)>0){ await sb.from('insumos').update({costo:r4(num(v.costo)/rd)}).eq('id',id).eq('empresa_id',S.empresaId); await sb.from('insumos').update({costo_compra:num(v.costo)}).eq('id',id).eq('empresa_id',S.empresaId); }
+      await recargarInsumos(); rINS(); toast('Ingreso registrado','ok'); }}); }
+function ajusteInsumoDep(id){ const i=(D.ins||[]).find(x=>x.id===id); if(!i) return; const du=depUso(), uc=insUC(i), u=i.unidad||'u'; window._ajIns=id;
+  const opts=[...depCompra().map(d=>[d.id,d.nombre+' — hay '+fmtQ(stockDep(id,d.id))+' '+uc]),['__uso',(du?du.nombre:'Depósito de uso')+' — hay '+fmtQ(i.stock)+' '+u]];
+  formModal({title:'Ajustar stock — '+i.nombre, sub:'Corregí el stock al valor real contado (inventario físico)',
+    fields:[{id:'dep',label:'Dónde',type:'select',options:opts,onchange:'ajDepChg()'},{id:'real',label:'Stock real contado',type:'number',req:true,help:'En la unidad del depósito elegido.'},{id:'motivo',label:'Motivo',req:true,ph:'ej: conteo físico, rotura, vencido'}],
+    values:{dep:opts[0][0],real:stockDep(id,opts[0][0])},
+    onSave:async v=>{ const nota=()=>v.motivo+(window._pinAutorizo?' · autorizó '+window._pinAutorizo:'');
+      if(v.dep==='__uso'){ const { data:cur } = await sb.from('insumos').select('stock').eq('id',id).single(); const dif=r2(num(v.real)-num(cur&&cur.stock));
+        if(Math.abs(dif)<0.0001){ toast('No hay diferencia para ajustar','warn'); return false; }
+        setTimeout(()=>autorizar('Ajustar el stock de <b>'+esc(i.nombre)+'</b> en <b>'+(dif>0?'+':'')+dif.toLocaleString('es-AR')+' '+esc(u)+'</b>', async()=>{
+          try{ await moverInsumo(id,dif,{tipo:'ajuste',cantidad:dif,referencia:'ajuste',nota:nota()}); window._pinAutorizo=null; await recargarInsumos(); rINS(); toast('Stock ajustado','ok'); }catch(e){ toast(e.message,'err'); } }),50);
+        return true; }
+      const d=depCompra().find(x=>x.id===v.dep); const dif=r4(num(v.real)-await stockDepDB(id,v.dep));
+      if(Math.abs(dif)<0.0001){ toast('No hay diferencia para ajustar','warn'); return false; }
+      setTimeout(()=>autorizar('Ajustar el stock de <b>'+esc(i.nombre)+'</b> en '+esc(d?d.nombre:'el depósito')+': <b>'+(dif>0?'+':'')+fmtQ(dif)+' '+esc(uc)+'</b>', async()=>{
+        try{ const { error } = await sb.from('inv_movimientos').insert({empresa_id:S.empresaId,fecha:hoy(),clase:'insumo',item_id:String(id),ubicacion_id:v.dep,cantidad:dif,unidad:uc,tipo:'ajuste',referencia:'ajuste',nota:nota(),usuario:S.nombre||S.email||null}); if(error) throw error;
+          window._pinAutorizo=null; await recargarInsumos(); rINS(); toast('Stock ajustado','ok'); }catch(e){ toast(e.message,'err'); } }),50);
+      return true; }}); }
+function ajDepChg(){ const id=window._ajIns, d=V('mf-dep'), i=(D.ins||[]).find(x=>x.id===id)||{}; const r=el('mf-real'); if(r) r.value=d==='__uso'?num(i.stock):stockDep(id,d); }
+function paseInsumo(id){ const i=(D.ins||[]).find(x=>x.id===id); if(!i) return; const uc=insUC(i), u=i.unidad||'u', du=depUso();
+  const deps=depCompra().map(d=>({d,q:stockDep(id,d.id)})).filter(x=>x.q>0); if(!deps.length){ toast('No hay '+i.nombre+' en el depósito de compra','warn'); return; }
+  window._paseIns=i;
+  formModal({title:'🚚 Entregar al galpón — '+i.nombre, sub:'Sale del depósito de compra y entra fraccionado a '+(du?du.nombre:'el depósito de uso'),
+    pre:`<div class="alert alert-info">📦 <div>Hay ${deps.map(x=>'<b>'+fmtQ(x.q)+' '+esc(uc)+'</b> en '+esc(x.d.nombre)).join(' · ')}.${insRinde(i)>1?' Cada '+esc(uc)+' rinde <b>'+fmtQ(insRinde(i))+' '+esc(u)+'</b> (lo podés corregir para esta entrega).':''}</div></div>`,
+    fields:[{id:'dep',label:'Desde',type:'select',options:deps.map(x=>[x.d.id,x.d.nombre+' — hay '+fmtQ(x.q)+' '+uc])},
+      {id:'cantidad',label:'Cantidad a entregar ('+uc+')',type:'number',req:true,value:1,oninput:'paseCalc()'},
+      {id:'rinde',label:'Rinde: '+u+' por '+uc,type:'number',step:'0.0001',req:true,value:insRinde(i),oninput:'paseCalc()'},
+      {id:'fecha',label:'Fecha',type:'date',value:hoy()},
+      {id:'calc',type:'html',full:true,html:'<div id="pase-calc" class="alert alert-ok" style="margin:0"></div>'},
+      {id:'nota',label:'Nota',ph:'ej: para la línea 1',full:true}],
+    saveLabel:'🚚 Entregar al galpón',
+    onSave:async v=>{ const q=num(v.cantidad), rd=num(v.rinde), disp=stockDep(id,v.dep);
+      if(!(q>0)){ toast('Indicá una cantidad mayor a cero','warn'); return false; }
+      if(!(rd>0)){ toast('El rinde tiene que ser mayor a cero','warn'); return false; }
+      if(q>disp+0.0001){ toast('No alcanza: hay '+fmtQ(disp)+' '+uc,'warn'); return false; }
+      const { data, error } = await sb.rpc('inv_pase_insumo',{p_insumo_id:String(id),p_origen:v.dep,p_cantidad:q,p_rinde:rd,p_fecha:v.fecha||hoy(),p_nota:v.nota||null,p_usuario:S.nombre||S.email||null});
+      if(error){ toast(error.message,'err'); return false; }
+      await recargarInsumos(); rINS(); toast((data&&data.codigo?data.codigo+': ':'')+fmtQ(q*rd)+' '+u+' pasaron al galpón','ok'); }});
+  setTimeout(paseCalc,30); }
+function paseCalc(){ const i=window._paseIns||{}, b=el('pase-calc'); if(!b) return; const q=num(V('mf-cantidad')), rd=num(V('mf-rinde'));
+  b.innerHTML=q>0&&rd>0?`✅ <div>Entran <b>${fmtQ(q*rd)} ${esc(i.unidad||'u')}</b> al galpón y salen <b>${fmtQ(q)} ${esc(insUC(i))}</b> del depósito.</div>`:'<div>Completá la cantidad y el rinde</div>'; }
+function rPASES(){ const card=el('pases-card'), tb=el('pases-body'); if(!card||!tb) return; const all=INV.pases||[];
+  const ver=usaDeposito()||all.length>0; card.style.display=ver?'':'none'; if(!ver) return;
+  const e=V('pase-est'), nomU=id=>((D.ubic||[]).find(u=>u.id===id)||{}).nombre||'—';
+  const rows=all.filter(p=>!e||p.estado===e).sort((a,b)=>String(b.codigo||'').localeCompare(String(a.codigo||'')));
+  let teo=0, real=0;
+  tb.innerHTML=rows.length?rows.slice(0,300).map(p=>{ const i=(D.ins||[]).find(x=>String(x.id)===String(p.insumo_id))||{}; const u=p.unidad_uso||i.unidad||'u', cer=p.estado==='cerrado';
+      const merma=cer?r4(num(p.cantidad_uso)-num(p.rinde_real)):0; if(cer){ teo+=num(p.cantidad_uso); real+=num(p.rinde_real); }
+      const dias=Math.max(0,Math.round((new Date(hoy()+'T12:00:00')-new Date(String(p.fecha).slice(0,10)+'T12:00:00'))/86400000));
+      const mTxt=!cer?'—':Math.abs(merma)<0.0001?'0':merma>0?`${fmtQ(merma)} <span class="small">(${fmtQ(merma/num(p.cantidad_uso)*100)}%)</span>`:`+${fmtQ(-merma)} <span class="small">de más</span>`;
+      return `<tr style="${p.estado==='anulado'?'opacity:.5':''}"><td class="mono">${esc(p.codigo||'')}</td><td>${fD(p.fecha)}</td><td class="fw">${esc(i.nombre||'—')}</td><td class="small">${esc(nomU(p.origen_id))}</td>
+        <td class="tr">${fmtQ(p.cantidad_compra)} ${esc(p.unidad_compra||'')}</td><td class="tr">${fmtQ(p.cantidad_uso)} ${esc(u)}</td><td class="tr">${cer?fmtQ(p.rinde_real)+' '+esc(u):'—'}</td><td class="tr ${merma>0?'cd':''}">${mTxt}</td>
+        <td>${p.estado==='abierto'?badge('En uso · '+dias+' d','b-info'):cer?badge('Cerrada '+fD(p.fecha_cierre),'b-success'):badge('Anulada','b-neutral')}</td>
+        <td class="noprint"><div class="act-btns">${p.estado==='abierto'?`<button class="btn btn-success btn-xs" onclick="cerrarPase('${p.id}')">✅ Cerrar</button><button class="btn btn-outline btn-xs" onclick="anularPase('${p.id}')">Anular</button>`:''}</div></td></tr>`; }).join('')
+    +(teo>0?`<tr style="background:var(--ice)"><td colspan="5" class="fw">Entregas cerradas en la lista</td><td class="tr fw">${fmtQ(teo)}</td><td class="tr fw">${fmtQ(real)}</td><td class="tr fw ${teo-real>0?'cd':''}">${fmtQ((teo-real)/teo*100)}%</td><td colspan="2"></td></tr>`:'')
+    :emptyRow(10,e==='abierto'?'No hay entregas abiertas. Usá 🚚 Al galpón en el insumo.':'Sin entregas'); }
+function cerrarPase(id){ const p=(INV.pases||[]).find(x=>x.id===id); if(!p) return; const i=(D.ins||[]).find(x=>String(x.id)===String(p.insumo_id))||{}; const u=p.unidad_uso||i.unidad||'u';
+  formModal({title:'Cerrar '+p.codigo+' — '+(i.nombre||''), sub:'Se terminó: registrá lo que rindió de verdad',
+    pre:`<div class="alert alert-info">📦 <div>Entregado el ${fD(p.fecha)}: <b>${fmtQ(p.cantidad_compra)} ${esc(p.unidad_compra||'')}</b> = <b>${fmtQ(p.cantidad_uso)} ${esc(u)}</b> teóricas. La diferencia con lo real se ajusta en el galpón y queda como merma.</div></div>`,
+    fields:[{id:'real',label:'Rindió en total ('+u+')',type:'number',req:true,value:num(p.cantidad_uso)},{id:'fecha',label:'Fecha de cierre',type:'date',value:hoy()},
+      {id:'act',label:'Usar este rinde para las próximas entregas',type:'checkbox',help:'Rinde actual en la ficha: '+fmtQ(insRinde(i))+' '+esc(u)+' por '+esc(p.unidad_compra||'u')+'.'}],
+    saveLabel:'✅ Cerrar entrega',
+    onSave:async v=>{ if(v.real==null||num(v.real)<0){ toast('Indicá cuánto rindió','warn'); return false; }
+      const { data, error } = await sb.rpc('inv_cerrar_pase',{p_pase:id,p_real:num(v.real),p_actualizar_rinde:!!v.act,p_fecha:v.fecha||hoy(),p_usuario:S.nombre||S.email||null});
+      if(error){ toast(error.message,'err'); return false; }
+      const dif=num(data&&data.diferencia); await recargarInsumos(); rINS();
+      toast(p.codigo+' cerrada'+(Math.abs(dif)>0.0001?' · '+(dif<0?'merma de '+fmtQ(-dif):fmtQ(dif)+' de más')+' '+u:' · sin merma'),'ok'); }}); }
+function anularPase(id){ const p=(INV.pases||[]).find(x=>x.id===id); if(!p) return; const i=(D.ins||[]).find(x=>String(x.id)===String(p.insumo_id))||{}; const u=p.unidad_uso||i.unidad||'u';
+  const neg=num(i.stock)<num(p.cantidad_uso);
+  formModal({title:'Anular '+p.codigo+' — '+(i.nombre||''), sub:'Para una entrega cargada por error',
+    pre:`<div class="alert alert-${neg?'warn':'info'}">${neg?'⚠️':'↩️'} <div>Vuelven <b>${fmtQ(p.cantidad_compra)} ${esc(p.unidad_compra||'')}</b> al depósito de compra y se descuentan <b>${fmtQ(p.cantidad_uso)} ${esc(u)}</b> del galpón.${neg?' Ojo: en el galpón hay '+fmtQ(i.stock)+' '+esc(u)+', así que va a quedar en negativo.':''}</div></div>`,
+    fields:[{id:'motivo',label:'Motivo',req:true,full:true,ph:'ej: se cargó dos veces'}], saveLabel:'Anular entrega', saveCls:'btn-danger',
+    onSave:async v=>{ const { error } = await sb.rpc('inv_anular_pase',{p_pase:id,p_motivo:v.motivo,p_usuario:S.nombre||S.email||null}); if(error){ toast(error.message,'err'); return false; }
+      logAutorizacion(['Anular la entrega al galpón <b>'+esc(p.codigo)+'</b> ('+esc(i.nombre||'')+'): '+esc(v.motivo)],null);
+      await recargarInsumos(); rINS(); toast(p.codigo+' anulada','ok'); }}); }
+// Movimientos del depósito de compra (Inventario → Movimientos → "Insumos — depósito de compra")
+function rMOVDep(){ const tb=el('mov-body'); if(!tb) return; const fi=V('mov-ins'), ft=V('mov-tipo'), d=V('mov-d'), h=V('mov-h');
+  const T={ingreso:['Ingreso','b-success'],pase:['Al galpón','b-info'],ajuste:['Ajuste','b-warning'],anulacion:['Anulación','b-neutral']};
+  const rows=(INV.invmov||[]).filter(m=>(!fi||String(m.item_id)===String(fi))&&(!ft||(ft==='consumo'?m.tipo==='pase':m.tipo===ft))&&inRange(m.fecha,d,h))
+    .sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||String(b.created_at||'').localeCompare(String(a.created_at||'')));
+  tb.innerHTML=rows.length?rows.map(m=>{ const i=(D.ins||[]).find(x=>String(x.id)===String(m.item_id))||{}, t=T[m.tipo]||[m.tipo,'b-neutral'], s=num(m.cantidad), ub=((D.ubic||[]).find(u=>u.id===m.ubicacion_id)||{}).nombre;
+      return `<tr><td>${fD(m.fecha)}</td><td class="fw">${esc(i.nombre||'—')}</td><td>${badge(t[0],t[1])}</td><td class="tr fw ${s<0?'cd':'cs'}">${s>0?'+':''}${fmtQ(s)} ${esc(m.unidad||'')}</td><td class="mono small">${esc(m.referencia||'')}</td><td class="small">${esc([ub,m.nota].filter(Boolean).join(' · '))}</td></tr>`; }).join('')
+    :emptyRow(6,!UB.ok?'Falta correr plus_v12_0_ubicaciones_insumos.sql':INV.loaded?'Sin movimientos en el período':'Cargando…'); }
+
 // ── Compras: al registrar una factura con insumos, ingresan al stock y se actualiza su costo ──
 async function ingresarInsumosCompra(items,ref,fecha){ let n=0;
+  // v12.0: si la empresa tiene depósito de compra, entra ahí en unidad de compra (rollo, caja…); si no, como siempre al stock de uso.
+  //        Si el renglón vino en la unidad de uso (ej. bolsas sueltas), entra directo al stock de uso.
+  if(!UB.loaded) await cargarUbic(); const dep=usaDeposito()?(V('cp-insdep')||depCompra()[0].id):null;
   for(const it of items.filter(i=>i.item_tipo==='insumo'&&i.item_id&&num(i.cantidad)>0)){
-    await moverInsumo(it.item_id,num(it.cantidad),{tipo:'ingreso',cantidad:num(it.cantidad),fecha,referencia:ref,nota:'factura de compra'});
-    if(num(it.precio_unit)>0) await sb.from('insumos').update({costo:num(it.precio_unit)}).eq('id',it.item_id).eq('empresa_id',S.empresaId);
+    const ins=(D.ins||[]).find(x=>String(x.id)===String(it.item_id))||{}; const rd=insRinde(ins), q=num(it.cantidad), pu=num(it.precio_unit);
+    const enUso=insEnUnidadUso(ins,it.unidad);
+    if(dep&&!enUso){ const { error } = await sb.from('inv_movimientos').insert({empresa_id:S.empresaId,fecha:fecha||hoy(),clase:'insumo',item_id:String(it.item_id),ubicacion_id:dep,cantidad:q,unidad:insUC(ins),tipo:'ingreso',referencia:ref,nota:'factura de compra',usuario:S.nombre||S.email||null}); if(error) throw error; }
+    else { const qu=enUso?q:r4(q*rd); await moverInsumo(it.item_id,qu,{tipo:'ingreso',cantidad:qu,fecha,referencia:ref,nota:'factura de compra'+(!enUso&&rd!==1?' ('+fmtQ(q)+' '+insUC(ins)+' × '+fmtQ(rd)+')':'')}); }
+    if(pu>0){ const cu=enUso?pu:r4(pu/rd); await sb.from('insumos').update({costo:cu}).eq('id',it.item_id).eq('empresa_id',S.empresaId);
+      if(!enUso){ const { error:ec } = await sb.from('insumos').update({costo_compra:pu}).eq('id',it.item_id).eq('empresa_id',S.empresaId); if(ec) console.warn('[insumos] costo_compra',ec.message); } }
     n++; }
   return n; }
 async function revertirInsumosCompra(ref){ const { data:movs } = await sb.from('insumo_movimientos').select('*').eq('empresa_id',S.empresaId).eq('referencia',ref).eq('tipo','ingreso');
   for(const m of (movs||[])) await moverInsumo(m.insumo_id,-num(m.cantidad),{tipo:'ajuste',cantidad:-num(m.cantidad),referencia:ref,nota:'anulación de la factura de compra'});
-  return (movs||[]).length; }
+  // v12.0: lo que había entrado al depósito de compra
+  let nd=0; const { data:dm, error:ed } = await sb.from('inv_movimientos').select('*').eq('empresa_id',S.empresaId).eq('clase','insumo').eq('referencia',ref).eq('tipo','ingreso');
+  if(ed){ if(!isMissing(ed)) console.warn('[inv_movimientos]',ed.message); }
+  else for(const m of (dm||[])){ const { error } = await sb.from('inv_movimientos').insert({empresa_id:S.empresaId,fecha:hoy(),clase:'insumo',item_id:m.item_id,ubicacion_id:m.ubicacion_id,cantidad:-num(m.cantidad),unidad:m.unidad,tipo:'anulacion',referencia:ref,nota:'anulación de la factura de compra',usuario:S.nombre||S.email||null}); if(error) throw error; nd++; }
+  if(nd) await cargarUbic(true);
+  return (movs||[]).length+nd; }
 
 // ══════════════════════════════════════════════════════════════
 // CONTROL PLUS · INVENTARIO · COSTOS (v7.5)
@@ -5197,8 +5429,8 @@ function rSTK(){ const m=window._stkMode||'mp'; const w0=el('stk-warn'); if(w0) 
     html+=`<tr style="background:var(--ice)"><td class="mono small">${esc(artCodPlus(g.item))}</td><td class="fw" colspan="${ncol-2}">${esc(g.item)}</td><td class="tr fw" data-v="${r2(tot)}">${fmt(tot)} ${g.un}</td></tr>`;
     g.lotes.forEach(l=>{ html+=m==='mp'?`<tr><td></td><td class="mono">${esc(l.lote)}</td><td>${fD(l.fecha)}</td><td class="small">${esc(l.prov||'')}</td><td class="tr">${fmt(l.kilos)}</td><td class="small muted tr">${l.cajas&&l.kilos?fmt(l.stock/(l.kilos/l.cajas))+' cj':''}</td><td class="tr">${fmt(l.stock)} kg</td></tr>`:`<tr><td></td><td class="mono">${esc(l.lote)}</td><td>${fD(l.fecha)}</td><td class="tr"></td><td class="tr">${fmt(l.stock)} u</td></tr>`; }); });
   tb.innerHTML=html||emptyRow(ncol,INV.loaded?'Sin stock':'Cargando…'); }
-function rSTKIns(){ const tb=el('stk-body'); if(!tb) return; const mn=i=>num(i.stock_minimo!=null?i.stock_minimo:i.minimo);
-  tb.innerHTML=(D.ins||[]).length?(D.ins||[]).filter(i=>i.activo!==false).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'')).map(i=>`<tr><td class="fw">${esc(i.nombre)}</td><td>${esc(i.unidad||'')}</td><td class="tr fw" data-v="${num(i.stock)}">${num(i.stock).toLocaleString('es-AR')}</td><td class="tr">${mn(i)||'—'}</td><td>${num(i.stock)<=0?badge('Sin stock','b-danger'):mn(i)>0&&num(i.stock)<mn(i)?badge('Bajo mínimo','b-warning'):badge('Normal','b-success')}</td></tr>`).join(''):emptyRow(5,'Sin insumos'); }
+function rSTKIns(){ const tb=el('stk-body'); if(!tb) return; const mn=i=>num(i.stock_minimo!=null?i.stock_minimo:i.minimo); const dep=usaDeposito();
+  tb.innerHTML=(D.ins||[]).length?(D.ins||[]).filter(i=>i.activo!==false).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'')).map(i=>{ const d1=dep?stockDep(i.id):null; return `<tr><td class="fw">${esc(i.nombre)}</td><td>${esc(i.unidad||'')}</td><td class="tr" data-v="${d1==null?'':d1}">${d1==null?'—':fmtQ(d1)+' '+esc(insUC(i))}</td><td class="tr fw" data-v="${num(i.stock)}">${num(i.stock).toLocaleString('es-AR')}</td><td class="tr">${mn(i)||'—'}</td><td>${num(i.stock)<=0&&!(d1>0)?badge('Sin stock','b-danger'):mn(i)>0&&num(i.stock)<mn(i)?badge(d1>0?'Entregar al galpón':'Bajo mínimo','b-warning'):insBajoCompra(i)?badge('Comprar','b-warning'):badge('Normal','b-success')}</td></tr>`; }).join(''):emptyRow(6,'Sin insumos'); }
 function stkXls(){ const m=window._stkMode||'mp'; xls(m==='ins'?'tbl-stk':'tbl-stk'+m,'Stock_'+m); }
 // ── Ajustes de stock ──
 function rAJ(){ const tb=el('aj-body'); if(!tb) return; const d=V('aj-d'), h=V('aj-h'), q=(V('aj-q')||'').toLowerCase(), ver=el('aj-anul')&&el('aj-anul').checked;
@@ -5279,7 +5511,7 @@ function anularAjuste(id){ const a=(INV.ajustes||[]).find(x=>x.id===id); if(!a||
     try{ const { data, error } = await sb.from('ajustes_stock').update({estado:'anulada'}).eq('id',id).eq('empresa_id',S.empresaId).select('id'); if(error) throw error; if(!data||!data.length) throw new Error('No se pudo anular'); INV.ajustes=await fetchAll('ajustes_stock'); await recargarStock(); rAJ(); rAJGrid(); rSTK(); toast('Ajuste anulado','ok'); }catch(e){ toast(e.message,'err'); } }); }
 // ── Movimientos (insumos + kardex por lote de MP / productos) ──
 window._movSrc=window._movSrc||'ins';
-function movSrc(s){ window._movSrc=s; const ins=s==='ins'; el('mov-ins-wrap').style.display=ins?'':'none'; el('mov-kx-wrap').style.display=ins?'none':''; if(!ins){ const sel=el('mov-item'); const items=s==='mp'?kMPItems():kPTItems(); sel.innerHTML=items.map(i=>`<option>${esc(i)}</option>`).join(''); } rMOV(); try{ ssSync(); }catch(_){} }
+function movSrc(s){ window._movSrc=s; const ins=s==='ins'||s==='insdep'; el('mov-ins-wrap').style.display=ins?'':'none'; el('mov-kx-wrap').style.display=ins?'none':''; if(!ins){ const sel=el('mov-item'); const items=s==='mp'?kMPItems():kPTItems(); sel.innerHTML=items.map(i=>`<option>${esc(i)}</option>`).join(''); } rMOV(); try{ ssSync(); }catch(_){} }
 function movEventos(tipo,item){ const evs=[];
   if(tipo==='mp'){ const set=new Set(), uu={};
     (INV.rec||[]).filter(r=>r.estado!=='anulada'&&r.materia_prima===item).forEach(r=>{ set.add(r.codigo_lote); uu[r.codigo_lote]=r.id; evs.push({lote:r.codigo_lote,fecha:r.fecha,rank:0,tipo:r.origen==='acondicionamiento'?'Ingreso (acondic.)':r.origen==='reventa'?'Ingreso (reventa)':'Recepción',ref:r.codigo_lote,cant:num(r.kilos)}); });
