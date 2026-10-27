@@ -1,0 +1,17 @@
+{
+  "name": "Pedidos · CONTROL MAX",
+  "short_name": "Pedidos",
+  "description": "App del vendedor: cargá los pedidos de tus clientes desde el celular.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111D35",
+  "theme_color": "#111D35",
+  "lang": "es-AR",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
