@@ -6,11 +6,11 @@
    Cuando el portal pase a ser la raíz del sitio, cambiá PORTAL a '/'.
    · 📖 Manual: abre el manual del usuario del módulo (panel lateral, buscador, preguntas a la IA, PDF). También con F1.
      El panel vive en /CONTROLTRACE/manuales/manual.js y se carga recién al tocar el botón: si no está, el módulo sigue igual.
-   v2.7 · 2026-10: botón 📖 Manual también en CONTROL PLUS (carga manual.js 1.2) · v2.6 · 2026-10: carga manual.js 1.1 (logo en la tapa del PDF) · v2.5 · 2026-10: botón 📖 Manual (y F1) en los módulos que tienen manual cargado (por ahora CONTROL TRACE) · v2.4 · 2026-10: suma CONTROL RRHH al menú de pestañas · v2.3: suma CONTROL DOCS al menú de pestañas · v2.2: no se muestra en el portal · v2.1: abre pestañas nuevas (no ventanas flotantes) · v2: botón de ventanas nuevas; no se muestra dentro de iframes (reportes embebidos en TOTAL). */
+   v2.8 · 2026-10: botón 📖 Manual también en Configuración (carga manual.js 1.3) · v2.7 · 2026-10: botón 📖 Manual también en CONTROL PLUS (carga manual.js 1.2) · v2.6 · 2026-10: carga manual.js 1.1 (logo en la tapa del PDF) · v2.5 · 2026-10: botón 📖 Manual (y F1) en los módulos que tienen manual cargado (por ahora CONTROL TRACE) · v2.4 · 2026-10: suma CONTROL RRHH al menú de pestañas · v2.3: suma CONTROL DOCS al menú de pestañas · v2.2: no se muestra en el portal · v2.1: abre pestañas nuevas (no ventanas flotantes) · v2: botón de ventanas nuevas; no se muestra dentro de iframes (reportes embebidos en TOTAL). */
 (function(){
   var PORTAL='/portal.html';   // ← destino del portal CONTROL MAX
-  var MANUAL_JS='/CONTROLTRACE/manuales/manual.js?v=1.2';
-  var CON_MANUAL=[/\/controltrace\/(index\.html)?$/i, /\/controlplus\/(index\.html)?$/i];   // módulos con manual: se van sumando a medida que se escriben
+  var MANUAL_JS='/CONTROLTRACE/manuales/manual.js?v=1.3';
+  var CON_MANUAL=[/\/controltrace\/(index\.html)?$/i, /\/controlplus\/(index\.html)?$/i, /\/controlconfig\/(index\.html)?$/i];   // módulos con manual: se van sumando a medida que se escriben
   var MODS=[
     ['🏭','CONTROL TRACE','/CONTROLTRACE/controltrace/index.html'],
     ['🧾','CONTROL PLUS','/CONTROLTRACE/controlplus/index.html'],
