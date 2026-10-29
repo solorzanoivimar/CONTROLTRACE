@@ -4,11 +4,11 @@
    El panel: índice por temas, buscador, filtro por rol, abre el tema de la pantalla actual,
    preguntas a la IA (Edge Function "manual-ia") y "Descargar PDF" (imprime el manual completo).
    Si algo falla acá, el módulo sigue funcionando igual: todo está dentro de try/catch y no toca el código del módulo.
-   HISTORIAL DE VERSIONES: manual 1.1 · 2026-10: logo completo de CONTROL MAX en la tapa del PDF · manual 1.0 · 2026-10: primera versión (piloto CONTROL TRACE). */
+   HISTORIAL DE VERSIONES: manual 1.2 · 2026-10: manual de CONTROL PLUS (pantallas con pestañas: sección>pestaña) · manual 1.1 · 2026-10: logo completo de CONTROL MAX en la tapa del PDF · manual 1.0 · 2026-10: primera versión (piloto CONTROL TRACE). */
 (function(){
   'use strict';
   if (window.CMXManual) return;
-  var VERSION = '1.1';
+  var VERSION = '1.2';
   var BASE = '/CONTROLTRACE/manuales/';
   // Lee una variable global del módulo (también las declaradas con const/let, que no cuelgan de window)
   function g(n){ try { return Function('return typeof ' + n + '!=="undefined"?' + n + ':undefined')(); } catch(e){ return undefined; } }
@@ -19,8 +19,34 @@
       rol: function(){ var S = g('S'); return (S && S.rol) || ''; },
       puedeVer: function(id){ var f = g('canSee'), S = g('S'); try { return f && S ? !!f(S.rol, id) : true; } catch(e){ return true; } },
       ir: function(id){ var f = g('go'); if (f) f(id); },
+      sb: function(){ return g('sb'); } },
+    // PLUS: la pantalla es la sección más la pestaña activa (y la sub-pestaña), por ejemplo "ventas>tv-cob>tvc-cheques".
+    { re: /\/controlplus\/(index\.html)?$/i, slug: 'plus', nombre: 'CONTROL PLUS',
+      pantalla: function(){
+        var c = g('CUR') || ''; if (!c) return '';
+        var root = document.getElementById('m-' + c), out = [c]; if (!root) return c;
+        Array.prototype.forEach.call(root.querySelectorAll('.tab-pane.active'), function(p){ if (p.id && p.offsetParent !== null) out.push(p.id); });
+        return out.join('>');
+      },
+      rol: function(){
+        var S = g('S'), r = norm((S && S.rol) || '');
+        if (/^(admin|administrador|administracion|dueno)$/.test(r)) return 'admin';
+        return r;
+      },
+      puedeVer: function(id){ var f = g('secPermitida'); try { return f ? !!f(String(id).split('>')[0]) : true; } catch(e){ return true; } },
+      ir: function(id){
+        var partes = String(id).split('>'), f = g('go'); if (!f) return;
+        f(partes[0]);
+        var root = document.getElementById('m-' + partes[0]); if (!root) return;
+        for (var i = 1; i < partes.length; i++) {
+          var b = root.querySelector('[onclick*="switchTab(this,\'' + partes[i] + '\')"]');
+          if (b) b.click();
+        }
+      },
       sb: function(){ return g('sb'); } }
   ];
+  // ¿La pantalla actual "cur" está dentro de la pantalla "p" del manual? (p = "ventas" abarca "ventas>tv-cv")
+  function enPantalla(cur, p){ return !!cur && !!p && (cur === p || cur.indexOf(p + '>') === 0); }
   var ROLES = { admin: 'Administrador', supervisor: 'Supervisor', comercial: 'Comercial', preparador: 'Preparador', chofer: 'Chofer', todos: 'Todos' };
   function modActual(){ for (var i = 0; i < MODULOS.length; i++) if (MODULOS[i].re.test(location.pathname)) return MODULOS[i]; return null; }
 
@@ -104,7 +130,12 @@
   var M = null, DOC = null, ST = { vista: 'indice', tema: null, q: '', soloRol: true, tab: 'temas', chat: [], enviando: false }, ROOT = null;
   function rolActual(){ try { return (M && M.rol()) || ''; } catch(e){ return ''; } }
   function temaVisible(t){ var r = rolActual(); return !ST.soloRol || !r || r === 'admin' || !t.roles.length || t.roles.indexOf('todos') >= 0 || t.roles.indexOf(r) >= 0; }
-  function temaDePantalla(p){ if (!DOC || !p) return null; return DOC.temas.filter(function(t){ return t.pantalla.indexOf(p) >= 0; })[0] || null; }
+  // El tema de la pantalla actual: el que tenga la pantalla más específica que la contenga (a igualdad, el primero).
+  function temaDePantalla(p){
+    if (!DOC || !p) return null; var mejor = null, largo = -1;
+    DOC.temas.forEach(function(t){ t.pantalla.forEach(function(q){ if (enPantalla(p, q) && q.length > largo) { mejor = t; largo = q.length; } }); });
+    return mejor;
+  }
   function cargar(){
     return fetch(BASE + M.slug + '.md?v=' + Date.now().toString().slice(0, -5), { cache: 'no-cache' })
       .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
@@ -267,7 +298,7 @@
   function pintarTema(bd){
     var t = ST.tema, base = BASE;
     var toc = t.subs.length > 2 ? '<div class="toc"><b style="font-size:12px;color:#6b7689">En este tema</b>' + t.subs.map(function(s){ return '<a href="#" data-tema="' + esc(t.id) + '" data-sub="' + esc(s.id) + '">› ' + esc(s.t) + '</a>'; }).join('') + '</div>' : '';
-    var p = t.pantalla[0], puede = p && M.ir && (!M.puedeVer || M.puedeVer(p)) && M.pantalla() !== p;
+    var p = t.pantalla[0], puede = p && M.ir && (!M.puedeVer || M.puedeVer(p)) && !enPantalla(M.pantalla(), p);
     var idx = DOC.temas.indexOf(t), prev = DOC.temas[idx - 1], next = DOC.temas[idx + 1];
     bd.innerHTML = '<button class="back" id="cmxm-back">← Todos los temas</button><div class="art"><div style="font-size:11px;font-weight:700;letter-spacing:.6px;color:#a9842f;text-transform:uppercase">' + esc(t.grupo) + ' · tema ' + t.n + '</div>' +
       '<h3>' + esc(t.titulo) + '</h3><div>' + tagsRol(t) + '</div>' + toc + render(t.md, base, t.id) + '</div>' +

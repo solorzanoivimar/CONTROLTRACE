@@ -6,8 +6,8 @@ Esta carpeta tiene los manuales del usuario de cada módulo. El sistema los lee 
 | Archivo | Para qué sirve |
 |---|---|
 | `manual.js` | El panel "📖 Manual" (índice, buscador, preguntas, PDF). Es el mismo para todos los módulos. |
-| `trace.md` | El texto del manual de CONTROL TRACE. Después se suman `plus.md`, `docs.md`, etc. |
-| `img/trace/` | Las capturas (`.png`) y los esquemas (`.svg`) del manual de TRACE. |
+| `trace.md`, `plus.md` | El texto del manual de cada módulo (CONTROL TRACE, CONTROL PLUS). Después se suman `docs.md`, `agro.md`, etc. |
+| `img/trace/`, `img/plus/` | Las capturas (`.png`) y los esquemas (`.svg`) de cada manual. |
 | `pdf/` | El PDF de cada manual, listo para imprimir o para capacitar. |
 
 ## Cómo corregir un texto
@@ -19,7 +19,8 @@ Esta carpeta tiene los manuales del usuario de cada módulo. El sistema los lee 
 - `## Título` empieza un **tema**. Justo abajo va la línea con sus datos, que no se ve en pantalla:
   `<!-- id: remitos | grupo: Administración | pantalla: ent | roles: admin, supervisor, comercial | resumen: … -->`
   - `id`: nombre corto y único del tema, **no lo cambies** (lo usan los enlaces y la IA).
-  - `pantalla`: el código de la pantalla del sistema donde se abre este tema solo.
+  - `pantalla`: el código de la pantalla del sistema donde se abre este tema solo. Puede haber varias, separadas por coma.
+    En los módulos con pestañas (como PLUS) se escribe sección>pestaña, por ejemplo `ventas>tv-cob` o `compras>tc-pag>tcp-comis`. Si una pantalla figura en varios temas, se abre el que la indica de forma más precisa (y, a igualdad, el primero).
   - `roles`: quién lo usa (`todos`, o una lista).
 - `### Subtítulo` divide el tema en partes.
 - `1.` `2.` `3.` son pasos numerados. `-` es una lista común. Las sub-listas van con dos espacios adelante.
