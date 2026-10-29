@@ -6,8 +6,8 @@ Esta carpeta tiene los manuales del usuario de cada módulo. El sistema los lee 
 | Archivo | Para qué sirve |
 |---|---|
 | `manual.js` | El panel "📖 Manual" (índice, buscador, preguntas, PDF). Es el mismo para todos los módulos. |
-| `trace.md`, `plus.md` | El texto del manual de cada módulo (CONTROL TRACE, CONTROL PLUS). Después se suman `docs.md`, `agro.md`, etc. |
-| `img/trace/`, `img/plus/` | Las capturas (`.png`) y los esquemas (`.svg`) de cada manual. |
+| `trace.md`, `plus.md`, `config.md` | El texto del manual de cada módulo (CONTROL TRACE, CONTROL PLUS, Configuración). Después se suman `docs.md`, `agro.md`, etc. |
+| `img/trace/`, `img/plus/`, `img/config/` | Las capturas (`.png`) y los esquemas (`.svg`) de cada manual. |
 | `pdf/` | El PDF de cada manual, listo para imprimir o para capacitar. |
 
 ## Cómo corregir un texto
