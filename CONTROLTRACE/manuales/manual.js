@@ -4,11 +4,11 @@
    El panel: índice por temas, buscador, filtro por rol, abre el tema de la pantalla actual,
    preguntas a la IA (Edge Function "manual-ia") y "Descargar PDF" (imprime el manual completo).
    Si algo falla acá, el módulo sigue funcionando igual: todo está dentro de try/catch y no toca el código del módulo.
-   HISTORIAL DE VERSIONES: manual 1.0 · 2026-10: primera versión (piloto CONTROL TRACE). */
+   HISTORIAL DE VERSIONES: manual 1.1 · 2026-10: logo completo de CONTROL MAX en la tapa del PDF · manual 1.0 · 2026-10: primera versión (piloto CONTROL TRACE). */
 (function(){
   'use strict';
   if (window.CMXManual) return;
-  var VERSION = '1.0';
+  var VERSION = '1.1';
   var BASE = '/CONTROLTRACE/manuales/';
   // Lee una variable global del módulo (también las declaradas con const/let, que no cuelgan de window)
   function g(n){ try { return Function('return typeof ' + n + '!=="undefined"?' + n + ':undefined')(); } catch(e){ return undefined; } }
@@ -160,7 +160,7 @@
   /* algunos módulos ocultan todo al imprimir (visibility:hidden): el manual se fuerza visible */
   '@media print{body.cmxm-printing{background:#fff!important}body.cmxm-printing #cmxm-print,body.cmxm-printing #cmxm-print *{visibility:visible!important}}' +
   "#cmxm-print{font:400 11pt/1.5 Inter,Arial,sans-serif;color:#1c2536;background:#fff}#cmxm-print .cover{height:250mm;display:flex;flex-direction:column;justify-content:center;padding:0 12mm;page-break-after:always;break-after:page}" +
-  "#cmxm-print .cover .k{font:700 12pt Inter,sans-serif;letter-spacing:2px;color:#a9842f}#cmxm-print .cover h1{font:700 34pt/1.1 'Space Grotesk',Inter,sans-serif;color:#16243f;margin:6mm 0}" +
+  "#cmxm-print .cover .logo{width:72mm;height:auto;display:block;margin:0 0 8mm -3mm}#cmxm-print .cover h1{font:700 34pt/1.1 'Space Grotesk',Inter,sans-serif;color:#16243f;margin:6mm 0}" +
   '#cmxm-print .cover .v{font-size:12pt;color:#556}#cmxm-print .cover .bar{height:3mm;width:40mm;background:#c9a24b;margin:8mm 0}' +
   "#cmxm-print .idx{page-break-after:always;break-after:page}#cmxm-print .idx h2{font:700 18pt 'Space Grotesk',sans-serif;color:#16243f}#cmxm-print .idx .g{font:700 9pt Inter;letter-spacing:1px;text-transform:uppercase;color:#a9842f;margin:5mm 0 1mm}" +
   '#cmxm-print .idx .t{display:flex;gap:4mm;padding:1mm 0;border-bottom:1px dotted #ccc}#cmxm-print .idx .t span{color:#7c9cbf;min-width:8mm}#cmxm-print .idx .t em{margin-left:auto;font-style:normal;font-size:9pt;color:#6b7689}' +
@@ -337,7 +337,7 @@
         (t.roles.length ? '<div class="rl">Para: ' + esc(t.roles.map(function(r){ return ROLES[r] || r; }).join(', ')) + '</div>' : '') + render(t.md, BASE, 'p' + t.id) + '</section>';
     });
     var m = DOC.meta;
-    return '<div class="cover"><div class="k">CONTROL MAX</div><h1>Manual del usuario<br>' + esc(m.modulo || M.nombre) + '</h1><div class="bar"></div>' +
+    return '<div class="cover"><img class="logo" src="' + BASE + 'img/logo-control-max.png" alt="CONTROL MAX"><h1>Manual del usuario<br>' + esc(m.modulo || M.nombre) + '</h1><div class="bar"></div>' +
       '<div class="v">Versión del sistema: <b>' + esc(m.version || '') + '</b><br>Actualizado: ' + esc(m.actualizado || '') + '</div>' +
       (DOC.intro.join('\n').trim() ? '<div style="margin-top:14mm;max-width:150mm">' + render(DOC.intro.join('\n'), BASE, 'intro') + '</div>' : '') + '</div>' +
       '<div class="idx"><h2>Índice</h2>' + ix + '</div>' + body;
