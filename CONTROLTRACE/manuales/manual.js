@@ -4,11 +4,11 @@
    El panel: índice por temas, buscador, filtro por rol, abre el tema de la pantalla actual,
    preguntas a la IA (Edge Function "manual-ia") y "Descargar PDF" (imprime el manual completo).
    Si algo falla acá, el módulo sigue funcionando igual: todo está dentro de try/catch y no toca el código del módulo.
-   HISTORIAL DE VERSIONES: manual 1.3 · 2026-10: manual de Configuración CONTROL MAX · manual 1.2 · 2026-10: manual de CONTROL PLUS (pantallas con pestañas: sección>pestaña) · manual 1.1 · 2026-10: logo completo de CONTROL MAX en la tapa del PDF · manual 1.0 · 2026-10: primera versión (piloto CONTROL TRACE). */
+   HISTORIAL DE VERSIONES: manual 1.4 · 2026-10: manual de CONTROL DOCS; si una imagen no está en img/<módulo>/ la busca suelta en manuales/; el PDF ya no queda en blanco en módulos que ocultan todo al imprimir · manual 1.3 · 2026-10: manual de Configuración CONTROL MAX · manual 1.2 · 2026-10: manual de CONTROL PLUS (pantallas con pestañas: sección>pestaña) · manual 1.1 · 2026-10: logo completo de CONTROL MAX en la tapa del PDF · manual 1.0 · 2026-10: primera versión (piloto CONTROL TRACE). */
 (function(){
   'use strict';
   if (window.CMXManual) return;
-  var VERSION = '1.3';
+  var VERSION = '1.4';
   var BASE = '/CONTROLTRACE/manuales/';
   // Lee una variable global del módulo (también las declaradas con const/let, que no cuelgan de window)
   function g(n){ try { return Function('return typeof ' + n + '!=="undefined"?' + n + ':undefined')(); } catch(e){ return undefined; } }
@@ -49,8 +49,22 @@
       rol: function(){ var f = g('esAdmin'), S = g('S'); try { if (f && f()) return 'admin'; } catch(e){} return norm((S && S.rol) || ''); },
       puedeVer: function(id){ var f = g('secOk'); try { return f ? !!f(id) : true; } catch(e){ return true; } },
       ir: function(id){ var f = g('go'); if (f) f(id); },
+      sb: function(){ return g('sb'); } },
+    { re: /\/controldocs\/(index\.html)?$/i, slug: 'docs', nombre: 'CONTROL DOCS',
+      pantalla: function(){ return g('cur') || ''; },
+      rol: function(){ var f = g('esAdmin'), S = g('S'); try { if (f && f()) return 'admin'; } catch(e){} return norm((S && S.rol) || ''); },
+      puedeVer: function(id){ var S = g('S'); return ['muro', 'tablero', 'pantalla'].indexOf(id) >= 0 || !!(S && S.puede); },
+      ir: function(id){ var f = g('go'); if (f) f(id); },
       sb: function(){ return g('sb'); } }
   ];
+  // Si una imagen del manual no está en su carpeta (img/<módulo>/), se busca suelta en la carpeta manuales/.
+  document.addEventListener('error', function(e){
+    var i = e.target; if (!i || i.tagName !== 'IMG' || i.getAttribute('data-alt')) return;
+    if (!i.closest || !i.closest('#cmxm, #cmxm-print, #cmxm-zoom')) return;
+    var s = i.getAttribute('src') || '', k = s.indexOf(BASE); if (k < 0) return;
+    var alt = BASE + s.split('?')[0].split('/').pop(); if (alt === s) return;
+    i.setAttribute('data-alt', '1'); i.src = alt;
+  }, true);
   // ¿La pantalla actual "cur" está dentro de la pantalla "p" del manual? (p = "ventas" abarca "ventas>tv-cv")
   function enPantalla(cur, p){ return !!cur && !!p && (cur === p || cur.indexOf(p + '>') === 0); }
   var ROLES = { admin: 'Administrador', supervisor: 'Supervisor', comercial: 'Comercial', preparador: 'Preparador', chofer: 'Chofer', rrhh: 'Jefe de RRHH', todos: 'Todos' };
@@ -195,7 +209,7 @@
   /* impresión del manual completo (Descargar PDF) */
   'body.cmxm-printing>*:not(#cmxm-print){display:none!important}#cmxm-print{display:none}body.cmxm-printing #cmxm-print{display:block}' +
   /* algunos módulos ocultan todo al imprimir (visibility:hidden): el manual se fuerza visible */
-  '@media print{html:has(body.cmxm-printing),body.cmxm-printing{background:#fff!important}body.cmxm-printing #cmxm-print,body.cmxm-printing #cmxm-print *{visibility:visible!important}}' +
+  '@media print{html body.cmxm-printing>div#cmxm-print{display:block!important;position:static!important}html body.cmxm-printing>*:not(#cmxm-print){display:none!important}html:has(body.cmxm-printing),body.cmxm-printing{background:#fff!important}body.cmxm-printing #cmxm-print,body.cmxm-printing #cmxm-print *{visibility:visible!important}}' +
   "#cmxm-print{font:400 11pt/1.5 Inter,Arial,sans-serif;color:#1c2536;background:#fff}#cmxm-print .cover{height:250mm;display:flex;flex-direction:column;justify-content:center;padding:0 12mm;page-break-after:always;break-after:page}" +
   "#cmxm-print .cover .logo{width:72mm;height:auto;display:block;margin:0 0 8mm -3mm}#cmxm-print .cover h1{font:700 34pt/1.1 'Space Grotesk',Inter,sans-serif;color:#16243f;margin:6mm 0}" +
   '#cmxm-print .cover .v{font-size:12pt;color:#556}#cmxm-print .cover .bar{height:3mm;width:40mm;background:#c9a24b;margin:8mm 0}' +
