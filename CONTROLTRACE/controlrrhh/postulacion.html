@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111D35">
+<title>Trabajá con nosotros</title>
+<meta name="description" content="Búsquedas laborales abiertas. Postulate desde el celular.">
+<link rel="icon" type="image/png" href="icon-192.png">
+<!-- CONTROL RRHH · Página pública de postulación · build post 1.0 (Etapa 5) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#111D35;--navy2:#1B2A4A;--gold:#C9A84C;--cream:#F5F2EA;--ink:#1C2536;--muted:#6B7689;--line:#E7E2D6;--sage:#4F7D6A;--sage-bg:#E9F1EC;--clay:#B5654A;--clay-bg:#F6EBE6;--amber:#86571A;--amber-bg:#FAF3E2;--steel:#3D5A80;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--cream);color:var(--ink)}
+button,input,select,textarea{font-family:inherit;font-size:16px}
+.hd{background:var(--navy);color:#fff;padding:calc(22px + env(safe-area-inset-top,0px)) 18px 26px;border-radius:0 0 22px 22px;text-align:center}
+.hd img{max-height:56px;max-width:180px;background:#fff;border-radius:10px;padding:6px;margin-bottom:10px}
+.hd small{display:block;color:#9fb0c8;font-size:14px}.hd h1{margin:4px 0 0;font-size:26px}.hd .b{display:inline-block;background:var(--gold);color:#2a1f05;font-weight:800;font-size:12px;letter-spacing:2px;padding:4px 12px;border-radius:20px;margin-bottom:10px}
+.wrap{padding:16px;max-width:620px;margin:0 auto}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.card h2{margin:0 0 4px;font-size:19px;color:var(--navy)}.meta{color:var(--muted);font-size:14px;margin-bottom:8px}
+.card p{margin:8px 0;line-height:1.45;white-space:pre-wrap}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:20px;background:#eef1f6;color:var(--steel);margin:0 4px 4px 0}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;font-size:17px;font-weight:800;background:var(--gold);color:#2a1f05;cursor:pointer;margin-top:12px}
+.btn.alt{background:#fff;border:1px solid var(--line);color:var(--navy)}.btn[disabled]{opacity:.5}
+label.lb{display:block;font-size:14px;font-weight:700;margin:14px 0 6px}
+.in{width:100%;padding:13px 12px;border:1px solid var(--line);border-radius:12px;background:#fffdf8;color:var(--ink)}
+.in:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+textarea.in{min-height:90px;resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips label{border:1px solid var(--line);border-radius:20px;padding:8px 12px;background:#fff;cursor:pointer;font-size:14px}.chips input{margin-right:6px}
+.chips label:has(input:checked){background:var(--navy);color:#fff;border-color:var(--navy)}
+.yn{display:flex;gap:8px}.yn label{flex:1;text-align:center;border:1px solid var(--line);border-radius:12px;padding:11px;cursor:pointer;background:#fff;font-weight:700}
+.yn input{display:none}.yn label:has(input:checked){background:var(--navy);color:#fff;border-color:var(--navy)}
+.ok{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4;margin-top:16px}.ok input{width:22px;height:22px;flex:0 0 auto;margin-top:1px}
+.hint{color:var(--muted);font-size:13px;margin:6px 0 0}
+.back{background:none;border:0;color:var(--steel);font-weight:700;padding:0 0 10px;cursor:pointer;font-size:15px}
+.empty{text-align:center;color:var(--muted);padding:24px 10px}
+.trap{position:absolute;left:-5000px;width:1px;height:1px;overflow:hidden}
+.done{text-align:center;padding:30px 16px}.done .i{font-size:64px}.done h2{color:var(--navy)}
+.banner{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(140%);background:var(--navy);color:#fff;padding:12px 18px;border-radius:12px;font-size:15px;transition:transform .25s;max-width:92vw;z-index:9;text-align:center}
+.banner.show{transform:translateX(-50%) translateY(0)}.banner.err{background:var(--clay)}
+.pie{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
+@media(max-width:420px){.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hd" id="hd"><small>Cargando…</small></div>
+<div class="wrap" id="view"></div>
+<div class="pie">Postulaciones con CONTROL MAX · Tus datos los ve solo el área de Recursos Humanos de la empresa.</div>
+<div class="banner" id="banner"></div>
+<script>
+const SUPABASE_URL='https://gfovibpzpyjebkgdwuya.supabase.co';
+const SUPABASE_KEY='sb_publishable_2XyV4F43cQFpFse6E7ZmuA_EuXAUUox';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,storageKey:'rrhh-postulacion'}});
+const BUCKET='rrhh-docs',MAX_MB=10;
+const DISP=['Turno mañana','Turno tarde','Turno noche','Rotativo','Fines de semana','Solo temporada'];
+const ERR={EMPRESA:'El link no es válido. Pedí el link correcto a la empresa.',CERRADA:'Esta búsqueda ya no recibe postulaciones.',NOMBRE:'Completá tu nombre y apellido.',CONTACTO:'Dejanos un teléfono o un mail para contactarte.',EMAIL:'El mail no parece válido.',DNI:'El DNI tiene que tener 7 u 8 números.',CONSENTIMIENTO:'Tenés que aceptar el uso de tus datos para postularte.',CV:'No se pudo adjuntar el CV.',LIMITE:'Hay muchas postulaciones en este momento. Probá de nuevo en un rato.'};
+const $=id=>document.getElementById(id);
+const esc=s=>(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const fmtD=f=>f?String(f).slice(0,10).split('-').reverse().join('/'):'';
+function banner(t,k){const b=$('banner');b.textContent=t;b.className='banner show'+(k?' '+k:'');clearTimeout(b._t);b._t=setTimeout(()=>b.className='banner',k==='err'?6000:3500);}
+const Q=new URLSearchParams(location.search);const E8=(Q.get('e')||'').toLowerCase();let P=null;
+
+async function init(){
+  if(!/^[0-9a-f]{8}$/.test(E8)){$('hd').innerHTML='<h1>Trabajá con nosotros</h1>';$('view').innerHTML=`<div class="card empty">${ERR.EMPRESA}</div>`;return;}
+  try{const {data,error}=await sb.rpc('rrhh_recl_publico',{p_e8:E8});if(error)throw error;if(!data.ok)throw new Error(ERR[data.error]||data.error);P=data;}
+  catch(e){$('hd').innerHTML='<h1>Trabajá con nosotros</h1>';$('view').innerHTML=`<div class="card empty">${esc(e.message||'No se pudo cargar. Probá de nuevo.')}</div>`;return;}
+  document.title='Trabajá en '+(P.empresa.nombre||'nuestra empresa');
+  $('hd').innerHTML=`${P.empresa.logo?`<img src="${esc(P.empresa.logo)}" alt="">`:''}<div><span class="b">TRABAJÁ CON NOSOTROS</span></div><h1>${esc(P.empresa.nombre||'')}</h1><small>Búsquedas laborales abiertas</small>`;
+  const b=Q.get('b');if(b&&P.busquedas.some(x=>x.id===b))return abrirForm(b);if(b)banner(ERR.CERRADA,'err');lista();}
+function lista(){const L=P.busquedas;history.replaceState(null,'',location.pathname+'?e='+E8);
+  $('view').innerHTML=L.length?L.map(b=>`<div class="card"><h2>${esc(b.titulo)}</h2><div class="meta">${[b.sector,b.turno&&'Turno '+b.turno,b.modalidad,b.vacantes>1&&b.vacantes+' puestos',b.cierre&&'hasta el '+fmtD(b.cierre)].filter(Boolean).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>
+    ${b.descripcion?`<p>${esc(b.descripcion)}</p>`:''}${b.requisitos?`<p><b>Requisitos:</b> ${esc(b.requisitos)}</p>`:''}<button class="btn" onclick="abrirForm('${b.id}')">Postularme</button></div>`).join('')+
+    `<div class="card"><h2>¿No encontrás tu puesto?</h2><p>Dejanos tus datos y tu CV para próximas búsquedas.</p><button class="btn alt" onclick="abrirForm(null)">Dejar mi CV</button></div>`
+   :`<div class="card empty">Por ahora no hay búsquedas abiertas. ¡Volvé a mirar pronto!</div>`;}
+function abrirForm(id){const b=id?P.busquedas.find(x=>x.id===id):null;history.replaceState(null,'',location.pathname+'?e='+E8+(id?'&b='+id:''));window.scrollTo(0,0);
+  const preg=(b&&b.preguntas||[]).map((q,i)=>q.tipo==='texto'?`<label class="lb" for="q_${i}">${esc(q.t)}</label><input class="in" id="q_${i}" data-t="${esc(q.t)}">`
+    :`<label class="lb">${esc(q.t)}</label><div class="yn"><label><input type="radio" name="q_${i}" value="Sí" data-t="${esc(q.t)}">Sí</label><label><input type="radio" name="q_${i}" value="No" data-t="${esc(q.t)}">No</label></div>`).join('');
+  $('view').innerHTML=`${P.busquedas.length>1||!b?`<button class="back" onclick="lista()">← Ver todas las búsquedas</button>`:''}
+   <div class="card"><h2>${b?esc(b.titulo):'Postulación espontánea'}</h2>${b&&b.requisitos?`<div class="meta">Requisitos: ${esc(b.requisitos)}</div>`:''}
+   <div class="g2"><div><label class="lb" for="f_no">Nombre *</label><input class="in" id="f_no" autocomplete="given-name"></div><div><label class="lb" for="f_ap">Apellido *</label><input class="in" id="f_ap" autocomplete="family-name"></div></div>
+   <div class="g2"><div><label class="lb" for="f_dni">DNI</label><input class="in" id="f_dni" inputmode="numeric" placeholder="Sin puntos"></div><div><label class="lb" for="f_tel">Celular (WhatsApp) *</label><input class="in" id="f_tel" type="tel" autocomplete="tel" placeholder="261 …"></div></div>
+   <div class="g2"><div><label class="lb" for="f_mail">Mail</label><input class="in" id="f_mail" type="email" autocomplete="email"></div><div><label class="lb" for="f_loc">¿Dónde vivís?</label><input class="in" id="f_loc" placeholder="Localidad / departamento"></div></div>
+   <label class="lb">Disponibilidad</label><div class="chips">${DISP.map(d=>`<label><input type="checkbox" class="dp" value="${d}">${d}</label>`).join('')}</div>
+   <label class="lb" for="f_exp">Contanos tu experiencia</label><textarea class="in" id="f_exp" placeholder="Dónde trabajaste, qué hacías, cuánto tiempo. Cursos o carnets que tengas."></textarea>
+   ${preg}
+   <label class="lb" for="f_cv">Tu CV (PDF o foto) — opcional</label><input class="in" type="file" id="f_cv" accept="application/pdf,image/*"><p class="hint">Hasta ${MAX_MB} MB. Si no tenés CV, alcanza con lo que escribiste arriba.</p>
+   <div class="trap" aria-hidden="true"><label>Sitio web<input id="f_web" tabindex="-1" autocomplete="off"></label></div>
+   <label class="ok"><input type="checkbox" id="f_ok"><span>Acepto que <b>${esc(P.empresa.nombre||'la empresa')}</b> guarde mis datos y mi CV para evaluar mi postulación y contactarme por esta y otras búsquedas (Ley 25.326 de Protección de Datos Personales). Puedo pedir acceder a mis datos, corregirlos o que se supriman.</span></label>
+   <button class="btn" id="f_send" onclick="enviar('${id||''}')">Enviar mi postulación</button></div>`;}
+function achicar(file){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const m=1800,k=Math.min(1,m/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>b?res(b):rej(),'image/jpeg',.85);URL.revokeObjectURL(img.src);};img.onerror=rej;img.src=URL.createObjectURL(file);});}
+function uuid(){return crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g,()=>(Math.random()*16|0).toString(16));}
+async function enviar(id){const v=k=>$(k).value.trim();const b=$('f_send');
+  const datos={nombre:v('f_no'),apellido:v('f_ap'),dni:v('f_dni'),telefono:v('f_tel'),email:v('f_mail'),localidad:v('f_loc'),experiencia:v('f_exp'),
+    disponibilidad:[...document.querySelectorAll('.dp:checked')].map(x=>x.value).join(', '),consentimiento:$('f_ok').checked,web:v('f_web')};
+  if(!datos.nombre||!datos.apellido)return banner(ERR.NOMBRE,'err');if(!datos.telefono&&!datos.email)return banner(ERR.CONTACTO,'err');
+  const dni=datos.dni.replace(/\D/g,'');if(dni&&(dni.length<7||dni.length>8))return banner(ERR.DNI,'err');if(!datos.consentimiento)return banner(ERR.CONSENTIMIENTO,'err');
+  const bq=id?P.busquedas.find(x=>x.id===id):null;const resp=[];(bq&&bq.preguntas||[]).forEach((q,i)=>{const r=q.tipo==='texto'?(($('q_'+i)||{}).value||'').trim():((document.querySelector(`input[name="q_${i}"]:checked`)||{}).value||'');if(r)resp.push({t:q.t,r});});
+  let f=$('f_cv').files[0];if(f&&f.size>MAX_MB*1024*1024&&!/^image\//.test(f.type))return banner('El CV supera los '+MAX_MB+' MB','err');
+  b.disabled=true;b.textContent='Enviando…';let path=null,nombre=null,mime=null;
+  try{if(f){let blob=f;nombre=f.name;mime=f.type||'application/octet-stream';if(/^image\//.test(f.type)&&f.type!=='image/gif'){try{blob=await achicar(f);mime='image/jpeg';nombre=nombre.replace(/\.[^.]+$/,'')+'.jpg';}catch(e){}}
+      if(blob.size>MAX_MB*1024*1024)throw new Error('El CV supera los '+MAX_MB+' MB');
+      const safe=nombre.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_').slice(-80);path=`${P.empresa.id}/postulaciones/${uuid()}/${safe}`;
+      const {error}=await sb.storage.from(BUCKET).upload(path,blob,{contentType:mime,upsert:false});if(error)throw new Error(ERR.CV);}
+    const {data,error}=await sb.rpc('rrhh_postular',{p_e8:E8,p_busqueda:id||null,p_datos:datos,p_respuestas:resp,p_cv_path:path,p_cv_nombre:nombre,p_cv_mime:mime});
+    if(error)throw error;if(!data.ok)throw new Error(ERR[data.error]||data.error);
+    $('view').innerHTML=`<div class="card done"><div class="i">🙌</div><h2>¡Gracias, ${esc(datos.nombre)}!</h2><p>Recibimos tu postulación${bq?' para <b>'+esc(bq.titulo)+'</b>':''}. Si tu perfil coincide con lo que buscamos, te vamos a contactar${datos.telefono?' por WhatsApp o teléfono':' por mail'}.</p>${P.busquedas.length>1?'<button class="btn alt" onclick="lista()">Ver otras búsquedas</button>':''}</div>`;window.scrollTo(0,0);}
+  catch(e){banner(e.message||'No se pudo enviar. Probá de nuevo.','err');b.disabled=false;b.textContent='Enviar mi postulación';}}
+init();
+</script>
+</body>
+</html>
